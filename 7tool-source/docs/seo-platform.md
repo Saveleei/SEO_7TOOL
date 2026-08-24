@@ -1,6 +1,6 @@
 # 7TOOL SEO & Content Intelligence Platform
 
-Статус: architecture baseline plus research/import/decision layers through PHASE 8. Production migrations and publication remain human-gated.
+Статус: architecture baseline plus research/import/decision/content layers through PHASE 9. Production migrations and real publication remain human-gated.
 
 ## Goal
 
@@ -49,7 +49,7 @@ Sources → Raw observations → Verified facts → Intent → Opportunity
 
 ## Current approval gates
 
-PHASE 3–8 artifacts are implemented on isolated feature branches, but remain non-production. Before applying them to a live database or using external data:
+PHASE 3–9 artifacts are implemented on isolated feature branches, but remain non-production. Before applying them to a live database or using external data:
 
 1. approve the model in [data-architecture.md](./data-architecture.md);
 2. resolve Git baseline and feature branch;
@@ -73,5 +73,6 @@ PHASE 3–8 artifacts are implemented on isolated feature branches, but remain n
 - [Marketplace Review Intelligence](./marketplace-review-intelligence.md)
 - [SERP & Competitor Intelligence](./serp-competitor-intelligence.md)
 - [Content Opportunity Engine](./content-opportunity-engine.md)
+- [Content Platform / База знаний](./content-platform.md)
 
 # STOP / HUMAN REVIEW REQUIRED

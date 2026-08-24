@@ -54,6 +54,11 @@ export function SiteFooter() {
                   </Link>
                 </li>
                 <li>
+                  <Link href="/articles" className="text-[13.5px] text-steel-300 hover:text-white">
+                    База знаний
+                  </Link>
+                </li>
+                <li>
                   <Link href="/kontakty" className="text-[13.5px] text-steel-300 hover:text-white">
                     Контакты
                   </Link>

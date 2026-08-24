@@ -4,6 +4,7 @@ import { publishedSubcategories } from "@/lib/subcategories";
 import { listPublicCategories } from "@/lib/categories-db";
 import { listPublicBrands, listPublicProductSlugs } from "@/lib/products-db";
 import { brandSlug } from "@/lib/brand";
+import { listPublishedArticles } from "@/lib/articles-db";
 import { statSync } from "node:fs";
 import { join } from "node:path";
 
@@ -70,5 +71,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  return [...staticUrls, ...categoryUrls, ...subcategoryUrls, ...brandUrls, ...productUrls];
+  const publishedArticles = listPublishedArticles(500);
+  const articleUrls: MetadataRoute.Sitemap = publishedArticles.length ? [
+    {
+      url: `${SITE_URL}/articles`,
+      lastModified: new Date(Math.max(...publishedArticles.map((article) => article.updatedAt))),
+      changeFrequency: "weekly",
+      priority: 0.75,
+    },
+    ...publishedArticles.map((article) => ({
+      url: `${SITE_URL}/articles/${article.slug}`,
+      lastModified: new Date(article.updatedAt),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
+  ] : [];
+
+  return [...staticUrls, ...categoryUrls, ...subcategoryUrls, ...brandUrls, ...productUrls, ...articleUrls];
 }

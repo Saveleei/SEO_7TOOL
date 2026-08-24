@@ -27,6 +27,7 @@
     "seo:opportunities:model": "node scripts/configure-opportunity-model.mjs",
     "seo:opportunities:business": "node scripts/register-opportunity-business.mjs",
     "seo:opportunities:evaluate": "node scripts/evaluate-content-opportunity.mjs",
+    "seo:content": "node scripts/content-platform.mjs",
     "max:setup": "node scripts/max-setup.mjs",
     "max:test": "node scripts/max-setup.mjs --send-test",
     "ads:feed": "node scripts/generate-advertising-feed.mjs",

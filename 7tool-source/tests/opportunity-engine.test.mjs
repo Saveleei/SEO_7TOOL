@@ -179,7 +179,7 @@ test("a differentiated new intent produces an idempotent CREATE proposal, never 
     assert.equal(first.opportunity.recommended_url_id, null);
     assert.equal(repeated.duplicate, true);
     assert.equal(db.prepare("SELECT COUNT(*) AS count FROM opportunity_evaluations").get().count, 1);
-    assert.equal(db.prepare("SELECT COUNT(*) AS count FROM sqlite_master WHERE name = 'content_assets'").get().count, 0);
+    assert.equal(db.prepare("SELECT COUNT(*) AS count FROM content_assets").get().count, 0);
 
     registerOpportunityBusinessInput(db, {
       categorySlug: "stanki-sverlilnye", clusterId: evidence.clusterId,

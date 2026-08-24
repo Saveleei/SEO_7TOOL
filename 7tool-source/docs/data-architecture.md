@@ -333,7 +333,7 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 
 ## 16. Proposed migration batches
 
-Миграции PHASE 3–8 созданы как backup-gated artifacts, но к production не применены.
+Миграции PHASE 3–9 созданы как backup-gated artifacts, но к production не применены.
 
 | Batch | Scope | Dependency | Gate |
 |---|---|---|---|
@@ -343,8 +343,9 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 | 004 | review source registry/insights/pain points | legal/API policy | PHASE 6 approval |
 | 005 | SERP sources/snapshots/results/gaps/assessments | approved current Google + Yandex evidence | PHASE 7 approval |
 | 006 | opportunities/scoring | semantic + SERP data | PHASE 8 approval |
-| 007 | content/workflow/media joins | editorial roles | PHASE 9/10 approval |
-| 008 | performance/outcomes | analytics/CRM contracts | PHASE 18 approval |
+| 007 | content assets/briefs/revisions/evidence/workflow | editorial roles | PHASE 9 approval |
+| 008 | media assets/rights/variants/content media | legal rights policy | PHASE 10 approval |
+| 009 | performance/outcomes | analytics/CRM contracts | PHASE 18 approval |
 
 ## 17. API boundaries
 
