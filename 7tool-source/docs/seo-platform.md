@@ -1,6 +1,6 @@
 # 7TOOL SEO & Content Intelligence Platform
 
-Статус: architecture baseline plus research/import/decision/content/media/product-enrichment/tool/internal-linking layers through PHASE 13. Production migrations and real publication remain human-gated.
+Статус: architecture baseline plus research/import/decision/content/media/product-enrichment/tool/internal-linking/lead-generation layers through PHASE 14. Production migrations and real publication remain human-gated.
 
 ## Goal
 
@@ -9,7 +9,8 @@
 ```text
 Sources → Raw observations → Verified facts → Intent → Opportunity
 → Best existing/new page → Quality & rights gates → Human approval
-→ Publish → Search performance → Leads/quotes/orders → Refresh/merge/prune
+→ Publish → Next-question navigation → Intent CTA → attributed lead
+→ Search/business performance → Refresh/merge/prune
 ```
 
 ## Non-negotiable rules
@@ -22,6 +23,7 @@ Sources → Raw observations → Verified facts → Intent → Opportunity
 - `RESEARCH_ONLY` media никогда не публикуется.
 - Existing page improvement precedes new URL when intent is already covered.
 - HIGH cannibalization or any hard fail blocks publication.
+- A content CTA must promise a specific next result; lead attribution never treats a persistent client ID as a session.
 
 ## System boundaries
 
@@ -37,6 +39,7 @@ Sources → Raw observations → Verified facts → Intent → Opportunity
 | Product enrichment layer | evidence-bound product-page sections and versions | commerce fields, supplier copy, unsupported advice |
 | Tool layer | reviewed formulas, verified selectors, compatibility tables | guessed coefficients, unverified product matches |
 | Internal linking layer | reviewed next-question journeys backed by normalized relations | keyword-overlap inference, self-publication, stale links |
+| Lead generation layer | intent forms, normalized CTA keys, immutable attribution snapshots | generic phone capture, forged article context, session/client conflation |
 | Performance layer | query/page/search/business outcomes | credentials in frontend |
 
 ## Current integration points
@@ -53,7 +56,7 @@ Sources → Raw observations → Verified facts → Intent → Opportunity
 
 ## Current approval gates
 
-PHASE 3–13 artifacts are implemented on isolated feature branches, but remain non-production. Before applying them to a live database or using external data:
+PHASE 3–14 artifacts are implemented on isolated feature branches, but remain non-production. Before applying them to a live database or using external data:
 
 1. approve the model in [data-architecture.md](./data-architecture.md);
 2. resolve Git baseline and feature branch;
@@ -82,5 +85,6 @@ PHASE 3–13 artifacts are implemented on isolated feature branches, but remain 
 - [Product Enrichment Engine](./product-enrichment.md)
 - [Calculators, Selectors & Compatibility Tables](./calculators-tools.md)
 - [Internal Linking Engine](./internal-linking.md)
+- [Lead Generation](./lead-generation.md)
 
 # STOP / HUMAN REVIEW REQUIRED

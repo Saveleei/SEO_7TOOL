@@ -25,7 +25,10 @@ export type PublishedArticleSummary = {
   excerpt: string;
   categorySlug: string;
   categoryTitle: string;
+  clusterId: string;
   intent: string;
+  intentKey: string;
+  intentClass: string;
   author: string;
   expertReviewer: string;
   publishedAt: number;
@@ -77,7 +80,10 @@ type ArticleRow = {
   excerpt: string;
   category_slug: string;
   category_title: string;
+  cluster_id: string;
   intent_label: string;
+  intent_key: string;
+  intent_class: string;
   author: string;
   expert_reviewer: string;
   canonical: string;
@@ -221,7 +227,10 @@ function summaryFromRow(row: ArticleRow): PublishedArticleSummary {
     excerpt: row.excerpt,
     categorySlug: row.category_slug,
     categoryTitle: row.category_title,
+    clusterId: row.cluster_id,
     intent: row.intent_label,
+    intentKey: row.intent_key,
+    intentClass: row.intent_class,
     author: row.author,
     expertReviewer: row.expert_reviewer,
     publishedAt: row.published_at,
@@ -232,7 +241,8 @@ function summaryFromRow(row: ArticleRow): PublishedArticleSummary {
 
 const publicArticleSelect = `
   SELECT a.id, a.content_type, a.slug, a.title, a.h1, a.meta_title, a.meta_description, a.excerpt,
-    a.category_slug, c.title AS category_title, i.label AS intent_label, a.author,
+    a.category_slug, c.title AS category_title, a.cluster_id, i.label AS intent_label,
+    i.intent_key, i.intent_class, a.author,
     a.expert_reviewer, a.canonical, a.primary_keyword, a.quality_score, a.evidence_score,
     a.differentiation_score, a.business_score, a.lead_form_type, a.generated_by_ai,
     a.human_reviewed, r.content_body, a.published_at, a.updated_at

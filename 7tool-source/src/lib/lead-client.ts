@@ -16,6 +16,11 @@ export type LeadInput = {
   variantId?: string;
   productTitle?: string;
   productUrl?: string;
+  articleId?: string;
+  keywordClusterId?: string;
+  category?: string;
+  intent?: string;
+  ctaKey?: string;
   extra?: Record<string, unknown>;
 };
 

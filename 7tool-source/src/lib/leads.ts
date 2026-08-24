@@ -2,6 +2,7 @@ import "server-only";
 import nodemailer from "nodemailer";
 import { randomBytes } from "node:crypto";
 import { db } from "./db";
+import { saveLeadAttributionSnapshot } from "./lead-attribution.mjs";
 
 export type LeadType =
   | "contact_form"
@@ -10,7 +11,8 @@ export type LeadType =
   | "one_click"
   | "price_match"
   | "equipment_selection"
-  | "landing_quote";
+  | "landing_quote"
+  | "content_request";
 
 const TYPE_LABELS: Record<LeadType, string> = {
   contact_form: "Заявка с формы «Контакты»",
@@ -20,6 +22,7 @@ const TYPE_LABELS: Record<LeadType, string> = {
   price_match: "«Нашли дешевле?»",
   equipment_selection: "Подбор оборудования",
   landing_quote: "Заявка с рекламной посадочной страницы",
+  content_request: "Запрос из экспертного контента",
 };
 
 export type LeadPayload = {
@@ -36,6 +39,11 @@ export type LeadPayload = {
   productTitle?: string;
   productUrl?: string;
   pageUrl?: string;
+  articleId?: string;
+  keywordClusterId?: string;
+  category?: string;
+  intent?: string;
+  ctaKey?: string;
   extra?: Record<string, unknown>;
   uploadedFile?: string;
   uploadedFiles?: LeadUploadedFile[];
@@ -62,6 +70,7 @@ type AttributionShape = {
   yclid?: string; internalClientId?: string; ymClientId?: string;
   firstTouch?: Record<string, unknown>; lastNonDirect?: Record<string, unknown>;
   landingPage?: string; referrer?: string; firstVisitAt?: string;
+  sessionId?: string;
   // Legacy keys are read only to migrate existing browsers safely.
   clientId?: string;
 };
@@ -91,6 +100,7 @@ export function saveLead(p: LeadPayload, ctx: LeadContext = {}) {
     : null;
   const rid = requestId();
   const connection = db();
+  const createdAt = Date.now();
   const save = connection.transaction(() => {
     const id = (connection
     .prepare(
@@ -104,7 +114,7 @@ export function saveLead(p: LeadPayload, ctx: LeadContext = {}) {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 'new', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .run(
-      Date.now(),
+      createdAt,
       p.type,
       p.name ?? null,
       p.phone ?? null,
@@ -120,8 +130,8 @@ export function saveLead(p: LeadPayload, ctx: LeadContext = {}) {
       ctx.userAgent ?? null,
       p.extra ? JSON.stringify(p.extra) : null,
       rid,
-      typeof extra.category === "string" ? extra.category : null,
-      typeof extra.intent === "string" ? extra.intent : null,
+      p.category ?? (typeof extra.category === "string" ? extra.category : null),
+      p.intent ?? (typeof extra.intent === "string" ? extra.intent : null),
       typeof extra.landing === "string" ? extra.landing : null,
       yclid,
       ymClientId,
@@ -140,6 +150,9 @@ export function saveLead(p: LeadPayload, ctx: LeadContext = {}) {
       p.variantId ?? (typeof extra.variantId === "string" ? extra.variantId : null),
       submissionId,
     ).lastInsertRowid as number);
+    saveLeadAttributionSnapshot(connection, {
+      leadId: id, payload: p, extra, attribution, activeTouch, yclid, capturedAt: createdAt,
+    });
     const now = Date.now();
     const enqueue = connection.prepare(
       "INSERT OR IGNORE INTO notification_outbox (lead_id, channel, state, next_attempt_at) VALUES (?, ?, 'pending', ?)",
@@ -268,6 +281,9 @@ export function renderLeadEmail(p: LeadPayload, leadId: number, ctx: LeadContext
     ["Компания", p.company],
     ["ИНН", p.inn],
     ["Товар", p.productTitle],
+    ["CTA", p.ctaKey],
+    ["Материал", p.articleId],
+    ["Кластер", p.keywordClusterId],
     ["Ссылка на товар", p.productUrl],
     ["Сообщение", p.message],
     ["Приложенные файлы", p.uploadedFiles?.map((file) => `${file.kind === "requisites" ? "Реквизиты" : "Спецификация"}: ${file.originalName}`).join("\n")],

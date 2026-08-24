@@ -5,8 +5,10 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SemanticNextSteps } from "@/components/SemanticNextSteps";
+import { IntentLeadForm } from "@/components/IntentLeadForm";
 import { getPublishedArticle, listPublishedArticleSlugs, type ArticleBlock, type PublishedArticleImage } from "@/lib/articles-db";
 import { getSemanticLinks } from "@/lib/semantic-linking-db";
+import { getLeadProfile } from "@/lib/lead-generation";
 import { indexableRobots, noIndexRobots, pageTitle } from "@/lib/seo-metadata";
 
 export const dynamicParams = true;
@@ -48,6 +50,8 @@ export default async function ArticlePage({ params }: RouteProps) {
   const semanticHrefs = new Set(semanticLinks?.items.map((item) => item.href) ?? []);
   const targetProducts = article.targetProducts.filter((product) => !semanticHrefs.has(`/p/${product.slug}`));
   const relatedArticles = article.relatedArticles.filter((related) => !semanticHrefs.has(`/articles/${related.slug}`));
+  const leadProfile = getLeadProfile({ leadFormType: article.leadFormType, intentClass: article.intentClass, categorySlug: article.categorySlug });
+  const leadProduct = article.targetProducts[0];
   const sourceNumbers = new Map(article.sources.map((source, index) => [source.sourceRef, index + 1]));
   const leadImages = article.images.filter((image) => image.slotType === "HERO" || (!image.sectionHeading && new Set(["DIAGRAM", "COMPARISON"]).has(image.slotType)));
   const unanchoredInlineImages = article.images.filter((image) => image.slotType === "INLINE" && !image.sectionHeading);
@@ -121,6 +125,19 @@ export default async function ArticlePage({ params }: RouteProps) {
 
             <SemanticNextSteps links={semanticLinks} className="mt-14 overflow-hidden rounded-[14px] border" />
 
+            <div className="mt-14">
+              <IntentLeadForm
+                profileKey={leadProfile.key}
+                context={{
+                  articleId: article.id,
+                  keywordClusterId: article.clusterId,
+                  category: article.categorySlug,
+                  intent: article.intentKey,
+                  product: leadProduct ? { id: leadProduct.id, title: leadProduct.title, url: `/p/${leadProduct.slug}` } : undefined,
+                }}
+              />
+            </div>
+
             <section className="mt-14 border-t border-steel-200 pt-9">
               <h2 className="font-display text-[24px] font-extrabold tracking-tight text-steel-900">Источники и проверка</h2>
               <ol className="mt-4 space-y-3 text-[13px] leading-6 text-steel-600">
@@ -157,10 +174,10 @@ export default async function ArticlePage({ params }: RouteProps) {
               </section>
             )}
             <section className="rounded-[14px] border border-amber-300 bg-steel-900 p-5 text-white shadow-card">
-              <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-300">Нужен подбор?</div>
-              <h2 className="mt-3 font-display text-[20px] font-extrabold leading-tight">Проверим параметры вашей задачи</h2>
-              <p className="mt-3 text-[13px] leading-6 text-steel-300">Менеджер поможет сверить оборудование, оснастку и условия поставки.</p>
-              <Link href="/kontakty" className="mt-5 inline-flex min-h-10 w-full items-center justify-center rounded-lg bg-amber-400 px-4 text-[13px] font-extrabold text-steel-900 transition hover:bg-amber-300">Связаться с 7TOOL</Link>
+              <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-300">{leadProfile.eyebrow}</div>
+              <h2 className="mt-3 font-display text-[20px] font-extrabold leading-tight">{leadProfile.title}</h2>
+              <p className="mt-3 text-[13px] leading-6 text-steel-300">{leadProfile.description}</p>
+              <Link href="#intent-lead-form" className="mt-5 inline-flex min-h-10 w-full items-center justify-center rounded-lg bg-amber-400 px-4 text-center text-[13px] font-extrabold text-steel-900 transition hover:bg-amber-300">{leadProfile.cta}</Link>
             </section>
           </aside>
         </div>

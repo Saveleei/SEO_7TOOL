@@ -407,7 +407,7 @@ export function ProductView({
                     className="inline-flex items-center justify-center gap-2 rounded-md bg-amber-400 px-5 py-3 text-[14px] font-bold text-steel-900 shadow-amber transition hover:-translate-y-0.5 hover:bg-amber-300 hover:shadow-elev"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 5h18M3 12h18M3 19h12" /></svg>
-                    Запросить цену
+                    Получить коммерческое предложение
                   </button>
                   <a
                     href={`tel:${manager.phone.replace(/\D/g, "")}`}

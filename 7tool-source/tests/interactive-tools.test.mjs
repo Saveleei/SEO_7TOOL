@@ -293,7 +293,7 @@ test("migration 010 indexes match public/rule queries and rolls back cleanly", (
     `).all().map((row) => row.detail).join("\n");
     assert.match(publicPlan, /idx_interactive_tools_one_published_slug/);
     assert.match(rulePlan, /idx_interactive_tool_rules_set/);
-    for (const filename of ["011_semantic_internal_linking.sql", "010_interactive_tools.sql"]) {
+    for (const filename of ["012_lead_generation.sql", "011_semantic_internal_linking.sql", "010_interactive_tools.sql"]) {
       const migrationSql = fs.readFileSync(path.resolve(import.meta.dirname, "..", "scripts", "migrations", filename), "utf8");
       const downSql = migrationSql.slice(migrationSql.indexOf("-- migrate:down") + "-- migrate:down".length);
       db.exec(downSql);

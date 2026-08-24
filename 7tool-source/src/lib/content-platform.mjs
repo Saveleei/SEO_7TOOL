@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { isAssetPublicationRightsEligible } from "./image-intelligence.mjs";
+import { isKnownLeadFormType } from "./lead-generation.mjs";
 
 export const ARTICLE_STATUSES = Object.freeze([
   "DISCOVERED", "SEMANTIC_REVIEW", "BRIEF_READY", "BRIEF_APPROVED", "CONTENT_DRAFT",
@@ -553,6 +554,9 @@ export function saveArticleRevision(db, input) {
   const metaDescription = cleanText(input.metaDescription ?? article.meta_description, 500) || null;
   const excerpt = requireText(input.excerpt ?? article.excerpt, "excerpt", 1000);
   const leadFormType = cleanText(input.leadFormType ?? article.lead_form_type, 100) || null;
+  if (leadFormType && !isKnownLeadFormType(leadFormType)) {
+    throw new Error("leadFormType must use a reviewed PHASE 14 intent profile");
+  }
   const revisionNumber = db.prepare("SELECT COALESCE(MAX(revision_number), 0) + 1 AS revision FROM content_revisions WHERE content_asset_id = ?").get(article.id).revision;
   const revisionId = randomUUID();
   const now = Date.now();

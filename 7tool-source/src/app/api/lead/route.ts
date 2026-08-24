@@ -4,7 +4,7 @@ import { storeLeadDocument, type LeadDocumentKind } from "@/lib/specification-st
 
 export const runtime = "nodejs";
 
-const ALLOWED: LeadType[] = ["contact_form", "cart_quote", "product_quote", "one_click", "price_match", "equipment_selection", "landing_quote"];
+const ALLOWED: LeadType[] = ["contact_form", "cart_quote", "product_quote", "one_click", "price_match", "equipment_selection", "landing_quote", "content_request"];
 const MAX_JSON_BYTES = 24_000;
 const MAX_MULTIPART_BYTES = 20 * 1024 * 1024 + 120_000;
 const WINDOW_MS = 10 * 60_000;
@@ -74,9 +74,11 @@ function safeAttribution(value: unknown): Record<string, unknown> | undefined {
   const yclid = text(raw.yclid, 200);
   const ymClientId = text(raw.ymClientId, 40);
   const internalClientId = text(raw.internalClientId, 120);
+  const sessionId = text(raw.sessionId, 120);
   if (yclid && /^[A-Za-z0-9_-]{6,200}$/.test(yclid)) output.yclid = yclid;
   if (ymClientId && /^\d{3,40}$/.test(ymClientId)) output.ymClientId = ymClientId;
   if (internalClientId && /^[A-Za-z0-9_-]{8,120}$/.test(internalClientId)) output.internalClientId = internalClientId;
+  if (sessionId && /^[A-Za-z0-9_-]{8,120}$/.test(sessionId)) output.sessionId = sessionId;
   const landingPage = safeSiteUrl(raw.landingPage, ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "yclid", "variant"]);
   const referrer = safeReferrer(raw.referrer);
   const firstVisitAt = text(raw.firstVisitAt, 80);
@@ -220,7 +222,13 @@ export async function POST(req: NextRequest) {
       variantId: text(body.variantId, 120),
       productTitle: text(body.productTitle, 500),
       productUrl: safeSiteUrl(body.productUrl, ["variant"]),
-      pageUrl: safeSiteUrl(body.pageUrl, ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "yclid", "variant"]),
+      pageUrl: safeSiteUrl(body.pageUrl, ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "yclid", "variant"])
+        ?? safeSiteUrl(req.headers.get("referer"), ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "yclid", "variant"]),
+      articleId: text(body.articleId, 200),
+      keywordClusterId: text(body.keywordClusterId, 200),
+      category: text(body.category, 200),
+      intent: text(body.intent, 200),
+      ctaKey: text(body.ctaKey, 100),
       extra,
       uploadedFile,
       uploadedFiles,

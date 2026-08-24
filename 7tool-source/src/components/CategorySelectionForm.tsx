@@ -5,6 +5,7 @@ import type { SelectionField } from "@/lib/category-content";
 import { sendLead } from "@/lib/lead-client";
 import { formatPhone } from "@/lib/phone";
 import { trackConfirmedLead } from "@/lib/analytics";
+import { getLeadProfile } from "@/lib/lead-generation";
 
 export type SelectionProductContext = {
   id: string;
@@ -34,6 +35,7 @@ export function CategorySelectionForm({
   // Conversion guard: even if a category is expanded later, the public form
   // stays short. Three task questions plus a phone number is the visible path.
   const compactFields = fields.slice(0, 3);
+  const leadProfile = getLeadProfile({ categorySlug: category, intentClass: "SELECTION" });
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
@@ -69,6 +71,9 @@ export function CategorySelectionForm({
         ? `${heading ?? `Подбор · ${categoryTitle}`} · ${productReference}`
         : `Подбор · ${categoryTitle}${subcategory ? ` · ${subcategory}` : ""}`,
       productUrl: productContext?.url,
+      category,
+      intent: "SELECTION",
+      ctaKey: leadProfile.ctaKey,
       extra: {
         category,
         categoryTitle,
@@ -185,7 +190,7 @@ export function CategorySelectionForm({
           {error && <p role="alert" aria-live="assertive" className="text-[13px] text-red-700 sm:col-span-2">{error}</p>}
           <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center">
             <button disabled={busy} className="rounded-md bg-amber-400 px-5 py-3 text-[14px] font-bold text-steel-900 shadow-amber transition hover:bg-amber-300 disabled:opacity-60">
-              {busy ? "Отправляем…" : "Получить подбор и цены"}
+              {busy ? "Отправляем…" : leadProfile.cta}
             </button>
             <p className="text-[11.5px] leading-snug text-steel-500">Без спама. Нажимая кнопку, вы соглашаетесь с обработкой персональных данных.</p>
           </div>

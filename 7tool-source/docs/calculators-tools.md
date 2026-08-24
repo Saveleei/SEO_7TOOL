@@ -144,6 +144,8 @@ npm run seo:tools -- list --db=isolated.db
 
 PHASE 13 adds a separate, human-published semantic link projection. A selector may point to a product only when that product remains in its current verified dataset (or a HUMAN records an explicit curation basis). A product may point to the compatibility table only while its verified compatibility row remains public. Tool publication alone never creates these links.
 
+PHASE 14 adds an intent form after each tool: selectors request a bounded equipment shortlist, the RPM calculator requests a kit calculation, and the compatibility table requests a compatibility check. Each submission has its own normalized CTA key and session/source attribution; the tool result itself is not changed or overstated.
+
 The Sites/SQLite guidance influenced the implementation by preserving the existing Next.js structure and visual language, using indexes derived from actual public/workflow queries, and verifying those indexes with `EXPLAIN QUERY PLAN`.
 
 ## Verification

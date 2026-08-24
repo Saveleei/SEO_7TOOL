@@ -312,9 +312,11 @@ test("migration 011 indexes match public/history queries and rolls back cleanly"
     `).all().map((row) => row.detail).join("\n");
     assert.match(publicPlan, /idx_semantic_links_(?:one_published|public)/);
     assert.match(itemsPlan, /idx_semantic_link_items_set/);
-    const migrationSql = fs.readFileSync(path.resolve(import.meta.dirname, "..", "scripts", "migrations", "011_semantic_internal_linking.sql"), "utf8");
-    const downSql = migrationSql.slice(migrationSql.indexOf("-- migrate:down") + "-- migrate:down".length);
-    db.exec(downSql);
+    for (const filename of ["012_lead_generation.sql", "011_semantic_internal_linking.sql"]) {
+      const migrationSql = fs.readFileSync(path.resolve(import.meta.dirname, "..", "scripts", "migrations", filename), "utf8");
+      const downSql = migrationSql.slice(migrationSql.indexOf("-- migrate:down") + "-- migrate:down".length);
+      db.exec(downSql);
+    }
     assert.equal(db.prepare("SELECT COUNT(*) AS count FROM sqlite_schema WHERE name = 'semantic_link_sets'").get().count, 0);
   } finally {
     db.close();

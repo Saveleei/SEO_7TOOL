@@ -54,6 +54,9 @@ export function OneClickModal({
       variantId: variant.id,
       productTitle: `${variantTitle(product, variant)} · арт. ${variant.sku}${variant.price ? " · " + variant.price + " ₽" : ""}`,
       productUrl: `/p/${variantSlug(product, variant)}`,
+      category: product.category,
+      intent: quoteMode ? "COMMERCIAL" : "PRODUCT",
+      ctaKey: quoteMode ? "request_commercial_offer" : "one_click",
       extra: { intent: quoteMode ? "quote" : "one_click", variantId: variant.id, sku: variant.sku },
     });
     setBusy(false);
@@ -100,7 +103,7 @@ export function OneClickModal({
               {quoteMode ? "Коммерческое предложение" : "Купить в 1 клик"}
             </div>
             <h2 className="mt-1.5 font-display text-[20px] font-extrabold leading-tight text-steel-900">
-              {quoteMode ? "Получить КП по выбранному товару" : "Заявка без оформления — менеджер перезвонит"}
+              {quoteMode ? "Получить коммерческое предложение" : "Заявка без оформления — менеджер перезвонит"}
             </h2>
           </div>
 
@@ -142,7 +145,7 @@ export function OneClickModal({
               disabled={busy}
               className="mt-1 inline-flex items-center justify-center gap-2 rounded-md bg-amber-400 px-5 py-3 text-[14px] font-bold text-steel-900 shadow-amber transition hover:-translate-y-0.5 hover:bg-amber-300 disabled:opacity-60"
             >
-              {busy ? "Отправляем…" : quoteMode ? "Получить КП" : "Отправить заявку"}
+              {busy ? "Отправляем…" : quoteMode ? "Получить коммерческое предложение" : "Отправить заявку"}
             </button>
             <p className="text-center text-[11px] leading-snug text-steel-500">
               Нажимая «Отправить», вы соглашаетесь с обработкой персональных данных.

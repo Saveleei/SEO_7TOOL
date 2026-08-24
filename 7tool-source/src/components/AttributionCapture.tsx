@@ -8,6 +8,7 @@ import { YANDEX_METRIKA_ID } from "@/lib/metrika-config";
 export const ATTRIBUTION_KEY = "7tool.attribution.v2";
 const LEGACY_ATTRIBUTION_KEY = "7tool.first-touch.v1";
 const CLIENT_KEY = "7tool.internal-client-id.v1";
+const SESSION_KEY = "7tool.session-id.v1";
 
 export type CampaignTouch = {
   utm_source?: string;
@@ -30,6 +31,7 @@ export type LeadAttribution = {
   firstVisitAt: string;
   internalClientId: string;
   ymClientId?: string;
+  sessionId?: string;
 };
 
 function asString(value: unknown): string | undefined {
@@ -91,6 +93,17 @@ function internalClientId(): string {
       ? crypto.randomUUID()
       : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     window.localStorage.setItem(CLIENT_KEY, value);
+  }
+  return value;
+}
+
+function sessionId(): string {
+  let value = window.sessionStorage.getItem(SESSION_KEY) || undefined;
+  if (!value) {
+    value = typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    window.sessionStorage.setItem(SESSION_KEY, value);
   }
   return value;
 }
@@ -169,8 +182,9 @@ function parseStored(raw: string | null): LeadAttribution | undefined {
 export function readAttribution(): LeadAttribution | undefined {
   if (typeof window === "undefined") return undefined;
   try {
-    return parseStored(window.localStorage.getItem(ATTRIBUTION_KEY))
+    const stored = parseStored(window.localStorage.getItem(ATTRIBUTION_KEY))
       || parseStored(window.localStorage.getItem(LEGACY_ATTRIBUTION_KEY));
+    return stored ? { ...stored, sessionId: sessionId() } : undefined;
   } catch {
     return undefined;
   }

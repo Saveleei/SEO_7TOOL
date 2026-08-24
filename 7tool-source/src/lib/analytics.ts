@@ -19,6 +19,7 @@ export type AnalyticsEvent =
   | "submit_order"
   | "submit_contact"
   | "submit_equipment_selection"
+  | "submit_intent_lead"
   | "submit_cart_quote"
   | "submit_price_match"
   | "search"
@@ -43,6 +44,7 @@ export type AnalyticsParams = {
   product_id?: string;
   variant_id?: string;
   brand?: string;
+  cta_key?: string;
   intent?: string;
   placement?: string;
   channel?: string;

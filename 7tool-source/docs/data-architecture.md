@@ -77,6 +77,7 @@ erDiagram
   PRODUCTS ||--o{ SEMANTIC_LINK_SETS : navigates_from
   INTERACTIVE_TOOL_SETS ||--o{ SEMANTIC_LINK_SETS : navigates_from
   SEMANTIC_LINK_SETS ||--o{ SEMANTIC_LINK_ITEMS : contains
+  LEADS ||--o| LEAD_ATTRIBUTION_SNAPSHOTS : attributed_by
   CATEGORIES ||--o{ PRODUCTS : contains
   SOURCES ||--o{ SOURCE_FACTS : provides
   IMPORT_RUNS ||--o{ SOURCE_FACTS : produces
@@ -301,7 +302,7 @@ Join tables задают scope review.
 
 ### Lead attribution extension
 
-Не ломая `leads`, добавить nullable FK: `site_url_id`, `content_asset_id`, `opportunity_id`, `cluster_id`, `intent_id`, `cta_key`. Quote/order/revenue лучше хранить в `lead_outcomes` с history, а не постоянно расширять `leads`.
+PHASE 14 сохраняет one-to-one immutable `lead_attribution_snapshots`, не перегружая operational `leads`: article, safe page URL/path, cluster, category, product snapshot, intent, normalized CTA, referrer, UTM, true session ID, deterministic source and captured timestamp. Article/cluster/category/intent resolve server-side from current public content. Snapshot deletion follows lead retention cascade; updates are prohibited. Quote/order/revenue лучше хранить в `lead_outcomes` с history, а не постоянно расширять `leads`.
 
 ## 13. Scoring architecture
 
@@ -348,7 +349,7 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 
 ## 16. Proposed migration batches
 
-Миграции PHASE 3–13 созданы как backup-gated artifacts, но к production не применены.
+Миграции PHASE 3–14 созданы как backup-gated artifacts, но к production не применены.
 
 | Batch | Scope | Dependency | Gate |
 |---|---|---|---|
@@ -363,8 +364,9 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 | 009 | versioned product enrichment/items/reviews/audit | verified knowledge graph + human reviewer | PHASE 11 approval |
 | 010 | interactive tool sets/rules/reviews/audit | reviewed opportunities + verified facts | PHASE 12 approval |
 | 011 | semantic link sets/items/reviews/audit | public content/products/categories/tools + normalized relation proofs | PHASE 13 approval |
+| 012 | immutable lead attribution snapshots | operational leads + public page context | PHASE 14 privacy/retention approval |
 
-Performance/outcomes остаются scope PHASE 18; номер их миграции назначается в той фазе и не резервирует batch 009/010/011.
+Performance/outcomes остаются scope PHASE 18; номер их миграции назначается в той фазе и не резервирует batch 009/010/011/012.
 
 ## 17. API boundaries
 

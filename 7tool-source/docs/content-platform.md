@@ -48,6 +48,8 @@ Arrays from the logical Article model are not packed into a mutable article JSON
 
 Since PHASE 13, `content_products`, `content_related` and the reviewed category also serve as normalized proof for separately versioned semantic link sets. These facts do not publish links by themselves: an editor must approve and publish the next-question journey. If the relation or target changes, the public semantic block disappears immediately. The article renderer suppresses legacy product/related links that are already present in the published semantic block.
 
+Since PHASE 14, the public article resolves a task-specific lead profile from the reviewed `lead_form_type`, intent class and category. Unknown explicit profile values are rejected during revision save. The form records the article/cluster/intent context server-side and uses a normalized CTA key; it does not trust client-supplied article attribution.
+
 Append-only triggers prevent update/delete of content revisions, approvals, workflow events and quality checks. Brief content and brief items are immutable; correction requires a new brief version. The migration ends with `PRAGMA optimize`.
 
 Indexes are tied to actual access patterns:
@@ -208,7 +210,7 @@ Full project regression, TypeScript check, numbered migration dry-run and Next p
 - calibration of evidence/differentiation score thresholds from pilot outcomes;
 - production Image Intelligence migration, real supplier rights approvals and media ingestion;
 - Article/FAQ structured data — PHASE 15;
-- analytics for article depth/product clicks/leads — PHASE 18;
+- article-depth and attributed lead-outcome analysis — PHASE 18;
 - real PHASE 13 semantic link sets and production migration 011;
 - content refresh automation — PHASE 21;
 - deployment/hosting and publication of production content.
