@@ -32,6 +32,8 @@
     "seo:product-enrichment": "node scripts/product-enrichment.mjs",
     "seo:tools": "node scripts/interactive-tools.mjs",
     "seo:links": "node scripts/semantic-linking.mjs",
+    "seo:google:import": "node scripts/import-google-search-console.mjs",
+    "seo:google:quick-wins": "node scripts/google-quick-wins.mjs",
     "max:setup": "node scripts/max-setup.mjs",
     "max:test": "node scripts/max-setup.mjs --send-test",
     "ads:feed": "node scripts/generate-advertising-feed.mjs",

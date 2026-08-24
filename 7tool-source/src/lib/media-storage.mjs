@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
+import { descriptiveImageFilename } from "./image-seo.mjs";
 
 const MAX_SOURCE_BYTES = 50 * 1024 * 1024;
 const MAX_INPUT_PIXELS = 80_000_000;
@@ -29,9 +30,22 @@ export function resolveMediaStorageKey(storageKey) {
   return resolved.startsWith(`${path.resolve(root, "variants")}${path.sep}`) ? resolved : null;
 }
 
-export function mediaPublicUrl(storageKey) {
+export function storageKeyFromPublicMediaPath(publicPath) {
+  const normalized = String(publicPath ?? "").replace(/\\/g, "/");
+  if (resolveMediaStorageKey(normalized)) return normalized;
+  const match = normalized.match(/^([a-z0-9][a-z0-9-]{9,79})\/(\d{2,4})-[a-z0-9][a-z0-9-]{0,64}\.(webp|avif)$/i);
+  if (!match) return null;
+  const storageKey = `${match[1]}/${match[2]}.${match[3].toLocaleLowerCase("en")}`;
+  return resolveMediaStorageKey(storageKey) ? storageKey : null;
+}
+
+export function mediaPublicUrl(storageKey, description) {
   if (!resolveMediaStorageKey(storageKey)) throw new Error("Invalid public media storage key");
-  return `/media/${String(storageKey).replace(/\\/g, "/")}`;
+  const normalized = String(storageKey).replace(/\\/g, "/");
+  if (!String(description ?? "").trim()) return `/media/${normalized}`;
+  const [assetId, variant] = normalized.split("/");
+  const [width, format] = variant.split(".");
+  return `/media/${assetId}/${descriptiveImageFilename(description, Number(width), format)}`;
 }
 
 async function writeImmutable(filePath, buffer) {

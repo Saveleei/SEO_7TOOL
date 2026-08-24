@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { isAssetPublicationRightsEligible } from "@/lib/image-intelligence.mjs";
-import { resolveMediaStorageKey } from "@/lib/media-storage.mjs";
+import { resolveMediaStorageKey, storageKeyFromPublicMediaPath } from "@/lib/media-storage.mjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,7 +30,8 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ path: string[] }> },
 ) {
-  const storageKey = (await params).path.join("/");
+  const storageKey = storageKeyFromPublicMediaPath((await params).path.join("/"));
+  if (!storageKey) return new NextResponse("Not found", { status: 404 });
   const filePath = resolveMediaStorageKey(storageKey);
   if (!filePath) return new NextResponse("Not found", { status: 404 });
   const database = db();

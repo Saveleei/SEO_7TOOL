@@ -199,6 +199,7 @@ export function ProductView({
           <div className="relative overflow-hidden rounded-[var(--radius-card)] border border-steel-200 bg-white shadow-card">
             <ProductImage
               p={{ icon: product.icon, title: product.title, images: gallery }}
+              priority
               index={Math.min(imgIndex, Math.max(0, gallery.length - 1))}
               alt={`${variantTitle(product, variant)} — фото ${Math.min(imgIndex, Math.max(0, gallery.length - 1)) + 1}`}
               className="aspect-square sm:aspect-[5/4]"

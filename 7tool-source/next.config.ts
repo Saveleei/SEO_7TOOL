@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
   productionBrowserSourceMaps: false,
+  images: {
+    formats: ["image/avif", "image/webp"],
+    remotePatterns: [{ protocol: "https", hostname: "s3.export.k2tool.ru", pathname: "/**" }],
+  },
   experimental: {
     // Каталог генерирует сотни маршрутов. Один worker делает релизную сборку
     // предсказуемой на сервере и локально без пиков памяти от параллельных БД-чтений.

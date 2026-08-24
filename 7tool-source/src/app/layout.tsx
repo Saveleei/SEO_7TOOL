@@ -7,6 +7,7 @@ import { SiteJsonLd } from "@/components/SiteJsonLd";
 import { absoluteUrl, SITE_URL } from "@/lib/site-config";
 import { AttributionCapture } from "@/components/AttributionCapture";
 import { YandexMetrika } from "@/components/YandexMetrika";
+import { WebVitals } from "@/components/WebVitals";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -63,6 +64,7 @@ export default function RootLayout({
         <SiteJsonLd />
         <AttributionCapture />
         <YandexMetrika />
+        <WebVitals />
         <CartProvider>
           <FavoritesProvider>
             {children}

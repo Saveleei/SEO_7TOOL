@@ -18,7 +18,7 @@ import { getSubcategoriesForCategory } from "@/lib/subcategories";
 import { absoluteUrl } from "@/lib/site-config";
 import { listingFacetNames, productForListing } from "@/lib/catalog";
 import { indexableRobots, noIndexRobots, pageTitle } from "@/lib/seo-metadata";
-import { catalogFilterValues, catalogPageHref, catalogPageNumber, hasCatalogFilters, type CatalogQuery } from "@/lib/catalog-query";
+import { catalogFacetDecision, catalogFilterValues, catalogPageHref, catalogPageNumber, hasCatalogFilters, type CatalogQuery } from "@/lib/catalog-query";
 import { categorySocialPreviewPath, socialPreviewImage } from "@/lib/social-preview";
 
 // Keep known categories prerendered, but allow Next.js to regenerate a route
@@ -42,7 +42,7 @@ export async function generateMetadata({ params, searchParams }: RouteProps) {
   if (page > Math.max(1, Math.ceil(categoryProducts.length / 24))) {
     return { title: "Страница не найдена", robots: noIndexRobots };
   }
-  const filtered = hasCatalogFilters(query);
+  const filtered = catalogFacetDecision(query).hasFacets;
   const content = contentForCategory(cat.slug, cat.title);
   const baseTitle = cat.metaTitle || content.metaTitle;
   const title = page > 1 && !filtered ? `${baseTitle} — страница ${page}` : baseTitle;

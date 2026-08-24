@@ -296,9 +296,17 @@ Join tables задают scope review.
 
 ## 12. Performance and lead domain
 
-### `seo_performance_daily`
+### `seo_performance_daily` (future cross-channel aggregate)
 
 `date`, `source`, `site_url_id`, optional keyword/query hash, country, region, device, impressions, clicks, ctr, average_position, organic_sessions, product_clicks, leads, quotes, orders, revenue, margin. Grain обязателен и документируется; агрегаты разных grain не смешиваются.
+
+### PHASE 16 Google SEO projection
+
+`gsc_import_runs` stores immutable property/date/search-type provenance, exact dimension contract, acquisition method, source digest and row count. `gsc_search_performance_daily` stores the exact daily `URL + query + country + device + search_type` grain with route path, impressions, clicks, CTR, average position and facet marker. Freshest-run selection happens at read time without deleting history.
+
+`google_quick_wins` contains evidence snapshots only for existing live/indexable `site_urls`, impression-weighted position 6–20 and a configurable high-impression floor. Its schema admits only `HIGH_PRIORITY_UPDATE + UPDATE`.
+
+`core_web_vital_samples` stores only metric id/name, route path, value, rating, navigation type and capture time. `facet_indexing_policies` versions human-reviewed `INDEXABLE_SEO_LANDING` or default `NON_INDEXABLE_FACET` decisions; an indexable classification must reference a distinct live landing URL.
 
 ### Lead attribution extension
 
@@ -349,7 +357,7 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 
 ## 16. Proposed migration batches
 
-Миграции PHASE 3–14 созданы как backup-gated artifacts, но к production не применены.
+Миграции PHASE 3–16 созданы как backup-gated artifacts, но к production не применены.
 
 | Batch | Scope | Dependency | Gate |
 |---|---|---|---|
@@ -365,8 +373,9 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 | 010 | interactive tool sets/rules/reviews/audit | reviewed opportunities + verified facts | PHASE 12 approval |
 | 011 | semantic link sets/items/reviews/audit | public content/products/categories/tools + normalized relation proofs | PHASE 13 approval |
 | 012 | immutable lead attribution snapshots | operational leads + public page context | PHASE 14 privacy/retention approval |
+| 013 | GSC observations/Quick Wins/CWV/facet policy | URL registry + reviewed GSC export | PHASE 16 access/retention/threshold approval |
 
-Performance/outcomes остаются scope PHASE 18; номер их миграции назначается в той фазе и не резервирует batch 009/010/011/012.
+Cross-channel business outcomes remain scope PHASE 18. PHASE 16 stores Google Search Console observations and privacy-minimal field CWV only; it does not implement the future revenue/outcome aggregate.
 
 ## 17. API boundaries
 

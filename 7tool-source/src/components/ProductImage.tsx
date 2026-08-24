@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import type { Product } from "@/lib/catalog";
 import { CategoryArt } from "./CategoryArt";
 
@@ -10,12 +11,14 @@ export function ProductImage({
   className = "",
   sizes,
   alt,
+  priority = false,
 }: {
   p: { icon: Product["icon"]; images?: Product["images"]; title: Product["title"] };
   index?: number;
   className?: string;
   sizes?: string;
   alt?: string;
+  priority?: boolean;
 }) {
   const src = p.images?.[index];
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
@@ -25,13 +28,14 @@ export function ProductImage({
   }
   return (
     <div className={`relative overflow-hidden bg-white ${className}`}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <Image
         src={src}
         alt={alt || p.title}
-        loading="lazy"
-        decoding="async"
-        sizes={sizes}
+        fill
+        priority={priority}
+        loading={priority ? undefined : "lazy"}
+        fetchPriority={priority ? "high" : "auto"}
+        sizes={sizes || "100vw"}
         onError={() => setFailedSrc(src)}
         className="absolute inset-0 h-full w-full object-contain p-3"
       />

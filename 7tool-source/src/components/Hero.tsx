@@ -124,7 +124,7 @@ function DealBanner() {
 
         {/* фото товара — скрыто на мобиле, чтобы баннер не разрастался */}
         <Link href={`/p/${p.slug}`} className="relative hidden overflow-hidden bg-gradient-to-br from-amber-50 via-white to-amber-100/40 sm:block sm:border-l sm:border-steel-200">
-          <ProductImage p={p} className="aspect-square sm:aspect-auto sm:h-full" sizes="(min-width: 640px) 240px, 100vw" />
+          <ProductImage p={p} priority className="aspect-square sm:aspect-auto sm:h-full" sizes="(min-width: 640px) 240px, 100vw" />
           <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,_rgba(245,158,11,0.18),_transparent_60%)]" />
         </Link>
       </div>

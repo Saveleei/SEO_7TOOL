@@ -27,6 +27,8 @@ export function QuickChips({ items, slug }: { items: Product[]; slug: string }) 
         <Link
           key={`${c.name}-${c.value}`}
           href={`/c/${slug}?${encodeURIComponent(c.name)}=${encodeURIComponent(c.value)}`}
+          rel="nofollow"
+          data-facet-classification="NON_INDEXABLE_FACET"
           className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[12.5px] font-semibold text-white transition hover:-translate-y-0.5 hover:border-amber-400 hover:bg-amber-400 hover:text-steel-900"
         >
           {c.value}

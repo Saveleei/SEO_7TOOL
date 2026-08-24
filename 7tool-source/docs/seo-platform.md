@@ -1,6 +1,6 @@
 # 7TOOL SEO & Content Intelligence Platform
 
-Статус: architecture baseline plus research/import/decision/content/media/product-enrichment/tool/internal-linking/lead-generation/structured-data layers through PHASE 15. Production migrations and real publication remain human-gated.
+Статус: architecture baseline plus research/import/decision/content/media/product-enrichment/tool/internal-linking/lead-generation/structured-data/Google SEO layers through PHASE 16. Production migrations, external GSC access and real publication remain human-gated.
 
 ## Goal
 
@@ -26,6 +26,8 @@ Sources → Raw observations → Verified facts → Intent → Opportunity
 - HIGH cannibalization or any hard fail blocks publication.
 - A content CTA must promise a specific next result; lead attribution never treats a persistent client ID as a session.
 - Structured data may describe only visible content and complete verified facts; missing policy/video data means no corresponding node.
+- Google Quick Wins update only an existing live indexable URL at positions 6–20; they never create a page.
+- Catalog query facets default to `NON_INDEXABLE_FACET`; a separate SEO landing requires human review.
 
 ## System boundaries
 
@@ -43,6 +45,7 @@ Sources → Raw observations → Verified facts → Intent → Opportunity
 | Internal linking layer | reviewed next-question journeys backed by normalized relations | keyword-overlap inference, self-publication, stale links |
 | Lead generation layer | intent forms, normalized CTA keys, immutable attribution snapshots | generic phone capture, forged article context, session/client conflation |
 | Structured data layer | script-safe Product/Offer/Brand/Breadcrumb/Article/Organization projections | invented MPN, policy, condition, video, rating or review data |
+| Google SEO layer | immutable GSC observations, existing-page Quick Wins, CWV RUM, facet policy and image discovery | OAuth credentials, automatic publication or arbitrary facet indexation |
 | Performance layer | query/page/search/business outcomes | credentials in frontend |
 
 ## Current integration points
@@ -55,11 +58,12 @@ Sources → Raw observations → Verified facts → Intent → Opportunity
 - `src/lib/landing-selection.ts`: seed for universal intent/cannibalization decision engine.
 - `src/lib/leads.ts`: add content/opportunity attribution without changing notification semantics.
 - `src/lib/analytics.ts`: future content/tool events and performance correlation.
+- `src/lib/google-seo.mjs`: exact-grain GSC imports, update-only Quick Wins, CWV classification and reviewed facet policy.
 - admin routes: future `SEO Intelligence` module, protected by roles and workflow permissions.
 
 ## Current approval gates
 
-PHASE 3–15 artifacts are implemented on isolated feature branches, but remain non-production. Before applying them to a live database or using external data:
+PHASE 3–16 artifacts are implemented on isolated feature branches, but remain non-production. Before applying them to a live database or using external data:
 
 1. approve the model in [data-architecture.md](./data-architecture.md);
 2. resolve Git baseline and feature branch;
@@ -70,6 +74,7 @@ PHASE 3–15 artifacts are implemented on isolated feature branches, but remain 
 7. record legal/robots/access approval for each review and SERP source before import;
 8. obtain current comparable Google+Yandex evidence for priority clusters;
 9. approve and calibrate the opportunity score model and business inputs.
+10. approve GSC property access, export completeness, query retention and Quick Win impression threshold.
 
 ## Documentation index
 
@@ -90,5 +95,6 @@ PHASE 3–15 artifacts are implemented on isolated feature branches, but remain 
 - [Internal Linking Engine](./internal-linking.md)
 - [Lead Generation](./lead-generation.md)
 - [Structured Data](./structured-data.md)
+- [Google SEO](./google-seo.md)
 
 # STOP / HUMAN REVIEW REQUIRED

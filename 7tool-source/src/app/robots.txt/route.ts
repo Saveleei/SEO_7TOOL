@@ -11,6 +11,7 @@ export function GET() {
     "Clean-param: utm_source&utm_medium&utm_campaign&utm_term&utm_content&yclid&gclid&_openstat /",
     `Host: ${new URL(SITE_URL).host}`,
     `Sitemap: ${SITE_URL}/sitemap.xml`,
+    `Sitemap: ${SITE_URL}/image-sitemap.xml`,
     "",
   ].join("\n");
   return new Response(body, { headers: { "Content-Type": "text/plain; charset=utf-8" } });

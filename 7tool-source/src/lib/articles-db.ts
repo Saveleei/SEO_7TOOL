@@ -190,7 +190,7 @@ function articleImages(articleId: string): PublishedArticleImage[] {
       variants: [],
     };
     image.variants.push({
-      url: mediaPublicUrl(row.storage_key),
+      url: mediaPublicUrl(row.storage_key, row.contextual_alt),
       width: row.width,
       height: row.height,
       mime: row.mime,

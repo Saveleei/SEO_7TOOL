@@ -13,7 +13,7 @@ import { StructuredData } from "@/components/StructuredData";
 import { CategoryFilters } from "../CategoryFilters";
 import { listingFacetNames, productForListing } from "@/lib/catalog";
 import { indexableRobots, noIndexRobots, pageTitle } from "@/lib/seo-metadata";
-import { catalogFilterValues, catalogPageHref, catalogPageNumber, hasCatalogFilters, type CatalogQuery } from "@/lib/catalog-query";
+import { catalogFacetDecision, catalogFilterValues, catalogPageHref, catalogPageNumber, hasCatalogFilters, type CatalogQuery } from "@/lib/catalog-query";
 import { categorySocialPreviewPath, socialPreviewImage } from "@/lib/social-preview";
 
 // Subcategory pages use the same safe fallback behaviour as their parent
@@ -39,7 +39,7 @@ export async function generateMetadata({
   const page = catalogPageNumber(query);
   const maxPage = Math.max(1, Math.ceil(subcategory.items.length / 24));
   if (!page || page > maxPage) return { title: "Страница не найдена", robots: noIndexRobots };
-  const filtered = hasCatalogFilters(query);
+  const filtered = catalogFacetDecision(query).hasFacets;
   const parentCategory = categoryBySlug(slug);
   const fallbackProductImage = subcategory.items
     .find((product) => product.images?.[0])?.images?.[0];

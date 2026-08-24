@@ -1,4 +1,5 @@
 export type CatalogQuery = Record<string, string | string[] | undefined>;
+export const NON_INDEXABLE_FACET = "NON_INDEXABLE_FACET" as const;
 
 const TRACKING_PARAMS = new Set([
   "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term",
@@ -25,6 +26,17 @@ export function catalogFilterValues(query: CatalogQuery): Record<string, string[
 
 export function hasCatalogFilters(query: CatalogQuery): boolean {
   return Object.keys(catalogFilterValues(query)).length > 0;
+}
+
+export function catalogFacetDecision(query: CatalogQuery) {
+  const facets = catalogFilterValues(query);
+  return {
+    classification: NON_INDEXABLE_FACET,
+    indexable: false,
+    facets,
+    hasFacets: Object.keys(facets).length > 0,
+    rationale: "Query-string facets are crawl controls, not reviewed SEO landing pages.",
+  };
 }
 
 export function catalogPageHref(basePath: string, page: number): string {

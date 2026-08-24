@@ -85,7 +85,7 @@ Processing validates a single JPEG/PNG/WebP/AVIF file up to 50 MB and 80 megapix
 
 Exact SHA duplicates become `SUPERSEDED`. Variant records and generation records are append-only. `.media/` is gitignored.
 
-Only `/media/{asset-id}/{width}.{webp|avif}` is public. Originals and origin URLs are never served by this route. Every request rechecks processed status, license and active grant, returns immutable cache headers, ETag and `nosniff`.
+Only `/media/{asset-id}/{width}.{webp|avif}` and its PHASE 16 descriptive alias `/media/{asset-id}/{width}-{description}.{webp|avif}` are public. Both resolve to the same immutable storage key. Originals and origin URLs are never served by this route. Every request rechecks processed status, license and active grant, returns immutable cache headers, ETag and `nosniff`.
 
 ## Semantic selection
 
@@ -139,7 +139,11 @@ When an approved ArticleBrief contains `SUPPLIER_IMAGE`, publication requires on
 
 At article publication, approved placements atomically become `PUBLISHED`. The public read projection returns only `content_media=PUBLISHED` joined to active rights and ready variants. The article page renders `<picture>` with AVIF/WebP `srcset`, contextual ALT, stable dimensions, caption/attribution and visible AI disclosure.
 
-Existing product-card and product-page image behavior was intentionally not changed; Product Enrichment belongs to PHASE 11.
+PHASE 16 moves shared product images to responsive Next Image variants. Hero and primary product images are eager/high-priority LCP candidates; noncritical cards and gallery thumbnails remain lazy.
+
+## PHASE 16 image discovery
+
+Published article media uses contextual ALT to create descriptive transliterated public filenames. The responsive AVIF/WebP renderer retains explicit dimensions and relevant surrounding article text. `/image-sitemap.xml` lists only local media exposed through published, indexable, human-reviewed articles and the existing active-rights read projection; supplier feed presence alone is not a rights grant.
 
 ## CLI
 
@@ -181,7 +185,7 @@ Automated coverage includes:
 - object storage/CDN and retention/backup operations for `.media`;
 - admin rights/selection UI and production role mapping;
 - Product Enrichment — PHASE 11;
-- image sitemap and structured-data expansion — PHASE 15;
-- image performance/RUM analytics — PHASE 18.
+- production validation of the PHASE 16 image sitemap and Next image optimizer cache;
+- cross-channel image performance correlation — PHASE 18.
 
 # STOP / HUMAN REVIEW REQUIRED
