@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
-import { getPublishedArticle, listPublishedArticleSlugs, type ArticleBlock } from "@/lib/articles-db";
+import { getPublishedArticle, listPublishedArticleSlugs, type ArticleBlock, type PublishedArticleImage } from "@/lib/articles-db";
 import { indexableRobots, noIndexRobots, pageTitle } from "@/lib/seo-metadata";
 
 export const dynamicParams = true;
@@ -42,6 +42,8 @@ export default async function ArticlePage({ params }: RouteProps) {
   const article = getPublishedArticle(slug);
   if (!article) notFound();
   const sourceNumbers = new Map(article.sources.map((source, index) => [source.sourceRef, index + 1]));
+  const leadImages = article.images.filter((image) => image.slotType === "HERO" || (!image.sectionHeading && new Set(["DIAGRAM", "COMPARISON"]).has(image.slotType)));
+  const unanchoredInlineImages = article.images.filter((image) => image.slotType === "INLINE" && !image.sectionHeading);
   return (
     <>
       <SiteHeader />
@@ -77,16 +79,24 @@ export default async function ArticlePage({ params }: RouteProps) {
               </div>
             </section>
 
+            {leadImages.map((image) => <ArticleMedia key={image.id} image={image} priority={image.slotType === "HERO"} />)}
+
             <div className="mt-10 space-y-12">
-              {article.content.sections.map((section) => (
-                <section key={section.heading}>
-                  <h2 className="font-display text-[27px] font-extrabold leading-tight tracking-tight text-steel-900 sm:text-[31px]">{section.heading}</h2>
-                  <div className="mt-5 space-y-5 text-[15px] leading-7 text-steel-700">
-                    {section.blocks.map((block, index) => <ContentBlock key={`${section.heading}-${index}`} block={block} sourceNumbers={sourceNumbers} />)}
-                  </div>
-                </section>
-              ))}
+              {article.content.sections.map((section) => {
+                const sectionImages = article.images.filter((image) => image.slotType !== "HERO" && image.sectionHeading === section.heading);
+                return (
+                  <section key={section.heading}>
+                    <h2 className="font-display text-[27px] font-extrabold leading-tight tracking-tight text-steel-900 sm:text-[31px]">{section.heading}</h2>
+                    <div className="mt-5 space-y-5 text-[15px] leading-7 text-steel-700">
+                      {section.blocks.map((block, index) => <ContentBlock key={`${section.heading}-${index}`} block={block} sourceNumbers={sourceNumbers} />)}
+                    </div>
+                    {sectionImages.map((image) => <ArticleMedia key={image.id} image={image} />)}
+                  </section>
+                );
+              })}
             </div>
+
+            {unanchoredInlineImages.map((image) => <ArticleMedia key={image.id} image={image} />)}
 
             {article.faq.length > 0 && (
               <section className="mt-14 border-t border-steel-200 pt-10">
@@ -192,5 +202,39 @@ function ContentBlock({ block, sourceNumbers }: { block: ArticleBlock; sourceNum
         <tbody>{block.rows.map((row, rowIndex) => <tr key={rowIndex} className="border-b border-steel-100 last:border-0">{row.map((cell, cellIndex) => <td key={`${rowIndex}-${cellIndex}`} className="px-4 py-3 align-top text-steel-700">{cell}</td>)}</tr>)}</tbody>
       </table>
     </div>
+  );
+}
+
+function ArticleMedia({ image, priority = false }: { image: PublishedArticleImage; priority?: boolean }) {
+  const avif = image.variants.filter((variant) => variant.mime === "image/avif").sort((left, right) => left.width - right.width);
+  const webp = image.variants.filter((variant) => variant.mime === "image/webp").sort((left, right) => left.width - right.width);
+  const fallback = webp.at(-1) ?? avif.at(-1);
+  if (!fallback) return null;
+  const srcSet = (variants: PublishedArticleImage["variants"]) => variants.map((variant) => `${variant.url} ${variant.width}w`).join(", ");
+  const isDiagram = image.aiGenerated || new Set(["DIAGRAM", "COMPARISON"]).has(image.slotType);
+  return (
+    <figure className={`mt-8 overflow-hidden rounded-[14px] border ${isDiagram ? "border-cobalt-200 bg-cobalt-50/40" : "border-steel-200 bg-white"}`}>
+      <picture>
+        {avif.length > 0 && <source type="image/avif" srcSet={srcSet(avif)} sizes="(max-width: 820px) 100vw, 760px" />}
+        {webp.length > 0 && <source type="image/webp" srcSet={srcSet(webp)} sizes="(max-width: 820px) 100vw, 760px" />}
+        <img
+          src={fallback.url}
+          alt={image.alt}
+          width={fallback.width}
+          height={fallback.height}
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : "auto"}
+          decoding="async"
+          className="h-auto w-full object-contain"
+        />
+      </picture>
+      {(image.caption || image.attribution || image.disclosure) && (
+        <figcaption className="border-t border-inherit px-4 py-3 text-[12px] leading-5 text-steel-600 sm:px-5">
+          {image.caption && <span>{image.caption}</span>}
+          {image.disclosure && <span className="mt-1 block font-bold text-cobalt-800">{image.disclosure}</span>}
+          {image.attribution && <span className="mt-1 block text-[11px] text-steel-500">Источник изображения: {image.attribution}</span>}
+        </figcaption>
+      )}
+    </figure>
   );
 }

@@ -44,7 +44,7 @@ REVIEWED CREATE opportunity
 - `content_sources`, `content_faq`, `content_internal_links`;
 - `content_approvals`, `workflow_events`, `content_quality_checks`.
 
-Arrays from the logical Article model are not packed into a mutable article JSON: keywords, products, relations, sources, FAQ and links use join tables. `content` is resolved from `current_revision_id`. `images[]` is deliberately an empty public projection until PHASE 10 introduces rights-verified `media_assets` and `content_media`.
+Arrays from the logical Article model are not packed into a mutable article JSON: keywords, products, relations, sources, FAQ and links use join tables. `content` is resolved from `current_revision_id`. Since PHASE 10, `images[]` is a rights-verified read projection from `content_media`, `media_assets` and immutable variants; it remains empty when migration 008 is absent or no published placement is eligible.
 
 Append-only triggers prevent update/delete of content revisions, approvals, workflow events and quality checks. Brief content and brief items are immutable; correction requires a new brief version. The migration ends with `PRAGMA optimize`.
 
@@ -75,7 +75,7 @@ The master-prompt Article shape maps as follows:
 | four scores | `content_assets`, human-set before READY |
 | target_products[] | `content_products` with real non-draft products |
 | related_articles[] | `content_related`, published targets only |
-| images[] | empty until rights-gated PHASE 10 |
+| images[] | PHASE 10 public projection: published placement + processed asset + active rights + ready variants |
 | sources[] | `content_sources`, public only after human verification |
 | faq[] | revision body + current `content_faq` projection |
 | lead_form_type | `content_assets` |
@@ -96,7 +96,7 @@ Required single-value fields:
 
 Normalized brief items cover key questions, sourced verified facts, real target products, supplier-image requirements, diagrams, tables, FAQ insights, competitor gaps, internal links and evidence requirements.
 
-Supplier images in a brief are research requirements only. They cannot enter public content until PHASE 10 verifies rights and creates a publishable media record.
+Supplier images in a brief are research requirements only. PHASE 10 requires a human-reviewed selection (or reviewed no-match), verified rights and a locally processed media record before publication.
 
 An AI-assisted actor may prepare a brief. Only `actorType=HUMAN` may approve it. Content revisions cannot be saved before current brief approval.
 
@@ -204,7 +204,7 @@ Full project regression, TypeScript check, numbered migration dry-run and Next p
 - production migration and any real editorial records;
 - admin editorial UI and role mapping to production identities;
 - calibration of evidence/differentiation score thresholds from pilot outcomes;
-- Image Intelligence, media rights, derivatives, image metadata and `content_media` — PHASE 10;
+- production Image Intelligence migration, real supplier rights approvals and media ingestion;
 - Article/FAQ structured data — PHASE 15;
 - analytics for article depth/product clicks/leads — PHASE 18;
 - content refresh automation — PHASE 21;

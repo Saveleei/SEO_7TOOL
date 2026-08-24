@@ -1,5 +1,7 @@
 import { db } from "./db";
 import { validateArticleContent } from "./content-platform.mjs";
+import { isAssetPublicationRightsEligible } from "./image-intelligence.mjs";
+import { mediaPublicUrl } from "./media-storage.mjs";
 
 export type ArticleTextEntry = { text: string; sourceRefs: string[] };
 export type ArticleBlock =
@@ -30,6 +32,18 @@ export type PublishedArticleSummary = {
   readingMinutes: number;
 };
 
+export type PublishedArticleImage = {
+  id: string;
+  slotType: "HERO" | "INLINE" | "DIAGRAM" | "COMPARISON";
+  sectionHeading: string | null;
+  alt: string;
+  caption: string | null;
+  attribution: string | null;
+  disclosure: string | null;
+  aiGenerated: boolean;
+  variants: Array<{ url: string; width: number; height: number; mime: "image/webp" | "image/avif" }>;
+};
+
 export type PublishedArticle = PublishedArticleSummary & {
   metaTitle: string;
   metaDescription: string;
@@ -43,7 +57,7 @@ export type PublishedArticle = PublishedArticleSummary & {
   businessScore: number;
   targetProducts: Array<{ id: string; slug: string; title: string; brand: string | null }>;
   relatedArticles: Array<{ slug: string; title: string; excerpt: string }>;
-  images: [];
+  images: PublishedArticleImage[];
   sources: Array<{ sourceRef: string; claimText: string }>;
   faq: ArticleContent["faq"];
   leadFormType: string | null;
@@ -84,6 +98,98 @@ function hasContentPlatformSchema() {
     WHERE type = 'table' AND name IN ('content_assets', 'content_revisions', 'article_briefs')
   `).all() as Array<{ name: string }>;
   return rows.length === 3;
+}
+
+function hasImageIntelligenceSchema() {
+  const rows = db().prepare(`
+    SELECT name FROM sqlite_schema
+    WHERE type = 'table' AND name IN (
+      'content_media', 'media_assets', 'media_variants', 'media_rights_grants'
+    )
+  `).all() as Array<{ name: string }>;
+  return rows.length === 4;
+}
+
+type ArticleImageRow = {
+  id: string;
+  slot_type: PublishedArticleImage["slotType"];
+  section_heading: string | null;
+  contextual_alt: string;
+  caption: string | null;
+  attribution_text: string | null;
+  disclosure_text: string | null;
+  ai_generated: number;
+  asset_id: string;
+  asset_source_id: string | null;
+  rights_grant_id: string;
+  storage_key: string;
+  width: number;
+  height: number;
+  mime: "image/webp" | "image/avif";
+  grant_status: string;
+  permitted_uses_json: string;
+  valid_from: number;
+  valid_until: number | null;
+  grant_id: string;
+  scope_type: "SOURCE" | "ASSET";
+  scope_value: string;
+  grant_source_id: string | null;
+};
+
+function articleImages(articleId: string): PublishedArticleImage[] {
+  if (!hasImageIntelligenceSchema()) return [];
+  const rows = db().prepare(`
+    SELECT cm.id, cm.slot_type, cm.section_heading, cm.contextual_alt, cm.caption,
+      cm.attribution_text, cm.disclosure_text, a.ai_generated, a.id AS asset_id,
+      a.source_id AS asset_source_id, a.rights_grant_id, v.storage_key,
+      v.width, v.height, v.mime, g.status AS grant_status, g.permitted_uses_json,
+      g.valid_from, g.valid_until, g.id AS grant_id, g.scope_type, g.scope_value,
+      g.source_id AS grant_source_id
+    FROM content_media cm
+    JOIN media_assets a ON a.id = cm.media_asset_id
+    JOIN media_variants v ON v.media_asset_id = a.id AND v.status = 'READY'
+    JOIN media_rights_grants g ON g.id = a.rights_grant_id
+    WHERE cm.content_asset_id = ? AND cm.status = 'PUBLISHED'
+      AND a.status = 'PROCESSED'
+      AND a.license_status IN ('VERIFIED', 'OWNED', 'CONTRACT_APPROVED')
+    ORDER BY cm.sort_order, cm.id, v.width, v.format
+  `).all(articleId) as ArticleImageRow[];
+  const images = new Map<string, PublishedArticleImage>();
+  for (const row of rows) {
+    if (!isAssetPublicationRightsEligible({
+      id: row.asset_id,
+      source_id: row.asset_source_id,
+      rights_grant_id: row.rights_grant_id,
+    }, {
+      id: row.grant_id,
+      status: row.grant_status,
+      scope_type: row.scope_type,
+      scope_value: row.scope_value,
+      source_id: row.grant_source_id,
+      permitted_uses_json: row.permitted_uses_json,
+      valid_from: row.valid_from,
+      valid_until: row.valid_until,
+    })) continue;
+    const image = images.get(row.id) ?? {
+      id: row.id,
+      slotType: row.slot_type,
+      sectionHeading: row.section_heading,
+      alt: row.contextual_alt,
+      caption: row.caption,
+      attribution: row.attribution_text,
+      disclosure: row.disclosure_text,
+      aiGenerated: row.ai_generated === 1,
+      variants: [],
+    };
+    image.variants.push({
+      url: mediaPublicUrl(row.storage_key),
+      width: row.width,
+      height: row.height,
+      mime: row.mime,
+    });
+    images.set(row.id, image);
+  }
+  return [...images.values()];
 }
 
 function parseArticleContent(value: string): ArticleContent | null {
@@ -193,7 +299,7 @@ export function getPublishedArticle(slug: string): PublishedArticle | undefined 
     businessScore: row.business_score,
     targetProducts,
     relatedArticles,
-    images: [],
+    images: articleImages(row.id),
     sources,
     faq: content.faq,
     leadFormType: row.lead_form_type,

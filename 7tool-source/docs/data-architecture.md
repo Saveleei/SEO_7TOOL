@@ -333,7 +333,7 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 
 ## 16. Proposed migration batches
 
-Миграции PHASE 3–9 созданы как backup-gated artifacts, но к production не применены.
+Миграции PHASE 3–10 созданы как backup-gated artifacts, но к production не применены.
 
 | Batch | Scope | Dependency | Gate |
 |---|---|---|---|

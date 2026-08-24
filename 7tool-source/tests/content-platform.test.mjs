@@ -14,6 +14,11 @@ import {
   scanProhibitedAiContent,
   transitionArticle,
 } from "../src/lib/content-platform.mjs";
+import {
+  createMediaSelectionRequests,
+  rankMediaSelection,
+  reviewMediaNoMatch,
+} from "../src/lib/image-intelligence.mjs";
 
 function fixtureDb() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "7tool-content-"));
@@ -135,7 +140,10 @@ function reviewedBrief(articleId) {
       sourceId: "manual-source",
     }],
     relevantProducts: ["p1"],
-    relevantSupplierImages: [],
+    relevantSupplierImages: [{
+      description: "Общий вид магнитного станка HEDEN DM-50",
+      sourceRef: "supplier-feed:heden-dm-50",
+    }],
     requiredDiagrams: ["Схема проверки рабочей зоны"],
     requiredTables: ["Параметр задачи → характеристика станка"],
     calculatorRequirement: "Не требуется; формулы и допустимые диапазоны требуют отдельной фазы.",
@@ -212,6 +220,13 @@ test("Content Platform enforces brief-first, evidence-first and human-only publi
     assert.equal(brief.brief.status, "READY");
     assert.throws(() => approveArticleBrief(db, { articleId: candidate.article.id, ...aiActor }), /human actor/);
     approveArticleBrief(db, { articleId: candidate.article.id, notes: "Brief is complete", ...humanActor });
+    const mediaRequests = createMediaSelectionRequests(db, { articleId: candidate.article.id, ...aiActor });
+    const supplierBriefItem = db.prepare(`
+      SELECT id FROM article_brief_items WHERE brief_id = ? AND item_type = 'SUPPLIER_IMAGE'
+    `).get(db.prepare("SELECT current_brief_id FROM content_assets WHERE id = ?").get(candidate.article.id).current_brief_id);
+    const supplierMediaRequest = mediaRequests.find((request) => request.brief_item_id === supplierBriefItem.id);
+    assert.ok(supplierMediaRequest);
+    assert.equal(rankMediaSelection(db, { requestId: supplierMediaRequest.id, ...aiActor }).length, 0);
 
     const prohibited = saveArticleRevision(db, {
       articleId: candidate.article.id,
@@ -283,6 +298,14 @@ test("Content Platform enforces brief-first, evidence-first and human-only publi
     assert.throws(() => transitionArticle(db, {
       articleId: candidate.article.id, toStatus: "PUBLISHED", reason: "AI publish attempt", ...aiActor,
     }), /human actor/);
+    assert.throws(() => transitionArticle(db, {
+      articleId: candidate.article.id, toStatus: "PUBLISHED", reason: "Unreviewed image no-match", ...humanActor,
+    }), /Supplier Image/);
+    reviewMediaNoMatch(db, {
+      requestId: supplierMediaRequest.id,
+      reason: "Supplier feed has no rights-approved image for this exact need",
+      ...humanActor,
+    });
     const published = transitionArticle(db, {
       articleId: candidate.article.id, toStatus: "PUBLISHED", reason: "Final editorial approval", ...humanActor,
     });
@@ -340,9 +363,11 @@ test("migration 007 indexes match public and workflow query plans", () => {
     `).all().map((row) => row.detail).join("\n");
     assert.match(publicPlan, /idx_content_assets_public/);
     assert.match(workflowPlan, /idx_content_assets_workflow/);
-    const migrationSql = fs.readFileSync(path.resolve(import.meta.dirname, "..", "scripts", "migrations", "007_content_platform.sql"), "utf8");
-    const downSql = migrationSql.slice(migrationSql.indexOf("-- migrate:down") + "-- migrate:down".length);
-    db.exec(downSql);
+    for (const filename of ["008_image_intelligence.sql", "007_content_platform.sql"]) {
+      const migrationSql = fs.readFileSync(path.resolve(import.meta.dirname, "..", "scripts", "migrations", filename), "utf8");
+      const downSql = migrationSql.slice(migrationSql.indexOf("-- migrate:down") + "-- migrate:down".length);
+      db.exec(downSql);
+    }
     assert.equal(db.prepare("SELECT COUNT(*) AS count FROM sqlite_schema WHERE name = 'content_assets'").get().count, 0);
   } finally {
     db.close();

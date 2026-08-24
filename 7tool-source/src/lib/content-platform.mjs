@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
+import { isAssetPublicationRightsEligible } from "./image-intelligence.mjs";
 
 export const ARTICLE_STATUSES = Object.freeze([
   "DISCOVERED", "SEMANTIC_REVIEW", "BRIEF_READY", "BRIEF_APPROVED", "CONTENT_DRAFT",
@@ -665,6 +666,59 @@ function hasApproval(db, article, type) {
   `).get(article.id, article.current_revision_id, type));
 }
 
+function requireApprovedSupplierMedia(db, article) {
+  const required = db.prepare(`
+    SELECT COUNT(*) AS count FROM article_brief_items
+    WHERE brief_id = ? AND item_type = 'SUPPLIER_IMAGE'
+  `).get(article.current_brief_id).count;
+  if (!required) return;
+  const schema = db.prepare(`
+    SELECT COUNT(*) AS count FROM sqlite_schema
+    WHERE type = 'table' AND name IN (
+      'media_selection_requests', 'content_media', 'media_assets', 'media_rights_grants'
+    )
+  `).get().count;
+  if (schema !== 4) throw new Error("Image Intelligence schema is required for Supplier Image publication gates");
+  const rows = db.prepare(`
+    SELECT bi.id AS brief_item_id, r.status AS request_status,
+      cm.status AS placement_status, a.id AS asset_id, a.source_id AS asset_source_id,
+      a.rights_grant_id, a.status AS asset_status, a.license_status,
+      g.id AS grant_id, g.scope_type, g.scope_value, g.source_id AS grant_source_id,
+      g.status AS grant_status, g.permitted_uses_json, g.valid_from, g.valid_until
+    FROM article_brief_items bi
+    LEFT JOIN media_selection_requests r
+      ON r.brief_item_id = bi.id AND r.brief_id = bi.brief_id
+    LEFT JOIN content_media cm ON cm.request_id = r.id
+    LEFT JOIN media_assets a ON a.id = cm.media_asset_id
+    LEFT JOIN media_rights_grants g ON g.id = a.rights_grant_id
+    WHERE bi.brief_id = ? AND bi.item_type = 'SUPPLIER_IMAGE'
+    ORDER BY bi.sort_order, bi.id
+  `).all(article.current_brief_id);
+  if (rows.length !== required) throw new Error("Every Supplier Image brief item needs a reviewed selection request");
+  for (const row of rows) {
+    if (row.request_status === "NO_MATCH_REVIEWED") continue;
+    if (row.request_status !== "SELECTED" || row.placement_status !== "APPROVED"
+      || row.asset_status !== "PROCESSED"
+      || !new Set(["VERIFIED", "OWNED", "CONTRACT_APPROVED"]).has(row.license_status)
+      || !isAssetPublicationRightsEligible({
+        id: row.asset_id,
+        source_id: row.asset_source_id,
+        rights_grant_id: row.rights_grant_id,
+      }, {
+        id: row.grant_id,
+        status: row.grant_status,
+        scope_type: row.scope_type,
+        scope_value: row.scope_value,
+        source_id: row.grant_source_id,
+        permitted_uses_json: row.permitted_uses_json,
+        valid_from: row.valid_from,
+        valid_until: row.valid_until,
+      })) {
+      throw new Error(`Supplier Image ${row.brief_item_id} is not human-selected, processed and rights-approved`);
+    }
+  }
+}
+
 function publishArticle(db, article, actor, reason, now) {
   currentRevisionGate(db, article);
   requireApprovedEvidence(db, article);
@@ -673,6 +727,7 @@ function publishArticle(db, article, actor, reason, now) {
   }
   const brief = db.prepare("SELECT status FROM article_briefs WHERE id = ? AND content_asset_id = ?").get(article.current_brief_id, article.id);
   if (!brief || brief.status !== "APPROVED") throw new Error("Current ArticleBrief is not approved");
+  requireApprovedSupplierMedia(db, article);
   if ((article.quality_score ?? 0) < ARTICLE_SCORE_GATES.quality) throw new Error(`qualityScore must be at least ${ARTICLE_SCORE_GATES.quality}`);
   if ((article.evidence_score ?? 0) < ARTICLE_SCORE_GATES.evidence) throw new Error(`evidenceScore must be at least ${ARTICLE_SCORE_GATES.evidence}`);
   if ((article.differentiation_score ?? 0) < ARTICLE_SCORE_GATES.differentiation) throw new Error(`differentiationScore must be at least ${ARTICLE_SCORE_GATES.differentiation}`);
@@ -707,6 +762,13 @@ function publishArticle(db, article, actor, reason, now) {
       published_at = COALESCE(published_at, ?), updated_at = ?
     WHERE id = ?
   `).run(siteUrlId, siteUrlId, now, now, article.id);
+  const mediaSchema = db.prepare("SELECT 1 FROM sqlite_schema WHERE type = 'table' AND name = 'content_media'").get();
+  if (mediaSchema) {
+    db.prepare(`
+      UPDATE content_media SET status = 'PUBLISHED', updated_at = ?
+      WHERE content_asset_id = ? AND status = 'APPROVED'
+    `).run(now, article.id);
+  }
   addWorkflowEvent(db, article.id, article.status, "PUBLISHED", actor, reason, now);
 }
 

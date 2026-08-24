@@ -16,6 +16,7 @@ out/
 *.feed.lock
 backups/
 uploads/
+.media/
 private-specifications/
 
 # Environment and credentials
