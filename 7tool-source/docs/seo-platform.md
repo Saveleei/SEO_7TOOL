@@ -1,6 +1,6 @@
 # 7TOOL SEO & Content Intelligence Platform
 
-Статус: architecture baseline plus research/import/decision/content/media/product-enrichment/tool/internal-linking/lead-generation/structured-data/search-platform/analytics intelligence layers through PHASE 18. Production migrations, external analytics access and real publication remain human-gated.
+Статус: architecture baseline plus research/import/decision/content/media/product-enrichment/tool/internal-linking/lead-generation/structured-data/search-platform/analytics intelligence and bounded pilot layers through PHASE 19. Production migrations, external analytics access and real publication remain human-gated.
 
 ## Goal
 
@@ -50,6 +50,7 @@ Sources → Raw observations → Verified facts → Intent → Opportunity
 | Google SEO layer | immutable GSC observations, existing-page Quick Wins, CWV RUM, facet policy and image discovery | OAuth credentials, automatic publication or arbitrary facet indexation |
 | Yandex SEO layer | immutable Webmaster URL-query performance, Wordstat demand, aggregate Metrica behavior and review-only opportunities | token storage, raw visit PII or automatic page creation |
 | Analytics Intelligence layer | 13 canonical goals, aggregate page metrics, verified CRM outcomes, KPI/ROI snapshots | raw visits, PII-bearing CRM rows, pageview vanity KPI or content decisions |
+| Pilot layer | fixed five-category scope, 500/category cap, Top 20, 25 review work items and comparable KPI snapshots | automatic content generation, publication or Phase 20 scaling |
 | Performance layer | query/page/search/business outcomes | credentials in frontend |
 
 ## Current integration points
@@ -63,13 +64,14 @@ Sources → Raw observations → Verified facts → Intent → Opportunity
 - `src/lib/leads.ts`: add content/opportunity attribution without changing notification semantics.
 - `src/lib/analytics.ts`: canonical privacy-safe content/tool/lead/contact goals with reliable Metrica delivery.
 - `src/lib/analytics-intelligence.mjs`: aggregate imports and reproducible Business KPI/Content ROI snapshots.
+- `src/lib/pilot-program.mjs`: bounded Phase 19 selection, work-item review and category/pilot KPI snapshots.
 - `src/lib/google-seo.mjs`: exact-grain GSC imports, update-only Quick Wins, CWV classification and reviewed facet policy.
 - `src/lib/yandex-seo.mjs`: separate Webmaster/Wordstat/Metrica grains and demand-vs-existing opportunity discovery.
 - admin routes: future `SEO Intelligence` module, protected by roles and workflow permissions.
 
 ## Current approval gates
 
-PHASE 3–18 artifacts are implemented on isolated feature branches, but remain non-production. Before applying them to a live database or using external data:
+PHASE 3–19 artifacts are implemented on isolated feature branches, but remain non-production. Before applying them to a live database or using external data:
 
 1. approve the model in [data-architecture.md](./data-architecture.md);
 2. resolve Git baseline and feature branch;
@@ -83,6 +85,7 @@ PHASE 3–18 artifacts are implemented on isolated feature branches, but remain 
 10. approve GSC property access, export completeness, query retention and Quick Win impression threshold.
 11. approve Yandex OAuth owners/scopes, Webmaster host, Metrica counter, regional taxonomy and Yandex query retention.
 12. approve Phase 18 goal IDs, bot/attribution rules, PII-free CRM outcomes and revenue/margin reconciliation.
+13. approve the exact five-category pilot scope, all 100 Top opportunities, all 25 work items and comparable Google/Yandex/ROI periods before any pilot publication.
 
 ## Documentation index
 
@@ -106,5 +109,6 @@ PHASE 3–18 artifacts are implemented on isolated feature branches, but remain 
 - [Google SEO](./google-seo.md)
 - [Yandex SEO](./yandex-seo.md)
 - [Analytics Intelligence](./analytics-intelligence.md)
+- [Phase 19 bounded pilot](./pilot-program.md)
 
 # STOP / HUMAN REVIEW REQUIRED

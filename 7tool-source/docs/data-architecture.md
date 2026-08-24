@@ -318,6 +318,12 @@ Join tables задают scope review.
 
 `yandex_query_opportunity_snapshots` stores review-only evidence. Webmaster can produce only `UPDATE_EXISTING` for a live/indexable registry URL; Wordstat produces `DEMAND_REVIEW`, never a page-creation decision. Matching Metrica behavior is context, not search-demand or ranking evidence.
 
+### PHASE 19 bounded pilot projection
+
+`pilot_programs` и `pilot_categories` фиксируют ровно пять pilot-категорий и hard limits 500 candidates / Top 20 / 5 content items на категорию. `pilot_selection_runs` и `pilot_opportunity_selections` сохраняют immutable ranked evidence, включая исходный opportunity evaluation checksum.
+
+`pilot_content_work_items` материализует только review plan 2 articles + troubleshooting + comparison/table + product/category enhancement. Одобрение требует текущего human-reviewed opportunity и не создаёт content asset или URL. `pilot_kpi_snapshots` объединяет indexation, GSC + Webmaster search metrics и exact-period Content ROI в пять category scopes и один общий scope. Все KPI остаются `REVIEW_REQUIRED`.
+
 ### PHASE 18 Analytics Intelligence projection
 
 `analytics_import_runs` separates immutable `METRIKA_PAGE_METRICS` and `CRM_BUSINESS_OUTCOMES` snapshots. `analytics_page_metrics_daily` stores only daily `date + page + canonical metric` totals; all 13 Phase 18 goals and the organic product-view metric must be present, including explicit zeroes. It never stores a visit/client/session/cookie/IP/user-agent row.
@@ -375,7 +381,7 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 
 ## 16. Proposed migration batches
 
-Миграции PHASE 3–18 созданы как backup-gated artifacts, но к production не применены.
+Миграции PHASE 3–19 созданы как backup-gated artifacts, но к production не применены.
 
 | Batch | Scope | Dependency | Gate |
 |---|---|---|---|
@@ -394,8 +400,9 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 | 013 | GSC observations/Quick Wins/CWV/facet policy | URL registry + reviewed GSC export | PHASE 16 access/retention/threshold approval |
 | 014 | Yandex Webmaster/Wordstat/Metrica observations and query opportunities | source/import + semantic URL registry | PHASE 17 OAuth/region/retention approval |
 | 015 | aggregate analytics events, verified CRM outcomes, Business KPI and Content ROI | Phase 17 organic landings + immutable lead attribution | PHASE 18 goal/CRM/privacy approval |
+| 016 | fixed pilot scope, ranked selections, content work items and KPI snapshots | Phase 8 opportunities + Phase 13–18 search/ROI evidence | PHASE 19 pilot owner/editor approval |
 
-PHASE 18 closes the search-to-business measurement loop with aggregate events and verified outcomes. Pilot selection and any publishing volume remain scope PHASE 19.
+PHASE 19 consumes the closed measurement loop in a hard-bounded five-category experiment. Publication remains a separate content workflow, and any volume beyond 25 pilot work items remains Phase 20.
 
 ## 17. API boundaries
 
