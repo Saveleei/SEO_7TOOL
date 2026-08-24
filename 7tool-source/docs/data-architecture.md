@@ -76,6 +76,10 @@ erDiagram
   KEYWORDS }o--|| KEYWORD_CLUSTERS : belongs_to
   KEYWORD_CLUSTERS }o--|| SEARCH_INTENTS : expresses
   SEARCH_INTENTS }o--o| SITE_URLS : preferred_page
+  SEARCH_INTENTS ||--o{ SERP_SNAPSHOTS : researched_by
+  SERP_SNAPSHOTS ||--o{ SERP_RESULTS : contains
+  SERP_SNAPSHOTS ||--o{ SERP_COMPETITOR_INSIGHTS : yields
+  SEARCH_INTENTS ||--o{ SERP_ASSESSMENTS : evaluated_by
   SEARCH_INTENTS ||--o{ CONTENT_OPPORTUNITIES : creates
   CONTENT_OPPORTUNITIES }o--o| CONTENT_ASSETS : resolved_as
   CONTENT_ASSETS ||--o{ CONTENT_REVISIONS : versions
@@ -196,7 +200,25 @@ Unique: normalized `path`. Cyclic canonical запрещён application validat
 
 Join для platform/source/count/last_seen без хранения массива source_platforms в JSON.
 
-## 8. Content domain
+## 8. SERP and competitor intelligence domain
+
+### `serp_source_candidates`
+
+Dynamic registry: `provider`, `engine`, `base_url`, `discovery_source`, `acquisition_method`, terms/robots/reviewer/status. Только human-approved source допускается к import.
+
+### `serp_snapshots`, `serp_results`
+
+Snapshot фиксирует query, engine, region, language, device, cluster, intent, captured time, depth and checksum. Result хранит position, normalized URL/domain, short title, page/site classification and feature flags. HTML/body/snippets/media не являются частью schema.
+
+### `serp_competitor_insights`
+
+Research-only summaries: covered/missing topics, questions, comparisons, weak explanations, missing tables, outdated information and UX weaknesses. Evidence всегда связано с snapshot/result URL и не становится publishable copy.
+
+### `serp_assessments`, `serp_assessment_snapshots`
+
+Versioned Google+Yandex assessment хранит exact evidence set, dominant type/share, distribution, commercial/marketplace density, content gap, differentiation breakdown, recommended page type and human review status. Assessment не создаёт URL или content asset.
+
+## 9. Content domain
 
 ### `content_assets`
 
@@ -226,7 +248,7 @@ Publish transaction must verify:
 - human approval;
 - media rights publishable.
 
-## 9. Media domain
+## 10. Media domain
 
 ### `media_assets`
 
@@ -238,7 +260,7 @@ Tags нормализованы; relations связывают asset с products/
 
 Hard constraint: `license_status IN (VERIFIED, OWNED, CONTRACT_APPROVED)` для public `content_media`.
 
-## 10. People and review ownership
+## 11. People and review ownership
 
 ### `experts`
 
@@ -252,7 +274,7 @@ Join tables задают scope review.
 
 Существующие `users` остаются admin identities. Automated actors регистрируются отдельно в `system_actors`; workflow event всегда показывает HUMAN, SYSTEM, AI_ASSISTED или IMPORT.
 
-## 11. Performance and lead domain
+## 12. Performance and lead domain
 
 ### `seo_performance_daily`
 
@@ -262,7 +284,7 @@ Join tables задают scope review.
 
 Не ломая `leads`, добавить nullable FK: `site_url_id`, `content_asset_id`, `opportunity_id`, `cluster_id`, `intent_id`, `cta_key`. Quote/order/revenue лучше хранить в `lead_outcomes` с history, а не постоянно расширять `leads`.
 
-## 12. Scoring architecture
+## 13. Scoring architecture
 
 ### `score_models`
 
@@ -274,7 +296,7 @@ Join tables задают scope review.
 
 Weights configurable, но изменение требует новой immutable version. Нельзя пересчитать историю без сохранения предыдущей модели.
 
-## 13. Index and retention strategy
+## 14. Index and retention strategy
 
 Обязательные индексы проектируются по access patterns:
 
@@ -290,7 +312,7 @@ Weights configurable, но изменение требует новой immutabl
 
 Raw imports и query-level performance partition/retention определяются до подключения API. PII retention согласуется юридически. Research snippets/media никогда не попадают в public export.
 
-## 14. Migration contract
+## 15. Migration contract
 
 Текущий `src/lib/db.ts` создаёт/расширяет схему при runtime open, а `schema_version` фактически не управляет последовательностью. Перед SEO tables нужен отдельный runner:
 
@@ -305,9 +327,9 @@ Raw imports и query-level performance partition/retention определяют�
 
 SQLite caveat: destructive rollback чаще выполняется table-copy migration или restore backup. Поэтому «reversible» означает проверенный recovery path, а не обещание простого `DROP COLUMN`.
 
-## 15. Proposed migration batches
+## 16. Proposed migration batches
 
-Миграции PHASE 3–6 созданы как backup-gated artifacts, но к production не применены.
+Миграции PHASE 3–7 созданы как backup-gated artifacts, но к production не применены.
 
 | Batch | Scope | Dependency | Gate |
 |---|---|---|---|
@@ -315,11 +337,12 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 | 002 | assertions/evidence/features/relations/compatibility | source facts | PHASE 4 approval |
 | 003 | URL registry/keywords/clusters/intents | source access + existing URL map | PHASE 5 approval |
 | 004 | review source registry/insights/pain points | legal/API policy | PHASE 6 approval |
-| 005 | opportunities/scoring | semantic + SERP data | PHASE 8 approval |
-| 006 | content/workflow/media joins | editorial roles | PHASE 9/10 approval |
-| 007 | performance/outcomes | analytics/CRM contracts | PHASE 18 approval |
+| 005 | SERP sources/snapshots/results/gaps/assessments | approved current Google + Yandex evidence | PHASE 7 approval |
+| 006 | opportunities/scoring | semantic + SERP data | PHASE 8 approval |
+| 007 | content/workflow/media joins | editorial roles | PHASE 9/10 approval |
+| 008 | performance/outcomes | analytics/CRM contracts | PHASE 18 approval |
 
-## 16. API boundaries
+## 17. API boundaries
 
 - Feed adapter writes only raw/staged facts and commerce sync commands.
 - Fact service resolves conflicts and produces verified assertions.
@@ -329,7 +352,7 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 - Analytics ingestion is append/idempotent by source/date/grain.
 - Public frontend reads curated projections, never raw review/SERP payloads.
 
-## 17. Open decisions
+## 18. Open decisions
 
 1. Confirm SQLite remains suitable for expected raw query/performance volume or approve PostgreSQL for intelligence data while commerce stays SQLite.
 2. Confirm production source-of-truth and provide sanitized schema/data snapshot.

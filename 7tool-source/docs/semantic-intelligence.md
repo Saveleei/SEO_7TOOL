@@ -56,7 +56,7 @@ Limitations:
 - no morphological/embedding model yet;
 - ambiguous multi-intent queries need reviewer;
 - SERP intent is not inferred from wording alone;
-- dominant SERP type remains empty until PHASE 7.
+- dominant SERP type remains empty until a current Google+Yandex PHASE 7 assessment is human-reviewed.
 
 ## Conservative clustering
 
@@ -111,7 +111,7 @@ Supported source types in this phase: `WORDSTAT`, `GSC`, `YANDEX_WEBMASTER`, `IN
 2. Review normalization and rejected rows.
 3. Generate conservative clusters.
 4. Check existing URL overlaps.
-5. Review SERP in PHASE 7.
+5. Review current Google+Yandex evidence through [SERP & Competitor Intelligence](./serp-competitor-intelligence.md).
 6. Approve/MERGE/REJECT intent.
 7. Assign one best existing URL or leave unassigned for opportunity scoring.
 
@@ -137,7 +137,7 @@ Tests cover:
 - GSC/Webmaster API ingestion;
 - internal site-search export integration;
 - embeddings/morphology and cluster evaluation dataset;
-- SERP dominant type;
+- direct approved SERP API adapters and scheduled refresh;
 - OpportunityScore;
 - page creation and publishing.
 

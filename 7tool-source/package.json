@@ -22,6 +22,8 @@
     "seo:keywords:import": "node scripts/import-keywords.mjs",
     "seo:reviews:source": "node scripts/register-review-source.mjs",
     "seo:reviews:import": "node scripts/import-review-insights.mjs",
+    "seo:serp:source": "node scripts/register-serp-source.mjs",
+    "seo:serp:import": "node scripts/import-serp-snapshot.mjs",
     "max:setup": "node scripts/max-setup.mjs",
     "max:test": "node scripts/max-setup.mjs --send-test",
     "ads:feed": "node scripts/generate-advertising-feed.mjs",

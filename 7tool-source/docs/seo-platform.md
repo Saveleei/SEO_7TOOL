@@ -1,6 +1,6 @@
 # 7TOOL SEO & Content Intelligence Platform
 
-Статус: architecture baseline plus research/import layers through PHASE 6. Production migrations and publication remain human-gated.
+Статус: architecture baseline plus research/import layers through PHASE 7. Production migrations and publication remain human-gated.
 
 ## Goal
 
@@ -69,5 +69,6 @@ PHASE 3–6 artifacts are implemented on isolated feature branches, but remain n
 - [Semantic Intelligence](./semantic-intelligence.md)
 - [Yandex Wordstat Integration](./wordstat-integration.md)
 - [Marketplace Review Intelligence](./marketplace-review-intelligence.md)
+- [SERP & Competitor Intelligence](./serp-competitor-intelligence.md)
 
 # STOP / HUMAN REVIEW REQUIRED
