@@ -308,6 +308,16 @@ Join tables задают scope review.
 
 `core_web_vital_samples` stores only metric id/name, route path, value, rating, navigation type and capture time. `facet_indexing_policies` versions human-reviewed `INDEXABLE_SEO_LANDING` or default `NON_INDEXABLE_FACET` decisions; an indexable classification must reference a distinct live landing URL.
 
+### PHASE 17 Yandex SEO projection
+
+`yandex_import_runs` owns immutable source system, dataset, subject, period, dimensions/metrics, acquisition method and source checksum. The three observation tables intentionally do not share a false common grain:
+
+- `yandex_webmaster_performance_daily`: date + exact URL + query + region + device, including impressions/clicks/CTR/nullable position;
+- `yandex_wordstat_demand`: query + seed + official regions + internal region key + device, mirrored to the existing semantic keyword layer;
+- `yandex_metrica_organic_daily`: date + landing URL + search engine + optional search phrase with aggregate visits/users/pageviews/bounce rate only.
+
+`yandex_query_opportunity_snapshots` stores review-only evidence. Webmaster can produce only `UPDATE_EXISTING` for a live/indexable registry URL; Wordstat produces `DEMAND_REVIEW`, never a page-creation decision. Matching Metrica behavior is context, not search-demand or ranking evidence.
+
 ### Lead attribution extension
 
 PHASE 14 сохраняет one-to-one immutable `lead_attribution_snapshots`, не перегружая operational `leads`: article, safe page URL/path, cluster, category, product snapshot, intent, normalized CTA, referrer, UTM, true session ID, deterministic source and captured timestamp. Article/cluster/category/intent resolve server-side from current public content. Snapshot deletion follows lead retention cascade; updates are prohibited. Quote/order/revenue лучше хранить в `lead_outcomes` с history, а не постоянно расширять `leads`.
@@ -357,7 +367,7 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 
 ## 16. Proposed migration batches
 
-Миграции PHASE 3–16 созданы как backup-gated artifacts, но к production не применены.
+Миграции PHASE 3–17 созданы как backup-gated artifacts, но к production не применены.
 
 | Batch | Scope | Dependency | Gate |
 |---|---|---|---|
@@ -374,8 +384,9 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 | 011 | semantic link sets/items/reviews/audit | public content/products/categories/tools + normalized relation proofs | PHASE 13 approval |
 | 012 | immutable lead attribution snapshots | operational leads + public page context | PHASE 14 privacy/retention approval |
 | 013 | GSC observations/Quick Wins/CWV/facet policy | URL registry + reviewed GSC export | PHASE 16 access/retention/threshold approval |
+| 014 | Yandex Webmaster/Wordstat/Metrica observations and query opportunities | source/import + semantic URL registry | PHASE 17 OAuth/region/retention approval |
 
-Cross-channel business outcomes remain scope PHASE 18. PHASE 16 stores Google Search Console observations and privacy-minimal field CWV only; it does not implement the future revenue/outcome aggregate.
+Cross-channel business outcomes remain scope PHASE 18. PHASE 16–17 store search-platform observations and privacy-minimal field/aggregate behavior only; they do not implement the future revenue/outcome aggregate or new analytics events.
 
 ## 17. API boundaries
 

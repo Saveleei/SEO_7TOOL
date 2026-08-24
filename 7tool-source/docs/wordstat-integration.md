@@ -1,6 +1,6 @@
 # Yandex Wordstat Integration
 
-Статус: secure file import implemented; direct official API calls are deferred until credentials/access and rate policy are approved.
+Статус: secure semantic file import plus PHASE 17 official `topRequests` response contract, immutable demand provenance and opportunity integration implemented. Network collection remains disabled until credentials/access and rate policy are approved.
 
 ## Credentials
 
@@ -79,9 +79,11 @@ Apply stores an import checksum and creates PROPOSED clusters/intents for catego
 
 Do not merge regional demand blindly. Use stable region codes agreed by the SEO team, for example `RU`, `RU-MOW`, `RU-SPE`. The code does not claim these as official API identifiers; they are internal storage keys until direct API mapping is approved.
 
-## Direct API design (deferred)
+## Official API adapter contract (PHASE 17)
 
-When enabled, an official API adapter must:
+`buildWordstatTopRequestsRequest` validates the official POST body (`phrase`, region IDs and device segments) without accepting or returning an Authorization header. `npm run seo:yandex:import -- --dataset=wordstat ...` accepts an official JSON response with `topRequests[{phrase,count}]` and mirrors the reviewed observations into this semantic layer.
+
+When network collection is enabled, its runtime adapter must:
 
 1. use runtime secret store/OAuth;
 2. log request id, region, timestamps and counts, never token/query credentials;
@@ -92,7 +94,7 @@ When enabled, an official API adapter must:
 7. separate network collection from normalization/clustering;
 8. provide manual import fallback.
 
-No browser scraping or credential automation is permitted.
+No browser scraping or credential automation is permitted. See [Yandex SEO](./yandex-seo.md) for migration 014, CLI and production gates.
 
 ## Data use
 

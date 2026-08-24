@@ -34,6 +34,8 @@
     "seo:links": "node scripts/semantic-linking.mjs",
     "seo:google:import": "node scripts/import-google-search-console.mjs",
     "seo:google:quick-wins": "node scripts/google-quick-wins.mjs",
+    "seo:yandex:import": "node scripts/import-yandex-seo.mjs",
+    "seo:yandex:opportunities": "node scripts/yandex-query-opportunities.mjs",
     "max:setup": "node scripts/max-setup.mjs",
     "max:test": "node scripts/max-setup.mjs --send-test",
     "ads:feed": "node scripts/generate-advertising-feed.mjs",
