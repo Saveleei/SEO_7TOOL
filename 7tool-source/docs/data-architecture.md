@@ -68,6 +68,8 @@ MediaAsset отделяет origin от publishable derivative. `RESEARCH_ONLY` 
 erDiagram
   PRODUCTS ||--o{ PRODUCT_FEATURES : has
   PRODUCTS ||--o{ PRODUCT_COMPATIBILITY : participates
+  PRODUCTS ||--o{ PRODUCT_ENRICHMENT_SETS : enriched_by
+  PRODUCT_ENRICHMENT_SETS ||--o{ PRODUCT_ENRICHMENT_ITEMS : contains
   CATEGORIES ||--o{ PRODUCTS : contains
   SOURCES ||--o{ SOURCE_FACTS : provides
   IMPORT_RUNS ||--o{ SOURCE_FACTS : produces
@@ -333,7 +335,7 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 
 ## 16. Proposed migration batches
 
-Миграции PHASE 3–10 созданы как backup-gated artifacts, но к production не применены.
+Миграции PHASE 3–11 созданы как backup-gated artifacts, но к production не применены.
 
 | Batch | Scope | Dependency | Gate |
 |---|---|---|---|
@@ -345,7 +347,9 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 | 006 | opportunities/scoring | semantic + SERP data | PHASE 8 approval |
 | 007 | content assets/briefs/revisions/evidence/workflow | editorial roles | PHASE 9 approval |
 | 008 | media assets/rights/variants/content media | legal rights policy | PHASE 10 approval |
-| 009 | performance/outcomes | analytics/CRM contracts | PHASE 18 approval |
+| 009 | versioned product enrichment/items/reviews/audit | verified knowledge graph + human reviewer | PHASE 11 approval |
+
+Performance/outcomes остаются scope PHASE 18; номер их миграции назначается в той фазе и не резервирует batch 009.
 
 ## 17. API boundaries
 

@@ -363,7 +363,7 @@ test("migration 007 indexes match public and workflow query plans", () => {
     `).all().map((row) => row.detail).join("\n");
     assert.match(publicPlan, /idx_content_assets_public/);
     assert.match(workflowPlan, /idx_content_assets_workflow/);
-    for (const filename of ["008_image_intelligence.sql", "007_content_platform.sql"]) {
+    for (const filename of ["009_product_enrichment.sql", "008_image_intelligence.sql", "007_content_platform.sql"]) {
       const migrationSql = fs.readFileSync(path.resolve(import.meta.dirname, "..", "scripts", "migrations", filename), "utf8");
       const downSql = migrationSql.slice(migrationSql.indexOf("-- migrate:down") + "-- migrate:down".length);
       db.exec(downSql);

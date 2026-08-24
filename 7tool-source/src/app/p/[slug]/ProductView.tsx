@@ -31,6 +31,8 @@ export function ProductView({
   categorySlug,
   selectionTitle,
   selectionFields = [],
+  hasVerifiedFaq = false,
+  hasVerifiedEnrichment = false,
 }: {
   product: Product;
   initialVariantId?: string;
@@ -38,6 +40,8 @@ export function ProductView({
   categorySlug?: string;
   selectionTitle?: string;
   selectionFields?: SelectionField[];
+  hasVerifiedFaq?: boolean;
+  hasVerifiedEnrichment?: boolean;
 }) {
   // Свежие цена/наличие из /api/live слиты в товар — вся логика ниже (выбор варианта,
   // доступность осей, статус наличия, цена) сразу реактивна без пересборки сайта.
@@ -431,7 +435,7 @@ export function ProductView({
       <TrustRow />
 
       {/* Сначала помогаем понять товар: ключевые параметры, описание и полная спецификация. */}
-      {(product.description || product.seoText || grouped.length > 0) && (
+      {(product.description || (!hasVerifiedEnrichment && product.seoText) || grouped.length > 0) && (
         <section id="p-info" className="mt-12 scroll-mt-28">
           <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-amber-700">
             <span className="h-px w-6 bg-amber-400" />
@@ -455,7 +459,7 @@ export function ProductView({
           )}
 
           <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,520px)] lg:gap-14">
-            {(product.description || product.seoText) && (
+            {(product.description || (!hasVerifiedEnrichment && product.seoText)) && (
               <div>
                 <h3 className="font-display text-[20px] font-extrabold text-steel-900">Описание товара</h3>
                 {product.description && (
@@ -463,7 +467,7 @@ export function ProductView({
                     {product.description}
                   </p>
                 )}
-                {product.seoText && (
+                {!hasVerifiedEnrichment && product.seoText && (
                   <div className="mt-6 border-t border-steel-100 pt-5">
                     <h3 className="font-display text-[18px] font-bold text-steel-900">Назначение и применение</h3>
                     <div className="mt-3 space-y-3 text-[14px] leading-7 text-steel-700">
@@ -514,7 +518,7 @@ export function ProductView({
       )}
 
       {/* FAQ снимает оставшиеся возражения перед подтверждением склада. */}
-      <ProductFaq product={product} variant={variant} />
+      {!hasVerifiedFaq && <ProductFaq product={product} variant={variant} />}
 
       <OneClickModal
         open={oneClickOpen}

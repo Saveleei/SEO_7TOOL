@@ -316,9 +316,11 @@ test("migration 008 indexes cover media discovery and public placement queries a
     `).all().map((row) => row.detail).join("\n");
     assert.match(libraryPlan, /idx_media_assets_library/);
     assert.match(publicPlan, /idx_content_media_public/);
-    const migrationSql = fs.readFileSync(path.resolve(import.meta.dirname, "..", "scripts", "migrations", "008_image_intelligence.sql"), "utf8");
-    const downSql = migrationSql.slice(migrationSql.indexOf("-- migrate:down") + "-- migrate:down".length);
-    db.exec(downSql);
+    for (const filename of ["009_product_enrichment.sql", "008_image_intelligence.sql"]) {
+      const migrationSql = fs.readFileSync(path.resolve(import.meta.dirname, "..", "scripts", "migrations", filename), "utf8");
+      const downSql = migrationSql.slice(migrationSql.indexOf("-- migrate:down") + "-- migrate:down".length);
+      db.exec(downSql);
+    }
     assert.equal(db.prepare("SELECT COUNT(*) AS count FROM sqlite_schema WHERE name = 'media_assets'").get().count, 0);
   } finally {
     db.close();

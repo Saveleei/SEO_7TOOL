@@ -155,7 +155,9 @@ Supplier source из PHASE 3 создаётся с `CONTRACT_REQUIRED`. Поэт
 - compatibility/product UI and structured data;
 - generated compatibility pages;
 - review-derived product problems;
-- content generation.
+- production enrichment generation and approval beyond the evidence-bound PHASE 11 workflow.
+
+PHASE 11 now consumes this graph through a separate immutable Product Enrichment projection. It uses only current `VERIFIED` assertions backed by active `PUBLISHABLE_FACTS` sources; it does not alter graph facts or infer suitability from a numeric feature. See [Product Enrichment Engine](./product-enrichment.md).
 
 ## Human review checklist
 

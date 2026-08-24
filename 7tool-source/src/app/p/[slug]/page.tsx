@@ -15,6 +15,8 @@ import { indexableRobots, noIndexRobots, pageTitle } from "@/lib/seo-metadata";
 import { absoluteUrl } from "@/lib/site-config";
 import { hasSeoDataConflict } from "@/lib/seo-conflicts";
 import { categorySocialPreviewPath, socialPreviewImage } from "@/lib/social-preview";
+import { getProductEnrichment } from "@/lib/product-enrichment-db";
+import { ProductEnrichment } from "@/components/ProductEnrichment";
 
 export const dynamicParams = true;
 // Цена, availability, HTML и JSON-LD должны быть собраны из одной актуальной
@@ -77,6 +79,8 @@ export default async function ProductPage({
   const cat = getPublicCategory(product.category);
   const categoryContent = contentForCategory(product.category, cat?.title ?? product.category);
   const related = getPublicRelatedProducts(product.category, product.id, 4);
+  const enrichment = getProductEnrichment(product.id);
+  const selectionEnabled = Boolean(cat && categoryContent.selectionFields.length > 0);
 
   return (
     <>
@@ -97,11 +101,17 @@ export default async function ProductPage({
               categorySlug={cat?.slug}
               selectionTitle={categoryContent.selectionTitle}
               selectionFields={categoryContent.selectionFields}
+              hasVerifiedFaq={Boolean(enrichment?.faq.length)}
+              hasVerifiedEnrichment={Boolean(enrichment)}
             />
           </div>
         </section>
 
         <WarehouseStrip count={4} />
+
+        {enrichment && (
+          <ProductEnrichment enrichment={enrichment} selectionEnabled={selectionEnabled} />
+        )}
 
         {related.length > 0 && (
           <section className="bg-gradient-to-b from-cobalt-50/30 via-white to-white py-14">
