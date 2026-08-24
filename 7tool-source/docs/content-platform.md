@@ -46,6 +46,8 @@ REVIEWED CREATE opportunity
 
 Arrays from the logical Article model are not packed into a mutable article JSON: keywords, products, relations, sources, FAQ and links use join tables. `content` is resolved from `current_revision_id`. Since PHASE 10, `images[]` is a rights-verified read projection from `content_media`, `media_assets` and immutable variants; it remains empty when migration 008 is absent or no published placement is eligible.
 
+Since PHASE 13, `content_products`, `content_related` and the reviewed category also serve as normalized proof for separately versioned semantic link sets. These facts do not publish links by themselves: an editor must approve and publish the next-question journey. If the relation or target changes, the public semantic block disappears immediately. The article renderer suppresses legacy product/related links that are already present in the published semantic block.
+
 Append-only triggers prevent update/delete of content revisions, approvals, workflow events and quality checks. Brief content and brief items are immutable; correction requires a new brief version. The migration ends with `PRAGMA optimize`.
 
 Indexes are tied to actual access patterns:
@@ -207,6 +209,7 @@ Full project regression, TypeScript check, numbered migration dry-run and Next p
 - production Image Intelligence migration, real supplier rights approvals and media ingestion;
 - Article/FAQ structured data — PHASE 15;
 - analytics for article depth/product clicks/leads — PHASE 18;
+- real PHASE 13 semantic link sets and production migration 011;
 - content refresh automation — PHASE 21;
 - deployment/hosting and publication of production content.
 

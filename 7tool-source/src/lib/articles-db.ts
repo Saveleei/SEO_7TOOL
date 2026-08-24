@@ -18,6 +18,7 @@ export type ArticleContent = {
 
 export type PublishedArticleSummary = {
   id: string;
+  contentType: "ARTICLE" | "GUIDE" | "HOW_TO" | "COMPARISON" | "TROUBLESHOOTING" | "COMPATIBILITY" | "CASE_STUDY" | "TEST" | "REFERENCE" | "FAQ";
   slug: string;
   title: string;
   h1: string;
@@ -67,6 +68,7 @@ export type PublishedArticle = PublishedArticleSummary & {
 
 type ArticleRow = {
   id: string;
+  content_type: PublishedArticleSummary["contentType"];
   slug: string;
   title: string;
   h1: string;
@@ -212,6 +214,7 @@ function readingMinutes(contentBody: string) {
 function summaryFromRow(row: ArticleRow): PublishedArticleSummary {
   return {
     id: row.id,
+    contentType: row.content_type,
     slug: row.slug,
     title: row.title,
     h1: row.h1,
@@ -228,7 +231,7 @@ function summaryFromRow(row: ArticleRow): PublishedArticleSummary {
 }
 
 const publicArticleSelect = `
-  SELECT a.id, a.slug, a.title, a.h1, a.meta_title, a.meta_description, a.excerpt,
+  SELECT a.id, a.content_type, a.slug, a.title, a.h1, a.meta_title, a.meta_description, a.excerpt,
     a.category_slug, c.title AS category_title, i.label AS intent_label, a.author,
     a.expert_reviewer, a.canonical, a.primary_keyword, a.quality_score, a.evidence_score,
     a.differentiation_score, a.business_score, a.lead_form_type, a.generated_by_ai,

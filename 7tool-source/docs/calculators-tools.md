@@ -142,6 +142,8 @@ npm run seo:tools -- list --db=isolated.db
 - responsive forms and tables preserve keyboard/touch access;
 - the existing visual system is reused rather than introducing a separate tool UI.
 
+PHASE 13 adds a separate, human-published semantic link projection. A selector may point to a product only when that product remains in its current verified dataset (or a HUMAN records an explicit curation basis). A product may point to the compatibility table only while its verified compatibility row remains public. Tool publication alone never creates these links.
+
 The Sites/SQLite guidance influenced the implementation by preserving the existing Next.js structure and visual language, using indexes derived from actual public/workflow queries, and verifying those indexes with `EXPLAIN QUERY PLAN`.
 
 ## Verification
@@ -165,7 +167,7 @@ Older rollback tests now remove migration 010 before their own migration.
 - creating real reviewed opportunities and choosing `INDEX` URLs;
 - admin UI for candidates, rules, review, publication and stale queues;
 - analytics events and commercial attribution — PHASE 18;
-- semantic internal linking to/from tools — PHASE 13;
+- real PHASE 13 semantic link sets and production migration 011;
 - structured data assessment — PHASE 15.
 
 # STOP / HUMAN REVIEW REQUIRED

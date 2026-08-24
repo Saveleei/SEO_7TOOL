@@ -73,6 +73,10 @@ erDiagram
   CONTENT_OPPORTUNITIES ||--o{ INTERACTIVE_TOOL_SETS : informs
   INTERACTIVE_TOOL_SETS ||--o{ INTERACTIVE_TOOL_RULES : contains
   FACT_ASSERTIONS ||--o{ INTERACTIVE_TOOL_RULES : verifies
+  CONTENT_ASSETS ||--o{ SEMANTIC_LINK_SETS : navigates_from
+  PRODUCTS ||--o{ SEMANTIC_LINK_SETS : navigates_from
+  INTERACTIVE_TOOL_SETS ||--o{ SEMANTIC_LINK_SETS : navigates_from
+  SEMANTIC_LINK_SETS ||--o{ SEMANTIC_LINK_ITEMS : contains
   CATEGORIES ||--o{ PRODUCTS : contains
   SOURCES ||--o{ SOURCE_FACTS : provides
   IMPORT_RUNS ||--o{ SOURCE_FACTS : produces
@@ -257,6 +261,12 @@ Publish transaction must verify:
 - human approval;
 - media rights publishable.
 
+### Semantic internal linking projection
+
+`semantic_link_sets` versions one reviewed next-question journey per ARTICLE, PRODUCT, CATEGORY, CALCULATOR or COMPARISON source. `semantic_link_items` stores the exact allowed relation, public target path, deterministic anchor, next question, journey stages and normalized proof snapshot. `semantic_link_reviews` and `semantic_link_audit_events` are append-only.
+
+Publication requires HUMAN approval and a separate HUMAN publish action. Public reads recompute source, target and proof; a status-only row cannot expose a stale transition. ARTICLE/PRODUCT relations use `content_products` or `content_related`, category/guide uses the reviewed category, product/compatibility uses the live verified table, and calculator/product uses the current verified selector dataset or an explicit HUMAN curation basis.
+
 ## 10. Media domain
 
 ### `media_assets`
@@ -338,7 +348,7 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 
 ## 16. Proposed migration batches
 
-Миграции PHASE 3–12 созданы как backup-gated artifacts, но к production не применены.
+Миграции PHASE 3–13 созданы как backup-gated artifacts, но к production не применены.
 
 | Batch | Scope | Dependency | Gate |
 |---|---|---|---|
@@ -352,8 +362,9 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 | 008 | media assets/rights/variants/content media | legal rights policy | PHASE 10 approval |
 | 009 | versioned product enrichment/items/reviews/audit | verified knowledge graph + human reviewer | PHASE 11 approval |
 | 010 | interactive tool sets/rules/reviews/audit | reviewed opportunities + verified facts | PHASE 12 approval |
+| 011 | semantic link sets/items/reviews/audit | public content/products/categories/tools + normalized relation proofs | PHASE 13 approval |
 
-Performance/outcomes остаются scope PHASE 18; номер их миграции назначается в той фазе и не резервирует batch 009/010.
+Performance/outcomes остаются scope PHASE 18; номер их миграции назначается в той фазе и не резервирует batch 009/010/011.
 
 ## 17. API boundaries
 

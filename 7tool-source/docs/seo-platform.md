@@ -1,6 +1,6 @@
 # 7TOOL SEO & Content Intelligence Platform
 
-Статус: architecture baseline plus research/import/decision/content/media/product-enrichment/tool layers through PHASE 12. Production migrations and real publication remain human-gated.
+Статус: architecture baseline plus research/import/decision/content/media/product-enrichment/tool/internal-linking layers through PHASE 13. Production migrations and real publication remain human-gated.
 
 ## Goal
 
@@ -36,6 +36,7 @@ Sources → Raw observations → Verified facts → Intent → Opportunity
 | Media layer | rights, provenance, variants, placement | competitor image publication |
 | Product enrichment layer | evidence-bound product-page sections and versions | commerce fields, supplier copy, unsupported advice |
 | Tool layer | reviewed formulas, verified selectors, compatibility tables | guessed coefficients, unverified product matches |
+| Internal linking layer | reviewed next-question journeys backed by normalized relations | keyword-overlap inference, self-publication, stale links |
 | Performance layer | query/page/search/business outcomes | credentials in frontend |
 
 ## Current integration points
@@ -52,7 +53,7 @@ Sources → Raw observations → Verified facts → Intent → Opportunity
 
 ## Current approval gates
 
-PHASE 3–12 artifacts are implemented on isolated feature branches, but remain non-production. Before applying them to a live database or using external data:
+PHASE 3–13 artifacts are implemented on isolated feature branches, but remain non-production. Before applying them to a live database or using external data:
 
 1. approve the model in [data-architecture.md](./data-architecture.md);
 2. resolve Git baseline and feature branch;
@@ -80,5 +81,6 @@ PHASE 3–12 artifacts are implemented on isolated feature branches, but remain 
 - [Image Intelligence](./image-intelligence.md)
 - [Product Enrichment Engine](./product-enrichment.md)
 - [Calculators, Selectors & Compatibility Tables](./calculators-tools.md)
+- [Internal Linking Engine](./internal-linking.md)
 
 # STOP / HUMAN REVIEW REQUIRED

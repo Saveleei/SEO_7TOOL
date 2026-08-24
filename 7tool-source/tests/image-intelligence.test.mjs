@@ -316,7 +316,7 @@ test("migration 008 indexes cover media discovery and public placement queries a
     `).all().map((row) => row.detail).join("\n");
     assert.match(libraryPlan, /idx_media_assets_library/);
     assert.match(publicPlan, /idx_content_media_public/);
-    for (const filename of ["010_interactive_tools.sql", "009_product_enrichment.sql", "008_image_intelligence.sql"]) {
+    for (const filename of ["011_semantic_internal_linking.sql", "010_interactive_tools.sql", "009_product_enrichment.sql", "008_image_intelligence.sql"]) {
       const migrationSql = fs.readFileSync(path.resolve(import.meta.dirname, "..", "scripts", "migrations", filename), "utf8");
       const downSql = migrationSql.slice(migrationSql.indexOf("-- migrate:down") + "-- migrate:down".length);
       db.exec(downSql);

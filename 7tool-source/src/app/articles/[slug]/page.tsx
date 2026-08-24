@@ -4,7 +4,9 @@ import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SemanticNextSteps } from "@/components/SemanticNextSteps";
 import { getPublishedArticle, listPublishedArticleSlugs, type ArticleBlock, type PublishedArticleImage } from "@/lib/articles-db";
+import { getSemanticLinks } from "@/lib/semantic-linking-db";
 import { indexableRobots, noIndexRobots, pageTitle } from "@/lib/seo-metadata";
 
 export const dynamicParams = true;
@@ -41,6 +43,11 @@ export default async function ArticlePage({ params }: RouteProps) {
   const { slug } = await params;
   const article = getPublishedArticle(slug);
   if (!article) notFound();
+  const semanticSourceType = article.contentType === "COMPARISON" ? "COMPARISON" : article.contentType === "ARTICLE" ? "ARTICLE" : null;
+  const semanticLinks = semanticSourceType ? getSemanticLinks(semanticSourceType, article.id) : undefined;
+  const semanticHrefs = new Set(semanticLinks?.items.map((item) => item.href) ?? []);
+  const targetProducts = article.targetProducts.filter((product) => !semanticHrefs.has(`/p/${product.slug}`));
+  const relatedArticles = article.relatedArticles.filter((related) => !semanticHrefs.has(`/articles/${related.slug}`));
   const sourceNumbers = new Map(article.sources.map((source, index) => [source.sourceRef, index + 1]));
   const leadImages = article.images.filter((image) => image.slotType === "HERO" || (!image.sectionHeading && new Set(["DIAGRAM", "COMPARISON"]).has(image.slotType)));
   const unanchoredInlineImages = article.images.filter((image) => image.slotType === "INLINE" && !image.sectionHeading);
@@ -112,6 +119,8 @@ export default async function ArticlePage({ params }: RouteProps) {
               </section>
             )}
 
+            <SemanticNextSteps links={semanticLinks} className="mt-14 overflow-hidden rounded-[14px] border" />
+
             <section className="mt-14 border-t border-steel-200 pt-9">
               <h2 className="font-display text-[24px] font-extrabold tracking-tight text-steel-900">Источники и проверка</h2>
               <ol className="mt-4 space-y-3 text-[13px] leading-6 text-steel-600">
@@ -132,11 +141,11 @@ export default async function ArticlePage({ params }: RouteProps) {
           </article>
 
           <aside className="space-y-5 lg:sticky lg:top-32">
-            {article.targetProducts.length > 0 && (
+            {targetProducts.length > 0 && (
               <section className="rounded-[14px] border border-steel-200 bg-white p-5 shadow-soft">
                 <h2 className="font-display text-[18px] font-extrabold tracking-tight text-steel-900">Товары по теме</h2>
                 <ul className="mt-4 divide-y divide-steel-100">
-                  {article.targetProducts.map((product) => (
+                  {targetProducts.map((product) => (
                     <li key={product.id} className="py-3 first:pt-0 last:pb-0">
                       <Link href={`/p/${product.slug}`} className="block text-[13px] font-bold leading-5 text-steel-800 transition hover:text-amber-700">
                         {product.title}
@@ -156,12 +165,12 @@ export default async function ArticlePage({ params }: RouteProps) {
           </aside>
         </div>
 
-        {article.relatedArticles.length > 0 && (
+        {relatedArticles.length > 0 && (
           <section className="border-t border-steel-200 bg-white">
             <div className="mx-auto max-w-[1160px] px-4 py-12 sm:px-6">
               <h2 className="font-display text-[27px] font-extrabold tracking-tight text-steel-900">Материалы по теме</h2>
               <div className="mt-6 grid gap-4 md:grid-cols-2">
-                {article.relatedArticles.map((related) => (
+                {relatedArticles.map((related) => (
                   <Link key={related.slug} href={`/articles/${related.slug}`} className="rounded-[12px] border border-steel-200 p-5 transition hover:border-amber-300 hover:shadow-soft">
                     <span className="font-display text-[18px] font-extrabold text-steel-900">{related.title}</span>
                     <span className="mt-2 line-clamp-2 block text-[13px] leading-6 text-steel-600">{related.excerpt}</span>

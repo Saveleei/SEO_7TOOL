@@ -10,6 +10,8 @@ import { WarehouseStrip } from "@/components/WarehouseProof";
 import { CategoryFilters } from "./CategoryFilters";
 import { SubcategoryGrid } from "@/components/SubcategoryGrid";
 import { CategorySelectionForm } from "@/components/CategorySelectionForm";
+import { SemanticNextSteps } from "@/components/SemanticNextSteps";
+import { getSemanticLinks } from "@/lib/semantic-linking-db";
 import { contentForCategory } from "@/lib/category-content";
 import { getSubcategoriesForCategory } from "@/lib/subcategories";
 import { absoluteUrl } from "@/lib/site-config";
@@ -74,6 +76,7 @@ export default async function CategoryPage({ params, searchParams }: RouteProps)
   const page = catalogPageNumber(query);
   const maxPage = Math.max(1, Math.ceil(items.length / 24));
   if (!page || page > maxPage) notFound();
+  const semanticLinks = page === 1 && !hasCatalogFilters(query) ? getSemanticLinks("CATEGORY", cat.slug) : undefined;
   const pageItems = items.slice((page - 1) * 24, page * 24);
   const initialFilters = catalogFilterValues(query);
   const facetNames = listingFacetNames(items);
@@ -195,6 +198,7 @@ export default async function CategoryPage({ params, searchParams }: RouteProps)
           fields={content.selectionFields}
           heading={content.selectionTitle}
         />
+        <SemanticNextSteps links={semanticLinks} />
         <section className="border-t border-steel-200 bg-white">
           <div className="mx-auto max-w-[980px] px-4 py-10 sm:px-6 sm:py-14">
             <h2 className="font-display text-[24px] font-extrabold tracking-tight text-steel-900">{content.seoTitle}</h2>

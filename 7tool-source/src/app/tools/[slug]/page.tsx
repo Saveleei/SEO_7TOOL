@@ -5,6 +5,8 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { InteractiveToolWorkbench } from "@/components/InteractiveToolWorkbench";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SemanticNextSteps } from "@/components/SemanticNextSteps";
+import { getSemanticLinks } from "@/lib/semantic-linking-db";
 import { getPublishedTool, listPublishedTools } from "@/lib/tool-platform-db";
 import { indexableRobots, noIndexRobots, pageTitle } from "@/lib/seo-metadata";
 import { absoluteUrl } from "@/lib/site-config";
@@ -47,6 +49,7 @@ export default async function ToolPage({ params }: RouteProps) {
   const { slug } = await params;
   const tool = getPublishedTool(slug);
   if (!tool) notFound();
+  const semanticLinks = tool.type === "COMPATIBILITY_TABLE" ? undefined : getSemanticLinks("CALCULATOR", tool.key);
   return (
     <>
       <SiteHeader />
@@ -63,6 +66,7 @@ export default async function ToolPage({ params }: RouteProps) {
         </header>
         <section className="mx-auto max-w-[1180px] px-4 py-10 sm:px-6 sm:py-14">
           <InteractiveToolWorkbench tool={tool} />
+          <SemanticNextSteps links={semanticLinks} className="mt-10 overflow-hidden rounded-[14px] border" />
           <div className="mt-10 flex flex-col justify-between gap-4 rounded-[14px] border border-amber-300 bg-steel-900 p-6 text-white sm:flex-row sm:items-center">
             <div><h2 className="font-display text-[21px] font-extrabold">Нужна проверка инженера?</h2><p className="mt-1 text-[13px] leading-6 text-steel-300">Передайте исходные параметры — специалист сверит результат с конкретной моделью и оснасткой.</p></div>
             <Link href="/kontakty" className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-amber-400 px-5 text-[13px] font-extrabold text-steel-900 hover:bg-amber-300">Связаться с 7TOOL</Link>

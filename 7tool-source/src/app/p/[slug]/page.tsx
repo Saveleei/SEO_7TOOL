@@ -17,6 +17,8 @@ import { hasSeoDataConflict } from "@/lib/seo-conflicts";
 import { categorySocialPreviewPath, socialPreviewImage } from "@/lib/social-preview";
 import { getProductEnrichment } from "@/lib/product-enrichment-db";
 import { ProductEnrichment } from "@/components/ProductEnrichment";
+import { SemanticNextSteps } from "@/components/SemanticNextSteps";
+import { getSemanticLinks } from "@/lib/semantic-linking-db";
 
 export const dynamicParams = true;
 // Цена, availability, HTML и JSON-LD должны быть собраны из одной актуальной
@@ -80,6 +82,7 @@ export default async function ProductPage({
   const categoryContent = contentForCategory(product.category, cat?.title ?? product.category);
   const related = getPublicRelatedProducts(product.category, product.id, 4);
   const enrichment = getProductEnrichment(product.id);
+  const semanticLinks = getSemanticLinks("PRODUCT", product.id);
   const selectionEnabled = Boolean(cat && categoryContent.selectionFields.length > 0);
 
   return (
@@ -112,6 +115,7 @@ export default async function ProductPage({
         {enrichment && (
           <ProductEnrichment enrichment={enrichment} selectionEnabled={selectionEnabled} />
         )}
+        <SemanticNextSteps links={semanticLinks} />
 
         {related.length > 0 && (
           <section className="bg-gradient-to-b from-cobalt-50/30 via-white to-white py-14">
