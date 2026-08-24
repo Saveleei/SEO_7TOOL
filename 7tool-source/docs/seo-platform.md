@@ -63,5 +63,6 @@ PHASE 2 produced only architecture documents. Before PHASE 3:
 - [Platform audit](./seo-platform-audit.md)
 - [Technical SEO audit](./technical-seo-audit.md)
 - [Data architecture](./data-architecture.md)
+- [Supplier Feed Intelligence](./supplier-feed-intelligence.md)
 
 # STOP / HUMAN REVIEW REQUIRED

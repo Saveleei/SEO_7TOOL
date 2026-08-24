@@ -6,6 +6,8 @@ import Database from "better-sqlite3";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { recordFeedObservation, safeSourceLabel } from "./lib/feed-provenance.mjs";
+import { parseSupplierFeed } from "./lib/supplier-feed-parser.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -16,6 +18,8 @@ const LOCAL_FEED = process.argv[2] ?? process.env.FEED_FILE ?? path.join(ROOT, "
 const STATE_PATH = process.env.FEED_STATE_PATH ?? `${DB_PATH}.feed-state.json`;
 const LOCK_PATH = process.env.FEED_LOCK_PATH ?? `${DB_PATH}.feed.lock`;
 const MIN_EXPECTED_OFFERS = Number(process.env.FEED_MIN_OFFERS ?? 5_000);
+const PROVENANCE_ENABLED = process.env.FEED_PROVENANCE_ENABLED === "1";
+const FEED_SOURCE_ID = process.env.FEED_SOURCE_ID?.trim() || "supplier-k2tool";
 
 const CATEGORY_BY_FEED_ID: Record<string, string> = {
   "22": "sverla-i-zenkovki",
@@ -261,7 +265,7 @@ async function loadFeed(): Promise<string> {
   try {
     const res = await fetch(FEED_URL, { signal: AbortSignal.timeout(90_000) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    console.log("feed: загружен с", FEED_URL);
+    console.log("feed: загружен с", safeSourceLabel(FEED_URL));
     return await res.text();
   } catch (error) {
     if (!fs.existsSync(LOCAL_FEED)) throw error;
@@ -285,75 +289,10 @@ function decodeXml(value = ""): string {
   return out.trim();
 }
 
-function attrs(value: string): Record<string, string> {
-  const result: Record<string, string> = {};
-  for (const match of value.matchAll(/([\w:-]+)="([^"]*)"/g)) result[match[1]] = decodeXml(match[2]);
-  return result;
-}
-
-function tag(body: string, name: string): string | undefined {
-  const match = new RegExp(`<${name}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${name}>`, "i").exec(body);
-  return match ? decodeXml(match[1]) : undefined;
-}
-
-function integer(value?: string): number | undefined {
-  if (!value) return undefined;
-  const parsed = Number(value.replace(",", "."));
-  return Number.isFinite(parsed) ? Math.round(parsed) : undefined;
-}
-
 function cleanParamName(name: string): string {
   const original = (name ?? "").trim();
   const cleaned = original.replace(/^(?:k2[\s_.:/-]*)+/i, "").trim();
   return cleaned || original;
-}
-
-function parseFeed(xml: string): FeedOffer[] {
-  const offers: FeedOffer[] = [];
-  for (const match of xml.matchAll(/<offer\s+([^>]*?)>([\s\S]*?)<\/offer>/g)) {
-    const attr = attrs(match[1]);
-    const body = match[2];
-    if (!attr.id) continue;
-    const params: ProductParam[] = [];
-    for (const paramMatch of body.matchAll(/<param\s+([^>]*?)>([\s\S]*?)<\/param>/g)) {
-      const paramAttr = attrs(paramMatch[1]);
-      const value = decodeXml(paramMatch[2]);
-      if (!paramAttr.name || !value) continue;
-      params.push({ name: cleanParamName(paramAttr.name), value, ...(paramAttr.unit ? { unit: paramAttr.unit } : {}) });
-    }
-    const pictures: string[] = [];
-    for (const pictureMatch of body.matchAll(/<picture(?:\s[^>]*)?>([\s\S]*?)<\/picture>/g)) {
-      // Не переписываем домен: фид отдаёт рабочий CDN с валидным TLS.
-      // Подменявшийся ранее pim.k2.tools имеет просроченный сертификат, из-за
-      // чего браузер корректно блокировал все изображения.
-      const src = decodeXml(pictureMatch[1]);
-      if (src.startsWith("http") && !pictures.includes(src)) pictures.push(src);
-      if (pictures.length >= 6) break;
-    }
-    const accessories = Array.from(body.matchAll(/<accessory(?:\s[^>]*)?>([\s\S]*?)<\/accessory>/g))
-      .map((item) => decodeXml(item[1]))
-      .filter(Boolean);
-    offers.push({
-      id: attr.id,
-      group: attr.group === "true",
-      groupId: tag(body, "groupId"),
-      status: tag(body, "status"),
-      name: tag(body, "name") ?? "",
-      categoryId: tag(body, "categoryId"),
-      sku: tag(body, "vendorCode") ?? "",
-      vendor: tag(body, "vendor"),
-      description: tag(body, "description"),
-      barcode: tag(body, "barcode"),
-      price: integer(tag(body, "price")),
-      oldPrice: integer(tag(body, "oldprice")),
-      quantity: integer(tag(body, "quantity")),
-      available: attr.available !== "false",
-      params,
-      pictures,
-      accessories,
-    });
-  }
-  return offers;
 }
 
 function published(offer: FeedOffer): boolean {
@@ -619,7 +558,8 @@ function upsertDatabase(catalog: Catalog) {
 async function main() {
   const lock = acquireLock();
   try {
-    const offers = parseFeed(await loadFeed());
+    const xml = await loadFeed();
+    const offers = parseSupplierFeed(xml) as FeedOffer[];
     const ids = new Set(offers.map((offer) => offer.id));
     if (offers.length < MIN_EXPECTED_OFFERS || ids.size !== offers.length) {
       throw new Error(`Фид не прошёл sanity-check: offers=${offers.length}, unique=${ids.size}`);
@@ -632,6 +572,23 @@ async function main() {
     ));
     if (unmappedCategoryIds.length) {
       throw new Error(`В фиде появились несопоставленные категории: ${unmappedCategoryIds.join(", ")}`);
+    }
+    let provenance: { runId: string; inputChecksum: string; factCount: number } | undefined;
+    if (PROVENANCE_ENABLED) {
+      const provenanceDb = new Database(DB_PATH);
+      try {
+        provenanceDb.pragma("foreign_keys = ON");
+        provenance = recordFeedObservation(provenanceDb, {
+          sourceId: FEED_SOURCE_ID,
+          sourceName: "K2Tool supplier feed",
+          sourceUrl: FEED_URL,
+          xml,
+          offers,
+          artifactRef: process.argv[2] ? path.resolve(LOCAL_FEED) : null,
+        });
+      } finally {
+        provenanceDb.close();
+      }
     }
     const offerById = new Map(publishedOffers.map((offer) => [offer.id, offer]));
     const childrenByGroup = new Map<string, FeedOffer[]>();
@@ -789,6 +746,7 @@ async function main() {
       retiredVariants,
       unsupportedCategories: unsupported.length,
       structureChanged: addedProducts > 0 || addedVariants > 0 || publishedProducts > 0,
+      provenance: provenance ?? { enabled: false },
     };
     fs.writeFileSync(STATE_PATH, JSON.stringify(state, null, 2), "utf8");
     console.log(JSON.stringify(state, null, 2));

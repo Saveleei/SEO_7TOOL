@@ -28,6 +28,7 @@ private-specifications/
 *.tmp
 *.temp
 coverage/
+*.tsbuildinfo
 
 # Local release/queue bundles
 *.tar.gz

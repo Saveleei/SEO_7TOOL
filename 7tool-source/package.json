@@ -18,6 +18,7 @@
     "seo:check": "node scripts/seo-check.mjs",
     "db:import": "node scripts/import-json-to-sqlite.mjs",
     "db:backup": "node scripts/backup-data.mjs",
+    "db:migrate:seo": "node scripts/migrate-seo.mjs",
     "max:setup": "node scripts/max-setup.mjs",
     "max:test": "node scripts/max-setup.mjs --send-test",
     "ads:feed": "node scripts/generate-advertising-feed.mjs",

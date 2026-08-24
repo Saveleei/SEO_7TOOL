@@ -21,6 +21,7 @@ npm run dev
 - `data.db` или `SQLITE_PATH` — оперативная SQLite-база: каталог, варианты, лиды, пользователи и настройки.
 - `UPLOAD_DIR` — постоянное хранилище загруженных изображений. На production оно должно находиться вне каталога релиза.
 - `scripts/refresh-feed.mts` — полная безопасная синхронизация дилерского фида с JSON и SQLite: обновляет цены и наличие, публикует активные позиции, добавляет новые товары/варианты и отклоняет неполный фид.
+- `scripts/migrate-seo.mjs` — отдельный dry-run-first runner versioned SEO migrations; применение требует явный проверенный backup.
 - `scripts/import-json-to-sqlite.mjs` — идемпотентный первичный импорт и миграция.
 - `scripts/backup-data.mjs` — консистентная копия SQLite с ротацией.
 
@@ -33,6 +34,8 @@ npm run build
 ```
 
 Актуализировать каталог вручную можно командой `npm run feed:sync`. На production она запускается по расписанию: оперативные цены и наличие сразу читаются сайтом из SQLite, а новые карточки попадают в статические страницы после плановой пересборки.
+
+Закрытый URL фида задаётся только через `FEED_URL` в runtime environment. Optional Supplier Feed Intelligence provenance включается через `FEED_PROVENANCE_ENABLED=1` только после применения проверенной migration; подробности — [docs/supplier-feed-intelligence.md](./docs/supplier-feed-intelligence.md).
 
 Проверяются целостность девяти категорий, уникальность URL, отсутствие нулевых цен, коммерческая сортировка, защита форм и production-сборка.
 
