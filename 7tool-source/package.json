@@ -36,6 +36,8 @@
     "seo:google:quick-wins": "node scripts/google-quick-wins.mjs",
     "seo:yandex:import": "node scripts/import-yandex-seo.mjs",
     "seo:yandex:opportunities": "node scripts/yandex-query-opportunities.mjs",
+    "analytics:intelligence:import": "node scripts/import-analytics-intelligence.mjs",
+    "analytics:intelligence:materialize": "node scripts/materialize-analytics-intelligence.mjs",
     "max:setup": "node scripts/max-setup.mjs",
     "max:test": "node scripts/max-setup.mjs --send-test",
     "ads:feed": "node scripts/generate-advertising-feed.mjs",

@@ -168,7 +168,7 @@ Older rollback tests now remove migration 010 before their own migration.
 - mapping real product feature keys/units and resolving conflicts;
 - creating real reviewed opportunities and choosing `INDEX` URLs;
 - admin UI for candidates, rules, review, publication and stale queues;
-- analytics events and commercial attribution — PHASE 18;
+- production calibration of the implemented Phase 18 `CALCULATOR_*` and `SELECTOR_*` goals;
 - real PHASE 13 semantic link sets and production migration 011;
 - structured data assessment — PHASE 15.
 

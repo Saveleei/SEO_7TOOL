@@ -4,6 +4,19 @@ import { YANDEX_METRIKA_ID } from "./metrika-config";
 import { createMetrikaDispatcher } from "./metrika-dispatch.mjs";
 
 export type AnalyticsEvent =
+  | "ARTICLE_VIEW"
+  | "ARTICLE_50_SCROLL"
+  | "ARTICLE_90_SCROLL"
+  | "PRODUCT_CLICK_FROM_ARTICLE"
+  | "CATEGORY_CLICK_FROM_ARTICLE"
+  | "CALCULATOR_START"
+  | "CALCULATOR_COMPLETE"
+  | "SELECTOR_START"
+  | "SELECTOR_COMPLETE"
+  | "LEAD_FORM_OPEN"
+  | "LEAD_FORM_SUCCESS"
+  | "PHONE_CLICK"
+  | "EMAIL_CLICK"
   | "view_product"
   | "view_category"
   | "click_phone"
@@ -49,6 +62,9 @@ export type AnalyticsParams = {
   placement?: string;
   channel?: string;
   list?: string;
+  content_id?: string;
+  tool_id?: string;
+  tool_type?: string;
 };
 
 export type EcommerceProduct = {
@@ -71,8 +87,26 @@ let dispatcher: ReturnType<typeof createMetrikaDispatcher> | undefined;
 
 const SAFE_PARAM_KEYS = new Set<keyof AnalyticsParams>([
   "form_id", "page_type", "category", "subcategory", "product_id", "variant_id",
-  "brand", "intent", "placement", "channel", "list",
+  "brand", "intent", "placement", "channel", "list", "content_id", "tool_id", "tool_type",
 ]);
+
+const PHASE18_ALIASES: Partial<Record<AnalyticsEvent, AnalyticsEvent>> = {
+  click_phone: "PHONE_CLICK",
+  click_email: "EMAIL_CLICK",
+  lp_selector_start: "SELECTOR_START",
+  lp_selector_complete: "SELECTOR_COMPLETE",
+  lp_form_start: "LEAD_FORM_OPEN",
+  open_one_click: "LEAD_FORM_OPEN",
+  submit_one_click: "LEAD_FORM_SUCCESS",
+  submit_product_quote: "LEAD_FORM_SUCCESS",
+  submit_order: "LEAD_FORM_SUCCESS",
+  submit_contact: "LEAD_FORM_SUCCESS",
+  submit_equipment_selection: "LEAD_FORM_SUCCESS",
+  submit_intent_lead: "LEAD_FORM_SUCCESS",
+  submit_cart_quote: "LEAD_FORM_SUCCESS",
+  submit_price_match: "LEAD_FORM_SUCCESS",
+  lp_lead_submit: "LEAD_FORM_SUCCESS",
+};
 
 function safeParams(params: AnalyticsParams): AnalyticsParams {
   return Object.fromEntries(
@@ -124,6 +158,11 @@ export function trackEvent(event: AnalyticsEvent, params: AnalyticsParams = {}) 
   const clean = safeParams(params);
   debug(event, clean);
   getDispatcher().send(event, clean);
+  const canonical = PHASE18_ALIASES[event];
+  if (canonical) {
+    debug(canonical, clean);
+    getDispatcher().send(canonical, clean);
+  }
 }
 
 export function trackEventOnce(key: string, event: AnalyticsEvent, params: AnalyticsParams = {}) {
@@ -132,6 +171,11 @@ export function trackEventOnce(key: string, event: AnalyticsEvent, params: Analy
   const clean = safeParams(params);
   debug(event, clean);
   getDispatcher().sendOnce(storageKey, event, clean);
+  const canonical = PHASE18_ALIASES[event];
+  if (canonical) {
+    debug(canonical, clean);
+    getDispatcher().sendOnce(`${storageKey}.phase18.${canonical}`, canonical, clean);
+  }
 }
 
 /**

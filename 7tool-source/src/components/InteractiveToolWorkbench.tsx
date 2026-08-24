@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { trackEventOnce } from "@/lib/analytics";
 import type {
   CompatibilityRow,
   PublicInteractiveTool,
@@ -36,12 +37,12 @@ function matches(product: SelectorProduct, criterion: SelectorCriterion, request
 }
 
 export function InteractiveToolWorkbench({ tool }: { tool: PublicInteractiveTool }) {
-  if (tool.type === "ANNULAR_CUTTER_RPM") return <RpmCalculator rules={tool.rules} />;
+  if (tool.type === "ANNULAR_CUTTER_RPM") return <RpmCalculator rules={tool.rules} toolKey={tool.key} toolType={tool.type} />;
   if (tool.type === "COMPATIBILITY_TABLE") return <CompatibilityTable rows={tool.rows} />;
-  return <ProductSelector criteria={tool.criteria} products={tool.products} />;
+  return <ProductSelector criteria={tool.criteria} products={tool.products} toolKey={tool.key} toolType={tool.type} />;
 }
 
-function RpmCalculator({ rules }: { rules: RpmToolRule[] }) {
+function RpmCalculator({ rules, toolKey, toolType }: { rules: RpmToolRule[]; toolKey: string; toolType: string }) {
   const cutterTypes = [...new Set(rules.map((rule) => rule.cutterType))];
   const [cutterType, setCutterType] = useState(cutterTypes[0] ?? "");
   const materials = [...new Set(rules.filter((rule) => rule.cutterType === cutterType).map((rule) => rule.material))];
@@ -53,10 +54,19 @@ function RpmCalculator({ rules }: { rules: RpmToolRule[] }) {
   const result = submitted && rule && Number.isFinite(numericDiameter) && numericDiameter > 0 && numericDiameter <= 1000
     ? Math.round((1000 * rule.cuttingSpeed) / (Math.PI * numericDiameter))
     : null;
+  const eventParams = { page_type: "tool", tool_id: toolKey, tool_type: toolType } as const;
+  const markStart = () => trackEventOnce(`calculator-start:${toolKey}`, "CALCULATOR_START", eventParams);
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(300px,0.75fr)]">
-      <form onSubmit={(event) => { event.preventDefault(); setSubmitted(true); }} className="grid gap-5 rounded-[14px] border border-steel-200 bg-white p-5 shadow-card sm:grid-cols-2 sm:p-7">
+      <form onFocus={markStart} onSubmit={(event) => {
+        event.preventDefault();
+        markStart();
+        setSubmitted(true);
+        if (rule && Number.isFinite(numericDiameter) && numericDiameter > 0 && numericDiameter <= 1000) {
+          trackEventOnce(`calculator-complete:${toolKey}`, "CALCULATOR_COMPLETE", eventParams);
+        }
+      }} className="grid gap-5 rounded-[14px] border border-steel-200 bg-white p-5 shadow-card sm:grid-cols-2 sm:p-7">
         <label className="text-[12px] font-bold text-steel-700">
           Тип коронки
           <select value={cutterType} onChange={(event) => {
@@ -104,15 +114,22 @@ function criterionOptions(products: SelectorProduct[], criterion: SelectorCriter
   }))].sort((left, right) => left.localeCompare(right, "ru"));
 }
 
-function ProductSelector({ criteria, products }: { criteria: SelectorCriterion[]; products: SelectorProduct[] }) {
+function ProductSelector({ criteria, products, toolKey, toolType }: { criteria: SelectorCriterion[]; products: SelectorProduct[]; toolKey: string; toolType: string }) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const active = criteria.some((criterion) => answers[criterion.name]?.trim());
   const matchesList = useMemo(() => active ? products.filter((product) => criteria.every((criterion) => matches(product, criterion, answers[criterion.name] ?? ""))) : [], [active, answers, criteria, products]);
+  const eventParams = { page_type: "tool", tool_id: toolKey, tool_type: toolType } as const;
+  const markStart = () => trackEventOnce(`selector-start:${toolKey}`, "SELECTOR_START", eventParams);
 
   return (
     <div className="grid gap-7 lg:grid-cols-[360px_minmax(0,1fr)] lg:items-start">
-      <form onSubmit={(event) => { event.preventDefault(); setSubmitted(true); }} className="grid gap-4 rounded-[14px] border border-steel-200 bg-white p-5 shadow-card sm:grid-cols-2 lg:sticky lg:top-28 lg:grid-cols-1">
+      <form onFocus={markStart} onSubmit={(event) => {
+        event.preventDefault();
+        markStart();
+        setSubmitted(true);
+        if (active) trackEventOnce(`selector-complete:${toolKey}`, "SELECTOR_COMPLETE", eventParams);
+      }} className="grid gap-4 rounded-[14px] border border-steel-200 bg-white p-5 shadow-card sm:grid-cols-2 lg:sticky lg:top-28 lg:grid-cols-1">
         {criteria.map((criterion) => {
           const options = criterionOptions(products, criterion);
           return (

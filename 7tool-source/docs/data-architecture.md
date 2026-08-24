@@ -318,6 +318,14 @@ Join tables задают scope review.
 
 `yandex_query_opportunity_snapshots` stores review-only evidence. Webmaster can produce only `UPDATE_EXISTING` for a live/indexable registry URL; Wordstat produces `DEMAND_REVIEW`, never a page-creation decision. Matching Metrica behavior is context, not search-demand or ranking evidence.
 
+### PHASE 18 Analytics Intelligence projection
+
+`analytics_import_runs` separates immutable `METRIKA_PAGE_METRICS` and `CRM_BUSINESS_OUTCOMES` snapshots. `analytics_page_metrics_daily` stores only daily `date + page + canonical metric` totals; all 13 Phase 18 goals and the organic product-view metric must be present, including explicit zeroes. It never stores a visit/client/session/cookie/IP/user-agent row.
+
+`analytics_business_outcomes` resolves a PII-free CRM outcome to one local lead and its existing immutable attribution. The vocabulary is `QUALIFIED_LEAD`, `QUOTE`, `ORDER`; only an order carries required revenue and gross margin as integer kopecks.
+
+`analytics_business_kpi_snapshots` materializes Organic Product Views, Qualified Leads, Quotes, Orders, Revenue and Gross Margin. `content_roi_snapshots` materializes Organic Sessions, Product Clicks, Leads, Quotes, Orders, Revenue and Margin for each evidenced page, plus diagnostic Qualified Leads. Both are immutable `REVIEW_REQUIRED` evidence with exact source run IDs. Pageviews are intentionally not a business KPI.
+
 ### Lead attribution extension
 
 PHASE 14 сохраняет one-to-one immutable `lead_attribution_snapshots`, не перегружая operational `leads`: article, safe page URL/path, cluster, category, product snapshot, intent, normalized CTA, referrer, UTM, true session ID, deterministic source and captured timestamp. Article/cluster/category/intent resolve server-side from current public content. Snapshot deletion follows lead retention cascade; updates are prohibited. Quote/order/revenue лучше хранить в `lead_outcomes` с history, а не постоянно расширять `leads`.
@@ -367,7 +375,7 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 
 ## 16. Proposed migration batches
 
-Миграции PHASE 3–17 созданы как backup-gated artifacts, но к production не применены.
+Миграции PHASE 3–18 созданы как backup-gated artifacts, но к production не применены.
 
 | Batch | Scope | Dependency | Gate |
 |---|---|---|---|
@@ -385,8 +393,9 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 | 012 | immutable lead attribution snapshots | operational leads + public page context | PHASE 14 privacy/retention approval |
 | 013 | GSC observations/Quick Wins/CWV/facet policy | URL registry + reviewed GSC export | PHASE 16 access/retention/threshold approval |
 | 014 | Yandex Webmaster/Wordstat/Metrica observations and query opportunities | source/import + semantic URL registry | PHASE 17 OAuth/region/retention approval |
+| 015 | aggregate analytics events, verified CRM outcomes, Business KPI and Content ROI | Phase 17 organic landings + immutable lead attribution | PHASE 18 goal/CRM/privacy approval |
 
-Cross-channel business outcomes remain scope PHASE 18. PHASE 16–17 store search-platform observations and privacy-minimal field/aggregate behavior only; they do not implement the future revenue/outcome aggregate or new analytics events.
+PHASE 18 closes the search-to-business measurement loop with aggregate events and verified outcomes. Pilot selection and any publishing volume remain scope PHASE 19.
 
 ## 17. API boundaries
 

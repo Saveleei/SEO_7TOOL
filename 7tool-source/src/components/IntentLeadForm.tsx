@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { trackConfirmedLead } from "@/lib/analytics";
+import { trackConfirmedLead, trackEventOnce } from "@/lib/analytics";
 import { sendLead } from "@/lib/lead-client";
 import { leadProfileByKey, type LeadProfileKey } from "@/lib/lead-generation";
 import { formatPhone } from "@/lib/phone";
@@ -16,6 +16,8 @@ type IntentLeadContext = {
 
 export function IntentLeadForm({ profileKey, context = {} }: { profileKey: LeadProfileKey; context?: IntentLeadContext }) {
   const profile = leadProfileByKey(profileKey);
+  const formId = `intent_lead_${profile.ctaKey}`;
+  const pageType = context.articleId ? "article" : "tool";
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -54,8 +56,8 @@ export function IntentLeadForm({ profileKey, context = {} }: { profileKey: LeadP
       return;
     }
     trackConfirmedLead(result.requestId, "submit_intent_lead", {
-      form_id: `intent_lead_${profile.ctaKey}`,
-      page_type: context.articleId ? "article" : "tool",
+      form_id: formId,
+      page_type: pageType,
       category: context.category,
       intent: context.intent,
       product_id: context.product?.id,
@@ -80,7 +82,14 @@ export function IntentLeadForm({ profileKey, context = {} }: { profileKey: LeadP
         <h2 className="mt-2 font-display text-[24px] font-extrabold leading-tight tracking-tight text-steel-900">{profile.title}</h2>
         <p className="mt-2 max-w-[720px] text-[13.5px] leading-6 text-steel-600">{profile.description}</p>
       </div>
-      <form onSubmit={submit} className="grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
+      <form
+        onSubmit={submit}
+        onFocus={() => trackEventOnce(`lead-form-open:${pageType}:${formId}:${context.articleId ?? context.intent ?? "default"}`, "LEAD_FORM_OPEN", {
+          form_id: formId, page_type: pageType, content_id: context.articleId,
+          category: context.category, intent: context.intent, product_id: context.product?.id,
+        })}
+        className="grid gap-4 p-5 sm:grid-cols-2 sm:p-6"
+      >
         {profile.questions.map((question) => (
           <label key={question.name} className="text-[12px] font-bold text-steel-700">
             {question.label}

@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SemanticNextSteps } from "@/components/SemanticNextSteps";
 import { IntentLeadForm } from "@/components/IntentLeadForm";
 import { StructuredData } from "@/components/StructuredData";
+import { ArticleAnalytics, TrackedArticleLink } from "@/components/ArticleAnalytics";
 import { getPublishedArticle, listPublishedArticleSlugs, type ArticleBlock, type PublishedArticleImage } from "@/lib/articles-db";
 import { getSemanticLinks } from "@/lib/semantic-linking-db";
 import { getLeadProfile } from "@/lib/lead-generation";
@@ -83,12 +84,13 @@ export default async function ArticlePage({ params }: RouteProps) {
       <StructuredData data={structuredArticle} />
       <StructuredData data={structuredBreadcrumb} />
       <SiteHeader />
+      <ArticleAnalytics articleId={article.id} category={article.categorySlug} targetId={`article-content-${article.id}`} />
       <main>
         <header className="border-b border-steel-200 bg-white">
           <div className="mx-auto max-w-[1040px] px-4 pb-10 pt-7 sm:px-6 sm:pb-14 sm:pt-10">
             <Breadcrumbs items={[{ label: "Главная", href: "/" }, { label: "База знаний", href: "/articles" }, { label: article.title }]} />
             <div className="mt-8 flex flex-wrap items-center gap-3 text-[11px] font-bold uppercase tracking-[0.14em] text-steel-500">
-              <Link href="/articles" className="rounded-full bg-cobalt-50 px-3 py-1.5 text-cobalt-700 transition hover:bg-cobalt-100">{article.categoryTitle}</Link>
+              <TrackedArticleLink href={`/c/${article.categorySlug}`} event="CATEGORY_CLICK_FROM_ARTICLE" articleId={article.id} category={article.categorySlug} className="rounded-full bg-cobalt-50 px-3 py-1.5 text-cobalt-700 transition hover:bg-cobalt-100">{article.categoryTitle}</TrackedArticleLink>
               <span>{article.readingMinutes} мин чтения</span>
               <span aria-hidden>·</span>
               <time dateTime={new Date(article.updatedAt).toISOString()}>
@@ -105,7 +107,7 @@ export default async function ArticlePage({ params }: RouteProps) {
         </header>
 
         <div className="mx-auto grid max-w-[1160px] gap-10 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[minmax(0,760px)_280px] lg:items-start">
-          <article className="min-w-0">
+          <article id={`article-content-${article.id}`} className="min-w-0">
             <section className="rounded-[14px] border border-amber-200 bg-amber-50/70 p-6 sm:p-7">
               <h2 className="font-display text-[23px] font-extrabold tracking-tight text-steel-900">Короткий ответ</h2>
               <div className="mt-3 space-y-3 text-[15px] leading-7 text-steel-800">
@@ -148,7 +150,7 @@ export default async function ArticlePage({ params }: RouteProps) {
               </section>
             )}
 
-            <SemanticNextSteps links={semanticLinks} className="mt-14 overflow-hidden rounded-[14px] border" />
+            <SemanticNextSteps links={semanticLinks} articleAnalytics={{ articleId: article.id, category: article.categorySlug }} className="mt-14 overflow-hidden rounded-[14px] border" />
 
             <div className="mt-14">
               <IntentLeadForm
@@ -189,10 +191,10 @@ export default async function ArticlePage({ params }: RouteProps) {
                 <ul className="mt-4 divide-y divide-steel-100">
                   {targetProducts.map((product) => (
                     <li key={product.id} className="py-3 first:pt-0 last:pb-0">
-                      <Link href={`/p/${product.slug}`} className="block text-[13px] font-bold leading-5 text-steel-800 transition hover:text-amber-700">
+                      <TrackedArticleLink href={`/p/${product.slug}`} event="PRODUCT_CLICK_FROM_ARTICLE" articleId={article.id} category={article.categorySlug} productId={product.id} className="block text-[13px] font-bold leading-5 text-steel-800 transition hover:text-amber-700">
                         {product.title}
                         {product.brand && <span className="mt-1 block text-[11px] font-medium uppercase tracking-wider text-steel-400">{product.brand}</span>}
-                      </Link>
+                      </TrackedArticleLink>
                     </li>
                   ))}
                 </ul>

@@ -1,7 +1,16 @@
+"use client";
+
 import Link from "next/link";
 import type { PublicSemanticLinkSet } from "@/lib/semantic-linking-db";
+import { trackEvent } from "@/lib/analytics";
 
-export function SemanticNextSteps({ links, className = "" }: { links?: PublicSemanticLinkSet; className?: string }) {
+export function SemanticNextSteps({
+  links, className = "", articleAnalytics,
+}: {
+  links?: PublicSemanticLinkSet;
+  className?: string;
+  articleAnalytics?: { articleId: string; category: string };
+}) {
   if (!links?.items.length) return null;
   return (
     <section className={`border-y border-cobalt-200 bg-cobalt-50/50 ${className}`} aria-labelledby={`semantic-next-${links.id}`}>
@@ -19,7 +28,21 @@ export function SemanticNextSteps({ links, className = "" }: { links?: PublicSem
                 </span>
                 <div>
                   <h3 className="text-[14px] font-bold leading-6 text-steel-900">{item.nextQuestion}</h3>
-                  <Link href={item.href} className="mt-2 inline-flex text-[13px] font-extrabold text-cobalt-700 underline decoration-cobalt-200 underline-offset-4 transition hover:text-cobalt-900">
+                  <Link href={item.href} onClick={() => {
+                    if (!articleAnalytics) return;
+                    if (item.relationType === "ARTICLE_TO_PRODUCT") {
+                      trackEvent("PRODUCT_CLICK_FROM_ARTICLE", {
+                        page_type: "article", content_id: articleAnalytics.articleId,
+                        category: articleAnalytics.category, product_id: item.targetId,
+                        placement: "semantic_next_step",
+                      });
+                    } else if (item.relationType === "ARTICLE_TO_CATEGORY") {
+                      trackEvent("CATEGORY_CLICK_FROM_ARTICLE", {
+                        page_type: "article", content_id: articleAnalytics.articleId,
+                        category: articleAnalytics.category, placement: "semantic_next_step",
+                      });
+                    }
+                  }} className="mt-2 inline-flex text-[13px] font-extrabold text-cobalt-700 underline decoration-cobalt-200 underline-offset-4 transition hover:text-cobalt-900">
                     {item.anchorText}
                   </Link>
                 </div>
