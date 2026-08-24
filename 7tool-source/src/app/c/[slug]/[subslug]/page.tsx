@@ -9,6 +9,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { SubcategoryGrid } from "@/components/SubcategoryGrid";
 import { CategorySelectionForm } from "@/components/CategorySelectionForm";
+import { StructuredData } from "@/components/StructuredData";
 import { CategoryFilters } from "../CategoryFilters";
 import { listingFacetNames, productForListing } from "@/lib/catalog";
 import { indexableRobots, noIndexRobots, pageTitle } from "@/lib/seo-metadata";
@@ -119,7 +120,7 @@ export default async function SubcategoryPage({
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
+      <StructuredData data={ld} />
       <SiteHeader />
       <main>
         <header className="border-b border-steel-200 bg-steel-900 text-white">

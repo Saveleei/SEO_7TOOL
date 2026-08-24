@@ -121,6 +121,7 @@ test("критические UX и эксплуатационные контур
   const productPage = read("src/app/p/[slug]/page.tsx");
   const productFaq = read("src/components/ProductFaq.tsx");
   const productJsonLd = read("src/components/ProductJsonLd.tsx");
+  const structuredData = read("src/lib/structured-data.mjs");
   const productSeo = read("src/lib/product-seo.ts");
   const productSeoGenerator = read("scripts/generate-product-seo.mjs");
   const fallbackSeoGenerator = read("scripts/generate-programmatic-seo.mjs");
@@ -183,9 +184,10 @@ test("критические UX и эксплуатационные контур
   assert.match(productPage, /buildProductSeo/);
   assert.match(productFaq, /Москве и Санкт-Петербурге/);
   assert.match(productJsonLd, /additionalProperty/);
-  assert.match(productJsonLd, /ProductGroup/);
-  assert.match(productJsonLd, /hasVariant/);
-  assert.match(productJsonLd, /isVariantOf/);
+  assert.match(productJsonLd, /buildProductStructuredData/);
+  assert.match(structuredData, /ProductGroup/);
+  assert.match(structuredData, /hasVariant/);
+  assert.match(structuredData, /isVariantOf/);
   assert.match(productSeo, /name} купить/);
   assert.match(productSeo, /Москве и Санкт-Петербурге/);
   assert.match(productSeo, /titleNeedsSku/);

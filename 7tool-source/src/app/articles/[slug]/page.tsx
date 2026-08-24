@@ -6,10 +6,13 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SemanticNextSteps } from "@/components/SemanticNextSteps";
 import { IntentLeadForm } from "@/components/IntentLeadForm";
+import { StructuredData } from "@/components/StructuredData";
 import { getPublishedArticle, listPublishedArticleSlugs, type ArticleBlock, type PublishedArticleImage } from "@/lib/articles-db";
 import { getSemanticLinks } from "@/lib/semantic-linking-db";
 import { getLeadProfile } from "@/lib/lead-generation";
 import { indexableRobots, noIndexRobots, pageTitle } from "@/lib/seo-metadata";
+import { absoluteUrl, SITE_URL } from "@/lib/site-config";
+import { buildArticleStructuredData, buildBreadcrumbList } from "@/lib/structured-data";
 
 export const dynamicParams = true;
 export const revalidate = 300;
@@ -55,8 +58,30 @@ export default async function ArticlePage({ params }: RouteProps) {
   const sourceNumbers = new Map(article.sources.map((source, index) => [source.sourceRef, index + 1]));
   const leadImages = article.images.filter((image) => image.slotType === "HERO" || (!image.sectionHeading && new Set(["DIAGRAM", "COMPARISON"]).has(image.slotType)));
   const unanchoredInlineImages = article.images.filter((image) => image.slotType === "INLINE" && !image.sectionHeading);
+  const canonical = absoluteUrl(article.canonical);
+  const structuredArticle = buildArticleStructuredData({
+    url: canonical,
+    headline: article.h1,
+    description: article.excerpt,
+    images: article.images.map(structuredImageUrl).filter((url): url is string => Boolean(url)),
+    datePublished: article.publishedAt,
+    dateModified: article.updatedAt,
+    author: article.author,
+    reviewer: article.expertReviewer,
+    publisherId: `${SITE_URL}/#organization`,
+    websiteId: `${SITE_URL}/#website`,
+    articleSection: article.categoryTitle,
+    keywords: [article.primaryKeyword, ...article.secondaryKeywords],
+  });
+  const structuredBreadcrumb = buildBreadcrumbList([
+    { name: "Главная", url: absoluteUrl("/") },
+    { name: "База знаний", url: absoluteUrl("/articles") },
+    { name: article.title, url: canonical },
+  ], `${canonical}#breadcrumb`);
   return (
     <>
+      <StructuredData data={structuredArticle} />
+      <StructuredData data={structuredBreadcrumb} />
       <SiteHeader />
       <main>
         <header className="border-b border-steel-200 bg-white">
@@ -263,4 +288,12 @@ function ArticleMedia({ image, priority = false }: { image: PublishedArticleImag
       )}
     </figure>
   );
+}
+
+function structuredImageUrl(image: PublishedArticleImage): string | undefined {
+  const variant = image.variants
+    .filter((item) => item.mime === "image/webp")
+    .sort((left, right) => right.width - left.width)[0]
+    ?? image.variants.slice().sort((left, right) => right.width - left.width)[0];
+  return variant ? absoluteUrl(variant.url) : undefined;
 }

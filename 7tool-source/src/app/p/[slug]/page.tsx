@@ -76,7 +76,7 @@ export default async function ProductPage({
   const r = resolvePublicProductSlug(slug);
   if (!r) notFound();
   const { product } = r;
-  const variant = r.variant ?? product.variants.find((item) => item.id === query.variant);
+  const selectedVariant = r.variant ?? product.variants.find((item) => item.id === query.variant);
   const dataConflict = hasSeoDataConflict(product.id);
   const cat = getPublicCategory(product.category);
   const categoryContent = contentForCategory(product.category, cat?.title ?? product.category);
@@ -87,7 +87,7 @@ export default async function ProductPage({
 
   return (
     <>
-      {!dataConflict && <ProductJsonLd product={product} variant={variant} category={cat} />}
+      {!dataConflict && <ProductJsonLd product={product} variant={r.variant} category={cat} />}
       <SiteHeader />
       <main>
         <section className="border-b border-steel-100 bg-gradient-to-b from-white via-cobalt-50/20 to-white">
@@ -99,7 +99,7 @@ export default async function ProductPage({
             )}
             <ProductView
               product={product}
-              initialVariantId={variant?.id}
+              initialVariantId={selectedVariant?.id}
               categoryTitle={cat?.title}
               categorySlug={cat?.slug}
               selectionTitle={categoryContent.selectionTitle}

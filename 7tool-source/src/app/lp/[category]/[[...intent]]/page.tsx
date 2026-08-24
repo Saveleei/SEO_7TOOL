@@ -8,6 +8,7 @@ import { LandingProductCard } from "@/components/landing/LandingProductCard";
 import { LandingQuoteBar } from "@/components/landing/LandingQuoteBar";
 import { LandingQuickTasks } from "@/components/landing/LandingQuickTasks";
 import { LandingTracker } from "@/components/landing/LandingTracker";
+import { StructuredData } from "@/components/StructuredData";
 import { contentForCategory } from "@/lib/category-content";
 import { getPublicCategory } from "@/lib/categories-db";
 import { getLandingContent, type LandingContent, type LandingImageBlock, type LandingProcessStep } from "@/lib/landing-content-db";
@@ -124,9 +125,9 @@ export default async function LandingPage({ params }: RouteProps) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
+      <StructuredData data={breadcrumbLd} />
+      <StructuredData data={collectionLd} />
+      <StructuredData data={faqLd} />
       <div className="min-h-screen bg-[#f7f8f9] pb-20 sm:pb-0">
       <LandingTracker category={selected.category.slug} intent={selected.intent.slug} />
       <LandingHeader />

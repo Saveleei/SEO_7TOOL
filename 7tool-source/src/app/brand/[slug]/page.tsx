@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ProductCard } from "@/components/ProductCard";
+import { StructuredData } from "@/components/StructuredData";
 import { brandSlug, legacyBrandSlug } from "@/lib/brand";
 import { getPublicBrandProducts, getPublicBrandStats, listPublicBrands } from "@/lib/products-db";
 import { indexableRobots, pageTitle } from "@/lib/seo-metadata";
@@ -85,6 +86,7 @@ export default async function BrandPage({ params, searchParams }: RouteProps) {
     name: `${selected.brand}: каталог продукции${page > 1 ? ` — страница ${page}` : ""}`,
     url: absoluteUrl(canonical),
     inLanguage: "ru-RU",
+    about: { "@type": "Brand", name: selected.brand },
     breadcrumb: {
       "@type": "BreadcrumbList",
       itemListElement: [
@@ -106,7 +108,7 @@ export default async function BrandPage({ params, searchParams }: RouteProps) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionLd).replace(/</g, "\\u003c") }} />
+      <StructuredData data={collectionLd} />
       <SiteHeader />
       <main>
         <section className="relative overflow-hidden border-b border-steel-200 bg-steel-900 text-white">

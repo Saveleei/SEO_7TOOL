@@ -1,4 +1,5 @@
 import type { Product, Variant } from "@/lib/data";
+import { StructuredData } from "./StructuredData";
 
 export function ProductFaq({ product, variant }: { product: Product; variant: Variant }) {
   const items = buildFaq(product, variant);
@@ -38,10 +39,7 @@ export function ProductFaq({ product, variant }: { product: Product; variant: Va
         })}
       </div>
 
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(ldjson) }}
-      />
+      <StructuredData data={ldjson} />
     </section>
   );
 }

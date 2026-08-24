@@ -1,6 +1,6 @@
 # 7TOOL SEO & Content Intelligence Platform
 
-Статус: architecture baseline plus research/import/decision/content/media/product-enrichment/tool/internal-linking/lead-generation layers through PHASE 14. Production migrations and real publication remain human-gated.
+Статус: architecture baseline plus research/import/decision/content/media/product-enrichment/tool/internal-linking/lead-generation/structured-data layers through PHASE 15. Production migrations and real publication remain human-gated.
 
 ## Goal
 
@@ -10,6 +10,7 @@
 Sources → Raw observations → Verified facts → Intent → Opportunity
 → Best existing/new page → Quality & rights gates → Human approval
 → Publish → Next-question navigation → Intent CTA → attributed lead
+→ Evidence-matched structured data
 → Search/business performance → Refresh/merge/prune
 ```
 
@@ -24,6 +25,7 @@ Sources → Raw observations → Verified facts → Intent → Opportunity
 - Existing page improvement precedes new URL when intent is already covered.
 - HIGH cannibalization or any hard fail blocks publication.
 - A content CTA must promise a specific next result; lead attribution never treats a persistent client ID as a session.
+- Structured data may describe only visible content and complete verified facts; missing policy/video data means no corresponding node.
 
 ## System boundaries
 
@@ -40,6 +42,7 @@ Sources → Raw observations → Verified facts → Intent → Opportunity
 | Tool layer | reviewed formulas, verified selectors, compatibility tables | guessed coefficients, unverified product matches |
 | Internal linking layer | reviewed next-question journeys backed by normalized relations | keyword-overlap inference, self-publication, stale links |
 | Lead generation layer | intent forms, normalized CTA keys, immutable attribution snapshots | generic phone capture, forged article context, session/client conflation |
+| Structured data layer | script-safe Product/Offer/Brand/Breadcrumb/Article/Organization projections | invented MPN, policy, condition, video, rating or review data |
 | Performance layer | query/page/search/business outcomes | credentials in frontend |
 
 ## Current integration points
@@ -56,7 +59,7 @@ Sources → Raw observations → Verified facts → Intent → Opportunity
 
 ## Current approval gates
 
-PHASE 3–14 artifacts are implemented on isolated feature branches, but remain non-production. Before applying them to a live database or using external data:
+PHASE 3–15 artifacts are implemented on isolated feature branches, but remain non-production. Before applying them to a live database or using external data:
 
 1. approve the model in [data-architecture.md](./data-architecture.md);
 2. resolve Git baseline and feature branch;
@@ -86,5 +89,6 @@ PHASE 3–14 artifacts are implemented on isolated feature branches, but remain 
 - [Calculators, Selectors & Compatibility Tables](./calculators-tools.md)
 - [Internal Linking Engine](./internal-linking.md)
 - [Lead Generation](./lead-generation.md)
+- [Structured Data](./structured-data.md)
 
 # STOP / HUMAN REVIEW REQUIRED

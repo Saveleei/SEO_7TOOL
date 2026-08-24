@@ -11,6 +11,7 @@ import { CategoryFilters } from "./CategoryFilters";
 import { SubcategoryGrid } from "@/components/SubcategoryGrid";
 import { CategorySelectionForm } from "@/components/CategorySelectionForm";
 import { SemanticNextSteps } from "@/components/SemanticNextSteps";
+import { StructuredData } from "@/components/StructuredData";
 import { getSemanticLinks } from "@/lib/semantic-linking-db";
 import { contentForCategory } from "@/lib/category-content";
 import { getSubcategoriesForCategory } from "@/lib/subcategories";
@@ -130,20 +131,9 @@ export default async function CategoryPage({ params, searchParams }: RouteProps)
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionLd) }}
-      />
-      {faqLd && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
-        />
-      )}
+      <StructuredData data={breadcrumbLd} />
+      <StructuredData data={collectionLd} />
+      <StructuredData data={faqLd} />
       <SiteHeader />
       <main>
         <section className="relative overflow-hidden border-b border-steel-200 bg-steel-900 text-white">

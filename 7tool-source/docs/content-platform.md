@@ -209,7 +209,7 @@ Full project regression, TypeScript check, numbered migration dry-run and Next p
 - admin editorial UI and role mapping to production identities;
 - calibration of evidence/differentiation score thresholds from pilot outcomes;
 - production Image Intelligence migration, real supplier rights approvals and media ingestion;
-- Article/FAQ structured data — PHASE 15;
+- Article/Breadcrumb structured data — implemented in PHASE 15 for the reviewed public projection; FAQ markup remains limited to visible FAQ content;
 - article-depth and attributed lead-outcome analysis — PHASE 18;
 - real PHASE 13 semantic link sets and production migration 011;
 - content refresh automation — PHASE 21;
