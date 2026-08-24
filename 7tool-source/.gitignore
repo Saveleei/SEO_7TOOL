@@ -1,0 +1,39 @@
+# Dependencies and package-manager caches
+node_modules/
+.pnpm-store/
+.pnpm-cache/
+
+# Next.js build output
+.next/
+out/
+
+# Runtime databases and state
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+*.feed-state.json
+*.feed.lock
+backups/
+uploads/
+private-specifications/
+
+# Environment and credentials
+.env
+.env.*
+!.env.example
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+coverage/
+
+# Local release/queue bundles
+*.tar.gz
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
