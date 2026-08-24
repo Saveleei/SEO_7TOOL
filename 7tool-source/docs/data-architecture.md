@@ -184,6 +184,10 @@ Unique: normalized `path`. Cyclic canonical запрещён application validat
 
 `id`, `topic`, `category_slug`, `cluster_id`, `intent_id`, `primary_keyword_id`, demand signals, SERP type, pain/business/product/margin/competition/gap/cannibalization/differentiation components, `recommended_page_type`, `recommended_url_id`, `decision` (CREATE/UPDATE/MERGE/REJECT), `opportunity_score`, `score_model_version`, `score_breakdown_json`, `decision_reason`, `status`, review fields, timestamps.
 
+### `opportunity_business_inputs`, `opportunity_evaluations`
+
+Business inputs отделяют reviewed commercial judgement от вычисляемых SEO signals. Evaluations append-only сохраняют exact model, SERP/business evidence, component breakdown, pain-point links, decision and checksum. Текущий `content_opportunities` является projection последней evaluation, а не потерей history.
+
 ## 7. Review and pain intelligence domain
 
 ### `review_insights`
@@ -329,7 +333,7 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 
 ## 16. Proposed migration batches
 
-Миграции PHASE 3–7 созданы как backup-gated artifacts, но к production не применены.
+Миграции PHASE 3–8 созданы как backup-gated artifacts, но к production не применены.
 
 | Batch | Scope | Dependency | Gate |
 |---|---|---|---|

@@ -166,7 +166,7 @@ test("balanced Google/Yandex evidence produces a review-only dominant SERP asses
     assert.equal(db.prepare("SELECT dominant_serp_type FROM search_intents WHERE id = ?").get(intentId).dominant_serp_type, "CATEGORY");
     const coverage = listCompetitorDomainCoverage(db, intentId);
     assert.equal(coverage.find((row) => row.domain === "shop.example").engines, 2);
-    assert.equal(db.prepare("SELECT COUNT(*) AS count FROM sqlite_master WHERE name = 'content_opportunities'").get().count, 0);
+    assert.equal(db.prepare("SELECT COUNT(*) AS count FROM content_opportunities").get().count, 0);
   } finally { db.close(); fs.rmSync(dir, { recursive: true, force: true }); }
 });
 

@@ -138,7 +138,7 @@ Tests cover:
 - internal site-search export integration;
 - embeddings/morphology and cluster evaluation dataset;
 - direct approved SERP API adapters and scheduled refresh;
-- OpportunityScore;
+- production calibration of [Content Opportunity Engine](./content-opportunity-engine.md);
 - page creation and publishing.
 
 # STOP / HUMAN REVIEW REQUIRED

@@ -186,7 +186,7 @@ Tests cover:
 - approved Google full-web data provider selection;
 - live Top‑10/Top‑20 snapshots for imported priority clusters;
 - mobile/desktop split evaluation and scheduled refresh;
-- content opportunity scoring and CREATE/UPDATE/MERGE/REJECT decision — PHASE 8;
+- production calibration and operation of the implemented [Content Opportunity Engine](./content-opportunity-engine.md);
 - competitor page crawling, copied content or media reuse — not authorized.
 
 # STOP / HUMAN REVIEW REQUIRED
