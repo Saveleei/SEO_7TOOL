@@ -5,6 +5,7 @@ import { listPublicCategories } from "@/lib/categories-db";
 import { listPublicBrands, listPublicProductSlugs } from "@/lib/products-db";
 import { brandSlug } from "@/lib/brand";
 import { listPublishedArticles } from "@/lib/articles-db";
+import { listPublishedTools } from "@/lib/tool-platform-db";
 import { statSync } from "node:fs";
 import { join } from "node:path";
 
@@ -87,5 +88,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   ] : [];
 
-  return [...staticUrls, ...categoryUrls, ...subcategoryUrls, ...brandUrls, ...productUrls, ...articleUrls];
+  const publishedTools = listPublishedTools().filter((tool) => tool.indexStatus === "INDEX");
+  const toolUrls: MetadataRoute.Sitemap = publishedTools.length ? [
+    {
+      url: `${SITE_URL}/tools`,
+      lastModified: new Date(Math.max(...publishedTools.map((tool) => tool.publishedAt))),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    ...publishedTools.map((tool) => ({
+      url: `${SITE_URL}/tools/${tool.slug}`,
+      lastModified: new Date(tool.publishedAt),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
+  ] : [];
+
+  return [...staticUrls, ...categoryUrls, ...subcategoryUrls, ...brandUrls, ...productUrls, ...articleUrls, ...toolUrls];
 }

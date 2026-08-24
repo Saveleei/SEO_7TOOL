@@ -18,7 +18,7 @@ REVIEWED CREATE opportunity
   → PUBLISHED + INDEX + site_urls registration
 ```
 
-Оценка opportunity сама не создаёт статью. Создание candidate вызывается отдельно и допускается только для `status=REVIEWED`, `decision=CREATE`, LOW cannibalization opportunity. Рекомендации `TABLE`, `CALCULATOR` и `VIDEO` сознательно отклоняются до их профильных фаз.
+Оценка opportunity сама не создаёт статью. Создание candidate вызывается отдельно и допускается только для `status=REVIEWED`, `decision=CREATE`, LOW cannibalization opportunity. `CALCULATOR` и `TABLE` теперь передаются отдельному human-gated контуру PHASE 12, а `VIDEO` остаётся отложенным до профильной фазы; Article workflow их по-прежнему не публикует.
 
 Никакие demo-статьи, вымышленные авторы, эксперты, тесты, характеристики или источники не добавлены.
 

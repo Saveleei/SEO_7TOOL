@@ -152,12 +152,14 @@ Supplier source из PHASE 3 создаётся с `CONTRACT_REQUIRED`. Поэт
 - admin reviewer UI and audit actors;
 - automatic assertion proposals from supplier facts;
 - conflict review queue;
-- compatibility/product UI and structured data;
-- generated compatibility pages;
+- structured data for graph projections;
+- generated compatibility pages beyond the evidence-bound PHASE 12 table;
 - review-derived product problems;
 - production enrichment generation and approval beyond the evidence-bound PHASE 11 workflow.
 
 PHASE 11 now consumes this graph through a separate immutable Product Enrichment projection. It uses only current `VERIFIED` assertions backed by active `PUBLISHABLE_FACTS` sources; it does not alter graph facts or infer suitability from a numeric feature. See [Product Enrichment Engine](./product-enrichment.md).
+
+PHASE 12 also consumes the graph for selectors and a positive compatibility table. Missing or conflicting capabilities are excluded, and only current `COMPATIBLE` relations appear. See [Calculators, Selectors & Compatibility Tables](./calculators-tools.md).
 
 ## Human review checklist
 

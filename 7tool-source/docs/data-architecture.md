@@ -70,6 +70,9 @@ erDiagram
   PRODUCTS ||--o{ PRODUCT_COMPATIBILITY : participates
   PRODUCTS ||--o{ PRODUCT_ENRICHMENT_SETS : enriched_by
   PRODUCT_ENRICHMENT_SETS ||--o{ PRODUCT_ENRICHMENT_ITEMS : contains
+  CONTENT_OPPORTUNITIES ||--o{ INTERACTIVE_TOOL_SETS : informs
+  INTERACTIVE_TOOL_SETS ||--o{ INTERACTIVE_TOOL_RULES : contains
+  FACT_ASSERTIONS ||--o{ INTERACTIVE_TOOL_RULES : verifies
   CATEGORIES ||--o{ PRODUCTS : contains
   SOURCES ||--o{ SOURCE_FACTS : provides
   IMPORT_RUNS ||--o{ SOURCE_FACTS : produces
@@ -335,7 +338,7 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 
 ## 16. Proposed migration batches
 
-Миграции PHASE 3–11 созданы как backup-gated artifacts, но к production не применены.
+Миграции PHASE 3–12 созданы как backup-gated artifacts, но к production не применены.
 
 | Batch | Scope | Dependency | Gate |
 |---|---|---|---|
@@ -348,8 +351,9 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 | 007 | content assets/briefs/revisions/evidence/workflow | editorial roles | PHASE 9 approval |
 | 008 | media assets/rights/variants/content media | legal rights policy | PHASE 10 approval |
 | 009 | versioned product enrichment/items/reviews/audit | verified knowledge graph + human reviewer | PHASE 11 approval |
+| 010 | interactive tool sets/rules/reviews/audit | reviewed opportunities + verified facts | PHASE 12 approval |
 
-Performance/outcomes остаются scope PHASE 18; номер их миграции назначается в той фазе и не резервирует batch 009.
+Performance/outcomes остаются scope PHASE 18; номер их миграции назначается в той фазе и не резервирует batch 009/010.
 
 ## 17. API boundaries
 

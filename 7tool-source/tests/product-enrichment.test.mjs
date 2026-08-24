@@ -322,9 +322,11 @@ test("migration 009 indexes match public/history queries and rolls back cleanly"
     `).all().map((row) => row.detail).join("\n");
     assert.match(publicPlan, /idx_product_enrichment_(?:one_published|product_history)/);
     assert.match(itemsPlan, /idx_product_enrichment_items_set/);
-    const migrationSql = fs.readFileSync(path.resolve(import.meta.dirname, "..", "scripts", "migrations", "009_product_enrichment.sql"), "utf8");
-    const downSql = migrationSql.slice(migrationSql.indexOf("-- migrate:down") + "-- migrate:down".length);
-    db.exec(downSql);
+    for (const filename of ["010_interactive_tools.sql", "009_product_enrichment.sql"]) {
+      const migrationSql = fs.readFileSync(path.resolve(import.meta.dirname, "..", "scripts", "migrations", filename), "utf8");
+      const downSql = migrationSql.slice(migrationSql.indexOf("-- migrate:down") + "-- migrate:down".length);
+      db.exec(downSql);
+    }
     assert.equal(db.prepare("SELECT COUNT(*) AS count FROM sqlite_schema WHERE name = 'product_enrichment_sets'").get().count, 0);
   } finally {
     db.close();

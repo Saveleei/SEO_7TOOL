@@ -6,9 +6,11 @@ import { categories } from "@/lib/data";
 import { manager, company } from "@/lib/site-config";
 import { TrustBar } from "./TrustBar";
 import { FavoritesLink } from "./FavoritesLink";
+import { listPublishedTools } from "@/lib/tool-platform-db";
 
 export function SiteHeader() {
   const categoryIndex = categories.map(({ slug, title, count }) => ({ slug, title, count }));
+  const hasPublishedTools = listPublishedTools().length > 0;
   return (
     <header className="sticky top-0 z-40 border-b border-steel-200 bg-white/95 shadow-soft backdrop-blur supports-[backdrop-filter]:bg-white/90">
       <span className="block h-1 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-300" />
@@ -19,6 +21,7 @@ export function SiteHeader() {
           <div className="flex items-center gap-5">
             <Link href="/kontakty" className="hover:text-steel-900 transition">Контакты</Link>
             <Link href="/articles" className="hover:text-steel-900 transition">База знаний</Link>
+            {hasPublishedTools && <Link href="/tools" className="hover:text-steel-900 transition">Инструменты</Link>}
             <span>Дилер Karnasch — официальные поставки в РФ</span>
             <span className="text-steel-400">{manager.hours}</span>
           </div>
