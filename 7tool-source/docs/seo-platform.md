@@ -1,6 +1,6 @@
 # 7TOOL SEO & Content Intelligence Platform
 
-Статус: architecture baseline after PHASE 2. Реализация PHASE 3+ не начата.
+Статус: architecture baseline plus research/import layers through PHASE 6. Production migrations and publication remain human-gated.
 
 ## Goal
 
@@ -47,16 +47,17 @@ Sources → Raw observations → Verified facts → Intent → Opportunity
 - `src/lib/analytics.ts`: future content/tool events and performance correlation.
 - admin routes: future `SEO Intelligence` module, protected by roles and workflow permissions.
 
-## Phase gates
+## Current approval gates
 
-PHASE 2 produced only architecture documents. Before PHASE 3:
+PHASE 3–6 artifacts are implemented on isolated feature branches, but remain non-production. Before applying them to a live database or using external data:
 
 1. approve the model in [data-architecture.md](./data-architecture.md);
 2. resolve Git baseline and feature branch;
 3. confirm authoritative product store;
 4. provide/verify production backup and recovery process;
 5. approve migration runner design;
-6. confirm supplier feed and image contractual rights.
+6. confirm supplier feed and image contractual rights;
+7. record legal/robots/access approval for each review source before import.
 
 ## Documentation index
 
@@ -67,5 +68,6 @@ PHASE 2 produced only architecture documents. Before PHASE 3:
 - [Product Knowledge Graph](./product-knowledge-graph.md)
 - [Semantic Intelligence](./semantic-intelligence.md)
 - [Yandex Wordstat Integration](./wordstat-integration.md)
+- [Marketplace Review Intelligence](./marketplace-review-intelligence.md)
 
 # STOP / HUMAN REVIEW REQUIRED

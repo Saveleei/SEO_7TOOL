@@ -20,6 +20,8 @@
     "db:backup": "node scripts/backup-data.mjs",
     "db:migrate:seo": "node scripts/migrate-seo.mjs",
     "seo:keywords:import": "node scripts/import-keywords.mjs",
+    "seo:reviews:source": "node scripts/register-review-source.mjs",
+    "seo:reviews:import": "node scripts/import-review-insights.mjs",
     "max:setup": "node scripts/max-setup.mjs",
     "max:test": "node scripts/max-setup.mjs --send-test",
     "ads:feed": "node scripts/generate-advertising-feed.mjs",
