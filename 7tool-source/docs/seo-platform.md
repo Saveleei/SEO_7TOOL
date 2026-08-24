@@ -65,5 +65,7 @@ PHASE 2 produced only architecture documents. Before PHASE 3:
 - [Data architecture](./data-architecture.md)
 - [Supplier Feed Intelligence](./supplier-feed-intelligence.md)
 - [Product Knowledge Graph](./product-knowledge-graph.md)
+- [Semantic Intelligence](./semantic-intelligence.md)
+- [Yandex Wordstat Integration](./wordstat-integration.md)
 
 # STOP / HUMAN REVIEW REQUIRED

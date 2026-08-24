@@ -313,6 +313,7 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 |---|---|---|---|
 | 001 | sources, import_runs, source_facts + migration registry bootstrap | authoritative store | PHASE 3 approval |
 | 002 | assertions/evidence/features/relations/compatibility | source facts | PHASE 4 approval |
+| 003 | URL registry/keywords/clusters/intents | source access + existing URL map | PHASE 5 approval |
 | 004 | URLs/keywords/clusters/intents | URL crawl + source access | PHASE 5 approval |
 | 005 | review insights/pain points | legal/API policy | PHASE 6 approval |
 | 006 | opportunities/scoring | semantic + SERP data | PHASE 8 approval |
