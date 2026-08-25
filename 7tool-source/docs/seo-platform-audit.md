@@ -1,12 +1,28 @@
 # SEO Platform Audit — 7TOOL
 
-Дата аудита: 24 августа 2026 года. Объём: только PHASE 0 + архитектурная оценка точек интеграции. Изменения приложения, БД, маршрутов, интеграций и контента не выполнялись.
+Дата исходного аудита: 24 августа 2026 года. Объём исходного среза: PHASE 0 + архитектурная оценка точек интеграции. Ниже сохранены исходные наблюдения, а актуальный статус после реализации и production-проверки приведён первым.
+
+## ACCEPTANCE UPDATE — 26 августа 2026 года
+
+PHASE 0–1 можно считать технически завершёнными и передать на обязательное human review:
+
+- Git baseline создан. Ветка `master` синхронизирована с `origin/master`; проверенный HEAD — `b19e5da` (`fix: consolidate duplicate product URLs`).
+- В репозитории реализована последовательность PHASE 2–21. Эти модули существуют в коде и тестах, но production migrations, внешние импорты, публикация, масштабирование и pruning остаются human-gated.
+- Последний SEO release развёрнут через атомарный release/symlink-контур. Сохранены предыдущий release и backup каталожной БД для rollback.
+- Полный локальный набор тестов: `140 passed`, `0 failed`.
+- Репрезентативный production SEO check проверил `robots.txt`, основной и image sitemap, системные страницы, sitemap/canonical invariants, все категории, все бренды и выборку товаров: `P0 = 0`, `P1 = 0`, findings отсутствуют.
+- `/consent` возвращает permanent `308` на `/soglasie-na-obrabotku`.
+- Дублирующий URL единственного варианта товара возвращает permanent `308` на канонический URL товарной группы. Single-variant URLs исключены из sitemap; canonical и Product/Offer JSON-LD используют основной URL.
+- В Яндекс Вебмастере основной sitemap принят (21 064 URL на момент регистрации), image sitemap добавлен, счётчик Метрики `109097461` привязан, обход по данным Метрики включён.
+- Заявка на регион «Москва» отправлена; карточка/адрес склада в Яндекс Бизнесе и региональные подтверждения остаются внешними moderation-задачами.
+
+Ограничение acceptance: режим `--full-live` для последовательной проверки всех ~21 тыс. sitemap URL не завершался в этой сессии из-за длительности. Вместо него выполнен штатный репрезентативный live-контроль. Полный crawl, field CWV/CrUX и log-file reconciliation остаются отдельными измерительными задачами.
 
 ## EXECUTIVE SUMMARY
 
 7TOOL уже имеет сильную ecommerce/SEO-базу: SSR/SSG на Next.js, человекочитаемые URL, динамические metadata/canonical, XML sitemap, robots.txt, Product/Offer/Breadcrumb/Collection/FAQ JSON-LD, защищённые фасеты, Яндекс Метрику, ecommerce-события, лиды с атрибуцией и безопасную синхронизацию дилерского фида.
 
-Главные ограничения перед Content Intelligence Platform:
+Исходные ограничения, зафиксированные 24 августа до реализации:
 
 1. Git-репозиторий находится в состоянии `No commits yet on master`, весь исходник untracked. Создать надёжную feature-ветку невозможно до первого baseline-коммита; попытка записи ref также получила `HEAD.lock: Permission denied`.
 2. Два источника каталога расходятся: локальная `data.db` имеет схему, но 0 товаров/категорий/вариантов; `src/lib/products.json` содержит 4 295 товарных групп, 4 286 live и 18 364 варианта.
@@ -16,7 +32,7 @@
 6. `/lp/` защищены anti-cannibalization gate: noindex + canonical на категорию/подкатегорию до ручного подтверждения. Это правильная база для правила ONE INTENT → ONE PAGE.
 7. Реальные CWV не измерялись через CrUX/RUM; архитектурно основные риски — тысячи статических URL, большой JSON snapshot, внешние изображения, карточки/фильтры с клиентским JS и потенциальная разница build-time/live данных.
 
-Приоритет до PHASE 2: зафиксировать baseline в Git, определить authoritative catalog store, восстановить воспроизводимый импорт локальной БД, подтвердить права на supplier images и получить доступ к GSC/Yandex Webmaster/production telemetry.
+Текущий приоритет после реализации PHASE 2–21: не создавать новые массовые URL, а согласовать production activation — authoritative catalog store, миграции и rollback, права на supplier images, внешние источники данных, владельца экспертного review и ограниченный pilot.
 
 ## CURRENT TECH STACK
 
@@ -156,26 +172,26 @@ Wordstat demand + Webmaster performance + Metrika behavior/leads в отдель
 
 ## IMPLEMENTATION ROADMAP
 
-1. Human review текущего аудита и закрытие вопросов Git/source-of-truth/rights/access.
-2. Повторяемый production crawl + GSC/Webmaster/CWV baseline.
-3. PHASE 2 schema ADR и reversible migrations.
-4. PHASE 3 feed staging/provenance.
-5. PHASE 4 verified knowledge graph.
-6. Далее строго по фазам master prompt; pilot только после quality gates.
+1. Human review и формальное принятие PHASE 0–1 по текущему acceptance update.
+2. Утвердить authoritative catalog store, production backup/restore и применение reversible SEO migrations.
+3. Подтвердить договорные права на supplier media и владельцев каждого внешнего источника.
+4. Подключить только read-only/approved imports GSC, Yandex Webmaster, Wordstat и агрегированной Метрики.
+5. Утвердить точные пять категорий ограниченного PHASE 19 pilot и вручную проверить все 25 work items.
+6. Публиковать и масштабировать только после quality/evidence/differentiation gates и сопоставимого KPI baseline.
 
 ## RISKS
 
-P0: отсутствует baseline commit; пустая local DB; неясный authoritative store; права на supplier media не подтверждены. P1: external image hotlinking, build/live mismatch, отсутствие GSC/Webmaster/GA ingestion, массовая формальная SEO-генерация без evidence, duplicate/cannibalization. P2: CWV, schema completeness, crawl-depth/orphans и retention policies требуют измерений.
+P0 перед production activation: authoritative store и порядок применения SEO migrations должны быть утверждены; права на supplier media должны иметь документальное подтверждение. P1: внешний image hotlinking, отсутствие GSC ingestion и field CWV baseline, риск массовой публикации без human review. P2: полный crawl-depth/orphan/log analysis, региональная модерация и retention policies требуют внешних данных и решений владельца.
 
 ## QUESTIONS / ASSUMPTIONS
 
-1. Кто создаёт первый baseline commit и предоставляет write access к `.git`?
-2. Что authoritative на production: SQLite, JSON snapshot или supplier feed?
-3. Почему локальная `data.db` пуста; должен ли архив включать актуальный безопасный dump?
-4. Подтверждено ли договором право локально хранить и публиковать K2Tool images?
-5. Есть ли доступы к GSC, Yandex Webmaster, Wordstat и production Metrika reports?
-6. Какой reverse proxy/CDN реально используется и какие X-Robots/cache headers он добавляет?
-7. Какая CRM authoritative для lead → quote → order → margin?
-8. Кто будет реальным expert reviewer и владельцем publish approval?
+1. Что окончательно authoritative на production: SQLite, JSON snapshot или supplier feed, и как выполняется reconciliation?
+2. Подтверждено ли договором право локально хранить, преобразовывать и публиковать K2Tool images?
+3. Кто предоставляет read-only GSC и утверждает хранение query-level данных?
+4. Какая CRM authoritative для lead → quote → order → revenue/margin?
+5. Кто является реальным expert reviewer и владельцем publish approval?
+6. Разрешено ли применять подготовленные SEO migrations к production после отдельного backup/restore rehearsal?
+7. Какие пять категорий утверждаются для ограниченного pilot?
+8. Когда завершится модерация региона и физической карточки склада в Яндекс Бизнесе?
 
 # STOP / HUMAN REVIEW REQUIRED

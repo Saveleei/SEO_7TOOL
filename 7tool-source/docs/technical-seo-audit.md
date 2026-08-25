@@ -1,6 +1,17 @@
 # Full Technical SEO Audit — 7TOOL
 
-Дата исходного baseline: 24 августа 2026 года. Аудит основан на исходном коде, локальном snapshot/SQLite, существующих project reports и выборочной проверке production HTML. Это не полный crawler/CrUX/log-file audit: доступ к GSC и Yandex Webmaster отсутствует.
+Дата исходного baseline: 24 августа 2026 года. Аудит основан на исходном коде, локальном snapshot/SQLite, существующих project reports и выборочной проверке production HTML. Исторические baseline-наблюдения сохранены ниже; актуальный acceptance-статус приведён первым.
+
+## PHASE 0–1 acceptance update — 26 августа 2026 года
+
+- Git baseline и rollback chain существуют; `master` синхронизирован с `origin/master`, HEAD `b19e5da`.
+- Последний release с consolidation дублей развёрнут в production атомарно; предыдущий release и backup БД сохранены.
+- Полный project test suite: `140 passed`, `0 failed`.
+- Репрезентативный внешний SEO check: 24 категории, 3 625 публичных товарных групп и 87 брендов в текущем локальном snapshot; `P0 = 0`, `P1 = 0`, findings отсутствуют.
+- Live check подтвердил доступность и валидность `robots.txt`, основного sitemap, image sitemap, системных URL, категорий, брендов и выборки товаров, а также sitemap/canonical/status invariants.
+- `/consent` отвечает `308` на `/soglasie-na-obrabotku`; single-variant duplicate отвечает `308` на канонический product URL.
+- Яндекс Вебмастер подключён: основной sitemap принят, image sitemap добавлен, Метрика `109097461` привязана, обход через Метрику включён.
+- Полный последовательный `--full-live` crawl всех ~21 тыс. sitemap URL в этой сессии не завершался из-за длительности. Field CWV/CrUX, server logs и полный sitemap crawl остаются измерительными задачами, а не подтверждёнными дефектами.
 
 ## Production validation update — 25 августа 2026 года
 
@@ -12,20 +23,19 @@
 
 Ниже сохранены исходные baseline-наблюдения; пункты, закрытые последующими фазами, следует читать вместе с этим обновлением.
 
-## Summary and priorities
+## Historical summary and current disposition
 
 | Priority | Finding | Impact | Required action |
 |---|---|---|---|
-| P0 | Git has no commits; source untracked | Нет безопасной ветки/rollback/diff baseline | Создать проверенный baseline commit, затем feature branch |
-| P0 | Local SQLite empty while JSON has 4 295 products | Невоспроизводимые build/migration/audit results | Определить source-of-truth, восстановить safe dump/import and reconciliation |
-| P0 | Supplier image rights/status not represented | Copyright and availability risk | Подтвердить права, внедрить MediaAsset rights gate |
-| P1 | 912 live products lack description; 654 lack product image | Thin/weak product pages and image SEO gaps | Enrichment queue; do not invent facts |
-| P1 | All 10 228 snapshot images hotlink K2Tool S3 | LCP, reliability, rights, cache/format control | Licensed local/CDN pipeline and derivatives |
-| P1 | No GSC/Webmaster/GA ingestion found | Нет performance/quick-win feedback loop | Server-side integrations after human approval |
-| P1 | 16 duplicate-title groups and overlapping page types | Duplicate/cannibalization risk | Intent registry + semantic duplicate checker |
-| P1 | Real sitemap/status/header crawl not reproduced | Unknown 404/redirect/soft-404/orphan coverage | Crawl production with sitemap and log reconciliation |
-| P2 | Critical homepage product image is lazy-loaded | Potential LCP regression | Validate LCP element; use priority/eager only if confirmed |
-| P2 | Large client listing/filter payload | Potential INP/TTFB/build pressure | RUM, bundle/profile, server pagination strategy |
+| P0 | Git baseline отсутствовал | Нет безопасной ветки/rollback/diff baseline | **Closed:** baseline и commit chain созданы, remote синхронизирован |
+| P0 | Local SQLite и JSON расходились | Невоспроизводимые build/migration/audit results | **Governance open:** feed/SQLite/JSON pipeline реализован; authoritative production policy требует утверждения |
+| P0 | Supplier image rights/status не были представлены | Copyright and availability risk | **Gate implemented, approval open:** Media rights model существует, договорные права ещё подтверждает владелец |
+| P1 | 912 live products lacked description; 654 lacked image | Thin/weak product pages and image SEO gaps | **Workflow implemented:** evidence-only enrichment; запрещено изобретать факты |
+| P1 | Supplier images hotlink K2Tool S3 | LCP, reliability, rights, cache/format control | **Open:** licensed local/CDN rollout только после подтверждения прав |
+| P1 | No GSC/Webmaster/GA ingestion found | Нет performance/quick-win feedback loop | **Partial:** import layers реализованы, Webmaster/Метрика подключены; GSC access/import остаётся внешним шагом |
+| P1 | Duplicate-title groups and overlapping page types | Duplicate/cannibalization risk | **Closed in current controls:** redirects, canonical/sitemap dedupe, intent registry and semantic gates |
+| P1 | Production sitemap/status validation отсутствовала | Unknown 404/redirect/soft-404/orphan coverage | **Partial:** live representative audit clean; полный crawl/log reconciliation ещё нужен |
+| P2 | Critical image and listing payload CWV risks | Potential LCP/INP/TTFB regression | **Measurement open:** собрать field CWV/RUM/CrUX и профилировать по шаблонам |
 
 ## INDEXATION
 
@@ -128,15 +138,15 @@ Categories combine selection, products, subcategories, explanatory content and F
 
 ## TEST COVERAGE
 
-Baseline audit run: 28 tests passed, 0 failed. Current project run: 139 passed, 0 failed. Coverage now includes the production canonical/status sampling, sitemap ↔ routes, image sitemap/rights projection, schema guards, Wordstat importer, knowledge graph, semantic clustering, duplicate similarity, article permissions and CWV budgets implemented in later phases.
+Baseline audit run: 28 tests passed, 0 failed. Current project run: 140 passed, 0 failed. Coverage now includes the production canonical/status sampling, sitemap ↔ routes, image sitemap/rights projection, schema guards, Wordstat importer, knowledge graph, semantic clustering, duplicate similarity, article permissions and CWV budgets implemented in later phases.
 
-## Recommended next actions (no implementation yet)
+## Recommended next actions after PHASE 0–1 acceptance
 
-1. Approve and commit a clean baseline; then create `codex/seo-phase0-1` or agreed feature branch.
-2. Reconcile production SQLite, JSON snapshot and feed; document authority and recovery.
-3. Confirm supplier image license and hotlink/local-cache terms.
-4. Provide read-only GSC, Yandex Webmaster, Metrika and production header/log access.
-5. Run full crawler + field CWV baseline and append measured evidence.
-6. Approve PHASE 2 architecture before any migration.
+1. Формально принять PHASE 0–1 по этому отчёту; повторно реализовывать PHASE 2 не требуется — PHASE 2–21 уже находятся в commit chain.
+2. Утвердить production authority для SQLite/JSON/feed и провести отдельную backup/restore rehearsal перед SEO migrations.
+3. Подтвердить supplier image license и условия hotlink/local-cache/derivatives.
+4. Предоставить read-only GSC и согласовать query retention; продолжить наблюдение Webmaster/Метрики.
+5. Запустить отдельный полный crawler + field CWV baseline и дополнить отчёт измеренными p75.
+6. После human approval активировать только ограниченный pilot; массовая публикация и pruning остаются запрещены без отдельного решения.
 
 # STOP / HUMAN REVIEW REQUIRED
