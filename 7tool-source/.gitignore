@@ -17,6 +17,10 @@ out/
 backups/
 uploads/
 .media/
+.avito/
+config/avito.local.json
+fixtures/avito/generated/*
+!fixtures/avito/generated/candidate-avito.xml
 private-specifications/
 
 # Environment and credentials

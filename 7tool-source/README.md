@@ -39,6 +39,18 @@ npm run build
 
 Проверяются целостность девяти категорий, уникальность URL, отсутствие нулевых цен, коммерческая сортировка, защита форм и production-сборка.
 
+## Avito Autoload
+
+В проект добавлен отдельный безопасный конвейер подготовки Avito XML. По умолчанию он работает только в `dry-run`, не подключается к аккаунту Avito и не заменяет публичный фид.
+
+```bash
+npm run avito:fixture
+```
+
+Команда создаёт тестовый XML, JSON-отчёт и HTML-предпросмотр в `fixtures/avito/generated`. Для рабочего фида скопируйте `config/avito.example.json` в игнорируемый `config/avito.local.json` и подтвердите значения категорий по шаблону из кабинета Avito. На production конвейер повторно использует существующий закрытый `FEED_URL/FEED_FILE` K2Tool; `AVITO_FEED_*` нужен только для отдельного источника.
+
+Подробный регламент, ограничения и критерии запуска: [docs/avito-autoload.md](./docs/avito-autoload.md).
+
 ## Production
 
 Переменные перечислены в `.env.example`, PM2-конфигурация — в `ecosystem.config.cjs`. Полный безопасный регламент выкладки, резервного копирования, проверки cron и отката: [DEPLOYMENT_BEGET.md](./DEPLOYMENT_BEGET.md).

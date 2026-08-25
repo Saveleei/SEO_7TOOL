@@ -33,7 +33,7 @@ export function cleanSupplierParamName(name) {
   return cleaned || original;
 }
 
-export function parseSupplierFeed(xml) {
+export function parseSupplierFeed(xml, { maxPictures = 6 } = {}) {
   const offers = [];
   for (const match of xml.matchAll(/<offer\s+([^>]*?)>([\s\S]*?)<\/offer>/g)) {
     const attr = attributes(match[1]);
@@ -50,7 +50,7 @@ export function parseSupplierFeed(xml) {
     for (const pictureMatch of body.matchAll(/<picture(?:\s[^>]*)?>([\s\S]*?)<\/picture>/g)) {
       const src = decodeSupplierXml(pictureMatch[1]);
       if (/^https?:\/\//i.test(src) && !pictures.includes(src)) pictures.push(src);
-      if (pictures.length >= 6) break;
+      if (pictures.length >= Math.max(1, Math.trunc(Number(maxPictures) || 6))) break;
     }
     const accessories = Array.from(body.matchAll(/<accessory(?:\s[^>]*)?>([\s\S]*?)<\/accessory>/g))
       .map((item) => decodeSupplierXml(item[1])).filter(Boolean);

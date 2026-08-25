@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<yml_catalog>
+  <shop>
+    <offers>
+      <offer id="fixture-steir-35" available="true">
+        <name>Магнитный сверлильный станок LENZ STEYR-35</name>
+        <categoryId>54</categoryId>
+        <vendorCode>STEYR-35</vendorCode>
+        <vendor>LENZ</vendor>
+        <price>47999</price>
+        <oldprice>59998</oldprice>
+        <quantity>7</quantity>
+        <picture>https://cdn.example.test/steir-35-main.jpg</picture>
+        <picture>https://cdn.example.test/steir-35-side.jpg</picture>
+        <param name="Шпиндель">Weldon 19</param>
+        <param name="Мощность двигателя" unit="Вт">1550</param>
+        <accessory>Страховочный ремень</accessory>
+      </offer>
+      <offer id="fixture-kar-40" available="true">
+        <name>Сверло корончатое Karnasch BLUE-LINE</name>
+        <categoryId>114</categoryId>
+        <vendorCode>KAR-40</vendorCode>
+        <vendor>Karnasch</vendor>
+        <price>1590</price>
+        <quantity>24</quantity>
+        <picture>https://cdn.example.test/kar-40.jpg</picture>
+        <param name="Диаметр режущей части" unit="мм">40</param>
+        <param name="Рабочая длина" unit="мм">30</param>
+      </offer>
+      <offer id="fixture-order" available="true">
+        <name>Автоматический кромкорез TEST-60</name>
+        <categoryId>148</categoryId>
+        <vendorCode>ORDER-60</vendorCode>
+        <vendor>TEST</vendor>
+        <price>594734</price>
+        <quantity>0</quantity>
+        <picture>https://cdn.example.test/order-60.jpg</picture>
+        <param name="Максимальная ширина фаски" unit="мм">56</param>
+      </offer>
+      <offer id="fixture-bad-price" available="true">
+        <name>Товар без цены</name>
+        <categoryId>54</categoryId>
+        <vendorCode>BAD-PRICE</vendorCode>
+        <quantity>2</quantity>
+        <picture>https://cdn.example.test/bad.jpg</picture>
+      </offer>
+      <offer id="fixture-blocked" available="true">
+        <name>Исключённый тестовый товар</name>
+        <categoryId>54</categoryId>
+        <vendorCode>BLOCKED-1</vendorCode>
+        <vendor>TEST</vendor>
+        <price>99000</price>
+        <quantity>2</quantity>
+        <picture>https://cdn.example.test/blocked.jpg</picture>
+      </offer>
+      <offer id="fixture-unmapped" available="true">
+        <name>Товар неизвестной категории</name>
+        <categoryId>9999</categoryId>
+        <vendorCode>UNKNOWN-1</vendorCode>
+        <vendor>TEST</vendor>
+        <price>5000</price>
+        <quantity>1</quantity>
+        <picture>https://cdn.example.test/unknown.jpg</picture>
+      </offer>
+    </offers>
+  </shop>
+</yml_catalog>

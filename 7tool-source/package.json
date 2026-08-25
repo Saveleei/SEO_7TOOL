@@ -45,7 +45,11 @@
     "max:test": "node scripts/max-setup.mjs --send-test",
     "ads:feed": "node scripts/generate-advertising-feed.mjs",
     "ads:check": "node scripts/generate-advertising-feed.mjs --check",
-    "ads:remote-check": "node scripts/validate-advertising-feed.mjs"
+    "ads:remote-check": "node scripts/validate-advertising-feed.mjs",
+    "avito:dry-run": "node scripts/avito-pipeline.mjs --dry-run",
+    "avito:fixture": "node scripts/avito-pipeline.mjs --feed fixtures/avito/supplier.xml --config fixtures/avito/config.test.json --output fixtures/avito/generated --dry-run",
+    "avito:publish-local": "node scripts/avito-pipeline.mjs --publish-local",
+    "avito:test": "node --test tests/avito-pipeline.test.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

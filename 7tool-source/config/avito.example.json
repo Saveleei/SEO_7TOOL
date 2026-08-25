@@ -1,0 +1,163 @@
+{
+  "company": {
+    "brand": "7TOOL",
+    "warehouseCity": "Москва",
+    "warehouseCityPrepositional": "Москве",
+    "warehouseAddress": "Москва, Рябиновая улица, 63, стр. 4",
+    "contactPhone": "+7 962 611-24-19",
+    "vatIncluded": true,
+    "warrantyMonths": 12,
+    "deliveryText": "отправка по России транспортной компанией",
+    "legalEntityTerms": "работаем с юридическими и физическими лицами"
+  },
+  "source": {
+    "minOffers": 5000,
+    "maxBytes": 104857600,
+    "timeoutMs": 30000,
+    "allowedHosts": [],
+    "trustConfiguredFeedHost": true
+  },
+  "selection": {
+    "limit": 200,
+    "minScore": 0.04,
+    "minImages": 1,
+    "minMarginRate": 0.15,
+    "requireConfirmedStock": true,
+    "maxPerFamily": 5,
+    "categoryLimits": {
+      "54": 40,
+      "114": 50,
+      "124": 10,
+      "148": 40,
+      "178": 50,
+      "235": 30
+    },
+    "priorityCategories": ["54", "114", "148", "124", "178", "235"],
+    "excludedCategories": [],
+    "excludedBrands": [],
+    "includeSkus": [],
+    "excludeSkus": [],
+    "pinnedSkus": []
+  },
+  "commercial": {
+    "costBySku": {}
+  },
+  "scoring": {
+    "weights": {
+      "demand": 1,
+      "stock": 1,
+      "margin": 1,
+      "priceCompetitiveness": 1,
+      "contentQuality": 1,
+      "upsellPotential": 1,
+      "shippingSpeed": 1
+    },
+    "demandBySku": {},
+    "priceCompetitivenessBySku": {},
+    "upsellBySku": {}
+  },
+  "content": {
+    "titleMaxLength": 50,
+    "descriptionMaxLength": 7000
+  },
+  "images": {
+    "maxProductImages": 9,
+    "maxAvitoImages": 10,
+    "appendWarehouseProof": true,
+    "warehouseProofUrls": [
+      "https://7tool.ru/warehouse/01.webp"
+    ],
+    "generatedBySku": {},
+    "allowedImageHosts": ["7tool.ru", "s3.export.k2tool.ru"],
+    "minWidth": 800,
+    "minHeight": 600,
+    "minSharpness": 1.2
+  },
+  "safety": {
+    "maxSourceDropRatio": 0.25,
+    "dropGuardMinPreviousOffers": 20,
+    "missingProductGraceRuns": 1,
+    "allowGraceListings": true
+  },
+  "avito": {
+    "allowUnverifiedSchema": false,
+    "commonFields": {}
+  },
+  "output": {
+    "publicFeedPath": "public/feeds/avito.xml"
+  },
+  "categories": {
+    "54": {
+      "internalCategory": "stanki-sverlilnye",
+      "category": "Оборудование для бизнеса",
+      "goodsType": "__ЗАПОЛНИТЬ_ИЗ_ШАБЛОНА_AVITO__",
+      "condition": "Новое",
+      "schemaVerified": false,
+      "requiredFields": ["goodsType"],
+      "useCompanyWarranty": true,
+      "keyParams": ["Шпиндель", "Максимальный диаметр сверления", "Мощность двигателя", "Число скоростей"],
+      "useCase": "Для сверления отверстий в металлоконструкциях в цеху и на монтаже.",
+      "qualificationQuestions": ["максимальный диаметр отверстия", "толщину и марку металла", "место работы"]
+    },
+    "114": {
+      "internalCategory": "koronchatye-sverla",
+      "category": "Оборудование для бизнеса",
+      "goodsType": "__ЗАПОЛНИТЬ_ИЗ_ШАБЛОНА_AVITO__",
+      "condition": "Новое",
+      "schemaVerified": false,
+      "requiredFields": ["goodsType"],
+      "useCompanyWarranty": false,
+      "keyParams": ["Диаметр режущей части", "Рабочая длина", "Хвостовик", "Материал режущей части"],
+      "useCase": "Для производительного сверления отверстий в металле магнитными сверлильными станками.",
+      "qualificationQuestions": ["диаметр и глубину отверстия", "марку металла", "тип шпинделя станка"]
+    },
+    "148": {
+      "internalCategory": "kromkorezy-po-listu",
+      "category": "Оборудование для бизнеса",
+      "goodsType": "__ЗАПОЛНИТЬ_ИЗ_ШАБЛОНА_AVITO__",
+      "condition": "Новое",
+      "schemaVerified": false,
+      "requiredFields": ["goodsType"],
+      "useCompanyWarranty": true,
+      "keyParams": ["Максимальная ширина фаски", "Угол фаски", "Толщина листа", "Мощность двигателя"],
+      "useCase": "Для подготовки кромки листового металла под сварку и последующую обработку.",
+      "qualificationQuestions": ["материал и толщину листа", "ширину и угол фаски", "планируемый объём работ"]
+    },
+    "124": {
+      "internalCategory": "truborezy",
+      "category": "Оборудование для бизнеса",
+      "goodsType": "__ЗАПОЛНИТЬ_ИЗ_ШАБЛОНА_AVITO__",
+      "condition": "Новое",
+      "schemaVerified": false,
+      "requiredFields": ["goodsType"],
+      "useCompanyWarranty": true,
+      "keyParams": ["Диаметр трубы", "Толщина стенки", "Мощность двигателя"],
+      "useCase": "Для механизированной резки труб при монтаже, ремонте и производстве.",
+      "qualificationQuestions": ["диаметр и толщину стенки трубы", "материал трубы", "условия работы"]
+    },
+    "178": {
+      "internalCategory": "borfrezy",
+      "category": "Оборудование для бизнеса",
+      "goodsType": "__ЗАПОЛНИТЬ_ИЗ_ШАБЛОНА_AVITO__",
+      "condition": "Новое",
+      "schemaVerified": false,
+      "requiredFields": ["goodsType"],
+      "useCompanyWarranty": false,
+      "keyParams": ["Форма", "Диаметр режущей части", "Диаметр хвостовика", "Тип насечки"],
+      "useCase": "Для снятия заусенцев, обработки сварных швов и доводки металлических деталей.",
+      "qualificationQuestions": ["обрабатываемый материал", "форму рабочей зоны", "используемый инструмент"]
+    },
+    "235": {
+      "internalCategory": "karetki-svarochnye",
+      "category": "Оборудование для бизнеса",
+      "goodsType": "__ЗАПОЛНИТЬ_ИЗ_ШАБЛОНА_AVITO__",
+      "condition": "Новое",
+      "schemaVerified": false,
+      "requiredFields": ["goodsType"],
+      "useCompanyWarranty": true,
+      "keyParams": ["Скорость перемещения", "Положение сварки", "Тип направляющей"],
+      "useCase": "Для механизации сварки и получения стабильного качества протяжённых швов.",
+      "qualificationQuestions": ["тип и длину шва", "положение сварки", "используемый сварочный процесс"]
+    }
+  }
+}
