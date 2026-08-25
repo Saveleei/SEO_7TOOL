@@ -56,7 +56,7 @@ Sources → Raw observations → Verified facts → Intent → Opportunity
 ## Current integration points
 
 - `scripts/refresh-feed.mts`: future source/import-run boundary.
-- `src/lib/db.ts`: replace ad-hoc growth with versioned migration runner before new tables.
+- `scripts/migrate-seo.mjs`: backup-gated, checksummed migration runner for numbered SEO schema artifacts; production execution remains human-approved.
 - `src/lib/products-db.ts`: commerce read model; PHASE 11 adds a separate verified enrichment projection without changing commerce rows.
 - `src/app/sitemap.ts`: consumes approved content and current `PUBLISHED + INDEX` tools, never raw opportunities.
 - category/product metadata and JSON-LD: consume verified facts and canonical registry.
@@ -67,11 +67,11 @@ Sources → Raw observations → Verified facts → Intent → Opportunity
 - `src/lib/pilot-program.mjs`: bounded Phase 19 selection, work-item review and category/pilot KPI snapshots.
 - `src/lib/google-seo.mjs`: exact-grain GSC imports, update-only Quick Wins, CWV classification and reviewed facet policy.
 - `src/lib/yandex-seo.mjs`: separate Webmaster/Wordstat/Metrica grains and demand-vs-existing opportunity discovery.
-- admin routes: future `SEO Intelligence` module, protected by roles and workflow permissions.
+- `/admin/seo`: implemented server-rendered `SEO Intelligence` module, protected by the existing admin authorization boundary.
 
 ## Current approval gates
 
-PHASE 3–19 artifacts are implemented on isolated feature branches, but remain non-production. Before applying them to a live database or using external data:
+PHASE 3–21 artifacts are implemented as one linear, reviewable commit chain, but remain non-production. Before applying them to a live database or using external data:
 
 1. approve the model in [data-architecture.md](./data-architecture.md);
 2. resolve Git baseline and feature branch;
@@ -86,6 +86,8 @@ PHASE 3–19 artifacts are implemented on isolated feature branches, but remain 
 11. approve Yandex OAuth owners/scopes, Webmaster host, Metrica counter, regional taxonomy and Yandex query retention.
 12. approve Phase 18 goal IDs, bot/attribution rules, PII-free CRM outcomes and revenue/margin reconciliation.
 13. approve the exact five-category pilot scope, all 100 Top opportunities, all 25 work items and comparable Google/Yandex/ROI periods before any pilot publication.
+14. approve every Phase 20 scale batch, capacity cap and comparable baseline/current KPI pair before creating additional work items.
+15. approve the Phase 21 expected-CTR source, refresh/pruning thresholds, real-expert identity and media-rights evidence, and every MERGE/REDIRECT/NOINDEX/DELETE decision before execution.
 
 ## Documentation index
 

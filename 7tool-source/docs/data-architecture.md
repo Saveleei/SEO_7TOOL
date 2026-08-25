@@ -381,7 +381,7 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 
 ## 16. Proposed migration batches
 
-Миграции PHASE 3–19 созданы как backup-gated artifacts, но к production не применены.
+Миграции PHASE 3–21 созданы как backup-gated artifacts, но к production не применены.
 
 | Batch | Scope | Dependency | Gate |
 |---|---|---|---|
@@ -401,8 +401,10 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 | 014 | Yandex Webmaster/Wordstat/Metrica observations and query opportunities | source/import + semantic URL registry | PHASE 17 OAuth/region/retention approval |
 | 015 | aggregate analytics events, verified CRM outcomes, Business KPI and Content ROI | Phase 17 organic landings + immutable lead attribution | PHASE 18 goal/CRM/privacy approval |
 | 016 | fixed pilot scope, ranked selections, content work items and KPI snapshots | Phase 8 opportunities + Phase 13–18 search/ROI evidence | PHASE 19 pilot owner/editor approval |
+| 017 | score-driven scaling decisions, batches, reviews and KPI snapshots | approved Phase 19 pilot + comparable search/ROI evidence | PHASE 20 scale-owner approval |
+| 018 | content refresh assessments/reviews and verified expert authorship | published content + Phase 13–18 search/ROI evidence | PHASE 21 editorial/expert approval |
 
-PHASE 19 consumes the closed measurement loop in a hard-bounded five-category experiment. Publication remains a separate content workflow, and any volume beyond 25 pilot work items remains Phase 20.
+PHASE 19 consumes the closed measurement loop in a hard-bounded five-category experiment. PHASE 20 governs any score-approved increase beyond the pilot, while PHASE 21 evaluates published content for review-only refresh, merge or pruning decisions. Publication and every destructive lifecycle action remain separate human-approved workflows.
 
 ## 17. API boundaries
 
