@@ -1,6 +1,6 @@
 # 7TOOL SEO & Content Intelligence Platform
 
-Статус: architecture baseline plus research/import/decision/content/media/product-enrichment/tool/internal-linking/lead-generation/structured-data/search-platform/analytics, bounded pilot, score-driven scale and review-only refresh layers through PHASE 21. Production migrations, external analytics access, pruning execution and real publication remain human-gated.
+Статус: architecture baseline plus research/import/decision/content/media/product-enrichment/tool/internal-linking/lead-generation/structured-data/search-platform/analytics, bounded pilot, score-driven scale and review-only refresh layers through PHASE 21. Migrations `001`–`018` прошли WAL-aware dry-run, idempotency и backup-restore verification; production migrations, external analytics access, pruning execution and real publication remain human-gated.
 
 ## Goal
 
@@ -94,6 +94,7 @@ PHASE 3–21 artifacts are implemented as one linear, reviewable commit chain, b
 - [Platform audit](./seo-platform-audit.md)
 - [Technical SEO audit](./technical-seo-audit.md)
 - [Data architecture](./data-architecture.md)
+- [Production activation runbook](./production-activation.md)
 - [Supplier Feed Intelligence](./supplier-feed-intelligence.md)
 - [Product Knowledge Graph](./product-knowledge-graph.md)
 - [Semantic Intelligence](./semantic-intelligence.md)

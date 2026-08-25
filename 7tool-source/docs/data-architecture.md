@@ -1,8 +1,18 @@
 # PHASE 2 — SEO & Content Intelligence Data Architecture
 
-Статус: **PROPOSED / HUMAN REVIEW REQUIRED**  
+Статус: **DRY-RUN VERIFIED / PRODUCTION APPROVAL REQUIRED**
 Дата: 24 августа 2026 года  
-Scope: логическая и физическая модель данных. Миграции не применялись.
+Scope: логическая и физическая модель данных. Миграции `001`–`018` проверены на WAL-aware изолированной копии с текущим catalog snapshot; к production не применялись.
+
+## Verification update — 26 августа 2026 года
+
+- Проверка использовала штатный SQLite backup API, а не raw copy файла `data.db`, поэтому активный WAL и полная commerce-схема вошли в копию.
+- Fixture после импорта: 26 категорий, 111 подкатегорий, 4 295 товаров и 18 364 варианта; присутствовали leads и operational queues.
+- Все 18 migrations применились; postflight: integrity `ok`, foreign-key errors `0`, registry `18`.
+- Повторное применение идемпотентно и не создало новых записей migrations.
+- Commerce row counts не изменились.
+- Recovery проверен восстановлением pre-migration backup; SHA-256 восстановленной БД совпал с backup.
+- Production-порядок и обязательные stop gates описаны в [production-activation.md](./production-activation.md).
 
 ## 1. Architecture decisions
 
