@@ -1,6 +1,6 @@
 # 7TOOL SEO & Content Intelligence Platform
 
-Статус: architecture baseline plus research/import/decision/content/media/product-enrichment/tool/internal-linking/lead-generation/structured-data/search-platform/analytics, bounded pilot, score-driven scale and review-only refresh layers through PHASE 21. Migrations `001`–`018` прошли WAL-aware dry-run, idempotency и backup-restore verification; production migrations, external analytics access, pruning execution and real publication remain human-gated.
+Статус: architecture baseline plus research/import/decision/content/media/product-enrichment/tool/internal-linking/lead-generation/structured-data/search-platform/analytics, bounded pilot, score-driven scale and review-only refresh layers through PHASE 21. Production schema migrations `001`–`018` применены 26 августа 2026 года и прошли postflight; external analytics access, data imports, generation, pruning execution and real publication remain human-gated.
 
 ## Goal
 
@@ -56,7 +56,7 @@ Sources → Raw observations → Verified facts → Intent → Opportunity
 ## Current integration points
 
 - `scripts/refresh-feed.mts`: future source/import-run boundary.
-- `scripts/migrate-seo.mjs`: backup-gated, checksummed migration runner for numbered SEO schema artifacts; production execution remains human-approved.
+- `scripts/migrate-seo.mjs`: backup-gated, checksummed migration runner for numbered SEO schema artifacts; initial production activation completed, and every future production apply remains human-approved.
 - `src/lib/products-db.ts`: commerce read model; PHASE 11 adds a separate verified enrichment projection without changing commerce rows.
 - `src/app/sitemap.ts`: consumes approved content and current `PUBLISHED + INDEX` tools, never raw opportunities.
 - category/product metadata and JSON-LD: consume verified facts and canonical registry.
@@ -71,7 +71,7 @@ Sources → Raw observations → Verified facts → Intent → Opportunity
 
 ## Current approval gates
 
-PHASE 3–21 artifacts are implemented as one linear, reviewable commit chain, but remain non-production. Before applying them to a live database or using external data:
+PHASE 3–21 schema artifacts are active in production, while their external-data and publication workflows remain dormant. Before importing data or creating, changing, scaling or pruning public content:
 
 1. approve the model in [data-architecture.md](./data-architecture.md);
 2. resolve Git baseline and feature branch;

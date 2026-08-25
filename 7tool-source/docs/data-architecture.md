@@ -1,8 +1,8 @@
 # PHASE 2 — SEO & Content Intelligence Data Architecture
 
-Статус: **DRY-RUN VERIFIED / PRODUCTION APPROVAL REQUIRED**
+Статус: **PRODUCTION SCHEMA ACTIVE / POSTFLIGHT VERIFIED**
 Дата: 24 августа 2026 года  
-Scope: логическая и физическая модель данных. Миграции `001`–`018` проверены на WAL-aware изолированной копии с текущим catalog snapshot; к production не применялись.
+Scope: логическая и физическая модель данных. Миграции `001`–`018` проверены на WAL-aware изолированной копии и применены к production 26 августа 2026 года. Внешние импорты, генерация и публикация не запускались.
 
 ## Verification update — 26 августа 2026 года
 
@@ -12,6 +12,9 @@ Scope: логическая и физическая модель данных. �
 - Повторное применение идемпотентно и не создало новых записей migrations.
 - Commerce row counts не изменились.
 - Recovery проверен восстановлением pre-migration backup; SHA-256 восстановленной БД совпал с backup.
+- Production activation завершена в контролируемом окне: registry `18`, integrity `ok`, foreign-key errors `0`; commerce counts остались 26 категорий, 129 подкатегорий, 4 295 товаров, 18 364 варианта и 52 лида.
+- После активации production tests: 140 passed, 0 failed; representative live SEO check: P0 `0`, P1 `0`; `7tool-prod` online, cron active.
+- Активирована только схема. Ни один внешний dataset не импортирован и ни одна публичная страница не создана или изменена этим шагом.
 - Production-порядок и обязательные stop gates описаны в [production-activation.md](./production-activation.md).
 
 ## 1. Architecture decisions
@@ -391,7 +394,7 @@ SQLite caveat: destructive rollback чаще выполняется table-copy m
 
 ## 16. Proposed migration batches
 
-Миграции PHASE 3–21 созданы как backup-gated artifacts, но к production не применены.
+Миграции PHASE 3–21 (`001`–`018`) активны в production с 26 августа 2026 года. Они остаются backup-gated artifacts для любого будущего окружения или повторного deployment; заполнение таблиц внешними данными и все publication/lifecycle actions требуют отдельных human approvals.
 
 | Batch | Scope | Dependency | Gate |
 |---|---|---|---|

@@ -1,6 +1,6 @@
 # SEO Platform Production Activation Runbook — 7TOOL
 
-Статус: **FRESH BACKUP VERIFIED / MIGRATIONS NOT APPLIED / APPLY APPROVAL REQUIRED**
+Статус: **PRODUCTION SCHEMA ACTIVE / POSTFLIGHT PASSED / IMPORTS AND PUBLICATION NOT STARTED**
 Дата проверки: 26 августа 2026 года
 Локально проверенный SEO commit: `aa70adc`
 
@@ -72,6 +72,27 @@ Read-only checks were run in the Beget server console. No production file, proce
 | Fresh backup SHA-256 | `f8eb090061099b21742eb8c51709bd2657ead7747db9e2e8a67f761f5a5b0876` |
 
 The production subcategory count is 129, while the isolated fixture contained 111. The primary commerce counts (categories, products and variants) match, and the migration set is additive, but all postflight comparisons must use the production values above. The fresh WAL-aware backup was created after explicit human approval and is the designated rollback target for this apply window.
+
+## Production activation result — 26 August 2026
+
+Migrations `001`–`018` were applied to `/var/www/7tool-shared/data.db` in a controlled window after explicit human approval. Cron and `7tool-prod` were stopped before the write and restored afterward. No feed, queue or application writer was active during the migration.
+
+An initial invocation passed an unexpanded wildcard as the backup name. The migration guard rejected it before opening the production database, so that attempt made no database change. The second invocation resolved the exact verified backup path and applied all 18 migrations successfully.
+
+| Postflight check | Result |
+|---|---|
+| Migration registry | 18 rows |
+| First / last migration | `001_supplier_feed_provenance` / `018_content_refresh` |
+| SQLite integrity | `ok` |
+| Foreign-key violations | 0 |
+| Commerce control counts | unchanged: 26 categories, 129 subcategories, 4,295 products, 18,364 variants, 52 leads |
+| Production release tests | 140 passed, 0 failed |
+| Representative live SEO check | P0 = 0, P1 = 0, total = 0 |
+| Live SEO sample | 24 public categories, 3,625 public products, 87 brands |
+| PM2 after activation | `7tool-prod` online |
+| Cron after activation | active |
+
+This activates the SEO platform schema only. It does not import Webmaster, Wordstat, Metrika, GSC, review or SERP data and does not publish or modify public pages. Those actions remain separate human-gated operations.
 
 ## Production preflight — read-only
 
@@ -159,8 +180,8 @@ Normal code rollback does not require DB rollback because migrations are additiv
 
 Never restore while the app or feed job is writing.
 
-## Approval gate
+## Activation gate
 
-The next allowed operation is applying migrations `001`–`018`. This is a separate production database write and requires explicit human approval after the fresh backup path, integrity result and SHA-256 above have been shown.
+Production schema activation is complete. Any import, generation, publication, pilot, scaling or pruning operation requires its own evidence review and explicit human approval.
 
-# STOP / HUMAN REVIEW REQUIRED
+# ACTIVATION COMPLETE / CONTENT OPERATIONS REMAIN HUMAN-GATED
