@@ -236,8 +236,13 @@ test("SEO pipeline защищён от конфликтов данных и пе
   assert.match(read("scripts/nightly-rebuild.sh"), /npm run data:check/);
   assert.match(read("scripts/generate-programmatic-seo.mjs"), /SEO_DATA_CONFLICT/);
   assert.match(read("scripts/generate-programmatic-seo.mjs"), /--category/);
-  assert.match(read("src/app/p/[slug]/page.tsx"), /resolvePublicProductSlug/);
-  assert.match(read("src/app/p/[slug]/page.tsx"), /dynamic = "force-dynamic"/);
+  const productPage = read("src/app/p/[slug]/page.tsx");
+  assert.match(productPage, /resolvePublicProductSlug/);
+  assert.match(productPage, /dynamic = "force-dynamic"/);
+  assert.match(productPage, /r\.variant && r\.product\.variants\.length === 1/);
+  assert.match(productPage, /permanentRedirect\(`\/p\/\$\{r\.product\.slug\}`\)/);
+  assert.match(read("src/lib/products-db.ts"), /row\.variantId && row\.variantCount > 1/);
+  assert.match(read("src/app/consent/page.tsx"), /permanentRedirect\("\/soglasie-na-obrabotku"\)/);
 });
 
 test("публичные SEO-тексты не содержат неподтверждённых коммерческих обещаний", () => {

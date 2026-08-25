@@ -17,10 +17,11 @@ export function ProductJsonLd({
   if (!product.variants.length) return null;
 
   const groupUrl = absoluteUrl(`/p/${product.slug}`);
+  const hasDistinctVariantUrls = product.variants.length > 1;
   const groupSeo = buildProductGroupSeo(product, category?.title);
   const entity = buildProductStructuredData({
     sellerId: `${SITE_URL}/#organization`,
-    isGroup: product.isGroup,
+    isGroup: product.isGroup && hasDistinctVariantUrls,
     selectedVariantId: variant?.id,
     group: {
       id: product.id,
@@ -38,7 +39,9 @@ export function ProductJsonLd({
     },
     variants: product.variants.map((item) => {
       const seo = buildProductSeo(product, item, category?.title);
-      const url = absoluteUrl(`/p/${variantSlug(product, item)}`);
+      const url = hasDistinctVariantUrls
+        ? absoluteUrl(`/p/${variantSlug(product, item)}`)
+        : groupUrl;
       return {
         id: item.id,
         url,

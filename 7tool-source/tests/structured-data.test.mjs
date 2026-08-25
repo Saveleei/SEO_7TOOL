@@ -95,6 +95,15 @@ test("optional product policies appear only after explicit complete verification
   }] })).hasVariant[0].offers, undefined);
 });
 
+test("a single product variant uses the product canonical instead of a duplicate variant URL", () => {
+  const fixture = productFixture({ isGroup: false });
+  fixture.variants[0].url = fixture.group.url;
+  const product = buildProductStructuredData(fixture);
+  assert.equal(product["@type"], "Product");
+  assert.equal(product.url, fixture.group.url);
+  assert.equal(product.offers.url, fixture.group.url);
+});
+
 test("Article and BreadcrumbList match visible reviewed article data", () => {
   const article = buildArticleStructuredData({
     url: "https://7tool.ru/articles/kak-vybrat-stanok",

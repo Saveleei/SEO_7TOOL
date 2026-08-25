@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { variantSlug } from "@/lib/catalog";
 import { getPublicCategory } from "@/lib/categories-db";
 import { getPublicRelatedProducts, resolvePublicProductSlug } from "@/lib/products-db";
@@ -53,12 +53,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const socialImage = socialPreviewImage(baseImg, seo.name);
   const canonical = r.variant ? `/p/${variantSlug(r.product, r.variant)}` : `/p/${r.product.slug}`;
   const dataConflict = hasSeoDataConflict(r.product.id);
+  const redundantVariant = Boolean(r.variant && r.product.variants.length === 1);
   return {
     title: pageTitle(title),
     description,
     keywords: seo.keywords,
-    alternates: { canonical },
-    robots: dataConflict ? noIndexRobots : indexableRobots,
+    alternates: { canonical: redundantVariant ? `/p/${r.product.slug}` : canonical },
+    robots: dataConflict || redundantVariant ? noIndexRobots : indexableRobots,
     openGraph: { type: "website", title, description, url: absoluteUrl(canonical), images: [socialImage] },
     twitter: { card: "summary_large_image", title, description, images: [socialImage.url] },
   };
@@ -75,6 +76,9 @@ export default async function ProductPage({
   const query = await searchParams;
   const r = resolvePublicProductSlug(slug);
   if (!r) notFound();
+  if (r.variant && r.product.variants.length === 1) {
+    permanentRedirect(`/p/${r.product.slug}`);
+  }
   const { product } = r;
   const selectedVariant = r.variant ?? product.variants.find((item) => item.id === query.variant);
   const dataConflict = hasSeoDataConflict(product.id);

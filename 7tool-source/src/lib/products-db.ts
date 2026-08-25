@@ -359,8 +359,9 @@ export function getPublicBrandStats(brand: string): PublicBrandStats | undefined
 export function listPublicProductSlugs(): string[] {
   const d = db();
   const conflictIds = getSeoConflictProductIds();
-  const rows = d.prepare<unknown[], { productId: string; productSlug: string; variantId: string | null; variantSku: string | null }>(
-    `SELECT p.id AS productId, p.slug AS productSlug, v.id AS variantId, v.sku AS variantSku
+  const rows = d.prepare<unknown[], { productId: string; productSlug: string; variantId: string | null; variantSku: string | null; variantCount: number }>(
+    `SELECT p.id AS productId, p.slug AS productSlug, v.id AS variantId, v.sku AS variantSku,
+            COUNT(v.id) OVER (PARTITION BY p.id) AS variantCount
        FROM products p LEFT JOIN variants v ON v.product_id = p.id
       WHERE ${PUBLIC_PRODUCT_SQL}
       ORDER BY p.slug, v.sort_order, v.ROWID`,
@@ -369,7 +370,9 @@ export function listPublicProductSlugs(): string[] {
   for (const row of rows) {
     if (conflictIds.has(row.productId)) continue;
     slugs.add(row.productSlug);
-    if (row.variantId) {
+    // A product with one variant has only one useful search intent. Publishing
+    // both the group and variant URL creates duplicate titles and content.
+    if (row.variantId && row.variantCount > 1) {
       slugs.add(variantSlug(
         { slug: row.productSlug },
         { id: row.variantId, sku: row.variantSku || "" },
