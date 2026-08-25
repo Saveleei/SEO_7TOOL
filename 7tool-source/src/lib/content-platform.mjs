@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { isAssetPublicationRightsEligible } from "./image-intelligence.mjs";
 import { isKnownLeadFormType } from "./lead-generation.mjs";
+import { markPublishQueueComplete, requireApprovedPublishQueue } from "./scale-governance.mjs";
 
 export const ARTICLE_STATUSES = Object.freeze([
   "DISCOVERED", "SEMANTIC_REVIEW", "BRIEF_READY", "BRIEF_APPROVED", "CONTENT_DRAFT",
@@ -732,6 +733,7 @@ function publishArticle(db, article, actor, reason, now) {
   const brief = db.prepare("SELECT status FROM article_briefs WHERE id = ? AND content_asset_id = ?").get(article.current_brief_id, article.id);
   if (!brief || brief.status !== "APPROVED") throw new Error("Current ArticleBrief is not approved");
   requireApprovedSupplierMedia(db, article);
+  const publishQueueItem = requireApprovedPublishQueue(db, article, now);
   if ((article.quality_score ?? 0) < ARTICLE_SCORE_GATES.quality) throw new Error(`qualityScore must be at least ${ARTICLE_SCORE_GATES.quality}`);
   if ((article.evidence_score ?? 0) < ARTICLE_SCORE_GATES.evidence) throw new Error(`evidenceScore must be at least ${ARTICLE_SCORE_GATES.evidence}`);
   if ((article.differentiation_score ?? 0) < ARTICLE_SCORE_GATES.differentiation) throw new Error(`differentiationScore must be at least ${ARTICLE_SCORE_GATES.differentiation}`);
@@ -773,6 +775,7 @@ function publishArticle(db, article, actor, reason, now) {
       WHERE content_asset_id = ? AND status = 'APPROVED'
     `).run(now, article.id);
   }
+  markPublishQueueComplete(db, publishQueueItem, now);
   addWorkflowEvent(db, article.id, article.status, "PUBLISHED", actor, reason, now);
 }
 
