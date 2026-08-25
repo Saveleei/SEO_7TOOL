@@ -1,8 +1,8 @@
 # SEO Platform Production Activation Runbook — 7TOOL
 
-Статус: **DRY-RUN VERIFIED / PRODUCTION NOT APPLIED / HUMAN APPROVAL REQUIRED**
+Статус: **PRODUCTION PREFLIGHT PASSED / MIGRATIONS NOT APPLIED / BACKUP + APPLY APPROVAL REQUIRED**
 Дата проверки: 26 августа 2026 года
-Проверенный commit: `aa70adc`
+Локально проверенный SEO commit: `aa70adc`
 
 ## Scope
 
@@ -45,6 +45,30 @@ Dry-run выполнен на изолированной SQLite-копии, со
 | Backup identity | restored SHA-256 exactly matches the verified pre-migration backup |
 
 Local migration time was about 0.52 seconds. This proves correctness on the fixture, not a production latency guarantee.
+
+## Actual production preflight — 26 August 2026
+
+Read-only checks were run in the Beget server console. No production file, process, schedule or database row was changed.
+
+| Check | Production result |
+|---|---|
+| Active release | `/var/www/7tool-release-20260826-seo-dedupe/7tool-source` |
+| Production commit | `b19e5da1736ea034c2de9930aba0b63eb014f110` |
+| PM2 | existing `7tool-prod` process online |
+| Shared filesystem | 38 GiB total, 20 GiB used, 19 GiB available (52% used) |
+| Memory | 3.8 GiB total, 2.6 GiB available; swap disabled |
+| Production SQLite | `/var/www/7tool-shared/data.db`, about 62 MiB |
+| SQLite integrity | `ok` |
+| Foreign-key violations | 0 |
+| Commerce control counts | 26 categories, 129 subcategories, 4,295 products, 18,364 variants, 52 leads |
+| SEO migration registry | absent (`seo_schema_migrations` table count = 0); migrations `001`–`018` are not applied |
+| Migration dry-run | exactly `001`–`018` listed from the production release |
+| SQLite writers found in crontab | hourly/nightly feed refresh and per-minute notification queue processor |
+| Latest existing separate backup | `/var/www/7tool-shared/backups/data-2026-08-25T21-48-28-153Z.db` |
+| Existing backup integrity | `ok` |
+| Existing backup SHA-256 | `42d0fdd293957f001c70d17ff894007470bbcc9d8deb78b6936ba715e0674b35` |
+
+The production subcategory count is 129, while the isolated fixture contained 111. The primary commerce counts (categories, products and variants) match, and the migration set is additive, but all postflight comparisons must use the production values above. Create and verify a fresh WAL-aware backup immediately before the apply; do not rely only on the existing 25 August backup.
 
 ## Production preflight — read-only
 
@@ -134,6 +158,6 @@ Never restore while the app or feed job is writing.
 
 ## Approval gate
 
-The next allowed operation is a read-only production preflight. Applying migrations still requires explicit human approval after the exact production DB, backup path, disk space, writer jobs and rollback target have been shown.
+The next allowed operation is creation of a fresh WAL-aware production backup after explicit human approval. Applying migrations is a separate write operation and requires a second explicit approval after the new backup path, integrity result and SHA-256 have been shown.
 
 # STOP / HUMAN REVIEW REQUIRED
