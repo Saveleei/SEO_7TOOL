@@ -1,6 +1,6 @@
 # SEO Platform Production Activation Runbook — 7TOOL
 
-Статус: **PRODUCTION PREFLIGHT PASSED / MIGRATIONS NOT APPLIED / BACKUP + APPLY APPROVAL REQUIRED**
+Статус: **FRESH BACKUP VERIFIED / MIGRATIONS NOT APPLIED / APPLY APPROVAL REQUIRED**
 Дата проверки: 26 августа 2026 года
 Локально проверенный SEO commit: `aa70adc`
 
@@ -67,8 +67,11 @@ Read-only checks were run in the Beget server console. No production file, proce
 | Latest existing separate backup | `/var/www/7tool-shared/backups/data-2026-08-25T21-48-28-153Z.db` |
 | Existing backup integrity | `ok` |
 | Existing backup SHA-256 | `42d0fdd293957f001c70d17ff894007470bbcc9d8deb78b6936ba715e0674b35` |
+| Fresh approved pre-apply backup | `/var/www/7tool-shared/backups/data-2026-08-25T22-42-02-255Z.db`, about 62 MiB |
+| Fresh backup integrity / foreign keys | `ok` / 0 violations |
+| Fresh backup SHA-256 | `f8eb090061099b21742eb8c51709bd2657ead7747db9e2e8a67f761f5a5b0876` |
 
-The production subcategory count is 129, while the isolated fixture contained 111. The primary commerce counts (categories, products and variants) match, and the migration set is additive, but all postflight comparisons must use the production values above. Create and verify a fresh WAL-aware backup immediately before the apply; do not rely only on the existing 25 August backup.
+The production subcategory count is 129, while the isolated fixture contained 111. The primary commerce counts (categories, products and variants) match, and the migration set is additive, but all postflight comparisons must use the production values above. The fresh WAL-aware backup was created after explicit human approval and is the designated rollback target for this apply window.
 
 ## Production preflight — read-only
 
@@ -158,6 +161,6 @@ Never restore while the app or feed job is writing.
 
 ## Approval gate
 
-The next allowed operation is creation of a fresh WAL-aware production backup after explicit human approval. Applying migrations is a separate write operation and requires a second explicit approval after the new backup path, integrity result and SHA-256 have been shown.
+The next allowed operation is applying migrations `001`–`018`. This is a separate production database write and requires explicit human approval after the fresh backup path, integrity result and SHA-256 above have been shown.
 
 # STOP / HUMAN REVIEW REQUIRED
