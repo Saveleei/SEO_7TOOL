@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
@@ -182,6 +183,32 @@ export default async function ArticlePage({ params }: RouteProps) {
                 Материал прошёл проверку фактов, SEO и профильного специалиста. Точные параметры конкретной поставки подтверждаются паспортом изделия и менеджером.
               </p>
             </section>
+
+            {article.expertProfile && (
+              <section className="mt-10 rounded-[14px] border border-cobalt-200 bg-cobalt-50/50 p-6 sm:p-7">
+                <div className="grid gap-5 sm:grid-cols-[96px_minmax(0,1fr)] sm:items-start">
+                  <Image
+                    src={article.expertProfile.photoPath}
+                    alt={`Эксперт ${article.expertProfile.name}`}
+                    width={96}
+                    height={96}
+                    className="h-24 w-24 rounded-[12px] border border-cobalt-200 bg-white object-cover"
+                  />
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-cobalt-700">Профиль эксперта</p>
+                    <h2 className="mt-2 font-display text-[22px] font-extrabold text-steel-900">{article.expertProfile.name}</h2>
+                    <p className="mt-2 text-[14px] font-semibold leading-6 text-steel-800">{article.expertProfile.specialization}</p>
+                    <p className="mt-3 text-[13px] leading-6 text-steel-600">{article.expertProfile.experience}</p>
+                    <p className="mt-3 text-[12px] leading-5 text-steel-600">{article.expertProfile.reviewStatement}</p>
+                    <div className="mt-4 flex flex-wrap gap-2 text-[11px] font-bold text-cobalt-800">
+                      {article.expertProfile.categories.map((category) => <span key={category} className="rounded-full border border-cobalt-200 bg-white px-3 py-1">{category}</span>)}
+                      {article.expertProfile.brands.map((brand) => <span key={brand} className="rounded-full border border-cobalt-200 bg-white px-3 py-1">{brand}</span>)}
+                    </div>
+                    <p className="mt-4 text-[11px] text-steel-500">Проверенных опубликованных материалов: {article.expertProfile.articles.length}</p>
+                  </div>
+                </div>
+              </section>
+            )}
           </article>
 
           <aside className="space-y-5 lg:sticky lg:top-32">

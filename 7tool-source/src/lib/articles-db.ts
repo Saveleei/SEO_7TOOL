@@ -1,5 +1,6 @@
 import { db } from "./db";
 import { validateArticleContent } from "./content-platform.mjs";
+import { getExpertProfileForContent } from "./content-refresh.mjs";
 import { isAssetPublicationRightsEligible } from "./image-intelligence.mjs";
 import { mediaPublicUrl } from "./media-storage.mjs";
 
@@ -67,6 +68,17 @@ export type PublishedArticle = PublishedArticleSummary & {
   leadFormType: string | null;
   generatedByAi: boolean;
   humanReviewed: true;
+  expertProfile: {
+    id: string;
+    name: string;
+    photoPath: string;
+    specialization: string;
+    experience: string;
+    reviewStatement: string;
+    categories: string[];
+    brands: string[];
+    articles: Array<{ title: string; path: string }>;
+  } | null;
 };
 
 type ArticleRow = {
@@ -98,6 +110,7 @@ type ArticleRow = {
   content_body: string;
   published_at: number;
   updated_at: number;
+  current_revision_id: string;
 };
 
 function hasContentPlatformSchema() {
@@ -245,7 +258,7 @@ const publicArticleSelect = `
     i.intent_key, i.intent_class, a.author,
     a.expert_reviewer, a.canonical, a.primary_keyword, a.quality_score, a.evidence_score,
     a.differentiation_score, a.business_score, a.lead_form_type, a.generated_by_ai,
-    a.human_reviewed, r.content_body, a.published_at, a.updated_at
+    a.human_reviewed, r.content_body, a.published_at, a.updated_at, a.current_revision_id
   FROM content_assets a
   JOIN content_revisions r ON r.id = a.current_revision_id
   JOIN categories c ON c.slug = a.category_slug
@@ -318,5 +331,6 @@ export function getPublishedArticle(slug: string): PublishedArticle | undefined 
     leadFormType: row.lead_form_type,
     generatedByAi: row.generated_by_ai === 1,
     humanReviewed: true,
+    expertProfile: getExpertProfileForContent(db(), row.id, row.current_revision_id),
   };
 }

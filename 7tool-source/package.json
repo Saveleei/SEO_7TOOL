@@ -40,6 +40,7 @@
     "analytics:intelligence:materialize": "node scripts/materialize-analytics-intelligence.mjs",
     "seo:pilot": "node scripts/pilot-program.mjs",
     "seo:scale": "node scripts/scale-governance.mjs",
+    "seo:refresh": "node scripts/content-refresh.mjs",
     "max:setup": "node scripts/max-setup.mjs",
     "max:test": "node scripts/max-setup.mjs --send-test",
     "ads:feed": "node scripts/generate-advertising-feed.mjs",

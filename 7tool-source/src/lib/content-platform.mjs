@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { isAssetPublicationRightsEligible } from "./image-intelligence.mjs";
 import { isKnownLeadFormType } from "./lead-generation.mjs";
+import { requireContentPublicationClearance, requireVerifiedExpertReview } from "./content-refresh.mjs";
 import { markPublishQueueComplete, requireApprovedPublishQueue } from "./scale-governance.mjs";
 
 export const ARTICLE_STATUSES = Object.freeze([
@@ -730,6 +731,8 @@ function publishArticle(db, article, actor, reason, now) {
   for (const type of ["FACT", "SEO", "EXPERT"]) {
     if (!hasApproval(db, article, type)) throw new Error(`Current revision is missing ${type} approval`);
   }
+  requireVerifiedExpertReview(db, article);
+  requireContentPublicationClearance(db, article);
   const brief = db.prepare("SELECT status FROM article_briefs WHERE id = ? AND content_asset_id = ?").get(article.current_brief_id, article.id);
   if (!brief || brief.status !== "APPROVED") throw new Error("Current ArticleBrief is not approved");
   requireApprovedSupplierMedia(db, article);

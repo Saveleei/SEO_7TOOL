@@ -1,6 +1,6 @@
 # 7TOOL SEO & Content Intelligence Platform
 
-Статус: architecture baseline plus research/import/decision/content/media/product-enrichment/tool/internal-linking/lead-generation/structured-data/search-platform/analytics intelligence and bounded pilot layers through PHASE 19. Production migrations, external analytics access and real publication remain human-gated.
+Статус: architecture baseline plus research/import/decision/content/media/product-enrichment/tool/internal-linking/lead-generation/structured-data/search-platform/analytics, bounded pilot, score-driven scale and review-only refresh layers through PHASE 21. Production migrations, external analytics access, pruning execution and real publication remain human-gated.
 
 ## Goal
 
@@ -110,5 +110,11 @@ PHASE 3–19 artifacts are implemented on isolated feature branches, but remain 
 - [Yandex SEO](./yandex-seo.md)
 - [Analytics Intelligence](./analytics-intelligence.md)
 - [Phase 19 bounded pilot](./pilot-program.md)
+- [Phase 20 score-driven scaling](./scale-governance.md)
+- [Phase 21 content refresh, pruning and authorship](./content-refresh.md)
+
+## PHASE 21 — Content Refresh / Pruning
+
+The final review-only lifecycle joins Google/Yandex performance, Content ROI, local semantic duplicate detection, cross-surface cannibalization, real expert profiles and the admin-only SEO Intelligence dashboard. No pruning recommendation executes a public change automatically.
 
 # STOP / HUMAN REVIEW REQUIRED

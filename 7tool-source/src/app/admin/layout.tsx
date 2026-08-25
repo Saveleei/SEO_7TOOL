@@ -35,6 +35,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <Link href="/admin/subcategories" className="hover:text-amber-700">Подкатегории</Link>
             <Link href="/admin/landings" className="hover:text-amber-700">Лендинги</Link>
             <Link href="/admin/leads" className="hover:text-amber-700">Заявки</Link>
+            <Link href="/admin/seo" className="hover:text-amber-700">SEO Intelligence</Link>
             <Link href="/admin/account" className="hover:text-amber-700">Аккаунт</Link>
             <Link href="/" target="_blank" className="ml-auto hidden text-steel-500 hover:text-amber-700 sm:inline">
               На сайт ↗
