@@ -1,6 +1,16 @@
 # Full Technical SEO Audit — 7TOOL
 
-Дата: 24 августа 2026 года. Аудит основан на исходном коде, локальном snapshot/SQLite, существующих project reports и выборочной проверке production HTML. Это не полный crawler/CrUX/log-file audit: доступ к GSC, Yandex Webmaster, reverse-proxy headers и server logs отсутствовал.
+Дата исходного baseline: 24 августа 2026 года. Аудит основан на исходном коде, локальном snapshot/SQLite, существующих project reports и выборочной проверке production HTML. Это не полный crawler/CrUX/log-file audit: доступ к GSC и Yandex Webmaster отсутствует.
+
+## Production validation update — 25 августа 2026 года
+
+- Усиленный live-аудит проверяет `robots.txt`, основной и image sitemap, XML/content-type, origin, дубли, parameter URLs, выборочные коды ответа, редиректы и соответствие canonical.
+- `/image-sitemap.xml` развернут в production и отвечает `200`; `robots.txt` объявляет `https://7tool.ru/sitemap.xml` и `https://7tool.ru/image-sitemap.xml`.
+- Итог внешней проверки `https://7tool.ru`: `P0 = 0`, `P1 = 0`, findings отсутствуют.
+- Публичный PM2-процесс `7tool-prod` перезапущен из актуального release symlink; nginx продолжает использовать штатный upstream и security headers.
+- Полный project test suite: 139 passed, 0 failed. Production build: 148 routes/pages.
+
+Ниже сохранены исходные baseline-наблюдения; пункты, закрытые последующими фазами, следует читать вместе с этим обновлением.
 
 ## Summary and priorities
 
@@ -68,7 +78,7 @@ Client filters cover brand, specification facets, sorting and pagination. Curren
 
 ## SITEMAP
 
-Implementation has correct separation of content types and lastmod sources; `/lp/` is excluded. Remaining risks: a single sitemap will eventually approach size/URL limits as content scales; product `lastModified` is shared catalog-file mtime rather than per-entity change; image sitemap absent; live 200/canonical validation is not part of the route itself.
+Implementation has correct separation of content types and lastmod sources; `/lp/` is excluded. Remaining risks: a single sitemap will eventually approach size/URL limits as content scales; product `lastModified` is shared catalog-file mtime rather than per-entity change. The earlier image-sitemap gap is closed: the route is live and the automated external audit now validates its response, namespaces, page membership and local rights-processed media URLs.
 
 Before PHASE 9, split sitemap index by products/categories/brands/content/media and use trustworthy entity-level lastmod.
 
@@ -118,7 +128,7 @@ Categories combine selection, products, subcategories, explanatory content and F
 
 ## TEST COVERAGE
 
-Current audit run: 28 tests passed, 0 failed. Covered: catalog integrity, URL uniqueness, SEO conflicts, landing anti-cannibalization, lead persistence, analytics/ecommerce and publishing/data guards. Missing dedicated automated tests named in the master prompt: production canonical/status crawl, sitemap ↔ routes, schema validation, image parser/rights, Wordstat importer, knowledge graph, semantic clustering, duplicate similarity, article permissions and CWV budgets.
+Baseline audit run: 28 tests passed, 0 failed. Current project run: 139 passed, 0 failed. Coverage now includes the production canonical/status sampling, sitemap ↔ routes, image sitemap/rights projection, schema guards, Wordstat importer, knowledge graph, semantic clustering, duplicate similarity, article permissions and CWV budgets implemented in later phases.
 
 ## Recommended next actions (no implementation yet)
 

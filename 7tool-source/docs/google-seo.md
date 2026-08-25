@@ -94,7 +94,7 @@ Migration application remains backup-gated through `scripts/migrate-seo.mjs`. Te
 4. Import a reviewed export and reconcile totals with the GSC UI/API.
 5. Calibrate the high-impression threshold by property/date range.
 6. Review field CWV volume/retention and reverse-proxy limits.
-7. Validate the image sitemap and responsive image responses in production.
+7. Keep the image sitemap and responsive image responses under production monitoring. Initial validation on 25 August 2026 passed: `/image-sitemap.xml` returned `200`, both sitemap declarations were present in `robots.txt`, and the enhanced live audit reported `P0 = 0`, `P1 = 0`.
 8. Audit candidate facets; create a distinct SEO landing only after demand, intent, inventory and content review.
 
 # STOP / HUMAN REVIEW REQUIRED

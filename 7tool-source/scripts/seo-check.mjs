@@ -1,14 +1,20 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  canonicalMatches,
+  extractDeclaredSitemaps,
+  inspectImageSitemapXml,
+  inspectSitemapXml,
+  resolveSeoCheckBase,
+} from "./lib/seo-check-core.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const analysisDir = path.join(root, ".analysis");
 const reportPath = path.join(analysisDir, "seo-quality-report.json");
 const catalog = JSON.parse(fs.readFileSync(path.join(root, "src", "lib", "products.json"), "utf8"));
 const profiles = JSON.parse(fs.readFileSync(path.join(root, "src", "lib", "category-seo.json"), "utf8"));
-const baseArg = process.argv.find((value) => value.startsWith("--url="))?.slice(6);
-const base = (baseArg || process.env.SEO_CHECK_BASE_URL || "").replace(/\/+$/, "");
+const base = resolveSeoCheckBase(process.argv.slice(2), process.env);
 const fullLive = process.argv.includes("--full-live");
 const findings = [];
 
@@ -70,6 +76,8 @@ const sourceChecks = [
   ["src/app/p/[slug]/page.tsx", /resolvePublicProductSlug/, "PRODUCT_NOT_FROM_CURRENT_DB"],
   ["src/app/sitemap.ts", /listPublicProductSlugs/, "SITEMAP_NOT_FROM_PUBLIC_DB"],
   ["src/app/sitemap.ts", /brandSlug\(brand\)/, "SITEMAP_UNSAFE_BRAND_SLUG"],
+  ["src/app/robots.txt/route.ts", /image-sitemap\.xml/, "ROBOTS_WITHOUT_IMAGE_SITEMAP"],
+  ["src/app/image-sitemap.xml/route.ts", /buildImageSitemap/, "IMAGE_SITEMAP_ROUTE_MISSING"],
   ["src/app/lp/[category]/[[...intent]]/page.tsx", /landingSeoDecision/, "LANDING_DECISION_UNUSED"],
   ["src/app/c/[slug]/CategoryFilters.tsx", /href=\{href\(/, "PAGINATION_WITHOUT_LINKS"],
   ["scripts/hourly-refresh.sh", /npm run data:check/, "HOURLY_WITHOUT_DATA_GUARD"],
@@ -100,18 +108,30 @@ if (summary.p0 > 0) process.exitCode = 1;
 
 async function liveChecks() {
   const robots = await request("/robots.txt");
-  if (robots.status !== 200 || !/Sitemap:\s*https:\/\/7tool\.ru\/sitemap\.xml/i.test(robots.body)) add("P0", "ROBOTS_INVALID", `status=${robots.status}`, "/robots.txt");
+  const declaredSitemaps = extractDeclaredSitemaps(robots.body);
+  const sitemapUrl = `${base}/sitemap.xml`;
+  const imageSitemapUrl = `${base}/image-sitemap.xml`;
+  if (robots.status !== 200 || !declaredSitemaps.includes(sitemapUrl)) add("P0", "ROBOTS_INVALID", `status=${robots.status}`, "/robots.txt");
+  if (robots.status === 200 && !declaredSitemaps.includes(imageSitemapUrl)) add("P1", "ROBOTS_IMAGE_SITEMAP_MISSING", imageSitemapUrl, "/robots.txt");
   const sitemap = await request("/sitemap.xml", 45_000);
   if (sitemap.status !== 200) {
     add("P0", "SITEMAP_HTTP", `status=${sitemap.status}`, "/sitemap.xml");
     return;
   }
-  const urls = Array.from(sitemap.body.matchAll(/<loc>(.*?)<\/loc>/g), (match) => decodeXml(match[1]));
-  if (new Set(urls).size !== urls.length) add("P0", "SITEMAP_DUPLICATES", `${urls.length - new Set(urls).size}`);
+  if (!/^(application|text)\/xml\b/i.test(sitemap.contentType)) add("P0", "SITEMAP_CONTENT_TYPE", sitemap.contentType || "missing", "/sitemap.xml");
+  const sitemapAudit = inspectSitemapXml(sitemap.body, base);
+  for (const finding of sitemapAudit.findings) add("P0", finding.code, finding.detail, "/sitemap.xml");
+  const urls = sitemapAudit.urls;
   for (const url of urls) {
-    if (/\s/.test(url)) add("P0", "SITEMAP_RAW_SPACE", url);
     if (/\/lp\//.test(url)) add("P0", "SITEMAP_UNREVIEWED_LANDING", url);
-    try { new URL(url); } catch { add("P0", "SITEMAP_INVALID_URL", url); }
+  }
+
+  const imageSitemap = await request("/image-sitemap.xml", 45_000);
+  if (imageSitemap.status !== 200) add("P1", "IMAGE_SITEMAP_HTTP", `status=${imageSitemap.status}`, "/image-sitemap.xml");
+  else {
+    if (!/^(application|text)\/xml\b/i.test(imageSitemap.contentType)) add("P1", "IMAGE_SITEMAP_CONTENT_TYPE", imageSitemap.contentType || "missing", "/image-sitemap.xml");
+    const imageAudit = inspectImageSitemapXml(imageSitemap.body, base, urls);
+    for (const finding of imageAudit.findings) add("P1", finding.code, finding.detail, "/image-sitemap.xml");
   }
 
   const fixtures = ["/", "/cart", "/favorites", "/definitely-not-a-real-7tool-url"];
@@ -119,7 +139,7 @@ async function liveChecks() {
   fixtures.push(...paths.filter((value) => value.startsWith("/c/")).slice(0, 3));
   fixtures.push(...paths.filter((value) => value.startsWith("/brand/")).slice(0, 3));
   fixtures.push(...paths.filter((value) => value.startsWith("/p/")).slice(0, 4));
-  for (const route of Array.from(new Set(fixtures))) await inspectHtml(route, urls.includes(new URL(route, "https://7tool.ru").href));
+  for (const route of Array.from(new Set(fixtures))) await inspectHtml(route, urls.includes(new URL(route, base).href));
 
   const sitemapCandidates = fullLive ? paths : [
     ...paths.filter((value) => value.startsWith("/brand/")),
@@ -129,6 +149,7 @@ async function liveChecks() {
   for (const route of Array.from(new Set(sitemapCandidates))) {
     const response = await request(route, 25_000);
     if (response.status !== 200) add("P0", "SITEMAP_URL_NOT_200", `status=${response.status}`, route);
+    else if (!canonicalMatches(response.url, route, base)) add("P0", "SITEMAP_URL_REDIRECT", response.url, route);
   }
 }
 
@@ -151,6 +172,7 @@ async function inspectHtml(route, inSitemap) {
   if (!description) add("P0", "MISSING_DESCRIPTION", "", route);
   if (route !== "/cart" && route !== "/favorites" && h1 !== 1) add("P1", "H1_COUNT", String(h1), route);
   if (route !== "/cart" && route !== "/favorites" && !canonical) add("P0", "MISSING_CANONICAL", "", route);
+  if (inSitemap && canonical && !canonicalMatches(canonical, route, base)) add("P0", "CANONICAL_MISMATCH", canonical, route);
   const robots = robotsValue(response.body);
   if (inSitemap && robots.includes("noindex")) add("P0", "SITEMAP_URL_NOINDEX", robots, route);
   if ((route === "/cart" || route === "/favorites") && !robots.includes("noindex")) add("P0", "PRIVATE_PAGE_INDEXABLE", robots, route);
@@ -162,15 +184,11 @@ async function inspectHtml(route, inSitemap) {
 async function request(route, timeout = 20_000) {
   try {
     const response = await fetch(new URL(route, base), { redirect: "follow", signal: AbortSignal.timeout(timeout), headers: { "user-agent": "7tool-seo-check/1.0" } });
-    return { status: response.status, body: await response.text(), url: response.url };
+    return { status: response.status, body: await response.text(), url: response.url, contentType: response.headers.get("content-type") || "" };
   } catch (error) {
     add("P0", "HTTP_ERROR", error.message, route);
-    return { status: 0, body: "", url: route };
+    return { status: 0, body: "", url: route, contentType: "" };
   }
-}
-
-function decodeXml(value) {
-  return value.replaceAll("&amp;", "&").replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&quot;", '"').replaceAll("&apos;", "'");
 }
 function tagText(html, tag) {
   return html.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, "i"))?.[1]?.replace(/<[^>]+>/g, "").trim() || "";
