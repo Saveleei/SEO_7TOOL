@@ -34,6 +34,8 @@ export async function generateMetadata({ params }: RouteProps): Promise<Metadata
   const { slug } = await params;
   const article = articleForRoute(slug);
   if (!article) return { title: "Материал не найден", robots: noIndexRobots };
+  const socialImageRecord = article.images.find((image) => image.slotType === "HERO") ?? article.images[0];
+  const socialImage = socialImageRecord ? structuredImageUrl(socialImageRecord) : undefined;
   return {
     title: pageTitle(article.metaTitle),
     description: article.metaDescription,
@@ -47,6 +49,13 @@ export async function generateMetadata({ params }: RouteProps): Promise<Metadata
       publishedTime: new Date(article.publishedAt).toISOString(),
       modifiedTime: new Date(article.updatedAt).toISOString(),
       authors: [article.author],
+      images: socialImage ? [{ url: socialImage, alt: socialImageRecord?.alt ?? article.h1 }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: article.metaTitle,
+      description: article.metaDescription,
+      images: socialImage ? [socialImage] : undefined,
     },
   };
 }
@@ -98,10 +107,21 @@ export default async function ArticlePage({ params }: RouteProps) {
     { name: "База знаний", url: absoluteUrl("/articles") },
     { name: article.title, url: canonical },
   ], `${canonical}#breadcrumb`);
+  const structuredFaq = article.faq.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "@id": `${canonical}#faq`,
+    mainEntity: article.faq.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: { "@type": "Answer", text: item.answer },
+    })),
+  } : null;
   return (
     <>
       {article.humanReviewed && <StructuredData data={structuredArticle} />}
       {article.humanReviewed && <StructuredData data={structuredBreadcrumb} />}
+      {article.humanReviewed && structuredFaq && <StructuredData data={structuredFaq} />}
       <SiteHeader />
       {article.humanReviewed && <ArticleAnalytics articleId={article.id} category={article.categorySlug} targetId={`article-content-${article.id}`} />}
       <main>

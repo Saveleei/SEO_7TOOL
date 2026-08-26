@@ -76,7 +76,7 @@ test("magnetic drill selection draft owns a separate selection intent and verifi
   assert.ok(draft.brief.internalLinks.includes("/c/koronchatye-sverla"));
 });
 
-test("magnetic drill article approval is human, checksum-bound and uses only permitted supplier media", () => {
+test("magnetic drill article approval is human, checksum-bound and excludes watermarked media", () => {
   const draft = JSON.parse(fs.readFileSync(magneticDraftPath, "utf8"));
   const manifest = JSON.parse(fs.readFileSync(magneticManifestPath, "utf8"));
   const approval = JSON.parse(fs.readFileSync(magneticApprovalPath, "utf8"));
@@ -88,8 +88,14 @@ test("magnetic drill article approval is human, checksum-bound and uses only per
   assert.equal(approval.draftSha256, sha256(magneticDraftPath));
   assert.equal(approval.mediaManifestSha256, sha256(magneticManifestPath));
   assert.equal(manifest.images.length, 4);
-  assert.ok(manifest.images.every((image) => image.sourceType === "SUPPLIER_ARTICLE_PERMISSION"));
-  assert.ok(manifest.images.every((image) => image.sourceImage.startsWith("https://k2tool.ru/")));
+  assert.equal(manifest.policy.watermarkedAssetsProhibited, true);
+  assert.equal(manifest.images.filter((image) => image.sourceType === "SUPPLIER_FEED").length, 3);
+  const composite = manifest.images.find((image) => image.sourceType === "AI_ASSISTED_COMPOSITE");
+  assert.ok(composite);
+  assert.ok(composite.sourceImages.every((url) => url.startsWith("https://s3.export.k2tool.ru/")));
+  assert.ok(manifest.images.filter((image) => image.sourceType === "SUPPLIER_FEED")
+    .every((image) => image.sourceImage.startsWith("https://s3.export.k2tool.ru/")));
+  assert.doesNotMatch(JSON.stringify({ draft, manifest }), /\/watermark\/|k2tool-magnetic-drill-range|speed-and-reverse-controls|thread-tapping-operation|weldon-holders/iu);
   assert.doesNotMatch(JSON.stringify({ draft, manifest }), /Фото: 7TOOL|представлено владельцем/iu);
   for (const image of manifest.images) {
     const localFile = path.resolve(import.meta.dirname, `../public${image.file}`);

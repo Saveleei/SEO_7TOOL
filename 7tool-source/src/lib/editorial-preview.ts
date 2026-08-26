@@ -12,6 +12,7 @@ type DraftImage = {
   localPath: string;
   alt: string;
   caption?: string;
+  disclosure?: string;
   author?: string;
   license?: string;
   sourcePage?: string;
@@ -76,10 +77,10 @@ const previewImageLayout: Record<string, {
   "feed-magnetic-drill-lenz-steyr-35": { slotType: "INLINE", sectionHeading: "Как проверить хвостовик и совместимость со станком", width: 745, height: 1200 },
   "feed-magnetic-drill-bds-mabasic-200": { slotType: "INLINE", sectionHeading: "Как проверить хвостовик и совместимость со станком", width: 679, height: 898 },
   "feed-magnetic-drill-heden-dm-36k": { slotType: "INLINE", sectionHeading: "Как проверить хвостовик и совместимость со станком", width: 639, height: 1200 },
-  "k2tool-magnetic-drill-range": { slotType: "HERO", sectionHeading: null, width: 1920, height: 1240 },
-  "k2tool-speed-and-reverse-controls": { slotType: "INLINE", sectionHeading: "Скорость, реверс и режимы под задачу", width: 1414, height: 968 },
-  "k2tool-thread-tapping-operation": { slotType: "INLINE", sectionHeading: "Скорость, реверс и режимы под задачу", width: 1200, height: 900 },
-  "k2tool-weldon-holders": { slotType: "INLINE", sectionHeading: "Шпиндель, держатель и оснастка", width: 1200, height: 650 },
+  "ai-composite-magnetic-drills-workshop": { slotType: "HERO", sectionHeading: null, width: 1600, height: 900 },
+  "feed-lenz-steyr-35-max-controls": { slotType: "INLINE", sectionHeading: "Скорость, реверс и режимы под задачу", width: 1200, height: 800 },
+  "feed-lenz-steyr-55-t": { slotType: "INLINE", sectionHeading: "Шпиндель, держатель и оснастка", width: 690, height: 1200 },
+  "feed-promotech-pro-36-ad": { slotType: "INLINE", sectionHeading: "Когда нужны компактный корпус, автоподача или поворотное основание", width: 1200, height: 837 },
 };
 
 function draftImages(images: DraftImage[]): PublishedArticleImage[] {
@@ -96,8 +97,8 @@ function draftImages(images: DraftImage[]): PublishedArticleImage[] {
       alt: image.alt,
       caption: image.caption ?? null,
       attribution: externalAttribution,
-      disclosure: null,
-      aiGenerated: false,
+      disclosure: image.disclosure ?? null,
+      aiGenerated: image.imageType === "AI_ASSISTED_COMPOSITE",
       variants: [{
         url: image.localPath,
         width: layout.width,

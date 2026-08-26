@@ -1,61 +1,87 @@
 {
   "articleSlug": "kak-vybrat-magnitnyy-sverlilnyy-stanok",
   "policy": {
-    "sourcePolicy": "FIRST_PARTY_7TOOL_OR_SUPPLIER_FEED_OR_SUPPLIER_ARTICLE_PERMISSION",
-    "supplierArticleEditorialImagesAllowed": true,
-    "supplierPermissionRecordedAt": "2026-08-26",
+    "sourcePolicy": "SUPPLIER_FEED_OR_AI_ASSISTED_COMPOSITE_FROM_SUPPLIER_FEED",
+    "supplierFeedAllowed": true,
+    "aiAssistedCompositeAllowed": true,
+    "watermarkedAssetsProhibited": true,
     "russianMarketplacesExcluded": true,
     "unverifiedSocialMediaExcluded": true,
-    "publicationRule": "Материалы статьи поставщика используются с разрешения, без удаления исходного водяного знака. Происхождение и контрольная сумма каждого файла сохраняются во внутреннем манифесте; служебная подпись об авторстве на публичной странице не добавляется."
+    "publicationRule": "Публикуются только изображения без водяных знаков из разрешённого товарного фида либо композиции, созданные из таких изображений. Происхождение и контрольная сумма каждого файла сохраняются во внутреннем манифесте."
   },
   "images": [
     {
-      "id": "k2tool-magnetic-drill-range",
-      "file": "/images/articles/kak-vybrat-magnitnyy-sverlilnyy-stanok/k2tool-magnetic-drill-range.webp",
-      "sha256": "531FCA2EE21336B4505A9C221549EDADAEFF40E371ADC08032D6DAC9C823C29C",
-      "sourceType": "SUPPLIER_ARTICLE_PERMISSION",
-      "sourcePage": "https://k2tool.ru/articles/6148-podbor-magnitnogo-sverlilnogo-stanka-rekomendacii-videoobzor",
-      "sourceImage": "https://k2tool.ru/storage/watermark/483c1a48fa6fbac1e4e0535016b64558/resize/1920-1920-resize/pictures/57f879f1be6ba7c6b50e8bbed0f07595a5c33828.jpg.webp",
-      "rightsBasis": "Разрешённые материалы поставщика; исходный водяной знак сохранён.",
-      "alt": "Линейка магнитных сверлильных станков разных размеров и компоновок",
+      "id": "ai-composite-magnetic-drills-workshop",
+      "file": "/images/articles/kak-vybrat-magnitnyy-sverlilnyy-stanok/magnetic-drills-workshop-hero.webp",
+      "sha256": "CDE857DD7A6E5E4FB338AD56BCA8427B4DD416FB605D10ECE67A697DB396D496",
+      "width": 1600,
+      "height": 900,
+      "sourceType": "AI_ASSISTED_COMPOSITE",
+      "sourceImages": [
+        "https://s3.export.k2tool.ru/pim/images/product/preview/68e7cba2514e1.png",
+        "https://s3.export.k2tool.ru/pim/images/product/preview/6818be985a21c.jpg",
+        "https://s3.export.k2tool.ru/pim/images/product/preview/6VG6s-KqzBsusjkb0_Xq.jpg"
+      ],
+      "sourceProducts": [
+        "/p/mashina-sverlilnaya-na-elektromagnitnom-osnovanii-steyr-35-max",
+        "/p/magnitnyy-sverlilnyy-stanok-lenz-steyr-55-t",
+        "/p/sverhkompaktnyy-magnitnyy-sverlilnyy-stanok-promotech-pro-36-ad"
+      ],
+      "rightsBasis": "Композиция создана с помощью OpenAI ImageGen из разрешённых изображений товарного фида поставщика; водяные знаки и сторонние материалы не использованы.",
+      "alt": "Три магнитных сверлильных станка разной компоновки на рабочем столе",
       "placement": "Главное изображение после короткого ответа",
-      "licenseStatus": "EDITORIAL_USE_CONFIRMED"
+      "licenseStatus": "AI_OUTPUT_AND_SUPPLIER_FEED_CONFIRMED"
     },
     {
-      "id": "k2tool-speed-and-reverse-controls",
-      "file": "/images/articles/kak-vybrat-magnitnyy-sverlilnyy-stanok/speed-and-reverse-controls.webp",
-      "sha256": "4070E7FDE1716D687941EABA5C49FC038D20CED072951CF553523DA3AEF6310F",
-      "sourceType": "SUPPLIER_ARTICLE_PERMISSION",
-      "sourcePage": "https://k2tool.ru/articles/6148-podbor-magnitnogo-sverlilnogo-stanka-rekomendacii-videoobzor",
-      "sourceImage": "https://k2tool.ru/storage/watermark/483c1a48fa6fbac1e4e0535016b64558/resize/1920-1920-resize/pictures/8f46502283e69d3952b6e4b61e6787a925c8e118.jpg.webp",
-      "rightsBasis": "Разрешённые материалы поставщика; исходный водяной знак сохранён.",
-      "alt": "Панель управления магнитного сверлильного станка с выбором скорости и реверса",
+      "id": "feed-lenz-steyr-35-max-controls",
+      "file": "/images/articles/kak-vybrat-magnitnyy-sverlilnyy-stanok/feed-lenz-steyr-35-max-controls.webp",
+      "sha256": "1897CE714B00257C61E5A560D64D9C1CDF96C79BA4B7E90DCD3B3D63956DD462",
+      "width": 1200,
+      "height": 800,
+      "sourceType": "SUPPLIER_FEED",
+      "sourcePage": "https://7tool.ru/p/mashina-sverlilnaya-na-elektromagnitnom-osnovanii-steyr-35-max",
+      "sourceImage": "https://s3.export.k2tool.ru/pim/images/product/preview/68ed0fcd4d510.png",
+      "offerId": "A57893",
+      "sku": "STEYR-35 MAX",
+      "brand": "LENZ",
+      "rightsBasis": "Разрешённое изображение из товарного фида поставщика без водяного знака.",
+      "alt": "Панель управления LENZ STEYR-35 MAX с регулировкой оборотов и реверсом",
       "placement": "Раздел «Скорость, реверс и режимы под задачу»",
-      "licenseStatus": "EDITORIAL_USE_CONFIRMED"
+      "licenseStatus": "SUPPLIER_FEED_CONFIRMED"
     },
     {
-      "id": "k2tool-thread-tapping-operation",
-      "file": "/images/articles/kak-vybrat-magnitnyy-sverlilnyy-stanok/thread-tapping-operation.webp",
-      "sha256": "0F606E3FA3C3EADA3548EE3C4C7A91BA183D3BEEBFCC5A0495AF1D3B9F436977",
-      "sourceType": "SUPPLIER_ARTICLE_PERMISSION",
-      "sourcePage": "https://k2tool.ru/articles/6148-podbor-magnitnogo-sverlilnogo-stanka-rekomendacii-videoobzor",
-      "sourceImage": "https://k2tool.ru/storage/watermark/483c1a48fa6fbac1e4e0535016b64558/resize/1920-1920-resize/pictures/7868632d879faea152c36d402851e6ec0ea38a7d.jpg.webp",
-      "rightsBasis": "Разрешённые материалы поставщика; исходный водяной знак сохранён.",
-      "alt": "Нарезание резьбы магнитным сверлильным станком",
-      "placement": "Раздел «Скорость, реверс и режимы под задачу»",
-      "licenseStatus": "EDITORIAL_USE_CONFIRMED"
-    },
-    {
-      "id": "k2tool-weldon-holders",
-      "file": "/images/articles/kak-vybrat-magnitnyy-sverlilnyy-stanok/weldon-holders.webp",
-      "sha256": "79EE1EAED33350E94E9C15615EA2A318B253E0BF56920614FA24C8BA987FE590",
-      "sourceType": "SUPPLIER_ARTICLE_PERMISSION",
-      "sourcePage": "https://k2tool.ru/articles/6148-podbor-magnitnogo-sverlilnogo-stanka-rekomendacii-videoobzor",
-      "sourceImage": "https://k2tool.ru/storage/watermark/483c1a48fa6fbac1e4e0535016b64558/resize/1920-1920-resize/pictures/e36ee89e0713ebe329ffeb4e32e21787c5635445.jpg.webp",
-      "rightsBasis": "Разрешённые материалы поставщика; исходный водяной знак сохранён.",
-      "alt": "Держатели и оснастка для магнитных сверлильных станков",
+      "id": "feed-lenz-steyr-55-t",
+      "file": "/images/articles/kak-vybrat-magnitnyy-sverlilnyy-stanok/feed-lenz-steyr-55-t.jpg",
+      "sha256": "72766C0F256D56AFA8160D378C8D98F1C381989A9D92227CB58BA8B12800AEFC",
+      "width": 690,
+      "height": 1200,
+      "sourceType": "SUPPLIER_FEED",
+      "sourcePage": "https://7tool.ru/p/magnitnyy-sverlilnyy-stanok-lenz-steyr-55-t",
+      "sourceImage": "https://s3.export.k2tool.ru/pim/images/product/preview/6818be985a21c.jpg",
+      "offerId": "A16533",
+      "sku": "STEYR-55 T",
+      "brand": "LENZ",
+      "rightsBasis": "Разрешённое изображение из товарного фида поставщика без водяного знака.",
+      "alt": "Магнитный сверлильный станок LENZ STEYR-55 T с конусом Морзе и установленной коронкой",
       "placement": "Раздел «Шпиндель, держатель и оснастка»",
-      "licenseStatus": "EDITORIAL_USE_CONFIRMED"
+      "licenseStatus": "SUPPLIER_FEED_CONFIRMED"
+    },
+    {
+      "id": "feed-promotech-pro-36-ad",
+      "file": "/images/articles/kak-vybrat-magnitnyy-sverlilnyy-stanok/feed-promotech-pro-36-ad.jpg",
+      "sha256": "66DB4C6B4C24C5475CEC4456347DAE1EC3605737A7B8F488C8A0B277C06549C4",
+      "width": 1200,
+      "height": 837,
+      "sourceType": "SUPPLIER_FEED",
+      "sourcePage": "https://7tool.ru/p/sverhkompaktnyy-magnitnyy-sverlilnyy-stanok-promotech-pro-36-ad",
+      "sourceImage": "https://s3.export.k2tool.ru/pim/images/product/preview/6VG6s-KqzBsusjkb0_Xq.jpg",
+      "offerId": "A8804",
+      "sku": "WRT-0521-10-20-01-0",
+      "brand": "Promotech",
+      "rightsBasis": "Разрешённое изображение из товарного фида поставщика без водяного знака.",
+      "alt": "Низкопрофильный магнитный сверлильный станок Promotech PRO-36 AD",
+      "placement": "Раздел «Когда нужны компактный корпус, автоподача или поворотное основание»",
+      "licenseStatus": "SUPPLIER_FEED_CONFIRMED"
     }
   ]
 }
