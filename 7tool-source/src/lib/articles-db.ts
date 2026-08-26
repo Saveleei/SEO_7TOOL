@@ -3,6 +3,7 @@ import { validateArticleContent } from "./content-platform.mjs";
 import { getExpertProfileForContent } from "./content-refresh.mjs";
 import { isAssetPublicationRightsEligible } from "./image-intelligence.mjs";
 import { mediaPublicUrl } from "./media-storage.mjs";
+import { getPublishedEditorialArticle, listPublishedEditorialArticles } from "./editorial-preview";
 
 export type ArticleTextEntry = { text: string; sourceRefs: string[] };
 export type ArticleBlock =
@@ -46,7 +47,7 @@ export type PublishedArticleImage = {
   attribution: string | null;
   disclosure: string | null;
   aiGenerated: boolean;
-  variants: Array<{ url: string; width: number; height: number; mime: "image/webp" | "image/avif" }>;
+  variants: Array<{ url: string; width: number; height: number; mime: "image/webp" | "image/avif" | "image/jpeg" | "image/png" }>;
 };
 
 export type PublishedArticle = PublishedArticleSummary & {
@@ -63,11 +64,11 @@ export type PublishedArticle = PublishedArticleSummary & {
   targetProducts: Array<{ id: string; slug: string; title: string; brand: string | null }>;
   relatedArticles: Array<{ slug: string; title: string; excerpt: string }>;
   images: PublishedArticleImage[];
-  sources: Array<{ sourceRef: string; claimText: string }>;
+  sources: Array<{ sourceRef: string; name?: string; url?: string; claimText: string }>;
   faq: ArticleContent["faq"];
   leadFormType: string | null;
   generatedByAi: boolean;
-  humanReviewed: true;
+  humanReviewed: boolean;
   expertProfile: {
     id: string;
     name: string;
@@ -267,25 +268,32 @@ const publicArticleSelect = `
 `;
 
 export function listPublishedArticles(limit = 100): PublishedArticleSummary[] {
-  if (!hasContentPlatformSchema()) return [];
   const safeLimit = Math.max(1, Math.min(500, Math.trunc(limit)));
-  const rows = db().prepare<unknown[], ArticleRow>(`${publicArticleSelect} ORDER BY a.published_at DESC, a.title LIMIT ?`).all(safeLimit);
-  return rows.map(summaryFromRow);
+  const databaseArticles = hasContentPlatformSchema()
+    ? db().prepare<unknown[], ArticleRow>(`${publicArticleSelect} ORDER BY a.published_at DESC, a.title LIMIT ?`).all(safeLimit).map(summaryFromRow)
+    : [];
+  const bySlug = new Map<string, PublishedArticleSummary>();
+  for (const article of [...databaseArticles, ...listPublishedEditorialArticles()]) {
+    if (!bySlug.has(article.slug)) bySlug.set(article.slug, article);
+  }
+  return [...bySlug.values()]
+    .sort((left, right) => right.publishedAt - left.publishedAt || left.title.localeCompare(right.title, "ru"))
+    .slice(0, safeLimit);
 }
 
 export function listPublishedArticleSlugs(): string[] {
-  if (!hasContentPlatformSchema()) return [];
-  return (db().prepare(`
+  const databaseSlugs = hasContentPlatformSchema() ? (db().prepare(`
     SELECT slug FROM content_assets
     WHERE status = 'PUBLISHED' AND index_status = 'INDEX' AND human_reviewed = 1
     ORDER BY slug
-  `).all() as Array<{ slug: string }>).map((row) => row.slug);
+  `).all() as Array<{ slug: string }>).map((row) => row.slug) : [];
+  return [...new Set([...databaseSlugs, ...listPublishedEditorialArticles().map((article) => article.slug)])].sort();
 }
 
 export function getPublishedArticle(slug: string): PublishedArticle | undefined {
-  if (!hasContentPlatformSchema()) return undefined;
+  if (!hasContentPlatformSchema()) return getPublishedEditorialArticle(slug);
   const row = db().prepare<unknown[], ArticleRow>(`${publicArticleSelect} AND a.slug = ? LIMIT 1`).get(slug);
-  if (!row) return undefined;
+  if (!row) return getPublishedEditorialArticle(slug);
   const content = parseArticleContent(row.content_body);
   if (!content) return undefined;
   const secondaryKeywords = (db().prepare(`

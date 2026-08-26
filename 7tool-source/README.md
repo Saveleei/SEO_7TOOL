@@ -37,6 +37,8 @@ npm run build
 
 Закрытый URL фида задаётся только через `FEED_URL` в runtime environment. Optional Supplier Feed Intelligence provenance включается через `FEED_PROVENANCE_ENABLED=1` только после применения проверенной migration; подробности — [docs/supplier-feed-intelligence.md](./docs/supplier-feed-intelligence.md).
 
+Правила выбора и атрибуции изображений для SEO-статей, включая разрешённое использование официального фотофида поставщика, описаны в [docs/editorial-media-policy.md](./docs/editorial-media-policy.md).
+
 Проверяются целостность девяти категорий, уникальность URL, отсутствие нулевых цен, коммерческая сортировка, защита форм и production-сборка.
 
 ## Avito Autoload

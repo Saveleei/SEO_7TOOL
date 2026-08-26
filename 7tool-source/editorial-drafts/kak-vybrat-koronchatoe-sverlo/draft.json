@@ -1,0 +1,594 @@
+{
+  "schemaVersion": "EDITORIAL_DRAFT_V1",
+  "status": "AWAITING_HUMAN_BRIEF_REVIEW",
+  "generatedByAi": true,
+  "humanReviewed": false,
+  "editorialIdentity": {
+    "author": "Редакция 7TOOL",
+    "expertReviewer": "Евгений Савельев",
+    "expertReviewStatus": "PENDING_CONTENT_APPROVAL"
+  },
+  "contentType": "HOW_TO",
+  "slug": "kak-vybrat-koronchatoe-sverlo",
+  "canonical": "/articles/kak-vybrat-koronchatoe-sverlo",
+  "categorySlug": "koronchatye-sverla",
+  "primaryKeyword": "как выбрать корончатое сверло",
+  "secondaryKeywords": [
+    "корончатое сверло по металлу",
+    "кольцевая фреза по металлу",
+    "HSS или TCT корончатое сверло",
+    "рабочая длина корончатого сверла",
+    "корончатое сверло Weldon 19",
+    "сверло для магнитного станка",
+    "как подобрать направляющий штифт",
+    "кольцевое сверло по металлу"
+  ],
+  "metadata": {
+    "title": "Как выбрать корончатое сверло по металлу",
+    "h1": "Как выбрать корончатое сверло по металлу",
+    "metaTitle": "Как выбрать корончатое сверло: HSS, TCT и Weldon",
+    "metaDescription": "Практический порядок выбора корончатого сверла по диаметру, глубине, материалу HSS или TCT и хвостовику Weldon для совместимости со станком.",
+    "excerpt": "Разбираем, какие параметры задачи записать до подбора корончатого сверла, как сопоставить рабочую длину, HSS или TCT, хвостовик, направляющий штифт и возможности станка."
+  },
+  "wordstatEvidence": {
+    "region": "Россия",
+    "regionId": 225,
+    "researchedAt": "2026-08-26",
+    "queries": [
+      { "query": "сверло корончатое", "frequency": 9776 },
+      { "query": "корончатое сверло по металлу", "frequency": 3517 },
+      { "query": "сверло корончатое hss", "frequency": 1099 },
+      { "query": "сверло корончатое weldon", "frequency": 1058 },
+      { "query": "корончатые сверла tct", "frequency": 417 },
+      { "query": "корончатые сверла диаметры", "frequency": 365 }
+    ],
+    "editorialUse": "Частотность используется только для приоритизации и структуры материала, не как прогноз трафика. Коммерческие запросы остаются на категории."
+  },
+  "sourceRegistry": [
+    {
+      "sourceRef": "wordstat-russia-2026-08-26",
+      "name": "Яндекс Wordstat, Россия, корончатые сверла",
+      "url": "https://wordstat.yandex.ru/?region=225&view=table&words=%D0%BA%D0%BE%D1%80%D0%BE%D0%BD%D1%87%D0%B0%D1%82%D0%BE%D0%B5%20%D1%81%D0%B2%D0%B5%D1%80%D0%BB%D0%BE",
+      "owner": "Яндекс",
+      "claimScope": "Приоритет темы и поисковые формулировки; частотность не публикуется в статье.",
+      "evidenceStatus": "PENDING_HUMAN_REVIEW"
+    },
+    {
+      "sourceRef": "7tool-category-current",
+      "name": "Категория 7TOOL: корончатые свёрла по металлу",
+      "url": "https://7tool.ru/c/koronchatye-sverla",
+      "owner": "7TOOL",
+      "claimScope": "Фактические фильтры каталога, действующие подкатегории, форма подбора и коммерческие условия.",
+      "evidenceStatus": "PENDING_HUMAN_REVIEW"
+    },
+    {
+      "sourceRef": "hougen-guide-selection",
+      "name": "Basic Guide to Magnetic Drills & Annular Cutters",
+      "url": "https://hougen.com/downloads/Hougen_Mag_Drill_%26_Annular_Cutter_Guide.pdf",
+      "owner": "Hougen Manufacturing",
+      "claimScope": "Принцип работы корончатого сверла, параметры выбора, HSS и твердосплавные модели.",
+      "evidenceStatus": "PENDING_HUMAN_REVIEW"
+    },
+    {
+      "sourceRef": "hougen-guide-pilot-coolant",
+      "name": "Basic Guide to Magnetic Drills & Annular Cutters: pilot and lubrication",
+      "url": "https://hougen.com/downloads/Hougen_Mag_Drill_%26_Annular_Cutter_Guide.pdf",
+      "owner": "Hougen Manufacturing",
+      "claimScope": "Назначение направляющего штифта, подача охлаждения и влияние смазки на процесс сверления.",
+      "evidenceStatus": "PENDING_HUMAN_REVIEW"
+    },
+    {
+      "sourceRef": "hougen-technical-cutter-info",
+      "name": "Technical Cutter Info",
+      "url": "https://hougen.com/technical-cutter-info/",
+      "owner": "Hougen Manufacturing",
+      "claimScope": "Ограничения применения, влияние установки, подачи, оборотов и состояния заготовки.",
+      "evidenceStatus": "PENDING_HUMAN_REVIEW"
+    },
+    {
+      "sourceRef": "euroboor-catalogue-2024",
+      "name": "Euroboor Portable Industrial Tools Catalogue 2024",
+      "url": "https://www.euroboor.com/_clientfiles/catalogus/Catalogue_EN_2024_comp.pdf",
+      "owner": "Euroboor",
+      "claimScope": "Номенклатура HSS, HSS-Cobalt и TCT, глубина реза и варианты хвостовиков Weldon.",
+      "evidenceStatus": "PENDING_HUMAN_REVIEW"
+    }
+  ],
+  "requiredProductSlugs": [
+    "/p/sverla-koronchatye-lzhs",
+    "/p/sverla-koronchatye-lzhm",
+    "/p/tverdosplavnye-koronki-easy-cut-5-dlina-12-mm-v-sbore-artikul-20-1020"
+  ],
+  "brief": {
+    "userIntent": "Понять, какое корончатое сверло подходит для конкретного отверстия, материала и магнитного станка, и передать достаточные данные для подбора.",
+    "problem": "Покупатель может выбрать только нужный диаметр, но упустить рабочую длину, материал режущей части, хвостовик, направляющий штифт, СОЖ и ограничения станка.",
+    "audience": "Снабженец, мастер участка, инженер, монтажник или владелец магнитного сверлильного станка, которому нужна оснастка под конкретную операцию.",
+    "shortAnswer": "Сначала фиксируют диаметр и глубину отверстия, материал и форму заготовки. Затем выбирают материал режущей части и сверяют рабочую длину, хвостовик, направляющий штифт и допустимый диапазон станка. Окончательные режимы и совместимость проверяют по документации конкретной серии.",
+    "keyQuestions": [
+      "Как соотносятся диаметр отверстия и диаметр корончатого сверла?",
+      "Как определить требуемую рабочую длину?",
+      "Когда рассматривать HSS, а когда TCT?",
+      "Как проверить совместимость хвостовика Weldon со станком?",
+      "Зачем нужен направляющий штифт и как проверить его соответствие?",
+      "Какие данные нужны для подбора сверла и СОЖ?",
+      "Какие ошибки чаще всего приводят к неправильному выбору?"
+    ],
+    "verifiedFacts": [
+      {
+        "text": "Корончатое сверло снимает материал по периферии отверстия, оставляя сердцевину в виде керна.",
+        "sourceRef": "hougen-guide-selection"
+      },
+      {
+        "text": "Основными параметрами выбора производитель называет диаметр отверстия, глубину реза и материал заготовки.",
+        "sourceRef": "hougen-guide-selection"
+      },
+      {
+        "text": "Официальная номенклатура включает HSS и твердосплавные корончатые сверла, а применимость зависит от материала и режима обработки.",
+        "sourceRef": "hougen-guide-selection"
+      },
+      {
+        "text": "Направляющий штифт центрирует сверло, обеспечивает путь для охлаждающей жидкости и помогает вытолкнуть керн после прохода.",
+        "sourceRef": "hougen-guide-pilot-coolant"
+      },
+      {
+        "text": "Смазочно-охлаждающая жидкость помогает охлаждению инструмента, отводу стружки и качеству поверхности отверстия.",
+        "sourceRef": "hougen-guide-pilot-coolant"
+      },
+      {
+        "text": "Результат зависит не только от сверла, но и от станка, закрепления, подачи, оборотов, состояния заготовки и конкретного применения.",
+        "sourceRef": "hougen-technical-cutter-info"
+      },
+      {
+        "text": "В актуальной категории 7TOOL доступны отдельные подборки HSS, TCT и Weldon 19, а также фильтры по рабочей длине и материалу режущей части.",
+        "sourceRef": "7tool-category-current"
+      },
+      {
+        "text": "Каталог Euroboor различает HSS, HSS-Cobalt и TCT и указывает разные варианты глубины реза и хвостовиков Weldon.",
+        "sourceRef": "euroboor-catalogue-2024"
+      }
+    ],
+    "relevantSupplierImages": [
+      {
+        "id": "7tool-cutter-in-magnetic-drill",
+        "imageType": "FIRST_PARTY_7TOOL",
+        "localPath": "/images/articles/kak-vybrat-koronchatoe-sverlo/7tool-cutter-in-magnetic-drill.jpg",
+        "author": "7TOOL",
+        "rightsBasis": "Собственное фото 7TOOL",
+        "alt": "Корончатое сверло, установленное в магнитный сверлильный станок",
+        "caption": "Корончатое сверло в магнитном сверлильном станке.",
+        "placement": "Главное изображение после вводного ответа",
+        "licenseStatus": "FIRST_PARTY_CONFIRMED"
+      },
+      {
+        "id": "7tool-annular-cutter-range",
+        "imageType": "FIRST_PARTY_7TOOL",
+        "localPath": "/images/articles/kak-vybrat-koronchatoe-sverlo/7tool-annular-cutter-range.jpg",
+        "author": "7TOOL",
+        "rightsBasis": "Собственное фото 7TOOL",
+        "alt": "Корончатые свёрла разных конструкций и диаметров",
+        "caption": "Корончатые свёрла разных конструкций и диаметров.",
+        "placement": "После раздела «Сначала зафиксируйте задачу»",
+        "licenseStatus": "FIRST_PARTY_CONFIRMED"
+      },
+      {
+        "id": "7tool-cutter-with-chips",
+        "imageType": "FIRST_PARTY_7TOOL",
+        "localPath": "/images/articles/kak-vybrat-koronchatoe-sverlo/7tool-cutter-with-chips.jpg",
+        "author": "7TOOL",
+        "rightsBasis": "Собственное фото 7TOOL",
+        "alt": "Корончатое сверло в магнитном станке и металлическая стружка после сверления",
+        "caption": "Корончатое сверление металла с образованием стружки.",
+        "placement": "В разделе «Направляющий штифт, СОЖ и режим работы»",
+        "licenseStatus": "FIRST_PARTY_CONFIRMED"
+      },
+      {
+        "id": "7tool-series-of-holes",
+        "imageType": "FIRST_PARTY_7TOOL",
+        "localPath": "/images/articles/kak-vybrat-koronchatoe-sverlo/7tool-series-of-holes.jpg",
+        "author": "7TOOL",
+        "rightsBasis": "Собственное фото 7TOOL",
+        "alt": "Серия отверстий, выполненных корончатым сверлом в листовом металле",
+        "caption": "Серийное сверление отверстий корончатым сверлом.",
+        "placement": "После раздела «Ограничения применения»",
+        "licenseStatus": "FIRST_PARTY_CONFIRMED"
+      },
+      {
+        "id": "7tool-hole-and-core",
+        "imageType": "FIRST_PARTY_7TOOL",
+        "localPath": "/images/articles/kak-vybrat-koronchatoe-sverlo/7tool-hole-and-core.jpg",
+        "author": "7TOOL",
+        "rightsBasis": "Собственное фото 7TOOL",
+        "alt": "Готовое отверстие и извлечённый металлический керн после корончатого сверления",
+        "caption": "Готовое отверстие и извлечённый керн.",
+        "placement": "После раздела «Типовые ошибки и проверки перед заказом»",
+        "licenseStatus": "FIRST_PARTY_CONFIRMED"
+      },
+      {
+        "id": "feed-magnetic-drill-lenz-steyr-35",
+        "imageType": "SUPPLIER_FEED",
+        "localPath": "/images/articles/kak-vybrat-koronchatoe-sverlo/feed-magnetic-drill-lenz-steyr-35.jpg",
+        "sourceImage": "https://s3.export.k2tool.ru/pim/images/product/preview/dXhTdisXzBn6a7Qvbb6j.jpg",
+        "feedOfferId": "A9409",
+        "sku": "STEYR-35",
+        "brand": "LENZ",
+        "productPath": "/p/magnitnyy-sverlilnyy-stanok-lenz-steyr-35",
+        "rightsBasis": "Официальный фотофид поставщика",
+        "alt": "Магнитный сверлильный станок LENZ STEYR-35",
+        "caption": "Магнитный сверлильный станок LENZ STEYR-35.",
+        "placement": "Галерея после раздела «Как проверить хвостовик и совместимость со станком»",
+        "licenseStatus": "EDITORIAL_USE_CONFIRMED"
+      },
+      {
+        "id": "feed-magnetic-drill-bds-mabasic-200",
+        "imageType": "SUPPLIER_FEED",
+        "localPath": "/images/articles/kak-vybrat-koronchatoe-sverlo/feed-magnetic-drill-bds-mabasic-200.jpg",
+        "sourceImage": "https://s3.export.k2tool.ru/pim/images/product/preview/8eAIMS21i1.jpg",
+        "feedOfferId": "A9520",
+        "sku": "MABasic-200",
+        "brand": "BDS",
+        "productPath": "/p/magnitnyy-sverlilnyy-stanok-bds-mabasic-200",
+        "rightsBasis": "Официальный фотофид поставщика",
+        "alt": "Магнитный сверлильный станок BDS MABasic 200",
+        "caption": "Магнитный сверлильный станок BDS MABasic 200.",
+        "placement": "Галерея после раздела «Как проверить хвостовик и совместимость со станком»",
+        "licenseStatus": "EDITORIAL_USE_CONFIRMED"
+      },
+      {
+        "id": "feed-magnetic-drill-heden-dm-36k",
+        "imageType": "SUPPLIER_FEED",
+        "localPath": "/images/articles/kak-vybrat-koronchatoe-sverlo/feed-magnetic-drill-heden-dm-36k.png",
+        "sourceImage": "https://s3.export.k2tool.ru/pim/images/product/preview/683061898fbe4.png",
+        "feedOfferId": "A24605",
+        "sku": "510.001",
+        "brand": "Heden",
+        "productPath": "/p/magnitnyy-sverlilnyy-stanok-heden-dm-36k",
+        "rightsBasis": "Официальный фотофид поставщика",
+        "alt": "Магнитный сверлильный станок Heden DM-36K",
+        "caption": "Магнитный сверлильный станок Heden DM-36K.",
+        "placement": "Галерея после раздела «Как проверить хвостовик и совместимость со станком»",
+        "licenseStatus": "EDITORIAL_USE_CONFIRMED"
+      },
+      {
+        "id": "commons-tct-in-action",
+        "imageType": "LICENSED_EXTERNAL",
+        "localPath": "/images/articles/kak-vybrat-koronchatoe-sverlo/tct-annular-cutter-in-action.jpg",
+        "sourcePage": "https://commons.wikimedia.org/wiki/File:TCT_annular_cutter_in_action.jpg",
+        "author": "Rohan von Indien",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+        "alt": "Твердосплавное корончатое сверло TCT в магнитном сверлильном станке",
+        "caption": "Корончатое сверло TCT в работе. Фото: Rohan von Indien, CC BY-SA 3.0, Wikimedia Commons.",
+        "placement": "Резервная иллюстрация к разделу «Направляющий штифт, СОЖ и режим работы»",
+        "licenseStatus": "VERIFIED"
+      },
+      {
+        "id": "commons-hss-tct-comparison",
+        "imageType": "LICENSED_EXTERNAL",
+        "localPath": "/images/articles/kak-vybrat-koronchatoe-sverlo/hss-tct-annular-cutters.jpg",
+        "sourcePage": "https://commons.wikimedia.org/wiki/File:Annular_Cutter.jpg",
+        "author": "Rohan von Indien",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+        "alt": "Сравнение корончатых свёрл TCT и HSS",
+        "caption": "Слева — корончатое сверло TCT, справа — HSS. Фото: Rohan von Indien, CC BY-SA 3.0, Wikimedia Commons.",
+        "placement": "В разделе «HSS или TCT: как сравнивать материал режущей части»",
+        "licenseStatus": "VERIFIED"
+      },
+      {
+        "id": "commons-large-tct-cutter",
+        "imageType": "LICENSED_EXTERNAL",
+        "localPath": "/images/articles/kak-vybrat-koronchatoe-sverlo/large-tct-annular-cutter.jpg",
+        "sourcePage": "https://commons.wikimedia.org/wiki/File:Annular_Cutter_from_BDS.jpg",
+        "author": "Rohan von Indien",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+        "alt": "Твердосплавные корончатые свёрла большого диаметра",
+        "caption": "Корончатые свёрла TCT большого диаметра. Фото: Rohan von Indien, CC BY-SA 3.0, Wikimedia Commons.",
+        "placement": "Резервная иллюстрация к разделу об ограничениях применения",
+        "licenseStatus": "VERIFIED"
+      }
+    ],
+    "requiredDiagrams": [
+      "Схема: диаметр отверстия, рабочая глубина, хвостовик и направляющий штифт без размеров конкретной модели"
+    ],
+    "requiredTables": [
+      "Параметр задачи → что проверить → где смотреть значение",
+      "HSS и TCT: условия выбора без универсального победителя"
+    ],
+    "calculatorRequirement": "Не требуется: выбор зависит от паспортных ограничений конкретного станка и серии сверла, поэтому универсальная формула создаст ложную точность.",
+    "faqInsights": [
+      "Можно ли выбирать сверло только по диаметру?",
+      "Чем HSS отличается от TCT?",
+      "Что означает Weldon 19?",
+      "Нужен ли направляющий штифт?",
+      "Какие параметры передать для подбора?"
+    ],
+    "competitorGaps": [
+      "Часто нет единого чек-листа совместимости сверла, штифта и станка.",
+      "Сравнение HSS и TCT нередко подается как выбор универсально лучшего материала без условий применения.",
+      "Редко объясняется, какие исходные данные нужны снабженцу до запроса цены."
+    ],
+    "internalLinks": [
+      "/c/koronchatye-sverla",
+      "/c/koronchatye-sverla/hss",
+      "/c/koronchatye-sverla/tct",
+      "/c/koronchatye-sverla/weldon-19",
+      "/c/stanki-sverlilnye/magnitnye"
+    ],
+    "cta": "Передать диаметр, глубину, материал, модель станка и тип хвостовика для проверки совместимости и получения предложения с актуальной ценой.",
+    "evidenceRequirements": [
+      "Не публиковать числовые режимы без паспорта конкретной серии.",
+      "Не переносить характеристики между HSS, TCT и разными брендами.",
+      "Проверить, что все упомянутые подкатегории и товары остаются опубликованными.",
+      "Подтвердить реальным специалистом формулировки о подборе и ограничениях.",
+      "Не превращать информационную статью в дубль коммерческой категории."
+    ]
+  },
+  "content": {
+    "shortAnswer": [
+      {
+        "text": "Для подбора сначала запишите диаметр и глубину отверстия, материал и форму заготовки, количество отверстий и условия работы.",
+        "sourceRefs": ["hougen-guide-selection", "hougen-technical-cutter-info"]
+      },
+      {
+        "text": "После этого сопоставьте рабочую длину, HSS или TCT, хвостовик, направляющий штифт и возможности магнитного станка.",
+        "sourceRefs": ["7tool-category-current", "euroboor-catalogue-2024"]
+      },
+      {
+        "text": "Режимы сверления и окончательную совместимость проверяйте по документации конкретной серии сверла и станка, а не по названию товарной группы.",
+        "sourceRefs": ["hougen-technical-cutter-info"]
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Сначала зафиксируйте задачу",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Корончатое, или кольцевое, сверло снимает материал по периферии отверстия и оставляет внутри керн. Поэтому его выбор начинают не с бренда и цены, а с геометрии отверстия и условий резания. Производитель Hougen выделяет три базовых параметра: диаметр, глубину реза и материал заготовки. На практике к ним добавляют форму детали, количество отверстий, положение сверления и доступное оборудование.",
+            "sourceRefs": ["hougen-guide-selection", "hougen-technical-cutter-info"]
+          },
+          {
+            "type": "table",
+            "caption": "Что записать до подбора корончатого сверла",
+            "columns": ["Параметр", "Что уточнить", "Где проверить"],
+            "rows": [
+              ["Отверстие", "Требуемый диаметр и сквозное или глухое исполнение", "Чертёж или техническое задание"],
+              ["Глубина", "Фактическая толщина и условия выхода инструмента", "Заготовка и рабочая длина серии"],
+              ["Материал", "Марка или хотя бы тип металла и состояние поверхности", "Техническое задание и рекомендации производителя"],
+              ["Станок", "Модель, посадка, допустимый диаметр, рабочий ход и обороты", "Паспорт станка"],
+              ["Оснастка", "Хвостовик, направляющий штифт, переходник и СОЖ", "Карточка серии и паспорт"],
+              ["Режим работы", "Количество отверстий, положение сверления и доступ к зоне реза", "Условия участка или монтажной площадки"]
+            ],
+            "sourceRefs": ["hougen-guide-selection", "hougen-technical-cutter-info", "7tool-category-current"]
+          }
+        ]
+      },
+      {
+        "heading": "Как выбрать диаметр и рабочую длину",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Номинальный диаметр сверла сопоставляют с требуемым диаметром отверстия. Если посадка или допуск критичны, одной надписи на упаковке недостаточно: точность зависит также от станка, жёсткости установки, подачи, оборотов и состояния заготовки. Для ответственной операции нужно сверяться с документацией серии и требованиями чертежа.",
+            "sourceRefs": ["hougen-technical-cutter-info"]
+          },
+          {
+            "type": "paragraph",
+            "text": "Рабочая длина показывает допустимую глубину реза, а не общую длину инструмента. Для сквозного отверстия учитывают фактическую толщину детали, выход инструмента, удаление керна и стружки. Если требуется пройти несколько сложенных листов, стандартную геометрию нельзя автоматически считать подходящей: производитель отдельно выделяет сверла для пакетного сверления.",
+            "sourceRefs": ["hougen-guide-selection"]
+          },
+          {
+            "type": "note",
+            "text": "Не выбирайте рабочую длину с минимальным запасом только по толщине детали. Сначала проверьте конструкцию конкретного сверла, направляющий штифт и условия выхода керна.",
+            "sourceRefs": ["hougen-guide-selection", "hougen-guide-pilot-coolant"]
+          }
+        ]
+      },
+      {
+        "heading": "HSS или TCT: как сравнивать материал режущей части",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "HSS и TCT — не две ступени качества, где один вариант всегда лучше другого. HSS-сверла из быстрорежущей стали применяют для широкого круга операций. Твердосплавные модели рассматривают для более твёрдых или абразивных материалов и режимов, под которые они рассчитаны. При этом производитель указывает, что твердосплавному инструменту могут требоваться другие обороты, поэтому замена HSS на TCT без проверки станка не гарантирует улучшения результата.",
+            "sourceRefs": ["hougen-guide-selection", "euroboor-catalogue-2024"]
+          },
+          {
+            "type": "table",
+            "caption": "Как обсуждать HSS и TCT при подборе",
+            "columns": ["Вопрос", "HSS", "TCT"],
+            "rows": [
+              ["Материал заготовки", "Сверять применимость серии к материалу", "Сверять применимость серии к твёрдому или абразивному материалу"],
+              ["Обороты", "Проверить рекомендуемый диапазон серии", "Проверить, может ли станок обеспечить требуемый режим"],
+              ["Условия работы", "Учитывать подачу, охлаждение и жёсткость установки", "Особенно проверить устойчивость установки и отсутствие ударной нагрузки"],
+              ["Решение", "Выбирать по паспорту и задаче", "Выбирать по паспорту и задаче, а не по принципу «дороже значит лучше»"]
+            ],
+            "sourceRefs": ["hougen-guide-selection", "hougen-technical-cutter-info", "euroboor-catalogue-2024"]
+          }
+        ]
+      },
+      {
+        "heading": "Как проверить хвостовик и совместимость со станком",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Хвостовик должен соответствовать держателю станка непосредственно или через разрешённый производителем переходник. Обозначение Weldon описывает систему крепления, но одного слова Weldon недостаточно: в каталогах встречаются разные размеры и комбинированные исполнения. В актуальной категории 7TOOL отдельно представлены Weldon 19, Weldon 19 с совместимой посадкой Nitto, Weldon 32 и другие варианты.",
+            "sourceRefs": ["7tool-category-current", "euroboor-catalogue-2024"]
+          },
+          {
+            "type": "list",
+            "items": [
+              "Запишите точную модель станка и тип держателя.",
+              "Сопоставьте хвостовик сверла с держателем или разрешённым переходником.",
+              "Проверьте максимальный диаметр корончатого сверления и рабочий ход станка.",
+              "Сверьте рекомендуемые обороты для материала и выбранной серии.",
+              "Убедитесь, что направляющий штифт соответствует длине и конструкции сверла."
+            ],
+            "sourceRefs": ["hougen-guide-selection", "7tool-category-current", "euroboor-catalogue-2024"]
+          },
+          {
+            "type": "note",
+            "text": "Если модель станка неизвестна, сфотографируйте шильдик и посадочное место. Подбор по внешнему виду сверла или только по диаметру хвостовика создаёт риск несовместимости.",
+            "sourceRefs": ["7tool-category-current"]
+          }
+        ]
+      },
+      {
+        "heading": "Направляющий штифт, СОЖ и режим работы",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Направляющий штифт выполняет сразу несколько функций: помогает выставить центр отверстия, открывает путь для подачи охлаждающей жидкости и выталкивает керн после завершения прохода. Поэтому его подбирают вместе со сверлом, учитывая конструкцию и рабочую длину конкретной серии.",
+            "sourceRefs": ["hougen-guide-pilot-coolant"]
+          },
+          {
+            "type": "paragraph",
+            "text": "Смазка и охлаждение помогают уменьшать нагрев, улучшать отвод стружки и сохранять качество поверхности. Но тип жидкости и способ подачи зависят от материала, положения сверления и требований производителя. Для вертикальной, горизонтальной или потолочной работы решение по СОЖ и безопасности должно опираться на руководство станка и правила участка.",
+            "sourceRefs": ["hougen-guide-pilot-coolant", "hougen-technical-cutter-info"]
+          },
+          {
+            "type": "note",
+            "text": "Не назначайте обороты, подачу и СОЖ по универсальной таблице без проверки серии. Даже рекомендации производителя являются исходной точкой и корректируются по материалу, установке и состоянию инструмента.",
+            "sourceRefs": ["hougen-technical-cutter-info"]
+          }
+        ]
+      },
+      {
+        "heading": "Ограничения применения",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "Корончатое сверло не компенсирует люфт, недостаточную жёсткость или неправильное закрепление станка.",
+              "Стандартная геометрия не должна автоматически применяться для нескольких сложенных деталей.",
+              "Работа по криволинейной поверхности, по сварному шву или при неполном контакте требует отдельной проверки установки.",
+              "Твердосплавное сверло не является универсальной заменой HSS, если станок не обеспечивает подходящий режим.",
+              "Изношенный или повреждённый инструмент нельзя возвращать в работу только изменением подачи или оборотов."
+            ],
+            "sourceRefs": ["hougen-guide-selection", "hougen-technical-cutter-info"]
+          },
+          {
+            "type": "paragraph",
+            "text": "Перед работой нужно следовать руководствам изготовителей сверла и станка, требованиям охраны труда и правилам конкретного участка. Эта статья помогает сформировать запрос на подбор, но не заменяет паспорт оборудования и технологическую карту операции.",
+            "sourceRefs": ["hougen-guide-selection"]
+          }
+        ]
+      },
+      {
+        "heading": "Типовые ошибки и проверки перед заказом",
+        "blocks": [
+          {
+            "type": "table",
+            "caption": "Что проверить, если выбор выглядит слишком простым",
+            "columns": ["Ошибка", "Риск", "Проверка"],
+            "rows": [
+              ["Выбрать только диаметр", "Не подходит рабочая длина или хвостовик", "Добавить глубину, станок и посадку"],
+              ["Считать TCT универсально лучшим", "Режим не соответствует материалу или станку", "Сверить паспорт серии и доступные обороты"],
+              ["Использовать случайный штифт", "Нет точного центрирования, подачи СОЖ или выброса керна", "Подобрать штифт для конкретной длины и серии"],
+              ["Игнорировать закрепление", "Вибрация, нестабильное отверстие и повреждение инструмента", "Проверить поверхность, основание и жёсткость установки"],
+              ["Назначить режим по памяти", "Перегрев, плохой отвод стружки или ускоренный износ", "Проверить рекомендации изготовителя и состояние заготовки"],
+              ["Заказать без артикула", "Путаница между похожими модификациями", "Зафиксировать серию, артикул и все согласованные параметры"]
+            ],
+            "sourceRefs": ["hougen-guide-pilot-coolant", "hougen-technical-cutter-info", "7tool-category-current"]
+          }
+        ]
+      },
+      {
+        "heading": "Что передать для инженерного подбора",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Чтобы получить не общий список, а проверяемый вариант оснастки, передайте поставщику параметры задачи одним сообщением. В каталоге 7TOOL можно сначала отфильтровать HSS, TCT, Weldon и рабочую длину, а затем уточнить совместимость и актуальную цену по конкретным артикулам.",
+            "sourceRefs": ["7tool-category-current"]
+          },
+          {
+            "type": "list",
+            "items": [
+              "Требуемый диаметр и глубина отверстия.",
+              "Материал, толщина и форма заготовки.",
+              "Сквозное или глухое отверстие, одиночная деталь или пакет.",
+              "Модель магнитного станка и тип держателя.",
+              "Количество отверстий и положение сверления.",
+              "Нужны ли направляющий штифт, переходник и СОЖ.",
+              "Желаемый срок поставки и реквизиты для предложения с НДС."
+            ],
+            "sourceRefs": ["7tool-category-current", "hougen-guide-selection"]
+          },
+          {
+            "type": "note",
+            "text": "Актуальные цены и наличие следует смотреть в каталоге или подтверждать в предложении: их нельзя фиксировать в редакционной статье, потому что товарный фид обновляется отдельно.",
+            "sourceRefs": ["7tool-category-current"]
+          }
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "Можно ли выбрать корончатое сверло только по диаметру отверстия?",
+        "answer": "Нет. Дополнительно нужны глубина реза, материал заготовки, хвостовик, модель и ограничения станка, подходящий направляющий штифт и условия подачи СОЖ.",
+        "sourceRef": "hougen-guide-selection"
+      },
+      {
+        "question": "Что лучше для металла: HSS или TCT?",
+        "answer": "Универсального победителя нет. HSS и TCT выбирают по материалу, режиму, жёсткости установки и возможностям станка; рекомендации нужно проверять для конкретной серии.",
+        "sourceRef": "hougen-guide-selection"
+      },
+      {
+        "question": "Что означает хвостовик Weldon 19?",
+        "answer": "Это обозначение распространённой системы крепления определённого размера. Совпадение слова Weldon ещё не подтверждает совместимость: нужно проверить размер, держатель станка и допустимый переходник.",
+        "sourceRef": "euroboor-catalogue-2024"
+      },
+      {
+        "question": "Зачем нужен направляющий штифт?",
+        "answer": "Он помогает выставить центр, участвует в подаче охлаждающей жидкости к зоне резания и выталкивает керн после прохода. Штифт подбирают под конструкцию и длину сверла.",
+        "sourceRef": "hougen-guide-pilot-coolant"
+      },
+      {
+        "question": "Какие данные нужны для подбора корончатого сверла?",
+        "answer": "Передайте диаметр и глубину отверстия, материал и форму детали, модель станка, хвостовик, количество отверстий и положение работы. Если станок неизвестен, приложите фотографию шильдика и держателя.",
+        "sourceRef": "7tool-category-current"
+      }
+    ],
+    "internalLinks": [
+      {
+        "targetPath": "/c/koronchatye-sverla",
+        "anchorText": "Корончатые свёрла по металлу",
+        "role": "CTA"
+      },
+      {
+        "targetPath": "/c/koronchatye-sverla/hss",
+        "anchorText": "Корончатые свёрла HSS",
+        "role": "PRODUCT"
+      },
+      {
+        "targetPath": "/c/koronchatye-sverla/tct",
+        "anchorText": "Твердосплавные корончатые свёрла TCT",
+        "role": "PRODUCT"
+      },
+      {
+        "targetPath": "/c/koronchatye-sverla/weldon-19",
+        "anchorText": "Корончатые свёрла Weldon 19",
+        "role": "PRODUCT"
+      },
+      {
+        "targetPath": "/c/stanki-sverlilnye/magnitnye",
+        "anchorText": "Магнитные сверлильные станки",
+        "role": "RELATED"
+      }
+    ]
+  },
+  "reviewGate": {
+    "canPublish": false,
+    "requiredApprovals": [
+      "HUMAN_BRIEF",
+      "FACT",
+      "SEO",
+      "EXPERT",
+      "FINAL"
+    ],
+    "blockingQuestions": [
+      "Подтвердил ли Евгений Савельев формулировки о HSS, TCT, хвостовиках, штифте и СОЖ?",
+      "Какие опубликованные товары нужно связать со статьёй после проверки актуального ассортимента?",
+      "Есть ли собственное или разрешённое изображение для статьи, либо нужно оформить проверенный no-match?"
+    ]
+  }
+}

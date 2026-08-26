@@ -28,6 +28,7 @@
     "seo:opportunities:business": "node scripts/register-opportunity-business.mjs",
     "seo:opportunities:evaluate": "node scripts/evaluate-content-opportunity.mjs",
     "seo:content": "node scripts/content-platform.mjs",
+    "seo:content:draft:check": "node scripts/validate-editorial-draft.mjs",
     "seo:images": "node scripts/image-intelligence.mjs",
     "seo:product-enrichment": "node scripts/product-enrichment.mjs",
     "seo:tools": "node scripts/interactive-tools.mjs",

@@ -10,6 +10,7 @@ import { IntentLeadForm } from "@/components/IntentLeadForm";
 import { StructuredData } from "@/components/StructuredData";
 import { ArticleAnalytics, TrackedArticleLink } from "@/components/ArticleAnalytics";
 import { getPublishedArticle, listPublishedArticleSlugs, type ArticleBlock, type PublishedArticleImage } from "@/lib/articles-db";
+import { getEditorialPreview } from "@/lib/editorial-preview";
 import { getSemanticLinks } from "@/lib/semantic-linking-db";
 import { getLeadProfile } from "@/lib/lead-generation";
 import { indexableRobots, noIndexRobots, pageTitle } from "@/lib/seo-metadata";
@@ -25,15 +26,19 @@ export function generateStaticParams() {
 
 type RouteProps = { params: Promise<{ slug: string }> };
 
+function articleForRoute(slug: string) {
+  return getPublishedArticle(slug) ?? getEditorialPreview(slug);
+}
+
 export async function generateMetadata({ params }: RouteProps): Promise<Metadata> {
   const { slug } = await params;
-  const article = getPublishedArticle(slug);
+  const article = articleForRoute(slug);
   if (!article) return { title: "Материал не найден", robots: noIndexRobots };
   return {
     title: pageTitle(article.metaTitle),
     description: article.metaDescription,
     alternates: { canonical: article.canonical },
-    robots: indexableRobots,
+    robots: article.humanReviewed ? indexableRobots : noIndexRobots,
     openGraph: {
       type: "article",
       url: article.canonical,
@@ -48,7 +53,7 @@ export async function generateMetadata({ params }: RouteProps): Promise<Metadata
 
 export default async function ArticlePage({ params }: RouteProps) {
   const { slug } = await params;
-  const article = getPublishedArticle(slug);
+  const article = articleForRoute(slug);
   if (!article) notFound();
   const semanticSourceType = article.contentType === "COMPARISON" ? "COMPARISON" : article.contentType === "ARTICLE" ? "ARTICLE" : null;
   const semanticLinks = semanticSourceType ? getSemanticLinks(semanticSourceType, article.id) : undefined;
@@ -82,11 +87,16 @@ export default async function ArticlePage({ params }: RouteProps) {
   ], `${canonical}#breadcrumb`);
   return (
     <>
-      <StructuredData data={structuredArticle} />
-      <StructuredData data={structuredBreadcrumb} />
+      {article.humanReviewed && <StructuredData data={structuredArticle} />}
+      {article.humanReviewed && <StructuredData data={structuredBreadcrumb} />}
       <SiteHeader />
-      <ArticleAnalytics articleId={article.id} category={article.categorySlug} targetId={`article-content-${article.id}`} />
+      {article.humanReviewed && <ArticleAnalytics articleId={article.id} category={article.categorySlug} targetId={`article-content-${article.id}`} />}
       <main>
+        {!article.humanReviewed && (
+          <div className="border-b border-amber-300 bg-amber-100 px-4 py-3 text-center text-[13px] font-bold text-amber-950">
+            Локальный предпросмотр — статья не опубликована и закрыта от индексации
+          </div>
+        )}
         <header className="border-b border-steel-200 bg-white">
           <div className="mx-auto max-w-[1040px] px-4 pb-10 pt-7 sm:px-6 sm:pb-14 sm:pt-10">
             <Breadcrumbs items={[{ label: "Главная", href: "/" }, { label: "База знаний", href: "/articles" }, { label: article.title }]} />
@@ -129,7 +139,11 @@ export default async function ArticlePage({ params }: RouteProps) {
                     <div className="mt-5 space-y-5 text-[15px] leading-7 text-steel-700">
                       {section.blocks.map((block, index) => <ContentBlock key={`${section.heading}-${index}`} block={block} sourceNumbers={sourceNumbers} />)}
                     </div>
-                    {sectionImages.map((image) => <ArticleMedia key={image.id} image={image} />)}
+                    {sectionImages.length > 1 ? (
+                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {sectionImages.map((image) => <ArticleMedia key={image.id} image={image} />)}
+                      </div>
+                    ) : sectionImages.map((image) => <ArticleMedia key={image.id} image={image} />)}
                   </section>
                 );
               })}
@@ -164,6 +178,32 @@ export default async function ArticlePage({ params }: RouteProps) {
                   product: leadProduct ? { id: leadProduct.id, title: leadProduct.title, url: `/p/${leadProduct.slug}` } : undefined,
                 }}
               />
+              <div className="mt-4 flex flex-col items-start gap-3 rounded-[12px] border border-steel-200 bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-[14px] font-bold text-steel-900">Хотите выбрать самостоятельно?</p>
+                  <p className="mt-1 text-[12px] leading-5 text-steel-600">Откройте категорию, сравните HSS и TCT, диаметры, рабочую длину и хвостовики.</p>
+                </div>
+                <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto">
+                  <TrackedArticleLink
+                    href={`/c/${article.categorySlug}`}
+                    event="CATEGORY_CLICK_FROM_ARTICLE"
+                    articleId={article.id}
+                    category={article.categorySlug}
+                    className="inline-flex min-h-11 items-center justify-center rounded-lg bg-amber-400 px-5 text-center text-[13px] font-extrabold text-steel-900 transition hover:bg-amber-300"
+                  >
+                    Корончатые свёрла
+                  </TrackedArticleLink>
+                  <TrackedArticleLink
+                    href="/c/stanki-sverlilnye/magnitnye"
+                    event="CATEGORY_CLICK_FROM_ARTICLE"
+                    articleId={article.id}
+                    category={article.categorySlug}
+                    className="inline-flex min-h-11 items-center justify-center rounded-lg border border-steel-300 px-5 text-center text-[13px] font-bold text-steel-800 transition hover:border-cobalt-400 hover:text-cobalt-800"
+                  >
+                    Магнитные станки
+                  </TrackedArticleLink>
+                </div>
+              </div>
             </div>
 
             <section className="mt-14 border-t border-steel-200 pt-9">
@@ -172,15 +212,17 @@ export default async function ArticlePage({ params }: RouteProps) {
                 {article.sources.map((source, index) => (
                   <li key={`${source.sourceRef}-${source.claimText}`} id={`source-${index + 1}`} className="scroll-mt-32">
                     <span className="mr-2 font-bold text-steel-900">{index + 1}.</span>
-                    {/^https?:\/\//i.test(source.sourceRef) ? (
-                      <a href={source.sourceRef} rel="nofollow noopener noreferrer" className="font-semibold text-cobalt-700 underline decoration-cobalt-200 underline-offset-2 hover:text-cobalt-900">{source.sourceRef}</a>
+                    {source.url || /^https?:\/\//i.test(source.sourceRef) ? (
+                      <a href={source.url ?? source.sourceRef} rel="nofollow noopener noreferrer" className="font-semibold text-cobalt-700 underline decoration-cobalt-200 underline-offset-2 hover:text-cobalt-900">{source.name ?? source.url ?? source.sourceRef}</a>
                     ) : <span className="font-semibold text-steel-800">{source.sourceRef}</span>}
                     <span className="ml-2">— {source.claimText}</span>
                   </li>
                 ))}
               </ol>
               <p className="mt-5 rounded-lg bg-steel-50 px-4 py-3 text-[12px] leading-5 text-steel-600">
-                Материал прошёл проверку фактов, SEO и профильного специалиста. Точные параметры конкретной поставки подтверждаются паспортом изделия и менеджером.
+                {article.humanReviewed
+                  ? "Материал прошёл проверку фактов, SEO и профильного специалиста. Точные параметры конкретной поставки подтверждаются паспортом изделия и менеджером."
+                  : "Это редакционный предпросмотр. Проверка и публикационное подтверждение ещё не завершены; точные параметры конкретной поставки подтверждаются паспортом изделия и менеджером."}
               </p>
             </section>
 
@@ -232,6 +274,24 @@ export default async function ArticlePage({ params }: RouteProps) {
               <h2 className="mt-3 font-display text-[20px] font-extrabold leading-tight">{leadProfile.title}</h2>
               <p className="mt-3 text-[13px] leading-6 text-steel-300">{leadProfile.description}</p>
               <Link href="#intent-lead-form" className="mt-5 inline-flex min-h-10 w-full items-center justify-center rounded-lg bg-amber-400 px-4 text-center text-[13px] font-extrabold text-steel-900 transition hover:bg-amber-300">{leadProfile.cta}</Link>
+              <TrackedArticleLink
+                href={`/c/${article.categorySlug}`}
+                event="CATEGORY_CLICK_FROM_ARTICLE"
+                articleId={article.id}
+                category={article.categorySlug}
+                className="mt-3 inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-steel-600 px-4 text-center text-[13px] font-bold text-white transition hover:border-amber-300 hover:text-amber-300"
+              >
+                Смотреть каталог
+              </TrackedArticleLink>
+              <TrackedArticleLink
+                href="/c/stanki-sverlilnye/magnitnye"
+                event="CATEGORY_CLICK_FROM_ARTICLE"
+                articleId={article.id}
+                category={article.categorySlug}
+                className="mt-2 inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-steel-600 px-4 text-center text-[13px] font-bold text-white transition hover:border-amber-300 hover:text-amber-300"
+              >
+                Магнитные станки
+              </TrackedArticleLink>
             </section>
           </aside>
         </div>
@@ -288,7 +348,9 @@ function ContentBlock({ block, sourceNumbers }: { block: ArticleBlock; sourceNum
 function ArticleMedia({ image, priority = false }: { image: PublishedArticleImage; priority?: boolean }) {
   const avif = image.variants.filter((variant) => variant.mime === "image/avif").sort((left, right) => left.width - right.width);
   const webp = image.variants.filter((variant) => variant.mime === "image/webp").sort((left, right) => left.width - right.width);
-  const fallback = webp.at(-1) ?? avif.at(-1);
+  const jpeg = image.variants.filter((variant) => variant.mime === "image/jpeg").sort((left, right) => left.width - right.width);
+  const png = image.variants.filter((variant) => variant.mime === "image/png").sort((left, right) => left.width - right.width);
+  const fallback = png.at(-1) ?? jpeg.at(-1) ?? webp.at(-1) ?? avif.at(-1);
   if (!fallback) return null;
   const srcSet = (variants: PublishedArticleImage["variants"]) => variants.map((variant) => `${variant.url} ${variant.width}w`).join(", ");
   const isDiagram = image.aiGenerated || new Set(["DIAGRAM", "COMPARISON"]).has(image.slotType);
@@ -297,16 +359,28 @@ function ArticleMedia({ image, priority = false }: { image: PublishedArticleImag
       <picture>
         {avif.length > 0 && <source type="image/avif" srcSet={srcSet(avif)} sizes="(max-width: 820px) 100vw, 760px" />}
         {webp.length > 0 && <source type="image/webp" srcSet={srcSet(webp)} sizes="(max-width: 820px) 100vw, 760px" />}
-        <img
-          src={fallback.url}
-          alt={image.alt}
-          width={fallback.width}
-          height={fallback.height}
-          loading={priority ? "eager" : "lazy"}
-          fetchPriority={priority ? "high" : "auto"}
-          decoding="async"
-          className="h-auto w-full object-contain"
-        />
+        {avif.length > 0 || webp.length > 0 ? (
+          <img
+            src={fallback.url}
+            alt={image.alt}
+            width={fallback.width}
+            height={fallback.height}
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "auto"}
+            decoding="async"
+            className="h-auto w-full object-contain"
+          />
+        ) : (
+          <Image
+            src={fallback.url}
+            alt={image.alt}
+            width={fallback.width}
+            height={fallback.height}
+            priority={priority}
+            sizes="(max-width: 820px) 100vw, 760px"
+            className="h-auto w-full object-contain"
+          />
+        )}
       </picture>
       {(image.caption || image.attribution || image.disclosure) && (
         <figcaption className="border-t border-inherit px-4 py-3 text-[12px] leading-5 text-steel-600 sm:px-5">

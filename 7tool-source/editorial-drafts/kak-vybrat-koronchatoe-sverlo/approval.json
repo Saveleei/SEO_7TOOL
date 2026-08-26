@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "EDITORIAL_APPROVAL_V1",
+  "status": "APPROVED_FOR_PUBLICATION",
+  "indexStatus": "INDEX",
+  "slug": "kak-vybrat-koronchatoe-sverlo",
+  "approvedBy": "Евгений Савельев",
+  "actorType": "HUMAN",
+  "approvedAt": "2026-08-26T14:24:58+03:00",
+  "publishedAt": "2026-08-26T14:24:58+03:00",
+  "draftSha256": "D81D73269BB08EBAE6C078E3C2F3736A9A046F9028232407BDB81235A36D2A0B",
+  "mediaManifestSha256": "E514F4ACBC3A516CB2A222A2C5888F5D822A2F292E5A2A0050A4E7D8765821F8",
+  "reviewScope": [
+    "CONTENT",
+    "FACTS",
+    "SEO",
+    "EXPERT_REVIEW",
+    "IMAGES",
+    "INTERNAL_LINKS",
+    "FINAL_PUBLICATION"
+  ],
+  "decision": "Публикуем"
+}
