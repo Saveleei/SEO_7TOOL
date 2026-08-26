@@ -10,6 +10,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { SubcategoryGrid } from "@/components/SubcategoryGrid";
 import { CategorySelectionForm } from "@/components/CategorySelectionForm";
+import { CategoryKnowledgeCard } from "@/components/CategoryKnowledgeCard";
 import { StructuredData } from "@/components/StructuredData";
 import { CategoryFilters } from "../CategoryFilters";
 import { listingFacetNames, productForListing } from "@/lib/catalog";
@@ -170,6 +171,7 @@ export default async function SubcategoryPage({
           heading={subcategory.selectionTitle ?? content.selectionTitle}
           subcategory={subcategory.title}
         />
+        {page === 1 && !hasCatalogFilters(query) && <CategoryKnowledgeCard categoryKey={`${slug}/${subslug}`} />}
         <section className="border-t border-steel-200 bg-white">
           <div className="mx-auto max-w-[980px] px-4 py-10 sm:px-6 sm:py-14">
             <h2 className="font-display text-[24px] font-extrabold text-steel-900">{subcategory.seoTitle ?? "О подборке"}</h2>

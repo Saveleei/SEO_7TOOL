@@ -87,6 +87,21 @@ test("страница подкатегории использует собст�
   assert.match(source, /seoParagraphs\.map\(\(paragraph\) => <p key=\{paragraph\}>/u);
 });
 
+test("статья и категории используют только контекстную перелинковку", () => {
+  const knowledgeCard = read("src/components/CategoryKnowledgeCard.tsx");
+  const articlePage = read("src/app/articles/[slug]/page.tsx");
+  const draft = JSON.parse(read("editorial-drafts/kak-vybrat-koronchatoe-sverlo/draft.json"));
+
+  assert.match(knowledgeCard, /"koronchatye-sverla"[\s\S]*Как выбрать корончатое сверло/u);
+  assert.match(knowledgeCard, /"stanki-sverlilnye\/magnitnye"[\s\S]*Подбор корончатого сверла к станку/u);
+  assert.match(articlePage, /article\.categorySlug === "koronchatye-sverla"[\s\S]*Подобрать магнитный станок для корончатого сверления/u);
+  assert.deepEqual(draft.requiredProductSlugs, [
+    "/p/sverla-koronchatye-lzhs",
+    "/p/sverla-koronchatye-lzhm",
+    "/p/tverdosplavnye-koronki-easy-cut-5-dlina-12-mm-v-sbore-artikul-20-1020",
+  ]);
+});
+
 test("SEO-профиль трубных фаскоснимателей ставит точный частотный термин первым", () => {
   const profiles = JSON.parse(read("src/lib/category-seo.json"));
   const profile = profiles["kromkorezy-dlya-trub"];

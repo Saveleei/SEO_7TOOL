@@ -10,6 +10,7 @@ import { WarehouseStrip } from "@/components/WarehouseProof";
 import { CategoryFilters } from "./CategoryFilters";
 import { SubcategoryGrid } from "@/components/SubcategoryGrid";
 import { CategorySelectionForm } from "@/components/CategorySelectionForm";
+import { CategoryKnowledgeCard } from "@/components/CategoryKnowledgeCard";
 import { SemanticNextSteps } from "@/components/SemanticNextSteps";
 import { StructuredData } from "@/components/StructuredData";
 import { getSemanticLinks } from "@/lib/semantic-linking-db";
@@ -191,6 +192,7 @@ export default async function CategoryPage({ params, searchParams }: RouteProps)
           fields={content.selectionFields}
           heading={content.selectionTitle}
         />
+        {page === 1 && !hasCatalogFilters(query) && <CategoryKnowledgeCard categoryKey={slug} />}
         <SemanticNextSteps links={semanticLinks} />
         <section className="border-t border-steel-200 bg-white">
           <div className="mx-auto max-w-[980px] px-4 py-10 sm:px-6 sm:py-14">

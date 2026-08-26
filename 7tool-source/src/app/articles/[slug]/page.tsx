@@ -60,6 +60,9 @@ export default async function ArticlePage({ params }: RouteProps) {
   const semanticHrefs = new Set(semanticLinks?.items.map((item) => item.href) ?? []);
   const targetProducts = article.targetProducts.filter((product) => !semanticHrefs.has(`/p/${product.slug}`));
   const relatedArticles = article.relatedArticles.filter((related) => !semanticHrefs.has(`/articles/${related.slug}`));
+  const compatibleCategoryLinks = article.categorySlug === "koronchatye-sverla"
+    ? [{ href: "/c/stanki-sverlilnye/magnitnye", label: "Подобрать магнитный станок для корончатого сверления" }]
+    : [];
   const leadProfile = getLeadProfile({ leadFormType: article.leadFormType, intentClass: article.intentClass, categorySlug: article.categorySlug });
   const leadProduct = article.targetProducts[0];
   const sourceNumbers = new Map(article.sources.map((source, index) => [source.sourceRef, index + 1]));
@@ -193,15 +196,18 @@ export default async function ArticlePage({ params }: RouteProps) {
                   >
                     Корончатые свёрла
                   </TrackedArticleLink>
-                  <TrackedArticleLink
-                    href="/c/stanki-sverlilnye/magnitnye"
-                    event="CATEGORY_CLICK_FROM_ARTICLE"
-                    articleId={article.id}
-                    category={article.categorySlug}
-                    className="inline-flex min-h-11 items-center justify-center rounded-lg border border-steel-300 px-5 text-center text-[13px] font-bold text-steel-800 transition hover:border-cobalt-400 hover:text-cobalt-800"
-                  >
-                    Магнитные станки
-                  </TrackedArticleLink>
+                  {compatibleCategoryLinks.map((link) => (
+                    <TrackedArticleLink
+                      key={link.href}
+                      href={link.href}
+                      event="CATEGORY_CLICK_FROM_ARTICLE"
+                      articleId={article.id}
+                      category={article.categorySlug}
+                      className="inline-flex min-h-11 items-center justify-center rounded-lg border border-steel-300 px-5 text-center text-[13px] font-bold text-steel-800 transition hover:border-cobalt-400 hover:text-cobalt-800"
+                    >
+                      {link.label}
+                    </TrackedArticleLink>
+                  ))}
                 </div>
               </div>
             </div>
@@ -283,15 +289,18 @@ export default async function ArticlePage({ params }: RouteProps) {
               >
                 Смотреть каталог
               </TrackedArticleLink>
-              <TrackedArticleLink
-                href="/c/stanki-sverlilnye/magnitnye"
-                event="CATEGORY_CLICK_FROM_ARTICLE"
-                articleId={article.id}
-                category={article.categorySlug}
-                className="mt-2 inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-steel-600 px-4 text-center text-[13px] font-bold text-white transition hover:border-amber-300 hover:text-amber-300"
-              >
-                Магнитные станки
-              </TrackedArticleLink>
+              {compatibleCategoryLinks.map((link) => (
+                <TrackedArticleLink
+                  key={link.href}
+                  href={link.href}
+                  event="CATEGORY_CLICK_FROM_ARTICLE"
+                  articleId={article.id}
+                  category={article.categorySlug}
+                  className="mt-2 inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-steel-600 px-4 text-center text-[13px] font-bold text-white transition hover:border-amber-300 hover:text-amber-300"
+                >
+                  {link.label}
+                </TrackedArticleLink>
+              ))}
             </section>
           </aside>
         </div>
