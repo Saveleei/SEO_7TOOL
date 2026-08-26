@@ -56,6 +56,7 @@ type EditorialApproval = {
   actorType: "HUMAN";
   approvedAt: string;
   publishedAt: string;
+  updatedAt?: string;
   draftSha256: string;
   mediaManifestSha256: string;
 };
@@ -175,7 +176,8 @@ function projectEditorialArticle(slug: string, allowDraft: boolean): PublishedAr
   try {
     const { draft, approval, approved } = files;
     const publicationDate = approved && approval ? new Date(approval.publishedAt).getTime() : Date.now();
-    if (!Number.isFinite(publicationDate)) return undefined;
+    const updatedDate = approved && approval?.updatedAt ? new Date(approval.updatedAt).getTime() : publicationDate;
+    if (!Number.isFinite(publicationDate) || !Number.isFinite(updatedDate)) return undefined;
     const wordCount = JSON.stringify(draft.content).replace(/[^a-zа-яё0-9]+/giu, " ").trim().split(/\s+/u).filter(Boolean).length;
     return {
       id: `${approved ? "editorial" : "editorial-preview"}:${slug}`,
@@ -193,7 +195,7 @@ function projectEditorialArticle(slug: string, allowDraft: boolean): PublishedAr
       author: draft.editorialIdentity.author,
       expertReviewer: draft.editorialIdentity.expertReviewer,
       publishedAt: publicationDate,
-      updatedAt: publicationDate,
+      updatedAt: updatedDate,
       readingMinutes: Math.max(1, Math.ceil(wordCount / 180)),
       metaTitle: draft.metadata.metaTitle,
       metaDescription: draft.metadata.metaDescription,

@@ -13,6 +13,7 @@ const magneticDraftPath = path.resolve(import.meta.dirname, "../editorial-drafts
 const magneticEditorialRoot = path.dirname(magneticDraftPath);
 const magneticManifestPath = path.join(magneticEditorialRoot, "media-manifest.json");
 const magneticApprovalPath = path.join(magneticEditorialRoot, "approval.json");
+const articleTemplatePath = path.resolve(import.meta.dirname, "../src/app/articles/[slug]/page.tsx");
 
 function sha256(filePath) {
   return createHash("sha256").update(fs.readFileSync(filePath)).digest("hex").toUpperCase();
@@ -85,6 +86,7 @@ test("magnetic drill article approval is human, checksum-bound and excludes wate
   assert.equal(approval.indexStatus, "INDEX");
   assert.equal(approval.actorType, "HUMAN");
   assert.equal(approval.approvedBy, draft.editorialIdentity.expertReviewer);
+  assert.ok(new Date(approval.updatedAt).getTime() > new Date(approval.publishedAt).getTime());
   assert.equal(approval.draftSha256, sha256(magneticDraftPath));
   assert.equal(approval.mediaManifestSha256, sha256(magneticManifestPath));
   assert.equal(manifest.images.length, 4);
@@ -102,4 +104,13 @@ test("magnetic drill article approval is human, checksum-bound and excludes wate
     assert.ok(fs.existsSync(localFile), `Missing approved article image: ${image.file}`);
     assert.equal(image.sha256, sha256(localFile));
   }
+});
+
+test("article template surfaces engineering selection on mobile and cache-busts refreshed media", () => {
+  const template = fs.readFileSync(articleTemplatePath, "utf8");
+  assert.match(template, /shadow-card lg:hidden/u);
+  assert.match(template, /href="#intent-lead-form"/u);
+  assert.match(template, /Смотреть магнитные станки/u);
+  assert.match(template, /revision=\{article\.updatedAt\}/u);
+  assert.match(template, /versionedUrl/u);
 });

@@ -151,6 +151,22 @@ export default async function ArticlePage({ params }: RouteProps) {
         </header>
 
         <div className="mx-auto grid max-w-[1160px] gap-10 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[minmax(0,760px)_280px] lg:items-start">
+          <section className="rounded-[14px] border border-amber-300 bg-steel-900 p-5 text-white shadow-card lg:hidden">
+            <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-300">{leadProfile.eyebrow}</div>
+            <h2 className="mt-3 font-display text-[22px] font-extrabold leading-tight">{leadProfile.title}</h2>
+            <p className="mt-3 text-[13px] leading-6 text-steel-300">{leadProfile.description}</p>
+            <Link href="#intent-lead-form" className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-amber-400 px-4 text-center text-[13px] font-extrabold text-steel-900 transition hover:bg-amber-300">{leadProfile.cta}</Link>
+            <TrackedArticleLink
+              href={`/c/${article.categorySlug}`}
+              event="CATEGORY_CLICK_FROM_ARTICLE"
+              articleId={article.id}
+              category={article.categorySlug}
+              className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-steel-600 px-4 text-center text-[13px] font-bold text-white transition hover:border-amber-300 hover:text-amber-300"
+            >
+              Смотреть магнитные станки
+            </TrackedArticleLink>
+          </section>
+
           <article id={`article-content-${article.id}`} className="min-w-0">
             <section className="rounded-[14px] border border-amber-200 bg-amber-50/70 p-6 sm:p-7">
               <h2 className="font-display text-[23px] font-extrabold tracking-tight text-steel-900">Короткий ответ</h2>
@@ -161,7 +177,7 @@ export default async function ArticlePage({ params }: RouteProps) {
               </div>
             </section>
 
-            {leadImages.map((image) => <ArticleMedia key={image.id} image={image} priority={image.slotType === "HERO"} />)}
+            {leadImages.map((image) => <ArticleMedia key={image.id} image={image} revision={article.updatedAt} priority={image.slotType === "HERO"} />)}
 
             <div className="mt-10 space-y-12">
               {article.content.sections.map((section) => {
@@ -174,15 +190,15 @@ export default async function ArticlePage({ params }: RouteProps) {
                     </div>
                     {sectionImages.length > 1 ? (
                       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {sectionImages.map((image) => <ArticleMedia key={image.id} image={image} />)}
+                        {sectionImages.map((image) => <ArticleMedia key={image.id} image={image} revision={article.updatedAt} />)}
                       </div>
-                    ) : sectionImages.map((image) => <ArticleMedia key={image.id} image={image} />)}
+                    ) : sectionImages.map((image) => <ArticleMedia key={image.id} image={image} revision={article.updatedAt} />)}
                   </section>
                 );
               })}
             </div>
 
-            {unanchoredInlineImages.map((image) => <ArticleMedia key={image.id} image={image} />)}
+            {unanchoredInlineImages.map((image) => <ArticleMedia key={image.id} image={image} revision={article.updatedAt} />)}
 
             {article.faq.length > 0 && (
               <section className="mt-14 border-t border-steel-200 pt-10">
@@ -305,7 +321,7 @@ export default async function ArticlePage({ params }: RouteProps) {
                 </ul>
               </section>
             )}
-            <section className="rounded-[14px] border border-amber-300 bg-steel-900 p-5 text-white shadow-card">
+            <section className="hidden rounded-[14px] border border-amber-300 bg-steel-900 p-5 text-white shadow-card lg:block">
               <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-300">{leadProfile.eyebrow}</div>
               <h2 className="mt-3 font-display text-[20px] font-extrabold leading-tight">{leadProfile.title}</h2>
               <p className="mt-3 text-[13px] leading-6 text-steel-300">{leadProfile.description}</p>
@@ -384,14 +400,18 @@ function ContentBlock({ block, sourceNumbers }: { block: ArticleBlock; sourceNum
   );
 }
 
-function ArticleMedia({ image, priority = false }: { image: PublishedArticleImage; priority?: boolean }) {
+function ArticleMedia({ image, revision, priority = false }: { image: PublishedArticleImage; revision: number; priority?: boolean }) {
   const avif = image.variants.filter((variant) => variant.mime === "image/avif").sort((left, right) => left.width - right.width);
   const webp = image.variants.filter((variant) => variant.mime === "image/webp").sort((left, right) => left.width - right.width);
   const jpeg = image.variants.filter((variant) => variant.mime === "image/jpeg").sort((left, right) => left.width - right.width);
   const png = image.variants.filter((variant) => variant.mime === "image/png").sort((left, right) => left.width - right.width);
   const fallback = png.at(-1) ?? jpeg.at(-1) ?? webp.at(-1) ?? avif.at(-1);
   if (!fallback) return null;
-  const srcSet = (variants: PublishedArticleImage["variants"]) => variants.map((variant) => `${variant.url} ${variant.width}w`).join(", ");
+  const revisionToken = Math.floor(revision / 1000).toString(36);
+  const versionedUrl = (url: string) => url.startsWith("/images/articles/")
+    ? `${url}${url.includes("?") ? "&" : "?"}v=${revisionToken}`
+    : url;
+  const srcSet = (variants: PublishedArticleImage["variants"]) => variants.map((variant) => `${versionedUrl(variant.url)} ${variant.width}w`).join(", ");
   const isDiagram = image.aiGenerated || new Set(["DIAGRAM", "COMPARISON"]).has(image.slotType);
   return (
     <figure className={`mt-8 overflow-hidden rounded-[14px] border ${isDiagram ? "border-cobalt-200 bg-cobalt-50/40" : "border-steel-200 bg-white"}`}>
@@ -400,7 +420,7 @@ function ArticleMedia({ image, priority = false }: { image: PublishedArticleImag
         {webp.length > 0 && <source type="image/webp" srcSet={srcSet(webp)} sizes="(max-width: 820px) 100vw, 760px" />}
         {avif.length > 0 || webp.length > 0 ? (
           <img
-            src={fallback.url}
+            src={versionedUrl(fallback.url)}
             alt={image.alt}
             width={fallback.width}
             height={fallback.height}
@@ -411,7 +431,7 @@ function ArticleMedia({ image, priority = false }: { image: PublishedArticleImag
           />
         ) : (
           <Image
-            src={fallback.url}
+            src={versionedUrl(fallback.url)}
             alt={image.alt}
             width={fallback.width}
             height={fallback.height}
