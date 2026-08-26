@@ -143,6 +143,21 @@ export default async function ArticlePage({ params }: RouteProps) {
             </div>
             <h1 className="mt-5 max-w-[940px] font-display text-[34px] font-black leading-[1.08] tracking-tight text-steel-900 sm:text-[48px] lg:text-[58px]">{article.h1}</h1>
             <p className="mt-5 max-w-[820px] text-[16px] leading-7 text-steel-600 sm:text-[18px]">{article.excerpt}</p>
+            <section className="mt-7 rounded-[14px] border border-amber-300 bg-steel-900 p-5 text-white shadow-card lg:hidden">
+              <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-300">{leadProfile.eyebrow}</div>
+              <h2 className="mt-3 font-display text-[22px] font-extrabold leading-tight">{leadProfile.title}</h2>
+              <p className="mt-3 text-[13px] leading-6 text-steel-300">{leadProfile.description}</p>
+              <Link href="#intent-lead-form" className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-amber-400 px-4 text-center text-[13px] font-extrabold text-steel-900 transition hover:bg-amber-300">{leadProfile.cta}</Link>
+              <TrackedArticleLink
+                href={`/c/${article.categorySlug}`}
+                event="CATEGORY_CLICK_FROM_ARTICLE"
+                articleId={article.id}
+                category={article.categorySlug}
+                className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-steel-600 px-4 text-center text-[13px] font-bold text-white transition hover:border-amber-300 hover:text-amber-300"
+              >
+                Смотреть магнитные станки
+              </TrackedArticleLink>
+            </section>
             <div className="mt-7 flex flex-wrap gap-x-7 gap-y-2 border-t border-steel-100 pt-5 text-[12px] text-steel-500">
               <span><strong className="text-steel-800">Автор:</strong> {article.author}</span>
               <span><strong className="text-steel-800">Экспертная проверка:</strong> {article.expertReviewer}</span>
@@ -151,22 +166,6 @@ export default async function ArticlePage({ params }: RouteProps) {
         </header>
 
         <div className="mx-auto grid max-w-[1160px] gap-10 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[minmax(0,760px)_280px] lg:items-start">
-          <section className="rounded-[14px] border border-amber-300 bg-steel-900 p-5 text-white shadow-card lg:hidden">
-            <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-300">{leadProfile.eyebrow}</div>
-            <h2 className="mt-3 font-display text-[22px] font-extrabold leading-tight">{leadProfile.title}</h2>
-            <p className="mt-3 text-[13px] leading-6 text-steel-300">{leadProfile.description}</p>
-            <Link href="#intent-lead-form" className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-amber-400 px-4 text-center text-[13px] font-extrabold text-steel-900 transition hover:bg-amber-300">{leadProfile.cta}</Link>
-            <TrackedArticleLink
-              href={`/c/${article.categorySlug}`}
-              event="CATEGORY_CLICK_FROM_ARTICLE"
-              articleId={article.id}
-              category={article.categorySlug}
-              className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-steel-600 px-4 text-center text-[13px] font-bold text-white transition hover:border-amber-300 hover:text-amber-300"
-            >
-              Смотреть магнитные станки
-            </TrackedArticleLink>
-          </section>
-
           <article id={`article-content-${article.id}`} className="min-w-0">
             <section className="rounded-[14px] border border-amber-200 bg-amber-50/70 p-6 sm:p-7">
               <h2 className="font-display text-[23px] font-extrabold tracking-tight text-steel-900">Короткий ответ</h2>

@@ -108,7 +108,7 @@ test("magnetic drill article approval is human, checksum-bound and excludes wate
 
 test("article template surfaces engineering selection on mobile and cache-busts refreshed media", () => {
   const template = fs.readFileSync(articleTemplatePath, "utf8");
-  assert.match(template, /shadow-card lg:hidden/u);
+  assert.match(template, /\{article\.excerpt\}<\/p>\s+<section className="mt-7[^"]*shadow-card lg:hidden"/u);
   assert.match(template, /href="#intent-lead-form"/u);
   assert.match(template, /Смотреть магнитные станки/u);
   assert.match(template, /revision=\{article\.updatedAt\}/u);
