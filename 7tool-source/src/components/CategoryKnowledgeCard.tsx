@@ -16,13 +16,22 @@ const knowledgeByCategory: Record<string, KnowledgeItem[]> = {
     description: "Сравнение HSS и TCT, проверка хвостовика Weldon, рабочей глубины, направляющего штифта и совместимости со станком.",
     linkLabel: "Перейти к руководству",
   }],
-  "stanki-sverlilnye/magnitnye": [{
-    href: "/articles/kak-vybrat-koronchatoe-sverlo",
-    eyebrow: "Оснастка для магнитного станка",
-    title: "Подбор корончатого сверла к станку",
-    description: "Что проверить перед заказом оснастки: диаметр, глубину реза, посадку, направляющий штифт и подачу СОЖ.",
-    linkLabel: "Открыть руководство по подбору",
-  }],
+  "stanki-sverlilnye/magnitnye": [
+    {
+      href: "/articles/kak-vybrat-magnitnyy-sverlilnyy-stanok",
+      eyebrow: "Руководство по оборудованию",
+      title: "Как выбрать магнитный сверлильный станок",
+      description: "Подбор по диаметру и глубине сверления, габаритам, шпинделю, рабочему ходу, скоростям, реверсу и условиям установки.",
+      linkLabel: "Открыть руководство по станкам",
+    },
+    {
+      href: "/articles/kak-vybrat-koronchatoe-sverlo",
+      eyebrow: "Оснастка для магнитного станка",
+      title: "Подбор корончатого сверла к станку",
+      description: "Что проверить перед заказом оснастки: диаметр, глубину реза, посадку, направляющий штифт и подачу СОЖ.",
+      linkLabel: "Открыть руководство по подбору",
+    },
+  ],
 };
 
 export function CategoryKnowledgeCard({ categoryKey }: { categoryKey: string }) {

@@ -60,9 +60,19 @@ export default async function ArticlePage({ params }: RouteProps) {
   const semanticHrefs = new Set(semanticLinks?.items.map((item) => item.href) ?? []);
   const targetProducts = article.targetProducts.filter((product) => !semanticHrefs.has(`/p/${product.slug}`));
   const relatedArticles = article.relatedArticles.filter((related) => !semanticHrefs.has(`/articles/${related.slug}`));
-  const compatibleCategoryLinks = article.categorySlug === "koronchatye-sverla"
-    ? [{ href: "/c/stanki-sverlilnye/magnitnye", label: "Подобрать магнитный станок для корончатого сверления" }]
-    : [];
+  const articleCatalogCta = article.categorySlug === "stanki-sverlilnye/magnitnye"
+    ? {
+        description: "Сравните диаметр корончатого сверления, шпиндель, рабочий ход, число скоростей и наличие реверса.",
+        label: "Магнитные сверлильные станки",
+        compatibleLinks: [{ href: "/c/koronchatye-sverla", label: "Корончатые свёрла для станка" }],
+      }
+    : {
+        description: "Сравните HSS и TCT, диаметры, рабочую длину и хвостовики.",
+        label: "Корончатые свёрла",
+        compatibleLinks: article.categorySlug === "koronchatye-sverla"
+          ? [{ href: "/c/stanki-sverlilnye/magnitnye", label: "Подобрать магнитный станок для корончатого сверления" }]
+          : [],
+      };
   const leadProfile = getLeadProfile({ leadFormType: article.leadFormType, intentClass: article.intentClass, categorySlug: article.categorySlug });
   const leadProduct = article.targetProducts[0];
   const sourceNumbers = new Map(article.sources.map((source, index) => [source.sourceRef, index + 1]));
@@ -184,7 +194,7 @@ export default async function ArticlePage({ params }: RouteProps) {
               <div className="mt-4 flex flex-col items-start gap-3 rounded-[12px] border border-steel-200 bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-[14px] font-bold text-steel-900">Хотите выбрать самостоятельно?</p>
-                  <p className="mt-1 text-[12px] leading-5 text-steel-600">Откройте категорию, сравните HSS и TCT, диаметры, рабочую длину и хвостовики.</p>
+                  <p className="mt-1 text-[12px] leading-5 text-steel-600">{articleCatalogCta.description}</p>
                 </div>
                 <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto">
                   <TrackedArticleLink
@@ -194,9 +204,9 @@ export default async function ArticlePage({ params }: RouteProps) {
                     category={article.categorySlug}
                     className="inline-flex min-h-11 items-center justify-center rounded-lg bg-amber-400 px-5 text-center text-[13px] font-extrabold text-steel-900 transition hover:bg-amber-300"
                   >
-                    Корончатые свёрла
+                    {articleCatalogCta.label}
                   </TrackedArticleLink>
-                  {compatibleCategoryLinks.map((link) => (
+                  {articleCatalogCta.compatibleLinks.map((link) => (
                     <TrackedArticleLink
                       key={link.href}
                       href={link.href}
@@ -289,7 +299,7 @@ export default async function ArticlePage({ params }: RouteProps) {
               >
                 Смотреть каталог
               </TrackedArticleLink>
-              {compatibleCategoryLinks.map((link) => (
+              {articleCatalogCta.compatibleLinks.map((link) => (
                 <TrackedArticleLink
                   key={link.href}
                   href={link.href}

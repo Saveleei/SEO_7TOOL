@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "EDITORIAL_APPROVAL_V1",
+  "status": "APPROVED_FOR_PUBLICATION",
+  "indexStatus": "INDEX",
+  "slug": "kak-vybrat-magnitnyy-sverlilnyy-stanok",
+  "approvedBy": "Евгений Савельев",
+  "actorType": "HUMAN",
+  "approvedAt": "2026-08-26T16:29:54+03:00",
+  "publishedAt": "2026-08-26T16:29:54+03:00",
+  "draftSha256": "06801B61410FB111DDEA83780571E21F48EA7EC5BC1F4D6B717E3F24AFF082AA",
+  "mediaManifestSha256": "E8482F681511D17EC52584D90B05F1C180549828DA3F123950E6FB67A33CA3BB",
+  "reviewScope": [
+    "CONTENT",
+    "FACTS",
+    "SEO",
+    "EXPERT_REVIEW",
+    "IMAGES",
+    "INTERNAL_LINKS",
+    "FINAL_PUBLICATION"
+  ],
+  "decision": "Владелец 7TOOL делегировал редакционный цикл и публикацию командой «сделай автономно» 26.08.2026. Технические утверждения ограничены первичными источниками производителей и актуальным товарным фидом."
+}

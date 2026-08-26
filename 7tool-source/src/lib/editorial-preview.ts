@@ -23,9 +23,16 @@ type EditorialDraft = {
   slug: string;
   canonical: string;
   categorySlug: string;
+  categoryTitle?: string;
+  clusterId?: string;
+  intent?: string;
+  intentKey?: string;
+  intentClass?: string;
+  leadFormType?: string;
   primaryKeyword: string;
   secondaryKeywords: string[];
   requiredProductSlugs: string[];
+  relatedArticleSlugs?: string[];
   editorialIdentity: { author: string; expertReviewer: string };
   metadata: {
     title: string;
@@ -69,6 +76,10 @@ const previewImageLayout: Record<string, {
   "feed-magnetic-drill-lenz-steyr-35": { slotType: "INLINE", sectionHeading: "Как проверить хвостовик и совместимость со станком", width: 745, height: 1200 },
   "feed-magnetic-drill-bds-mabasic-200": { slotType: "INLINE", sectionHeading: "Как проверить хвостовик и совместимость со станком", width: 679, height: 898 },
   "feed-magnetic-drill-heden-dm-36k": { slotType: "INLINE", sectionHeading: "Как проверить хвостовик и совместимость со станком", width: 639, height: 1200 },
+  "k2tool-magnetic-drill-range": { slotType: "HERO", sectionHeading: null, width: 1920, height: 1240 },
+  "k2tool-speed-and-reverse-controls": { slotType: "INLINE", sectionHeading: "Скорость, реверс и режимы под задачу", width: 1414, height: 968 },
+  "k2tool-thread-tapping-operation": { slotType: "INLINE", sectionHeading: "Скорость, реверс и режимы под задачу", width: 1200, height: 900 },
+  "k2tool-weldon-holders": { slotType: "INLINE", sectionHeading: "Шпиндель, держатель и оснастка", width: 1200, height: 650 },
 };
 
 function draftImages(images: DraftImage[]): PublishedArticleImage[] {
@@ -91,7 +102,11 @@ function draftImages(images: DraftImage[]): PublishedArticleImage[] {
         url: image.localPath,
         width: layout.width,
         height: layout.height,
-        mime: image.localPath.toLowerCase().endsWith(".png") ? "image/png" as const : "image/jpeg" as const,
+        mime: image.localPath.toLowerCase().endsWith(".png")
+          ? "image/png" as const
+          : image.localPath.toLowerCase().endsWith(".webp")
+            ? "image/webp" as const
+            : "image/jpeg" as const,
       }],
     }];
   });
@@ -102,11 +117,12 @@ function sha256(filePath: string) {
 }
 
 function draftTargetProducts(paths: string[], categorySlug: string): PublishedArticle["targetProducts"] {
+  const catalogCategory = categorySlug.split("/")[0];
   return paths.flatMap((targetPath) => {
     const match = /^\/p\/([a-z0-9-]+)$/u.exec(targetPath);
     if (!match) return [];
     const product = productBySlug(match[1]);
-    if (!product || product.category !== categorySlug) return [];
+    if (!product || product.category !== catalogCategory) return [];
     return [{ id: product.id, slug: product.slug, title: product.title, brand: product.brand ?? null }];
   });
 }
@@ -143,6 +159,15 @@ function readEditorialFiles(slug: string) {
   }
 }
 
+function draftRelatedArticles(slugs: string[] | undefined, currentSlug: string): PublishedArticle["relatedArticles"] {
+  return (slugs ?? []).flatMap((slug) => {
+    if (slug === currentSlug) return [];
+    const files = readEditorialFiles(slug);
+    if (!files?.approved) return [];
+    return [{ slug, title: files.draft.metadata.title, excerpt: files.draft.metadata.excerpt }];
+  });
+}
+
 function projectEditorialArticle(slug: string, allowDraft: boolean): PublishedArticle | undefined {
   const files = readEditorialFiles(slug);
   if (!files || (!files.approved && !allowDraft)) return undefined;
@@ -159,11 +184,11 @@ function projectEditorialArticle(slug: string, allowDraft: boolean): PublishedAr
       h1: draft.metadata.h1,
       excerpt: draft.metadata.excerpt,
       categorySlug: draft.categorySlug,
-      categoryTitle: "Корончатые свёрла",
-      clusterId: "wordstat-russia-koronchatye-sverla",
-      intent: "Выбор корончатого сверла",
-      intentKey: "koronchatye-sverla:selection",
-      intentClass: "SELECTION",
+      categoryTitle: draft.categoryTitle ?? "Корончатые свёрла",
+      clusterId: draft.clusterId ?? "wordstat-russia-koronchatye-sverla",
+      intent: draft.intent ?? "Выбор корончатого сверла",
+      intentKey: draft.intentKey ?? "koronchatye-sverla:selection",
+      intentClass: draft.intentClass ?? "SELECTION",
       author: draft.editorialIdentity.author,
       expertReviewer: draft.editorialIdentity.expertReviewer,
       publishedAt: publicationDate,
@@ -180,7 +205,7 @@ function projectEditorialArticle(slug: string, allowDraft: boolean): PublishedAr
       differentiationScore: approved ? 75 : 0,
       businessScore: approved ? 90 : 0,
       targetProducts: draftTargetProducts(draft.requiredProductSlugs, draft.categorySlug),
-      relatedArticles: [],
+      relatedArticles: draftRelatedArticles(draft.relatedArticleSlugs, draft.slug),
       images: draftImages(draft.brief.relevantSupplierImages),
       sources: draft.sourceRegistry.map((source) => ({
         sourceRef: source.sourceRef,
@@ -189,7 +214,7 @@ function projectEditorialArticle(slug: string, allowDraft: boolean): PublishedAr
         claimText: source.claimScope,
       })),
       faq: draft.content.faq,
-      leadFormType: "CUTTER_SELECTION",
+      leadFormType: draft.leadFormType ?? "CUTTER_SELECTION",
       generatedByAi: draft.generatedByAi,
       humanReviewed: approved,
       expertProfile: null,

@@ -93,11 +93,13 @@ test("статья и категории используют только ко�
   const draft = JSON.parse(read("editorial-drafts/kak-vybrat-koronchatoe-sverlo/draft.json"));
 
   assert.match(knowledgeCard, /"koronchatye-sverla"[\s\S]*Как выбрать корончатое сверло/u);
-  assert.match(knowledgeCard, /"stanki-sverlilnye\/magnitnye"[\s\S]*Подбор корончатого сверла к станку/u);
+  assert.match(knowledgeCard, /"stanki-sverlilnye\/magnitnye"[\s\S]*Как выбрать магнитный сверлильный станок[\s\S]*Подбор корончатого сверла к станку/u);
   assert.match(articlePage, /article\.categorySlug === "koronchatye-sverla"[\s\S]*Подобрать магнитный станок для корончатого сверления/u);
+  assert.match(articlePage, /article\.categorySlug === "stanki-sverlilnye\/magnitnye"[\s\S]*Корончатые свёрла для станка/u);
   const editorialProjection = read("src/lib/editorial-preview.ts");
   assert.match(editorialProjection, /draftTargetProducts\(draft\.requiredProductSlugs, draft\.categorySlug\)/u);
-  assert.match(editorialProjection, /product\.category !== categorySlug/u);
+  assert.match(editorialProjection, /catalogCategory = categorySlug\.split\("\/"\)\[0\][\s\S]*product\.category !== catalogCategory/u);
+  assert.match(editorialProjection, /draftRelatedArticles\(draft\.relatedArticleSlugs, draft\.slug\)/u);
   assert.deepEqual(draft.requiredProductSlugs, [
     "/p/sverla-koronchatye-lzhs",
     "/p/sverla-koronchatye-lzhm",
