@@ -83,6 +83,9 @@ export default async function CategoryPage({ params, searchParams }: RouteProps)
   const facetNames = listingFacetNames(items);
   const listingItems = items.map((product) => productForListing(product, facetNames));
   const content = contentForCategory(slug, cat.title);
+  const seoParagraphs = cat.seoText
+    ? cat.seoText.split(/\n\s*\n/u).map((paragraph) => paragraph.trim()).filter(Boolean)
+    : content.seoText;
   const subcategories = getSubcategoriesForCategory(slug);
   const brands = Array.from(new Set(items.map((p) => p.brand))).filter((b) => b && b !== "—");
 
@@ -193,7 +196,7 @@ export default async function CategoryPage({ params, searchParams }: RouteProps)
           <div className="mx-auto max-w-[980px] px-4 py-10 sm:px-6 sm:py-14">
             <h2 className="font-display text-[24px] font-extrabold tracking-tight text-steel-900">{content.seoTitle}</h2>
             <div className="mt-4 space-y-3 text-[14px] leading-7 text-steel-700">
-              {(cat.seoText ? [cat.seoText] : content.seoText).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+              {seoParagraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
             </div>
             <div className="mt-6 grid gap-3 rounded-[12px] border border-steel-200 bg-steel-50/60 p-4 text-[13px] text-steel-700 sm:grid-cols-3">
               <span><strong className="text-steel-900">Оплата:</strong> счёт с НДС</span>

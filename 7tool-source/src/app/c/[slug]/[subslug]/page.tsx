@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { categoryBySlug } from "@/lib/data";
 import { getSubcategory, getSubcategoriesForCategory, publishedSubcategories } from "@/lib/subcategories";
 import { absoluteUrl } from "@/lib/site-config";
@@ -50,7 +51,7 @@ export async function generateMetadata({
   return {
     title: pageTitle(page > 1 && !filtered ? `${subcategory.metaTitle} — страница ${page}` : subcategory.metaTitle),
     description: page > 1 && !filtered ? `${subcategory.metaDescription} Страница ${page}.` : subcategory.metaDescription,
-    keywords: [
+    keywords: subcategory.keywords ?? [
       subcategory.title.toLocaleLowerCase("ru"),
       `${subcategory.title.toLocaleLowerCase("ru")} купить`,
     ],
@@ -89,6 +90,12 @@ export default async function SubcategoryPage({
   const siblings = getSubcategoriesForCategory(slug);
   const brands = Array.from(new Set(subcategory.items.map((product) => product.brand))).filter(Boolean);
   const content = contentForCategory(slug, category.title);
+  const seoParagraphs = subcategory.seoText
+    .split(/\n\s*\n/u)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+  const faq = subcategory.faq ?? [];
+  const relatedLinks = subcategory.relatedLinks ?? [];
   const facetNames = listingFacetNames(subcategory.items);
   const listingItems = subcategory.items.map((product) => productForListing(product, facetNames));
   const ld = {
@@ -117,10 +124,20 @@ export default async function SubcategoryPage({
       })),
     },
   };
+  const faqLd = faq.length ? {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faq.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: { "@type": "Answer", text: item.answer },
+    })),
+  } : null;
 
   return (
     <>
       <StructuredData data={ld} />
+      <StructuredData data={faqLd} />
       <SiteHeader />
       <main>
         <header className="border-b border-steel-200 bg-steel-900 text-white">
@@ -149,14 +166,43 @@ export default async function SubcategoryPage({
         <CategorySelectionForm
           category={slug}
           categoryTitle={category.title}
-          fields={content.selectionFields}
-          heading={content.selectionTitle}
+          fields={subcategory.selectionFields ?? content.selectionFields}
+          heading={subcategory.selectionTitle ?? content.selectionTitle}
           subcategory={subcategory.title}
         />
         <section className="border-t border-steel-200 bg-white">
           <div className="mx-auto max-w-[980px] px-4 py-10 sm:px-6 sm:py-14">
-            <h2 className="font-display text-[24px] font-extrabold text-steel-900">О подборке</h2>
-            <p className="mt-4 text-[14px] leading-7 text-steel-700">{subcategory.seoText}</p>
+            <h2 className="font-display text-[24px] font-extrabold text-steel-900">{subcategory.seoTitle ?? "О подборке"}</h2>
+            <div className="mt-4 space-y-3 text-[14px] leading-7 text-steel-700">
+              {seoParagraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+            </div>
+            {relatedLinks.length > 0 && (
+              <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-[14px] leading-7 text-steel-700">
+                <span>Связанные разделы:</span>
+                {relatedLinks.map((link) => (
+                  <Link key={link.href} href={link.href} className="font-bold text-amber-800 underline decoration-amber-300 underline-offset-4 hover:text-amber-700">
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+            {faq.length > 0 && (
+              <div className="mt-10 border-t border-steel-200 pt-8">
+                <h2 className="font-display text-[22px] font-extrabold tracking-tight text-steel-900">
+                  Вопросы о выборе оборудования
+                </h2>
+                <div className="mt-4 divide-y divide-steel-200 rounded-[12px] border border-steel-200 bg-white px-4 sm:px-6">
+                  {faq.map((item) => (
+                    <details key={item.question} className="group py-4">
+                      <summary className="cursor-pointer list-none pr-8 text-[14px] font-bold text-steel-900 marker:content-none">
+                        {item.question}
+                      </summary>
+                      <p className="mt-3 max-w-[820px] text-[14px] leading-7 text-steel-700">{item.answer}</p>
+                    </details>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </section>
       </main>

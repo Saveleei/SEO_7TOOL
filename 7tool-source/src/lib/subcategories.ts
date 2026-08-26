@@ -1,5 +1,6 @@
 import { categories, products, subcategoryOverrides } from "./data";
 import { cleanParamName, type Product } from "./catalog";
+import type { SelectionField } from "./category-content";
 
 type TitleRule = { field: "title"; pattern: string };
 type BrandRule = { field: "brand"; values: string[] };
@@ -17,6 +18,12 @@ export type SubcategoryDefinition = {
   seoText: string;
   metaTitle: string;
   metaDescription: string;
+  keywords?: string[];
+  seoTitle?: string;
+  faq?: { question: string; answer: string }[];
+  selectionTitle?: string;
+  selectionFields?: SelectionField[];
+  relatedLinks?: { href: string; label: string }[];
   image?: string;
   imageAlt?: string;
   published: boolean;
@@ -494,6 +501,61 @@ const baseDefinitions: SubcategoryDefinition[] = [
   },
 ];
 
+// Проверенные редакционные настройки живут поверх snapshot из админки и фида.
+// Это защищает точные SEO-посадочные от возврата к общему шаблонному тексту
+// после очередного экспорта каталога.
+const reviewedContentOverrides: Record<string, Partial<SubcategoryDefinition>> = {
+  "stanki-sverlilnye/magnitnye": {
+    shortDescription: "Магнитные сверлильные станки на электромагнитном основании для сверления металлоконструкций.",
+    intro: "Магнитные сверлильные станки по металлу для корончатого и спирального сверления на металлоконструкциях. Сравните модели по максимальному диаметру, шпинделю, реверсу и основанию, затем запросите подбор станка и совместимой оснастки.",
+    metaTitle: "Магнитные сверлильные станки по металлу — купить в 7TOOL",
+    metaDescription: "Магнитные сверлильные станки на электромагнитном основании. Подбор по диаметру сверления, шпинделю и реверсу, цены с НДС и доставка по России.",
+    keywords: [
+      "магнитный сверлильный станок",
+      "магнитный сверлильный станок купить",
+      "сверлильный станок на магнитном основании",
+      "станок на магнитной подошве",
+      "магнитная дрель",
+      "машина сверлильная на электромагнитном основании",
+      "станок для корончатого сверления",
+    ],
+    seoTitle: "Как выбрать магнитный сверлильный станок",
+    seoText: [
+      "Основные исходные данные — требуемый диаметр и глубина отверстия, материал и толщина заготовки, положение работы и доступное пространство. Затем сравнивают максимальный диаметр сверления, рабочий ход, шпиндель, число скоростей и параметры основания по паспорту конкретной модели.",
+      "Для корончатого сверления заранее проверяют совместимость хвостовика и допустимый диапазон оснастки. Если в задаче есть нарезание резьбы, отдельно проверяют реверс, регулировку частоты вращения и допустимый размер метчика. Наличие функции нельзя определять только по названию товара.",
+      "Станок и расходные материалы лучше подбирать как комплект: корончатое сверло, направляющий штифт и СОЖ должны соответствовать выбранной серии и операции. В форме подбора укажите параметры задачи — специалист сопоставит их с характеристиками конкретных моделей.",
+    ].join("\n\n"),
+    selectionTitle: "Подбор магнитного сверлильного станка",
+    selectionFields: [
+      { name: "hole", label: "Отверстие: диаметр и глубина", placeholder: "Например, Ø35 мм, глубина 50 мм" },
+      { name: "workpiece", label: "Заготовка и положение работы", placeholder: "Материал, толщина; горизонтально, вертикально или над головой" },
+      { name: "operations", label: "Операции и оснастка", placeholder: "Корончатое/спиральное сверление, резьба; хвостовик" },
+    ],
+    relatedLinks: [
+      { href: "/c/koronchatye-sverla", label: "Корончатые свёрла по металлу" },
+      { href: "/c/koronchatye-sverla/weldon-19", label: "Корончатые свёрла Weldon 19" },
+    ],
+    faq: [
+      {
+        question: "Чем магнитный станок отличается от стационарного?",
+        answer: "Магнитная модель предназначена для фиксации на подходящей металлической поверхности непосредственно у места обработки. Стационарный станок устанавливают в цехе; окончательный выбор зависит от детали, операции и условий работы.",
+      },
+      {
+        question: "Какой диаметр сверления указывать при подборе?",
+        answer: "Нужен максимальный планируемый диаметр и тип инструмента: корончатое или спиральное сверло. Эти пределы в паспорте станка могут отличаться.",
+      },
+      {
+        question: "Когда нужен реверс?",
+        answer: "Реверс проверяют, если планируется нарезание резьбы или другая операция, для которой он предусмотрен производителем. Наличие функции берётся из характеристик конкретной модели.",
+      },
+      {
+        question: "Можно ли сразу подобрать корончатые свёрла?",
+        answer: "Да. Для этого сопоставляют шпиндель станка, хвостовик, диаметры, рабочую длину и рекомендации производителя оснастки.",
+      },
+    ],
+  },
+};
+
 // Порядок в массиве отражает пользовательский сценарий внутри каждой категории.
 // У явных админских настроек sortOrder остаётся приоритет.
 baseDefinitions.forEach((definition, index) => {
@@ -501,7 +563,6 @@ baseDefinitions.forEach((definition, index) => {
 });
 
 const definitions: SubcategoryDefinition[] = (() => {
-  if (!subcategoryOverrides.length) return baseDefinitions;
   const byKey = new Map(baseDefinitions.map((item) => [`${item.categorySlug}/${item.slug}`, item]));
   for (const raw of subcategoryOverrides) {
     const categorySlug = typeof raw.categorySlug === "string" ? raw.categorySlug : "";
@@ -517,6 +578,11 @@ const definitions: SubcategoryDefinition[] = (() => {
       rules,
     };
     byKey.set(`${categorySlug}/${slug}`, next);
+  }
+  for (const [key, reviewed] of Object.entries(reviewedContentOverrides)) {
+    const current = byKey.get(key);
+    if (!current) continue;
+    byKey.set(key, { ...current, ...reviewed });
   }
   return Array.from(byKey.values()).sort((a, b) =>
     a.categorySlug.localeCompare(b.categorySlug) ||

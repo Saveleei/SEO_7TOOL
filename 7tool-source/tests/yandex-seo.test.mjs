@@ -118,6 +118,12 @@ test("official-style Webmaster, Wordstat and Metrica JSON/CSV exports normalize 
   ] }), "wordstat");
   assert.deepEqual(wordstat.rows[0], { query: "магнитный станок", demandCount: 1200, sourceKeywordId: undefined });
 
+  const wordstatCsv = "Запросы со словами;Число запросов;Топ частотных запросов «магнитный сверлильный станок», 25.07.2026 — 25.08.2026, Россия, все устройства\rмагнитный сверлильный станок;9004;\rмагнитный сверлильный станок купить;904;\r";
+  const parsedWordstatCsv = parseYandexSeoImport(wordstatCsv, "wordstat");
+  assert.equal(parsedWordstatCsv.rows.length, 2);
+  assert.equal(parsedWordstatCsv.rows[0].query, "магнитный сверлильный станок");
+  assert.equal(parsedWordstatCsv.rows[0].demandCount, "9004");
+
   const metrica = parseYandexSeoImport(JSON.stringify({
     query: {
       dimensions: ["ym:s:date", "ym:s:startURL", "ym:s:lastsignSearchEngineRoot", "ym:s:lastsignSearchPhrase"],

@@ -3,6 +3,7 @@ const ALIASES = new Map([
   ["url", "page"], ["page", "page"], ["страница", "page"], ["адрес страницы", "page"],
   ["start url", "page"], ["landing page", "page"], ["ym:s:starturl", "page"],
   ["query", "query"], ["phrase", "query"], ["keyword", "query"], ["запрос", "query"], ["фраза", "query"],
+  ["запросы со словами", "query"],
   ["search phrase", "query"], ["ym:s:lastsignsearchphrase", "query"],
   ["query id", "queryId"], ["query_id", "queryId"], ["id запроса", "queryId"],
   ["queryid", "queryId"],
@@ -12,6 +13,7 @@ const ALIASES = new Map([
   ["clicks", "clicks"], ["клики", "clicks"], ["ctr", "ctr"],
   ["position", "position"], ["average position", "position"], ["позиция", "position"],
   ["count", "demandCount"], ["frequency", "demandCount"], ["частотность", "demandCount"],
+  ["число запросов", "demandCount"],
   ["demandcount", "demandCount"],
   ["category", "categorySlug"], ["category_slug", "categorySlug"], ["категория", "categorySlug"],
   ["categoryslug", "categorySlug"],
@@ -34,9 +36,19 @@ function header(value) {
 }
 
 function delimiterFor(text) {
-  const line = String(text).split(/\r?\n/, 1)[0] ?? "";
+  const line = String(text).split(/\r\n?|\n/, 1)[0] ?? "";
   if (line.includes("\t")) return "\t";
-  return line.split(";").length > line.split(",").length ? ";" : ",";
+  const knownHeaders = new Set(ALIASES.values());
+  const candidates = [";", ","].map((delimiter) => {
+    const fields = line.split(delimiter);
+    return {
+      delimiter,
+      fields: fields.length,
+      recognized: fields.map(header).filter((name) => knownHeaders.has(name)).length,
+    };
+  });
+  candidates.sort((left, right) => right.recognized - left.recognized || right.fields - left.fields);
+  return candidates[0].delimiter;
 }
 
 function parseCsv(text) {
@@ -53,15 +65,16 @@ function parseCsv(text) {
       else field += character;
     } else if (character === '"') quoted = true;
     else if (character === delimiter) { row.push(field); field = ""; }
-    else if (character === "\n") {
-      row.push(field.replace(/\r$/, ""));
+    else if (character === "\r" || character === "\n") {
+      if (character === "\r" && text[index + 1] === "\n") index += 1;
+      row.push(field);
       if (row.some((value) => value.trim())) rows.push(row);
       row = [];
       field = "";
     } else field += character;
   }
   if (quoted) throw new Error("Yandex CSV contains an unterminated quoted field");
-  row.push(field.replace(/\r$/, ""));
+  row.push(field);
   if (row.some((value) => value.trim())) rows.push(row);
   if (rows.length < 2) throw new Error("Yandex CSV must contain a header and at least one row");
   const headers = rows[0].map(header);

@@ -60,7 +60,7 @@ export const categoryContent: Record<string, LegacyCategoryContent> = {
     selectionFields: [
       { name: "diameter", label: "Диаметр отверстия", placeholder: "Например, 22 мм" },
       { name: "depth", label: "Глубина сверления", placeholder: "Например, 50 мм" },
-      { name: "material", label: "Материал", options: ["Сталь", "Нержавеющая сталь", "Чугун", "Алюминий", commonUnknown] },
+      { name: "compatibility", label: "Материал и станок / хвостовик", placeholder: "Например, сталь; LENZ STEYR-35 или Weldon 19" },
     ],
   },
   borfrezy: {
@@ -128,11 +128,11 @@ export const categoryContent: Record<string, LegacyCategoryContent> = {
       "Для подбора нужны диапазон диаметров, толщина стенки, материал и требуемая геометрия фаски. Способ крепления выбирают с учётом доступа к внутренней и наружной поверхности трубы.",
       "При серийной подготовке важны скорость переналадки и повторяемость, на монтажной площадке — габариты и тип привода.",
     ],
-    selectionTitle: "Подбор кромкореза для труб",
+    selectionTitle: "Подбор фаскоснимателя для труб",
     selectionFields: [
-      { name: "task", label: "Задача", options: ["Подготовить V- или X-фаску", "Торцевать трубу", "Снять внутреннюю фаску", "Обработать трубу на монтаже", "Серийная подготовка торцов", commonUnknown] },
-      { name: "diameter", label: "Диаметр трубы", placeholder: "Диапазон, мм" },
-      { name: "bevel", label: "Материал, стенка и фаска", placeholder: "Сталь; толщина, ширина и угол" },
+      { name: "pipe", label: "Труба: диаметры и стенка", placeholder: "Наружный/внутренний диаметр, толщина стенки" },
+      { name: "operation", label: "Операция и геометрия фаски", placeholder: "Торцевание, внешняя/внутренняя/J-фаска; угол и ширина" },
+      { name: "conditions", label: "Доступ, крепление и привод", placeholder: "Доступ изнутри/снаружи; электричество, воздух или другое" },
     ],
   },
   "karetki-svarochnye": {
