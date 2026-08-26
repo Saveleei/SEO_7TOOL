@@ -95,6 +95,9 @@ test("статья и категории используют только ко�
   assert.match(knowledgeCard, /"koronchatye-sverla"[\s\S]*Как выбрать корончатое сверло/u);
   assert.match(knowledgeCard, /"stanki-sverlilnye\/magnitnye"[\s\S]*Подбор корончатого сверла к станку/u);
   assert.match(articlePage, /article\.categorySlug === "koronchatye-sverla"[\s\S]*Подобрать магнитный станок для корончатого сверления/u);
+  const editorialProjection = read("src/lib/editorial-preview.ts");
+  assert.match(editorialProjection, /draftTargetProducts\(draft\.requiredProductSlugs, draft\.categorySlug\)/u);
+  assert.match(editorialProjection, /product\.category !== categorySlug/u);
   assert.deepEqual(draft.requiredProductSlugs, [
     "/p/sverla-koronchatye-lzhs",
     "/p/sverla-koronchatye-lzhm",

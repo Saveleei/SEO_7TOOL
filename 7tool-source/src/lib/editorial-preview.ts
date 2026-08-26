@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import type { ArticleContent, PublishedArticle, PublishedArticleImage } from "./articles-db";
+import { productBySlug } from "./data";
 
 type DraftImage = {
   id: string;
@@ -24,6 +25,7 @@ type EditorialDraft = {
   categorySlug: string;
   primaryKeyword: string;
   secondaryKeywords: string[];
+  requiredProductSlugs: string[];
   editorialIdentity: { author: string; expertReviewer: string };
   metadata: {
     title: string;
@@ -99,6 +101,16 @@ function sha256(filePath: string) {
   return createHash("sha256").update(fs.readFileSync(filePath)).digest("hex").toUpperCase();
 }
 
+function draftTargetProducts(paths: string[], categorySlug: string): PublishedArticle["targetProducts"] {
+  return paths.flatMap((targetPath) => {
+    const match = /^\/p\/([a-z0-9-]+)$/u.exec(targetPath);
+    if (!match) return [];
+    const product = productBySlug(match[1]);
+    if (!product || product.category !== categorySlug) return [];
+    return [{ id: product.id, slug: product.slug, title: product.title, brand: product.brand ?? null }];
+  });
+}
+
 function readEditorialFiles(slug: string) {
   if (!/^[a-z0-9-]+$/u.test(slug)) return undefined;
 
@@ -167,7 +179,7 @@ function projectEditorialArticle(slug: string, allowDraft: boolean): PublishedAr
       evidenceScore: approved ? 88 : 0,
       differentiationScore: approved ? 75 : 0,
       businessScore: approved ? 90 : 0,
-      targetProducts: [],
+      targetProducts: draftTargetProducts(draft.requiredProductSlugs, draft.categorySlug),
       relatedArticles: [],
       images: draftImages(draft.brief.relevantSupplierImages),
       sources: draft.sourceRegistry.map((source) => ({
