@@ -7,5 +7,5 @@
 - Production cron is backed up separately before mutation and will invoke shell scripts through `/bin/sh`.
 - Verification: focused feed operations test, syntax checks, controlled production run, public XML probe.
 - Known limitation: MAX token setup depends on bot moderation and portal access.
-- Commit SHA: pending.
+- Commit SHA: `1381b86`.
 - Review focus: fail-closed category settings guard, feed cache freshness, public-feed health thresholds.
