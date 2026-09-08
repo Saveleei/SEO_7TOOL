@@ -11,9 +11,12 @@ set +a
 
 cd "$APP_DIR"
 npm run db:backup
+node scripts/verify-category-settings.mjs
 node scripts/refresh-feed.mts
 npm run data:check
+node scripts/verify-category-settings.mjs
 npm run ads:feed
+node scripts/check-feed-health.mjs
 node scripts/generate-product-seo.mjs --if-configured --best-effort --limit "${SEO_AI_NIGHTLY_LIMIT:-100}"
 node scripts/generate-programmatic-seo.mjs
 cp src/lib/products.json /var/www/7tool-shared/products.json

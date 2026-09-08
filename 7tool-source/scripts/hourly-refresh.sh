@@ -10,9 +10,12 @@ set -a
 set +a
 
 cd "$APP_DIR"
+node scripts/verify-category-settings.mjs
 node scripts/refresh-feed.mts
 npm run data:check
+node scripts/verify-category-settings.mjs
 npm run ads:feed
+node scripts/check-feed-health.mjs
 cp src/lib/products.json /var/www/7tool-shared/products.json
 
 # Цены и остатки сайт читает из SQLite через /api/live, поэтому они видны сразу.

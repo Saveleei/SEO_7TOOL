@@ -15,9 +15,11 @@ const JSON_PATH = process.env.CATALOG_JSON_PATH ?? path.join(ROOT, "src", "lib",
 const DB_PATH = process.env.SQLITE_PATH ?? path.join(ROOT, "data.db");
 const FEED_URL = process.env.FEED_URL?.trim();
 const LOCAL_FEED = process.argv[2] ?? process.env.FEED_FILE ?? path.join(ROOT, "..", "dealer-2.xml");
+const FEED_CACHE_PATH = process.env.FEED_CACHE_PATH ?? LOCAL_FEED;
 const STATE_PATH = process.env.FEED_STATE_PATH ?? `${DB_PATH}.feed-state.json`;
 const LOCK_PATH = process.env.FEED_LOCK_PATH ?? `${DB_PATH}.feed.lock`;
 const MIN_EXPECTED_OFFERS = Number(process.env.FEED_MIN_OFFERS ?? 5_000);
+const FALLBACK_MAX_AGE_HOURS = Number(process.env.FEED_FALLBACK_MAX_AGE_HOURS ?? 26);
 const PROVENANCE_ENABLED = process.env.FEED_PROVENANCE_ENABLED === "1";
 const FEED_SOURCE_ID = process.env.FEED_SOURCE_ID?.trim() || "supplier-k2tool";
 
@@ -250,15 +252,44 @@ function ensureFeedCategories(catalog: Catalog) {
   if (unknownSlugs.length) throw new Error(`Для категорий фида отсутствуют разделы каталога: ${unknownSlugs.join(", ")}`);
 }
 
-async function loadFeed(): Promise<string> {
+type LoadedFeed = {
+  xml: string;
+  sourceType: "explicit-local" | "local" | "remote" | "fallback-local";
+  sourceUpdatedAt: string;
+  cacheAfterValidation: boolean;
+};
+
+function localFeed(pathname: string, sourceType: LoadedFeed["sourceType"]): LoadedFeed {
+  const stat = fs.statSync(pathname);
+  return {
+    xml: fs.readFileSync(pathname, "utf8"),
+    sourceType,
+    sourceUpdatedAt: stat.mtime.toISOString(),
+    cacheAfterValidation: false,
+  };
+}
+
+function assertFallbackFresh(pathname: string): void {
+  if (!Number.isFinite(FALLBACK_MAX_AGE_HOURS) || FALLBACK_MAX_AGE_HOURS <= 0) {
+    throw new Error(`FEED_FALLBACK_MAX_AGE_HOURS должен быть положительным числом: ${FALLBACK_MAX_AGE_HOURS}`);
+  }
+  const ageHours = (Date.now() - fs.statSync(pathname).mtimeMs) / 3_600_000;
+  if (ageHours > FALLBACK_MAX_AGE_HOURS) {
+    throw new Error(
+      `Резервный фид устарел: ${ageHours.toFixed(1)} ч > ${FALLBACK_MAX_AGE_HOURS} ч (${pathname})`,
+    );
+  }
+}
+
+async function loadFeed(): Promise<LoadedFeed> {
   if (process.argv[2] && fs.existsSync(LOCAL_FEED)) {
     console.log("feed: локальный файл", LOCAL_FEED);
-    return fs.readFileSync(LOCAL_FEED, "utf8");
+    return localFeed(LOCAL_FEED, "explicit-local");
   }
   if (!FEED_URL) {
     if (fs.existsSync(LOCAL_FEED)) {
       console.log("feed: локальный файл", LOCAL_FEED);
-      return fs.readFileSync(LOCAL_FEED, "utf8");
+      return localFeed(LOCAL_FEED, "local");
     }
     throw new Error("FEED_URL is required when no FEED_FILE/local feed is available");
   }
@@ -266,12 +297,27 @@ async function loadFeed(): Promise<string> {
     const res = await fetch(FEED_URL, { signal: AbortSignal.timeout(90_000) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     console.log("feed: загружен с", safeSourceLabel(FEED_URL));
-    return await res.text();
+    return {
+      xml: await res.text(),
+      sourceType: "remote",
+      sourceUpdatedAt: new Date().toISOString(),
+      cacheAfterValidation: true,
+    };
   } catch (error) {
     if (!fs.existsSync(LOCAL_FEED)) throw error;
+    assertFallbackFresh(LOCAL_FEED);
     console.warn("feed: сеть недоступна, используем последний локальный файл", LOCAL_FEED);
-    return fs.readFileSync(LOCAL_FEED, "utf8");
+    return localFeed(LOCAL_FEED, "fallback-local");
   }
+}
+
+function cacheValidatedFeed(xml: string): void {
+  const target = path.resolve(FEED_CACHE_PATH);
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  const tmpPath = `${target}.${process.pid}.tmp`;
+  fs.writeFileSync(tmpPath, xml, "utf8");
+  fs.renameSync(tmpPath, target);
+  console.log("feed: валидная удалённая копия сохранена", target);
 }
 
 function decodeXml(value = ""): string {
@@ -558,7 +604,8 @@ function upsertDatabase(catalog: Catalog) {
 async function main() {
   const lock = acquireLock();
   try {
-    const xml = await loadFeed();
+    const loadedFeed = await loadFeed();
+    const { xml } = loadedFeed;
     const offers = parseSupplierFeed(xml) as FeedOffer[];
     const ids = new Set(offers.map((offer) => offer.id));
     if (offers.length < MIN_EXPECTED_OFFERS || ids.size !== offers.length) {
@@ -573,6 +620,7 @@ async function main() {
     if (unmappedCategoryIds.length) {
       throw new Error(`В фиде появились несопоставленные категории: ${unmappedCategoryIds.join(", ")}`);
     }
+    if (loadedFeed.cacheAfterValidation) cacheValidatedFeed(xml);
     let provenance: { runId: string; inputChecksum: string; factCount: number } | undefined;
     if (PROVENANCE_ENABLED) {
       const provenanceDb = new Database(DB_PATH);
@@ -733,6 +781,9 @@ async function main() {
     const state = {
       ok: true,
       completedAt: new Date().toISOString(),
+      sourceType: loadedFeed.sourceType,
+      sourceUpdatedAt: loadedFeed.sourceUpdatedAt,
+      sourceAgeHours: Number(((Date.now() - Date.parse(loadedFeed.sourceUpdatedAt)) / 3_600_000).toFixed(3)),
       feedOffers: offers.length,
       publishedFeedOffers: publishedOffers.length,
       representedFeedOffers: publishedOffers.length - missing.length,
