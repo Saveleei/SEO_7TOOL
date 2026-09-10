@@ -31,7 +31,7 @@
 
 ## Commit
 
-Будет указан после финального коммита.
+`95e6488` — `design: add conversion-first visual directions` (commit был затем amend-обновлён только этим handoff; актуальный SHA см. в `git log -1`).
 
 ## Что проверить ревьюеру
 
