@@ -17,7 +17,7 @@
 
 ## Commit
 
-Будет указан после фиксации прототипа.
+`1c2f1bf` — `design: add search-first conversion prototype`
 
 ## Browser QA
 
