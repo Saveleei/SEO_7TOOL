@@ -20,5 +20,5 @@
   - no analytics-backed usability study or A/B test was run at this concept stage;
   - production font delivery and the operational image-normalization pipeline remain to be specified after visual-direction approval;
   - live-site observations and benchmark pages are a dated snapshot from 2026-09-10.
-- Commit SHA: pending.
+- Artifact commit SHA: `b823e1b3cca12db74f7dc8ae88fe1809cbb46c6d` (handoff finalization follows in branch HEAD).
 - Reviewer focus: visual distinctiveness without relying on orange; product hierarchy; realistic desktop/mobile behavior; completeness against the brief.
