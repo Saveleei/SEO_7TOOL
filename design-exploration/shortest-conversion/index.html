@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>7TOOL — Search to Order</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="utility"><div class="wrap"><span>Официальные поставки промышленного оборудования</span><span>Москва · доставка по России · НДС</span></div></div>
+  <header class="header">
+    <div class="wrap header-row">
+      <a class="logo" href="#top" aria-label="7TOOL — на главную"><img src="assets/7TOOL_primary.svg" alt="7TOOL"></a>
+      <button class="catalog" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Каталог</button>
+      <div class="find-shell header-find">
+        <form class="find-form compact" role="search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input class="find-input" aria-label="Поиск по каталогу" placeholder="Артикул, модель или задача">
+          <button type="submit">Найти</button>
+        </form>
+        <div class="instant-result" hidden aria-live="polite"></div>
+      </div>
+      <a class="phone" href="tel:+79626112419">+7 (962) 611-24-19<small>Инженер ответит в рабочее время</small></a>
+      <a class="quote-link" href="#quote">Получить КП</a>
+      <button class="cart" type="button" aria-label="Корзина"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.4 10.5A2 2 0 0 0 9.4 16H17a2 2 0 0 0 2-1.6L20 8H7M10 20h.01M18 20h.01"/></svg><span>2</span></button>
+    </div>
+    <div class="wrap trustline"><span><i></i><b>8 643</b> позиции в наличии</span><span><b>Счёт с НДС</b> без регистрации</span><span><b>Подбор оснастки</b> до оплаты</span><span><b>Отгрузка</b> от одного дня</span></div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <div class="kicker">Поиск → товар → заказ</div>
+          <h1>Найдите нужное оборудование за один запрос</h1>
+          <p>Введите модель, артикул или рабочую задачу. Поиск понимает технические параметры и сразу показывает точное совпадение.</p>
+          <div class="find-shell hero-find">
+            <form class="find-form large" role="search">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input class="find-input" aria-label="Главный поиск" placeholder="Например: STEYR-35 или сверление Ø50 мм">
+              <button type="submit">Найти</button>
+            </form>
+            <div class="instant-result" hidden aria-live="polite"></div>
+          </div>
+          <div class="examples"><span>Попробуйте:</span><button type="button" data-query="STEYR-35">STEYR-35</button><button type="button" data-query="корончатое сверло Ø35">сверло Ø35</button><button type="button" data-query="кромкорез фаска 15 мм">фаска 15 мм</button></div>
+          <div class="fast-routes">
+            <a href="#tasks"><b>Не знаете модель?</b><span>Подобрать по задаче →</span></a>
+            <a href="#spec"><b>Есть спецификация?</b><span>Отправить список →</span></a>
+          </div>
+        </div>
+        <div class="hero-product" id="product">
+          <div class="hero-product-bg"></div>
+          <img src="../assets/lenz-steyr-35.jpg" alt="Магнитный сверлильный станок LENZ STEYR-35">
+          <div class="product-label"><span>Популярное точное совпадение</span><b>LENZ STEYR-35</b><em>Ø35 мм · Weldon 19 · 1 100 Вт</em></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="route-strip" aria-label="Три пути к покупке"><div class="wrap route-grid"><article><strong>01</strong><div><b>Знаю модель</b><span>Поиск сразу открывает товар</span></div></article><article><strong>02</strong><div><b>Знаю задачу</b><span>Выбор по операции и параметрам</span></div></article><article><strong>03</strong><div><b>Есть список</b><span>Одно КП на всю спецификацию</span></div></article></div></section>
+
+    <section class="section" id="tasks">
+      <div class="wrap">
+        <div class="section-head"><div><div class="section-kicker">Если нет артикула</div><h2>Начните с производственной задачи</h2></div><p>Не заставляем разбираться в структуре каталога: сначала операция, затем два важных параметра.</p></div>
+        <div class="task-grid">
+          <button class="task active" type="button" data-task="Сверление металла"><span>Сверление</span><b>Сверлить металл</b><em>Станки и корончатые свёрла</em><img src="../assets/lenz-steyr-35.jpg" alt=""></button>
+          <button class="task" type="button" data-task="Обработка кромки"><span>Фаска</span><b>Снимать фаску</b><em>Кромкорезы по листу и трубам</em><img src="../assets/huawei-hm-60l.png" alt=""></button>
+          <button class="task" type="button" data-task="Резка труб"><span>Трубы</span><b>Резать трубы</b><em>Ручные и автоматические решения</em><img src="../assets/pipe-cutter.jpg" alt=""></button>
+          <button class="task" type="button" data-task="Автоматизация сварки"><span>Сварка</span><b>Автоматизировать сварку</b><em>Роботы, каретки и позиционеры</em><img src="../assets/welding-robot.jpg" alt=""></button>
+        </div>
+        <div class="selector">
+          <div class="selector-copy"><div class="section-kicker">Выбрано</div><h3 id="task-title">Сверление металла</h3><p>Уточните диаметр — остальные параметры можно выбрать в каталоге.</p></div>
+          <div class="diameters" role="group" aria-label="Диаметр"><button type="button" aria-pressed="false">до 35 мм</button><button type="button" aria-pressed="true">36–60 мм</button><button type="button" aria-pressed="false">61–100 мм</button></div>
+          <div class="selector-result"><span>Найдено</span><b id="result-count">64 модели</b><a href="#stock">Показать подходящие</a></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section muted" id="stock">
+      <div class="wrap">
+        <div class="section-head"><div><div class="section-kicker">Можно заказать сейчас</div><h2>Сначала — позиции в наличии</h2></div><p>В карточке только данные, нужные для решения: совместимость, цена с НДС, остаток и действие.</p></div>
+        <div class="products">
+          <article class="product-card"><div class="media"><span class="badge">−20%</span><img src="../assets/lenz-steyr-35.jpg" alt="LENZ STEYR-35"></div><div class="product-body"><span class="code">LENZ · STEYR-35</span><h3>Магнитный сверлильный станок STEYR-35</h3><dl><div><dt>Диаметр</dt><dd>35 мм</dd></div><div><dt>Шпиндель</dt><dd>Weldon 19</dd></div></dl><span class="available">В наличии · Москва</span><div class="buy"><div><b>47 999 ₽</b><span>Цена с НДС</span></div><button type="button">В корзину</button></div></div></article>
+          <article class="product-card"><div class="media"><img src="../assets/heden-dm-36k.png" alt="HEDEN DM-36K"></div><div class="product-body"><span class="code">HEDEN · DM-36K</span><h3>Магнитный сверлильный станок DM-36K</h3><dl><div><dt>Диаметр</dt><dd>36 мм</dd></div><div><dt>Масса</dt><dd>11,8 кг</dd></div></dl><span class="available">В наличии · Москва</span><div class="buy"><div><b>44 690 ₽</b><span>Цена с НДС</span></div><button type="button">В корзину</button></div></div></article>
+          <article class="product-card"><div class="media"><img src="../assets/huawei-hm-60l.png" alt="HUAWEI HM-60L"></div><div class="product-body"><span class="code">HUAWEI · HM-60L</span><h3>Автоматический кромкорез HM-60L</h3><dl><div><dt>Фаска</dt><dd>до 56 мм</dd></div><div><dt>Угол</dt><dd>15–60°</dd></div></dl><span class="available">В наличии · Москва</span><div class="buy"><div><b>594 734 ₽</b><span>Цена с НДС</span></div><button type="button">В корзину</button></div></div></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="spec">
+      <div class="wrap spec-grid">
+        <div class="spec-copy"><div class="section-kicker">Закупка по списку</div><h2>Не ищите каждую позицию отдельно</h2><p>Прикрепите спецификацию или вставьте перечень артикулов. Вернём одно КП с ценами, сроками и возможными аналогами.</p><ul><li>Excel, PDF или текст</li><li>Оригиналы и совместимые аналоги</li><li>Один ответственный инженер</li></ul></div>
+        <form class="spec-form"><label for="spec-text">Артикулы или описание задачи</label><textarea id="spec-text" rows="4" placeholder="Например: STEYR-35 — 2 шт.; корончатые свёрла Ø18–35 мм"></textarea><div class="spec-actions"><label class="file-button" for="spec-file">Прикрепить файл</label><input id="spec-file" type="file" hidden><button type="submit">Получить КП</button></div><small>Телефон запросим на следующем коротком шаге</small></form>
+      </div>
+    </section>
+
+    <section class="proof"><div class="wrap proof-grid"><div><div class="section-kicker">Почему можно принять решение</div><h2>Факты находятся рядом с товаром</h2></div><article><b>8 643</b><span>позиции в наличии</span></article><article><b>С НДС</b><span>счёт и документы</span></article><article><b>12+ мес</b><span>гарантия</span></article><article><b>По России</b><span>доставка</span></article></div></section>
+
+    <section class="quote" id="quote"><div class="wrap quote-grid"><div><div class="section-kicker">Инженерный подбор</div><h2>Не нашли точную позицию?</h2><p>Оставьте телефон — инженер уточнит задачу и предложит оборудование или аналог.</p></div><form><label for="phone">Телефон</label><div><input id="phone" type="tel" placeholder="+7 999 000-00-00"><button type="submit">Подобрать</button></div><small>Без регистрации и длинной анкеты</small></form></div></section>
+  </main>
+
+  <footer><div class="wrap footer-grid"><div><img src="assets/7TOOL_inverse.svg" alt="7TOOL"><p>Промышленное оборудование и инструмент для металлообработки.</p></div><div><b>Каталог</b><a href="#tasks">Сверление</a><a href="#tasks">Резка</a><a href="#tasks">Сварка</a></div><div><b>Покупателям</b><a href="#quote">Подбор</a><a href="#spec">КП по списку</a><a href="#">Доставка</a></div><div><b>Контакты</b><a href="tel:+79626112419">+7 (962) 611-24-19</a><a href="mailto:info@7tool.ru">info@7tool.ru</a><span>Москва</span></div></div><div class="wrap copyright">© 2026 7TOOL · Концепт, не production</div></footer>
+  <script src="script.js"></script>
+</body>
+</html>
