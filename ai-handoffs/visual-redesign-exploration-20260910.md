@@ -1,0 +1,24 @@
+# 7TOOL visual redesign exploration
+
+- Agent: Codex
+- Branch: `codex/visual-redesign-exploration`
+- Base commit: `e419785c94c35b3a67965247eea4463b540d0b5d`
+- Goal: complete stage-one visual audit, design system exploration, three isolated HTML/CSS concepts, desktop/mobile screenshots, comparison, and recommendation without changing production UI.
+- Owned files: `design-exploration/**` and this handoff file only.
+- Production code: intentionally untouched.
+- Ready when: all requested Markdown deliverables and A/B/C prototypes exist, six required screenshots are verified at 1440 px and 390 px, links/assets work locally, and the branch is committed.
+- Checks:
+  - three prototype HTML files parsed successfully;
+  - all relative CSS, JavaScript, and image references resolve;
+  - browser console reports zero errors on A, B, and C;
+  - responsive browser checks passed at 390, 1280, 1440, 1600, and 1920 px with no horizontal overflow;
+  - required screenshots verified at exactly 1440 px desktop and 390 px mobile widths;
+  - grayscale/brandless captures created for all three concepts;
+  - visual review completed for desktop, mobile, and source product imagery.
+- Known limitations:
+  - these are intentionally static concept prototypes, not production components or functional commerce flows;
+  - no analytics-backed usability study or A/B test was run at this concept stage;
+  - production font delivery and the operational image-normalization pipeline remain to be specified after visual-direction approval;
+  - live-site observations and benchmark pages are a dated snapshot from 2026-09-10.
+- Commit SHA: pending.
+- Reviewer focus: visual distinctiveness without relying on orange; product hierarchy; realistic desktop/mobile behavior; completeness against the brief.
