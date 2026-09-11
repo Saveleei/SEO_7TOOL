@@ -5,8 +5,8 @@ import { PilotFooter } from "./ui/PilotFooter";
 import { PilotHeader } from "./ui/PilotHeader";
 import { ProcurementWorkbench } from "./ui/ProcurementWorkbench";
 import { AddRequestButton } from "./ui/RequestCart";
-import { TaskPathSelector } from "./ui/TaskPathSelector";
-import { getProductionTaskPaths, pilotFeedCategorySlugs } from "./data/productionTaskPaths";
+import { ProductionCategoryGrid } from "./ui/ProductionCategoryGrid";
+import { getProductionCategoryGroups, pilotFeedCategorySlugs } from "./data/productionCategoryGroups";
 
 export default function Home() {
   return (
@@ -48,16 +48,10 @@ export default function Home() {
         <section className="section">
           <div className="container">
             <div className="section-heading">
-              <div><p className="eyebrow">Если точная модель неизвестна</p><h2>Начните с производственной задачи</h2></div>
-              <p>Сначала выберите операцию, затем два определяющих параметра. Получите готовый раздел или запрос инженеру с уже понятным контекстом.</p>
+              <div><p className="eyebrow">Короткий путь к нужному разделу</p><h2>Категории по производственной задаче</h2></div>
+              <p>Сначала выберите производственную операцию. Под ней сразу показаны относящиеся к задаче типы оборудования, оснастки и расходных материалов.</p>
             </div>
-            <TaskPathSelector tasks={getProductionTaskPaths(pilotFeedCategorySlugs)} />
-            <Link className="consumables-card" href="/#quick-order">
-              <Image src="/category/koronchatye-sverla.webp" alt="Корончатые свёрла и оснастка" width={190} height={120} />
-              <span>Сквозной вход</span>
-              <div><h3>Оснастка и расходные материалы</h3><p>Подберём по вашему станку, размеру, материалу и режиму работы — даже если точный артикул неизвестен.</p></div>
-              <strong>Подобрать оснастку →</strong>
-            </Link>
+            <ProductionCategoryGrid groups={getProductionCategoryGroups(pilotFeedCategorySlugs)} />
           </div>
         </section>
 
