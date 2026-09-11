@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-:root { --orange:#ff5a00; --orange-dark:#cc4700; --ink:#121212; --graphite:#242424; --muted:#666763; --line:#d9dad6; --surface:#f4f4f1; --white:#fff; --green:#096a43; --radius:10px; --max:1320px; }
+:root { --orange:#ff5a00; --orange-dark:#cc4700; --cta:#c94a12; --cta-hover:#a93b0c; --action-dark:#252925; --action-dark-hover:#343a35; --ink:#121212; --graphite:#242424; --muted:#666763; --line:#d9dad6; --surface:#f4f4f1; --white:#fff; --green:#096a43; --radius:10px; --max:1320px; }
 * { box-sizing:border-box; }
 html { max-width:100%; overflow-x:clip; scroll-behavior:smooth; }
 body { max-width:100%; margin:0; overflow-x:clip; background:var(--white); color:var(--ink); font-family:Inter,Arial,Helvetica,sans-serif; line-height:1.45; }
@@ -1772,6 +1772,12 @@ body:has(.feed-compare-tray) .request-cart-dock { bottom:96px; }
 .feed-mobile-series-commercial .feed-availability,.feed-mobile-variant-action .feed-availability { font-size:10px; line-height:1.4; }
 .feed-product-actions button,.feed-product-actions>a { min-height:44px; padding-inline:10px; font-size:11px; font-weight:800; line-height:1.25; }
 .feed-table-actions button,.feed-table-actions a { min-height:40px; font-size:11px; font-weight:800; line-height:1.25; }
+
+/* CTA hierarchy: repeated listing actions are quiet graphite; one-off conversions use a deeper brand orange. */
+.feed-product-actions button,.feed-table-actions .feed-variant-toggle,.feed-card-variant>button,.feed-inline-variant>button,.feed-mobile-series-commercial i,.feed-mobile-variant-action>button { border-color:var(--action-dark); background:var(--action-dark); color:#fff; transition:background-color .16s ease,border-color .16s ease,transform .16s ease; }
+.feed-product-actions button:hover,.feed-table-actions .feed-variant-toggle:hover,.feed-card-variant>button:hover,.feed-inline-variant>button:hover,.feed-mobile-series-commercial i:hover,.feed-mobile-variant-action>button:hover { border-color:var(--action-dark-hover); background:var(--action-dark-hover); }
+.button-orange,.request-cart-trigger,.burr-finder>summary>i,.contact-dialog-actions>button,.contact-dialog-success>button,.request-cart-dock button,.request-cart-form>button,.feed-detail-actions button,.purchase-actions .purchase-open-request { border-color:var(--cta); background:var(--cta); color:#fff; transition:background-color .16s ease,border-color .16s ease,transform .16s ease; }
+.button-orange:hover,.request-cart-trigger:hover,.burr-finder>summary>i:hover,.contact-dialog-actions>button:hover,.contact-dialog-success>button:hover,.request-cart-dock button:hover,.request-cart-form>button:hover,.feed-detail-actions button:hover,.purchase-actions .purchase-open-request:hover { border-color:var(--cta-hover); background:var(--cta-hover); }
 
 @media (max-width:980px) {
   .burr-task-options { grid-template-columns:repeat(3,minmax(0,1fr)); }

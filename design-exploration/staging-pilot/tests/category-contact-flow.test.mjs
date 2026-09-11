@@ -53,3 +53,11 @@ test("product cards use readable actions and a native full-details navigation", 
   assert.match(styles, /\.feed-product-actions button,\.feed-product-actions>a \{[^}]*font-size:11px/us);
   assert.match(styles, /\.contact-dialog-panel input,\.contact-dialog-panel textarea \{[^}]*font-size:14px/us);
 });
+
+test("listing actions use a restrained two-level CTA palette", async () => {
+  const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(styles, /--cta:#c94a12/u);
+  assert.match(styles, /--action-dark:#252925/u);
+  assert.match(styles, /\.feed-product-actions button,\.feed-table-actions \.feed-variant-toggle[^}]*background:var\(--action-dark\)/us);
+  assert.match(styles, /\.button-orange,\.request-cart-trigger[^}]*background:var\(--cta\)/us);
+});
