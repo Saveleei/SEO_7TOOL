@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Breadcrumbs } from "../../../ui/Breadcrumbs";
 import { BurrSelectionAssistant } from "../../../ui/BurrSelectionAssistant";
 import { BurrShapeMark } from "../../../ui/BurrShapeMark";
+import { ContactRequestDialog } from "../../../ui/ContactRequestDialog";
 import { FeedProductList } from "../../../ui/FeedProductList";
 import { FeedProductTable } from "../../../ui/FeedProductTable";
 import { ManagerContactCard } from "../../../ui/ManagerContactCard";
@@ -65,15 +66,23 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const start = result.total > 0 ? (result.page - 1) * result.pageSize + 1 : 0;
   const end = Math.min(result.page * result.pageSize, result.total);
   const technicalFacets = result.facets.filter((facet) => facet.keyword);
+  const brandFacet = result.facets.find((facet) => facet.key === "brand");
   const promotedFacets = slug === "borfrezy"
-    ? [technicalFacets.find((facet) => facet.keyword === "форма"), technicalFacets.find((facet) => facet.keyword === "материал"), technicalFacets.find((facet) => facet.keyword === "диаметр режущей")].filter((facet): facet is NonNullable<typeof facet> => Boolean(facet))
+    ? [brandFacet, technicalFacets.find((facet) => facet.keyword === "материал"), technicalFacets.find((facet) => facet.keyword === "диаметр режущей")].filter((facet): facet is NonNullable<typeof facet> => Boolean(facet))
     : technicalFacets.slice(0, 2);
   const shapeFacet = technicalFacets.find((facet) => facet.keyword === "форма");
   const shankFacet = technicalFacets.find((facet) => facet.keyword === "диаметр хвостовика");
   const materialFacet = technicalFacets.find((facet) => facet.keyword === "материал");
   const orderedFacets = slug === "borfrezy"
-    ? [...result.facets].sort((first, second) => facetOrder(first.keyword) - facetOrder(second.keyword))
+    ? [...result.facets].sort((first, second) => facetOrder(first.keyword, first.key) - facetOrder(second.keyword, second.key))
     : result.facets;
+  const selectionCriteria = slug === "borfrezy" ? [
+    { title:"Геометрия участка", copy:"Плоскость, радиус, паз, фаска или труднодоступная зона — это определяет форму A–N." },
+    { title:"Материал детали", copy:"Сталь, нержавеющая или закалённая сталь, чугун, титан либо цветной металл — для выбора насечки." },
+    { title:"Размер рабочей части", copy:"Желаемый диаметр и длина головки либо размеры обрабатываемого участка." },
+    { title:"Хвостовик и инструмент", copy:"Диаметр хвостовика 3, 6 или 8 мм и модель прямошлифовальной машины, если известна." },
+    { title:"Требуемый результат", copy:"Быстрый съём, зачистка сварного шва, удаление заусенцев или чистовая обработка." },
+  ] : landing.parameters;
 
   return <div className="site-shell"><PilotHeader /><main className="inner-page">
     <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Каталог", href:"/catalog" }, { label:group.title, href:group.href }, { label:subcategory.label }]} /></div>
@@ -86,7 +95,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     </div><aside>
       <b>{selectorHref ? "Нужен технический отбор?" : "Не знаете точное исполнение?"}</b>
       <p>{selectorHref ? "Сузьте выбор по диаметру, массе, шпинделю и рабочим функциям." : "Пришлите размеры или опишите задачу — артикул знать не обязательно."}</p>
-      {selectorHref ? <Link href={selectorHref}>Подобрать магнитный станок →</Link> : <a href={`mailto:info@7tool.ru?subject=${subject}`}>Отправить параметры →</a>}
+      {selectorHref ? <Link href={selectorHref}>Подобрать магнитный станок →</Link> : <ContactRequestDialog categoryTitle={feedCategory?.h1 ?? subcategory.label} />}
     </aside></div></section>
 
     <section className="section feed-category-listing" id="products"><div className="container">
@@ -97,7 +106,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
           <Link className={sort === "relevance" ? "active" : undefined} aria-current={sort === "relevance" ? "true" : undefined} href={categoryUrl(slug, rawSearchParams, { setKey:"sort", setValue:"relevance" })}>Подходящие</Link>
           <Link className={inStockOnly ? "active" : undefined} aria-current={inStockOnly ? "true" : undefined} href={categoryUrl(slug, rawSearchParams, { toggleKey:"availability", toggleValue:"in-stock" })}>В наличии<small>по фиду</small></Link>
         </div></div>
-        {promotedFacets.map((facet) => <div key={facet.key}><span className="feed-promoted-label">{facet.label}{facet.keyword === "форма" && <a href="#burr-selector">Не знаю — подобрать</a>}</span><div>{facet.options.slice(0, 6).map((option) => {
+        {promotedFacets.map((facet) => <div key={facet.key}><span className="feed-promoted-label">{facet.label}</span><div>{facet.options.slice(0, 6).map((option) => {
           const selected = filters[facet.key]?.includes(option.value) ?? false;
           return <Link className={selected ? "active" : undefined} aria-current={selected ? "true" : undefined} href={categoryUrl(slug, rawSearchParams, { toggleKey:`f_${facet.key}`, toggleValue:option.value })} key={option.value}>{facet.keyword === "форма" && <BurrShapeMark shape={option.value} />}{option.label}<small>{option.count}</small></Link>;
         })}</div></div>)}
@@ -159,9 +168,10 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
       </div>
     </div></section>
 
-    <section className="section section-muted"><div className="container subcategory-layout"><div>
-      <div className="section-heading"><div><p className="eyebrow">Критерии выбора</p><h2>Что сообщить для точного подбора</h2></div></div>
-      <div className="category-parameter-grid category-parameter-grid--compact">{landing.parameters.map((parameter,index) => <article key={parameter.title}><span>0{index+1}</span><b>{parameter.title}</b><p>{parameter.copy}</p></article>)}</div>
+    <section className="section section-muted"><div className="container subcategory-layout"><div className="selection-guide">
+      <div className="section-heading"><div><p className="eyebrow">Критерии выбора</p><h2>{slug === "borfrezy" ? "Для точного подбора достаточно пяти параметров" : "Что сообщить для точного подбора"}</h2><p>{slug === "borfrezy" ? "Укажите то, что знаете. Фотография или эскиз участка может заменить часть размеров." : "Известные параметры помогут быстрее проверить подходящие варианты."}</p></div></div>
+      <ol className="selection-criteria-list">{selectionCriteria.map((parameter,index) => <li key={parameter.title}><span>{String(index+1).padStart(2,"0")}</span><div><b>{parameter.title}</b><p>{parameter.copy}</p></div></li>)}</ol>
+      {slug === "borfrezy" && <p className="selection-guide-note"><b>Не обязательно знать артикул.</b> Достаточно описать деталь, материал и место обработки; инженер уточнит недостающие параметры.</p>}
     </div><aside><ManagerContactCard compact /></aside></div></section>
 
     <section className="section"><div className="container"><div className="section-heading"><div><p className="eyebrow">В той же производственной задаче</p><h2>Смежные подкатегории</h2></div></div><nav className="related-category-links" aria-label="Смежные подкатегории">{group.subcategories.filter((item) => item.slug !== subcategory.slug).map((item) => <Link href={item.href} key={item.slug}>{item.label}<span>→</span></Link>)}</nav></div></section>
@@ -222,11 +232,12 @@ function pluralizeProductGroups(count: number): string {
   return "товарных серий";
 }
 
-function facetOrder(keyword?: string): number {
-  if (keyword === "форма") return 0;
-  if (keyword === "материал") return 1;
-  if (keyword === "диаметр режущей") return 2;
-  if (keyword === "диаметр хвостовика") return 3;
-  if (keyword === "длина режущей") return 4;
-  return keyword ? 5 : 6;
+function facetOrder(keyword?: string, key?: string): number {
+  if (key === "brand") return 0;
+  if (keyword === "форма") return 1;
+  if (keyword === "материал") return 2;
+  if (keyword === "диаметр режущей") return 3;
+  if (keyword === "диаметр хвостовика") return 4;
+  if (keyword === "длина режущей") return 5;
+  return keyword ? 6 : 7;
 }
