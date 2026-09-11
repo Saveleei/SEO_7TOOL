@@ -146,6 +146,15 @@ const primaryTitlePatterns: Partial<Record<string, RegExp>> = {
 
 const accessoryPattern = /(приспособлен|адаптер|креплен|позиционер|стойк|комплект установк|запасн|оснастк|измеритель)/i;
 const lowValueParameterPattern = /^(бренд|производитель|страна|артикул|штрихкод|серия)$/i;
+const denseTableCategorySlugs = new Set([
+  "borfrezy",
+  "koronchatye-sverla",
+  "metchiki",
+  "pilnye-diski",
+  "sozh-i-sots",
+  "stanochnaya-osnastka",
+  "sverla-i-zenkovki",
+]);
 
 for (const product of feedSnapshot.products) {
   if (!categoriesBySlug.has(product.category)) continue;
@@ -161,6 +170,10 @@ export function getFeedCategory(slug: string): FeedCategory | undefined {
 
 export function getPublishedFeedCategorySlugs(): string[] {
   return Array.from(categoriesBySlug.keys());
+}
+
+export function prefersDenseFeedTable(slug: string): boolean {
+  return denseTableCategorySlugs.has(slug);
 }
 
 export function getFeedCategoryProducts(slug: string, limit = 6): FeedProduct[] {

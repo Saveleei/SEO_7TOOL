@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Breadcrumbs } from "../../../ui/Breadcrumbs";
 import { FeedProductList } from "../../../ui/FeedProductList";
+import { FeedProductTable } from "../../../ui/FeedProductTable";
 import { ManagerContactCard } from "../../../ui/ManagerContactCard";
 import { PilotFooter } from "../../../ui/PilotFooter";
 import { PilotHeader } from "../../../ui/PilotHeader";
 import { getCategoryLandingContent } from "../../../data/categoryLandingContent";
-import { getFeedCategory, getFeedCategoryPage, type FeedCategorySort, toFeedProductCardModel } from "../../../data/feedCatalog";
+import { getFeedCategory, getFeedCategoryPage, prefersDenseFeedTable, type FeedCategorySort, toFeedProductCardModel } from "../../../data/feedCatalog";
 import { getProductionSubcategory } from "../../../data/productionCategoryGroups";
 
 type SearchValue = string | string[] | undefined;
@@ -44,11 +45,14 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const requestedSort = firstValue(rawSearchParams.sort);
   const sort = sortOptions.some((option) => option.value === requestedSort) ? requestedSort as FeedCategorySort : "relevance";
   const requestedPage = Number.parseInt(firstValue(rawSearchParams.page) ?? "1", 10);
+  const requestedView = firstValue(rawSearchParams.view);
   const filters = Object.fromEntries(Object.entries(rawSearchParams)
     .filter(([key]) => key.startsWith("f_"))
     .map(([key, value]) => [key.slice(2), valuesOf(value).filter(Boolean)]));
   const result = getFeedCategoryPage(slug, { search, sort, page:Number.isFinite(requestedPage) ? requestedPage : 1, filters });
   const productCards = result.products.map(toFeedProductCardModel);
+  const canUseTable = prefersDenseFeedTable(slug);
+  const view = canUseTable && requestedView !== "cards" ? "table" : "cards";
   const activeFilterCount = Object.values(filters).reduce((sum, values) => sum + values.length, 0) + (search ? 1 : 0);
   const subject = encodeURIComponent(`Запрос: ${subcategory.label}`);
   const selectorHref = slug === "stanki-sverlilnye" ? "/catalog/sverlenie/magnitnye-stanki" : undefined;
@@ -76,6 +80,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
           <input className="feed-filter-toggle" type="checkbox" id={`feed-filters-${slug}`} aria-label="Показать или скрыть фильтры" />
           <label className="feed-filter-summary" htmlFor={`feed-filters-${slug}`}><span><b>Фильтры</b><small>{activeFilterCount > 0 ? `Выбрано: ${activeFilterCount}` : "По характеристикам фида"}</small></span><i aria-hidden="true">+</i></label>
           <form method="get" action={`/catalog/category/${slug}#products`}>
+            {requestedView && <input type="hidden" name="view" value={requestedView} />}
             <label className="feed-filter-search"><span>Поиск в категории</span><input type="search" name="q" defaultValue={search} placeholder="Название, бренд или модель" /></label>
             <label className="feed-filter-sort"><span>Порядок товаров</span><select name="sort" defaultValue={sort}>{sortOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label>
             {result.facets.map((facet) => <fieldset key={facet.key}><legend>{facet.label}</legend><small>{facet.help}</small><div>{facet.options.map((option) => <label key={option.value}><input type="checkbox" name={`f_${facet.key}`} value={option.value} defaultChecked={filters[facet.key]?.includes(option.value)} /><span>{option.label}</span><em>{option.count}</em></label>)}</div></fieldset>)}
@@ -84,11 +89,15 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
         </aside>
 
         <div className="feed-results">
-          <div className="feed-results-toolbar"><p><b>{result.total.toLocaleString("ru-RU")}</b> {pluralizeProducts(result.total)}{result.total > 0 && <span> · показаны {start}–{end}</span>}</p><form method="get" action={`/catalog/category/${slug}#products`}>
-            {search && <input type="hidden" name="q" value={search} />}
-            {Object.entries(filters).flatMap(([key, values]) => values.map((value) => <input type="hidden" name={`f_${key}`} value={value} key={`${key}-${value}`} />))}
-            <label><span>Сортировка</span><select name="sort" defaultValue={sort}>{sortOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label><button type="submit">Применить</button>
-          </form></div>
+          <div className="feed-results-toolbar"><p><b>{result.total.toLocaleString("ru-RU")}</b> {pluralizeProducts(result.total)}{result.total > 0 && <span> · показаны {start}–{end}</span>}</p><div className="feed-toolbar-controls">
+            {canUseTable && <nav className="feed-view-switch" aria-label="Вид списка"><a className={view === "table" ? "active" : undefined} href={categoryUrl(slug, rawSearchParams, { setKey:"view", setValue:"table" })}>Таблица</a><a className={view === "cards" ? "active" : undefined} href={categoryUrl(slug, rawSearchParams, { setKey:"view", setValue:"cards" })}>Карточки</a></nav>}
+            <form method="get" action={`/catalog/category/${slug}#products`}>
+              {requestedView && <input type="hidden" name="view" value={requestedView} />}
+              {search && <input type="hidden" name="q" value={search} />}
+              {Object.entries(filters).flatMap(([key, values]) => values.map((value) => <input type="hidden" name={`f_${key}`} value={value} key={`${key}-${value}`} />))}
+              <label><span>Сортировка</span><select name="sort" defaultValue={sort}>{sortOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label><button type="submit">Применить</button>
+            </form>
+          </div></div>
 
           {activeFilterCount > 0 && <nav className="feed-applied-filters" aria-label="Применённые фильтры"><span>Вы выбрали:</span>
             {search && <Link href={categoryUrl(slug, rawSearchParams, { removeKey:"q" })}>Поиск: {search}<b aria-hidden="true">×</b></Link>}
@@ -96,7 +105,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
             <Link className="feed-reset-all" href={`/catalog/category/${slug}#products`}>Очистить всё</Link>
           </nav>}
 
-          {result.products.length > 0 ? <FeedProductList products={productCards} /> : <div className="feed-state"><span>Нет точных совпадений</span><h2>Ослабьте один из параметров</h2><p>Снимите фильтр или отправьте задачу менеджеру — проверим аналоги, которых может не быть в текущем фиде.</p><div><Link className="button" href={`/catalog/category/${slug}#products`}>Сбросить фильтры</Link><a className="button button-orange" href={`mailto:info@7tool.ru?subject=${subject}`}>Запросить подбор</a></div></div>}
+          {result.products.length > 0 ? view === "table" ? <FeedProductTable products={productCards} columns={result.facets.filter((facet) => facet.keyword).map((facet) => facet.label).slice(0, 3)} /> : <FeedProductList products={productCards} /> : <div className="feed-state"><span>Нет точных совпадений</span><h2>Ослабьте один из параметров</h2><p>Снимите фильтр или отправьте задачу менеджеру — проверим аналоги, которых может не быть в текущем фиде.</p><div><Link className="button" href={`/catalog/category/${slug}#products`}>Сбросить фильтры</Link><a className="button button-orange" href={`mailto:info@7tool.ru?subject=${subject}`}>Запросить подбор</a></div></div>}
 
           {result.pageCount > 1 && <nav className="feed-pagination" aria-label="Страницы товаров">
             {result.page > 1 && <Link className="feed-pagination-direction" href={categoryUrl(slug, rawSearchParams, { page:result.page - 1 })}>← Назад</Link>}
@@ -127,16 +136,17 @@ function valuesOf(value: SearchValue): string[] {
   return value ? [value] : [];
 }
 
-function categoryUrl(slug: string, raw: SearchParams, change: { removeKey?: string; removeValue?: string; page?: number }): string {
+function categoryUrl(slug: string, raw: SearchParams, change: { removeKey?: string; removeValue?: string; page?: number; setKey?: string; setValue?: string }): string {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(raw)) {
-    if (key === "page") continue;
+    if (key === "page" || key === change.setKey) continue;
     if (key === change.removeKey) {
       for (const item of valuesOf(value)) if (change.removeValue && item !== change.removeValue) params.append(key, item);
       continue;
     }
     for (const item of valuesOf(value)) params.append(key, item);
   }
+  if (change.setKey && change.setValue) params.set(change.setKey, change.setValue);
   if (change.page && change.page > 1) params.set("page", String(change.page));
   const query = params.toString();
   return `/catalog/category/${slug}${query ? `?${query}` : ""}#products`;
