@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Breadcrumbs } from "../../../ui/Breadcrumbs";
-import { FeedProductCard } from "../../../ui/FeedProductCard";
+import { FeedProductList } from "../../../ui/FeedProductList";
 import { ManagerContactCard } from "../../../ui/ManagerContactCard";
 import { PilotFooter } from "../../../ui/PilotFooter";
 import { PilotHeader } from "../../../ui/PilotHeader";
 import { getCategoryLandingContent } from "../../../data/categoryLandingContent";
-import { getFeedCategory, getFeedCategoryProductCount, getFeedCategoryProducts } from "../../../data/feedCatalog";
+import { getFeedCategory, getFeedCategoryProductCount, getFeedCategoryProducts, toFeedProductCardModel } from "../../../data/feedCatalog";
 import { getProductionSubcategory } from "../../../data/productionCategoryGroups";
 
 type RouteProps = { params: Promise<{ slug: string }> };
@@ -32,6 +32,7 @@ export default async function SubcategoryPage({ params }: RouteProps) {
   const landing = getCategoryLandingContent(group.slug);
   const feedCategory = getFeedCategory(slug);
   const products = getFeedCategoryProducts(slug, 6);
+  const productCards = products.map(toFeedProductCardModel);
   const productCount = getFeedCategoryProductCount(slug);
   const subject = encodeURIComponent(`Запрос: ${subcategory.label}`);
   const selectorHref = slug === "stanki-sverlilnye" ? "/catalog/sverlenie/magnitnye-stanki" : undefined;
@@ -51,7 +52,7 @@ export default async function SubcategoryPage({ params }: RouteProps) {
 
     <section className="section feed-category-listing"><div className="container">
       <div className="section-heading"><div><p className="eyebrow">Фактический ассортимент</p><h2>Товары из снимка фида</h2></div><p>{productCount > 0 ? `${productCount.toLocaleString("ru-RU")} товарных групп в категории. Сначала показываем шесть позиций с изображениями; актуальные условия подтверждаем в КП.` : "В снимке фида нет товарных карточек этой категории."}</p></div>
-      {products.length > 0 ? <div className="feed-product-grid">{products.map((product) => <FeedProductCard product={product} key={product.id} />)}</div> : <div className="feed-state"><span>Нет товарных данных</span><h2>Не будем заполнять раздел демонстрационными позициями</h2><p>Отправьте параметры задачи — менеджер проверит возможность поставки без обещаний по неподтверждённому ассортименту.</p><a className="button button-orange" href={`mailto:info@7tool.ru?subject=${subject}`}>Запросить подбор</a></div>}
+      {products.length > 0 ? <FeedProductList products={productCards} /> : <div className="feed-state"><span>Нет товарных данных</span><h2>Не будем заполнять раздел демонстрационными позициями</h2><p>Отправьте параметры задачи — менеджер проверит возможность поставки без обещаний по неподтверждённому ассортименту.</p><a className="button button-orange" href={`mailto:info@7tool.ru?subject=${subject}`}>Запросить подбор</a></div>}
       {products.length > 0 && <div className="feed-listing-foot"><p>Это витрина тестового снимка, а не обещание склада. В запрос КП попадут выбранные позиции и количество.</p><a href={`mailto:info@7tool.ru?subject=${subject}`}>Не нашли нужное — описать задачу →</a></div>}
     </div></section>
 

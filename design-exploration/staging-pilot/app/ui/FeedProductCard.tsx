@@ -1,27 +1,40 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { FeedProduct, getFeedProductImage, getFeedProductPriceLabel } from "../data/feedCatalog";
+import type { FeedProductCardModel } from "../data/feedCatalog";
 import { AddRequestButton } from "./RequestCart";
 
-export function FeedProductCard({ product }: { product: FeedProduct }) {
-  const image = getFeedProductImage(product);
-  const price = getFeedProductPriceLabel(product);
-  const axes = product.paramAxes.slice(0, 3);
+type Props = {
+  product: FeedProductCardModel;
+  selected: boolean;
+  onCompare: () => void;
+};
 
-  return <article className="feed-product-card">
+export function FeedProductCard({ product, selected, onCompare }: Props) {
+  return <article className={`feed-product-card ${selected ? "feed-product-card--selected" : ""}`}>
     <Link className="feed-product-media" href={`/product/${product.slug}`} aria-label={`Открыть ${product.title}`}>
-      {image ? <Image src={image} alt={product.title} width={430} height={340} unoptimized /> : <span>Изображение уточняется</span>}
-      <small>Данные из товарного фида</small>
+      {product.image ? <Image src={product.image} alt={product.title} width={430} height={340} unoptimized /> : <span>Изображение уточняется</span>}
+      <small>Из товарного фида</small>
     </Link>
+
     <div className="feed-product-copy">
-      <span>{product.brand}{product.sku ? ` · ${product.sku}` : ""}</span>
-      <h3><Link href={`/product/${product.slug}`}>{product.title}</Link></h3>
-      {axes.length > 0 && <ul>{axes.map((axis) => <li key={axis}>{axis}</li>)}</ul>}
-      <div className="feed-product-price"><b>{price}</b><small>с НДС · актуальность подтвердим в КП</small></div>
-      <p>Наличие и срок поставки уточняем для выбранного исполнения.</p>
-      <div className="feed-product-actions">
-        <AddRequestButton item={{ id:product.id, title:product.title, article:product.sku ? `Артикул ${product.sku}` : "Товарная группа", price }}>В запрос КП</AddRequestButton>
-        <Link href={`/product/${product.slug}`}>Характеристики</Link>
+      <div className="feed-product-identity">
+        <span>{product.brand}{product.sku ? ` · ${product.sku}` : ""}</span>
+        <h3><Link href={`/product/${product.slug}`}>{product.title}</Link></h3>
+        <p>{product.variantCount > 1 ? `${product.variantCount} исполнений в одной товарной группе` : "Одно исполнение"}</p>
+      </div>
+
+      <dl className="feed-product-specs">{product.specs.map((spec) => <div key={spec.label}><dt>{spec.label}</dt><dd>{spec.value}</dd></div>)}</dl>
+
+      <div className="feed-product-commercial">
+        <label className="feed-compare-check"><input type="checkbox" aria-label={`Сравнить ${product.title}`} checked={selected} onChange={onCompare} /> Сравнить</label>
+        <div className="feed-product-price"><b>{product.price}</b><small>с НДС · подтвердим в КП</small></div>
+        <p>Наличие и срок поставки уточняем для выбранного исполнения.</p>
+        <div className="feed-product-actions">
+          <AddRequestButton item={{ id:product.id, title:product.title, article:product.sku ? `Артикул ${product.sku}` : "Товарная группа", price:product.price }}>В запрос КП</AddRequestButton>
+          <Link href={`/product/${product.slug}`}>Все характеристики</Link>
+        </div>
       </div>
     </div>
   </article>;
