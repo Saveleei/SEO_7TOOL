@@ -47,4 +47,4 @@
 
 ## Commit
 
-Будет указан после фиксации результата.
+`77ad294` — `design: add isolated staging conversion pilot`
