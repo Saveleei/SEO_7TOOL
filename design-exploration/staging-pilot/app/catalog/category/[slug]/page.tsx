@@ -46,22 +46,29 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const sort = sortOptions.some((option) => option.value === requestedSort) ? requestedSort as FeedCategorySort : "relevance";
   const requestedPage = Number.parseInt(firstValue(rawSearchParams.page) ?? "1", 10);
   const requestedView = firstValue(rawSearchParams.view);
+  const inStockOnly = firstValue(rawSearchParams.availability) === "in-stock";
   const filters = Object.fromEntries(Object.entries(rawSearchParams)
     .filter(([key]) => key.startsWith("f_"))
     .map(([key, value]) => [key.slice(2), valuesOf(value).filter(Boolean)]));
-  const result = getFeedCategoryPage(slug, { search, sort, page:Number.isFinite(requestedPage) ? requestedPage : 1, filters });
+  const result = getFeedCategoryPage(slug, { search, sort, page:Number.isFinite(requestedPage) ? requestedPage : 1, filters, availability:inStockOnly ? "in-stock" : undefined });
   const activeVariantFilters = result.facets.flatMap((facet) => facet.keyword && (filters[facet.key]?.length ?? 0) > 0
     ? [{ keyword:facet.keyword, values:filters[facet.key] }]
     : []);
-  const productCards = result.products.map((product) => toFeedProductCardModel(product, activeVariantFilters));
+  const productCards = result.products.map((product) => toFeedProductCardModel(product, activeVariantFilters, inStockOnly));
   const canUseTable = prefersDenseFeedTable(slug);
   const view = canUseTable && requestedView !== "cards" ? "table" : "cards";
-  const activeFilterCount = Object.values(filters).reduce((sum, values) => sum + values.length, 0) + (search ? 1 : 0);
+  const activeFilterCount = Object.values(filters).reduce((sum, values) => sum + values.length, 0) + (search ? 1 : 0) + (inStockOnly ? 1 : 0);
   const subject = encodeURIComponent(`Запрос: ${subcategory.label}`);
   const selectorHref = slug === "stanki-sverlilnye" ? "/catalog/sverlenie/magnitnye-stanki" : undefined;
   const start = result.total > 0 ? (result.page - 1) * result.pageSize + 1 : 0;
   const end = Math.min(result.page * result.pageSize, result.total);
-  const promotedFacets = result.facets.filter((facet) => facet.keyword).slice(0, 2);
+  const technicalFacets = result.facets.filter((facet) => facet.keyword);
+  const promotedFacets = slug === "borfrezy"
+    ? [technicalFacets.find((facet) => facet.keyword === "форма"), technicalFacets.find((facet) => facet.keyword === "диаметр режущей")].filter((facet): facet is NonNullable<typeof facet> => Boolean(facet))
+    : technicalFacets.slice(0, 2);
+  const orderedFacets = slug === "borfrezy"
+    ? [...result.facets].sort((first, second) => facetOrder(first.keyword) - facetOrder(second.keyword))
+    : result.facets;
 
   return <div className="site-shell"><PilotHeader /><main className="inner-page">
     <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Каталог", href:"/catalog" }, { label:group.title, href:group.href }, { label:subcategory.label }]} /></div>
@@ -81,6 +88,10 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
       <div className="section-heading feed-category-heading"><div><p className="eyebrow">Фактический ассортимент</p><h2>Сначала сузьте выбор</h2></div><p>Главные параметры вынесены наверх. Полный набор фильтров остаётся слева.</p></div>
 
       {promotedFacets.length > 0 && <nav className="feed-promoted-filters" aria-label="Быстрые фильтры">
+        <div className="feed-priority-choice"><span>Показывать сначала</span><div>
+          <Link className={sort === "relevance" ? "active" : undefined} aria-current={sort === "relevance" ? "true" : undefined} href={categoryUrl(slug, rawSearchParams, { setKey:"sort", setValue:"relevance" })}>Подходящие</Link>
+          <Link className={inStockOnly ? "active" : undefined} aria-current={inStockOnly ? "true" : undefined} href={categoryUrl(slug, rawSearchParams, { toggleKey:"availability", toggleValue:"in-stock" })}>В наличии<small>по фиду</small></Link>
+        </div></div>
         {promotedFacets.map((facet) => <div key={facet.key}><span>{facet.label}</span><div>{facet.options.slice(0, 6).map((option) => {
           const selected = filters[facet.key]?.includes(option.value) ?? false;
           return <Link className={selected ? "active" : undefined} aria-current={selected ? "true" : undefined} href={categoryUrl(slug, rawSearchParams, { toggleKey:`f_${facet.key}`, toggleValue:option.value })} key={option.value}>{option.label}<small>{option.count}</small></Link>;
@@ -94,9 +105,9 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
           <label className="feed-filter-summary" htmlFor={`feed-filters-${slug}`}><span><b>Фильтры</b><small>{activeFilterCount > 0 ? `Выбрано: ${activeFilterCount}` : "По характеристикам фида"}</small></span><i aria-hidden="true">+</i></label>
           <form method="get" action={`/catalog/category/${slug}#products`}>
             {requestedView && <input type="hidden" name="view" value={requestedView} />}
+            <div className="feed-filter-priority"><span>Быстрый выбор</span><label><input type="checkbox" name="availability" value="in-stock" defaultChecked={inStockOnly} /><b>В наличии</b><em>по данным фида</em></label><label><span>Порядок выдачи</span><select name="sort" defaultValue={sort}>{sortOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label><small>Остаток и срок отгрузки подтвердим перед оплатой.</small></div>
             <label className="feed-filter-search"><span>Поиск в категории</span><input type="search" name="q" defaultValue={search} placeholder="Название, бренд или модель" /></label>
-            <label className="feed-filter-sort"><span>Порядок товаров</span><select name="sort" defaultValue={sort}>{sortOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label>
-            {result.facets.map((facet) => <fieldset key={facet.key}><legend>{facet.label}</legend><small>{facet.help}</small><div>{facet.options.map((option) => <label key={option.value}><input type="checkbox" name={`f_${facet.key}`} value={option.value} defaultChecked={filters[facet.key]?.includes(option.value)} /><span>{option.label}</span><em>{option.count}</em></label>)}</div></fieldset>)}
+            {orderedFacets.map((facet) => <fieldset className={facet.keyword === "форма" ? "feed-shape-filter" : undefined} key={facet.key}><legend>{facet.label}</legend><small>{facet.keyword === "форма" ? "Стандартные формы A–N и комбинированные исполнения." : facet.help}</small><div>{facet.options.map((option) => <label key={option.value}><input type="checkbox" name={`f_${facet.key}`} value={option.value} defaultChecked={filters[facet.key]?.includes(option.value)} /><span>{option.label}</span><em>{option.count}</em></label>)}</div></fieldset>)}
             <div className="feed-filter-actions"><button className="button button-orange" type="submit">Показать товары</button><Link href={`/catalog/category/${slug}#products`}>Сбросить</Link></div>
           </form>
         </aside>
@@ -107,6 +118,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
             <form method="get" action={`/catalog/category/${slug}#products`}>
               {requestedView && <input type="hidden" name="view" value={requestedView} />}
               {search && <input type="hidden" name="q" value={search} />}
+              {inStockOnly && <input type="hidden" name="availability" value="in-stock" />}
               {Object.entries(filters).flatMap(([key, values]) => values.map((value) => <input type="hidden" name={`f_${key}`} value={value} key={`${key}-${value}`} />))}
               <label><span>Сортировка</span><select name="sort" defaultValue={sort}>{sortOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label><button type="submit">Применить</button>
             </form>
@@ -114,6 +126,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
 
           {activeFilterCount > 0 && <nav className="feed-applied-filters" aria-label="Применённые фильтры"><span>Вы выбрали:</span>
             {search && <Link href={categoryUrl(slug, rawSearchParams, { removeKey:"q" })}>Поиск: {search}<b aria-hidden="true">×</b></Link>}
+            {inStockOnly && <Link href={categoryUrl(slug, rawSearchParams, { removeKey:"availability" })}>В наличии по фиду<b aria-hidden="true">×</b></Link>}
             {result.facets.flatMap((facet) => (filters[facet.key] ?? []).map((value) => <Link href={categoryUrl(slug, rawSearchParams, { removeKey:`f_${facet.key}`, removeValue:value })} key={`${facet.key}-${value}`}>{facet.label}: {value}<b aria-hidden="true">×</b></Link>))}
             <Link className="feed-reset-all" href={`/catalog/category/${slug}#products`}>Очистить всё</Link>
           </nav>}
@@ -192,4 +205,12 @@ function pluralizeProductGroups(count: number): string {
   if (modulo10 === 1) return "товарная серия";
   if (modulo10 >= 2 && modulo10 <= 4) return "товарные серии";
   return "товарных серий";
+}
+
+function facetOrder(keyword?: string): number {
+  if (keyword === "форма") return 0;
+  if (keyword === "диаметр режущей") return 1;
+  if (keyword === "диаметр хвостовика") return 2;
+  if (keyword === "длина режущей") return 3;
+  return keyword ? 4 : 5;
 }

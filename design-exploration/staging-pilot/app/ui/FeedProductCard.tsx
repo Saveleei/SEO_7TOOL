@@ -30,7 +30,7 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
       <div className="feed-product-commercial">
         <label className="feed-compare-check"><input type="checkbox" aria-label={`Сравнить ${product.title}`} checked={selected} onChange={onCompare} /> Сравнить</label>
         <div className="feed-product-price"><b>{product.price}</b><small>с НДС · подтвердим в КП</small></div>
-        <p>Наличие и срок поставки уточняем для выбранного исполнения.</p>
+        <p>{product.availableVariantCount > 0 ? "Есть исполнения в наличии по данным фида. Подтвердим остаток и срок в КП." : "Наличие и срок поставки уточняем для выбранного исполнения."}</p>
         <div className="feed-product-actions">
           <AddRequestButton item={{ id:product.id, title:product.title, article:product.sku ? `Артикул ${product.sku}` : "Товарная группа", price:product.price }}>В запрос КП</AddRequestButton>
           <Link href={`/product/${product.slug}`}>Все характеристики</Link>

@@ -54,6 +54,7 @@ export type FeedProductVariantModel = {
   price: string;
   specs: FeedProductSpec[];
   matchesSelection: boolean;
+  available: boolean;
 };
 
 export type FeedProductCardModel = {
@@ -65,6 +66,8 @@ export type FeedProductCardModel = {
   image?: string;
   price: string;
   variantCount: number;
+  selectedVariantCount: number;
+  availableVariantCount: number;
   specs: FeedProductSpec[];
   variants: FeedProductVariantModel[];
 };
@@ -96,6 +99,7 @@ export type FeedCategoryQuery = {
   page?: number;
   pageSize?: number;
   filters?: Record<string, string[]>;
+  availability?: "in-stock";
 };
 
 export type FeedCategoryPage = {
@@ -208,7 +212,7 @@ export function getFeedCategoryPage(slug: string, query: FeedCategoryQuery = {})
   const normalizedSearch = query.search?.trim().toLocaleLowerCase("ru-RU") ?? "";
   const filteredProducts = allProducts.filter((product) => {
     if (normalizedSearch && !getProductSearchText(product).includes(normalizedSearch)) return false;
-    return productMatchesFacetFilters(product, facets, query.filters ?? {});
+    return productMatchesFacetFilters(product, facets, query.filters ?? {}, query.availability === "in-stock");
   });
   const sortedProducts = [...filteredProducts];
 
@@ -260,16 +264,19 @@ export function getFeedProductPriceLabel(product: FeedProduct): string {
   return from;
 }
 
-export function toFeedProductCardModel(product: FeedProduct, activeFilters: FeedVariantFilter[] = []): FeedProductCardModel {
-  const variants = product.variants
+export function toFeedProductCardModel(product: FeedProduct, activeFilters: FeedVariantFilter[] = [], preferAvailable = false): FeedProductCardModel {
+  const hasVariantSelection = activeFilters.length > 0 || preferAvailable;
+  const selectedVariants = product.variants
     .map((variant, sourceOrder) => ({
       variant,
       sourceOrder,
-      matchesSelection: activeFilters.length === 0 || activeFilters.every((filter) =>
+      matchesSelection: hasVariantSelection && (activeFilters.length === 0 || activeFilters.every((filter) =>
         getVariantParameterValues(variant, filter.keyword).some((value) => filter.values.includes(value)),
-      ),
+      )) && (!preferAvailable || isConfirmedAvailableVariant(variant)),
     }))
-    .sort((first, second) => Number(second.matchesSelection) - Number(first.matchesSelection) || first.sourceOrder - second.sourceOrder)
+    .filter(({ matchesSelection }) => !hasVariantSelection || matchesSelection)
+    .sort((first, second) => Number(second.matchesSelection) - Number(first.matchesSelection) || first.sourceOrder - second.sourceOrder);
+  const variants = selectedVariants
     .slice(0, 12)
     .map(({ variant, matchesSelection }) => ({
       id: variant.id,
@@ -278,6 +285,7 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
       price: formatFeedPrice(variant.price) ?? "Цена по запросу",
       specs: getFeedVariantSpecs(product, variant),
       matchesSelection,
+      available: isConfirmedAvailableVariant(variant),
     }));
 
   return {
@@ -289,6 +297,8 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
     image: getFeedProductImage(product),
     price: getFeedProductPriceLabel(product),
     variantCount: product.variants.length,
+    selectedVariantCount: selectedVariants.length,
+    availableVariantCount: product.variants.filter(isConfirmedAvailableVariant).length,
     specs: getFeedProductSpecs(product),
     variants,
   };
@@ -324,8 +334,9 @@ function getCategoryFacets(slug: string, products: FeedProduct[], selectedFilter
   }
 
   const usedParameterNames = new Set<string>();
+  const technicalFacetLimit = slug === "borfrezy" ? 4 : 3;
   for (const keyword of categorySpecPriorities[slug] ?? []) {
-    if (facets.filter((facet) => facet.keyword).length >= 3) break;
+    if (facets.filter((facet) => facet.keyword).length >= technicalFacetLimit) break;
     const matchingNames = getMatchingParameterNames(products, keyword);
     if (matchingNames.length === 0 || matchingNames.some((name) => usedParameterNames.has(normalizeText(name)))) continue;
 
@@ -339,11 +350,15 @@ function getCategoryFacets(slug: string, products: FeedProduct[], selectedFilter
       label: matchingNames[0],
       help: getFacetHelp(keyword),
       keyword,
-      options: toFacetOptions(values, selectedFilters[key]),
+      options: toFacetOptions(values, selectedFilters[key], keyword === "форма" ? 100 : 10, keyword === "форма"),
     });
   }
 
   return facets;
+}
+
+function isConfirmedAvailableVariant(variant: FeedVariant): boolean {
+  return variant.available && typeof variant.quantity === "number" && variant.quantity > 0;
 }
 
 function getMatchingParameterNames(products: FeedProduct[], keyword: string): string[] {
@@ -365,10 +380,10 @@ function countProductValues(products: FeedProduct[], getValues: (product: FeedPr
   return counts;
 }
 
-function toFacetOptions(counts: Map<string, number>, selectedValues: string[] = []): FeedFacetOption[] {
+function toFacetOptions(counts: Map<string, number>, selectedValues: string[] = [], limit = 10, sortByValue = false): FeedFacetOption[] {
   const ranked = Array.from(counts.entries())
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ru-RU"));
-  const visible = ranked.slice(0, 10);
+    .sort((a, b) => sortByValue ? compareFacetValues(a[0], b[0]) : b[1] - a[1] || a[0].localeCompare(b[0], "ru-RU"));
+  const visible = ranked.slice(0, limit);
   for (const selected of selectedValues) {
     const entry = ranked.find(([value]) => value === selected);
     if (entry && !visible.some(([value]) => value === selected)) visible.push(entry);
@@ -376,14 +391,19 @@ function toFacetOptions(counts: Map<string, number>, selectedValues: string[] = 
   return visible.map(([value, count]) => ({ value, label:value, count }));
 }
 
-function productMatchesFacetFilters(product: FeedProduct, facets: FeedFacet[], filters: Record<string, string[]>): boolean {
+function compareFacetValues(first: string, second: string): number {
+  const rank = (value: string) => /^[A-ZА-Я]$/i.test(value) ? 0 : /^[A-ZА-Я][+\-]?$/i.test(value) ? 1 : 2;
+  return rank(first) - rank(second) || first.localeCompare(second, "ru-RU", { numeric:true });
+}
+
+function productMatchesFacetFilters(product: FeedProduct, facets: FeedFacet[], filters: Record<string, string[]>, requireAvailable = false): boolean {
   const selectedBrands = filters.brand?.filter(Boolean) ?? [];
   if (selectedBrands.length > 0 && !selectedBrands.includes(product.brand)) return false;
 
   const technicalFacets = facets.filter((facet) => facet.keyword && (filters[facet.key]?.length ?? 0) > 0);
-  if (technicalFacets.length === 0) return true;
+  if (technicalFacets.length === 0) return !requireAvailable || product.variants.some(isConfirmedAvailableVariant);
 
-  return product.variants.some((variant) => technicalFacets.every((facet) => {
+  return product.variants.some((variant) => (!requireAvailable || isConfirmedAvailableVariant(variant)) && technicalFacets.every((facet) => {
     const selected = filters[facet.key] ?? [];
     return getVariantParameterValues(variant, facet.keyword ?? "").some((value) => selected.includes(value));
   }));
