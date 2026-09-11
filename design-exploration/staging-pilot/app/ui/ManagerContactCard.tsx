@@ -17,6 +17,6 @@ export function ManagerContactCard({ compact = false }: { compact?: boolean }) {
       <a href={telegramUrl} target="_blank" rel="noopener noreferrer"><i aria-hidden="true">T</i><span><b>Telegram</b><small>Написать менеджеру</small></span></a>
       <a href={maxUrl} target="_blank" rel="noopener noreferrer"><i aria-hidden="true">M</i><span><b>MAX</b><small>Написать менеджеру</small></span></a>
     </div>
-    {!compact && <small className="manager-contact-note">Укажите модель, артикул или пришлите ссылку — менеджер продолжит диалог уже с контекстом товара.</small>}
+    {!compact && <small className="manager-contact-note">Опишите задачу, укажите известную модель или пришлите ссылку — менеджер продолжит диалог уже с нужным контекстом.</small>}
   </aside>;
 }

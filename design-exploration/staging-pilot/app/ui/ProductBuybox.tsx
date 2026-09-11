@@ -32,7 +32,7 @@ export function ProductBuybox() {
         <button className="purchase-open-request" type="button" onClick={open}>Открыть запрос КП</button>
         <Link href="/compare">Сравнить варианты</Link>
       </div>
-      <div className="purchase-proof" aria-label="Условия запроса"><span>КП и счёт с НДС</span><span>Статус выбранного артикула</span><span>Ответ менеджера с контекстом товара</span></div>
+      <div className="purchase-proof" aria-label="Условия запроса"><span>КП и счёт с НДС</span><span>Статус выбранной позиции</span><span>Ответ менеджера с контекстом товара</span></div>
     </div>
     <div className="key-specs"><div><span>Корончатое сверло</span><b>до {selected.diameter}</b></div><div><span>Шпиндель</span><b>{selected.spindle}</b></div><div><span>Мощность</span><b>{selected.power}</b></div><div><span>Масса</span><b>{selected.weight}</b></div></div>
   </>;

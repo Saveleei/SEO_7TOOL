@@ -5,13 +5,8 @@ import { PilotFooter } from "./ui/PilotFooter";
 import { PilotHeader } from "./ui/PilotHeader";
 import { ProcurementWorkbench } from "./ui/ProcurementWorkbench";
 import { AddRequestButton } from "./ui/RequestCart";
-
-const directions = [
-  { id: "01", title: "Сверление и резьба", copy: "Магнитные станки · корончатые свёрла · метчики", href: "/catalog/sverlenie", accent: "По диаметру и шпинделю", image: "/category/stanki-sverlilnye.webp" },
-  { id: "02", title: "Обработка кромки", copy: "Кромкорезы для листа · трубы · фаскосниматели", href: "/catalog", accent: "По фаске и материалу", image: "/category/kromkorezy-po-listu.webp" },
-  { id: "03", title: "Резка металла", copy: "Труборезы · ленточные пилы · диски · лазер", href: "/catalog", accent: "По заготовке и резу", image: "/category/truborezy.webp" },
-  { id: "04", title: "Сварка и автоматизация", copy: "Каретки · вращатели · роботы · позиционеры", href: "/catalog", accent: "По процессу и шву", image: "/category/karetki-svarochnye.webp" },
-];
+import { TaskPathSelector } from "./ui/TaskPathSelector";
+import { getProductionTaskPaths, pilotFeedCategorySlugs } from "./data/productionTaskPaths";
 
 export default function Home() {
   return (
@@ -22,7 +17,7 @@ export default function Home() {
           <div className="container hero-grid">
             <div className="hero-copy">
               <p className="eyebrow">Инженерный интернет-каталог 7TOOL</p>
-              <h1>Подбор промышленного оборудования для металлообработки</h1>
+              <h1>Подбор промышленного оборудования для обработки металла</h1>
               <p className="hero-lead">Опишите задачу или укажите известную модель. Проверим подходящее оборудование, совместимость оснастки, цену и реальный срок поставки.</p>
               <div className="hero-scope" aria-label="Ассортимент 7TOOL"><span>Оборудование</span><span>Оснастка</span><span>Расходники</span><span>Сервис</span></div>
               <HeroSearch />
@@ -50,28 +45,18 @@ export default function Home() {
           </div>
         </section>
 
-        <nav className="brand-rail" aria-label="Популярные производители"><div className="container"><span>Быстрый переход по бренду</span>{["LENZ","HEDEN","BDS","KARNASCH","PROMOTECH","EUROBOOR"].map((brand) => <Link href="/catalog" key={brand}>{brand}</Link>)}</div></nav>
-
         <section className="section">
           <div className="container">
             <div className="section-heading">
-              <div><p className="eyebrow">Короткий путь к нужному разделу</p><h2>Категории по производственной операции</h2></div>
-              <p>На первом уровне — задача клиента. На втором — тип оборудования. Внутри — фильтры по параметрам, влияющим на выбор.</p>
+              <div><p className="eyebrow">Если точная модель неизвестна</p><h2>Начните с производственной задачи</h2></div>
+              <p>Сначала выберите операцию, затем два определяющих параметра. Получите готовый раздел или запрос инженеру с уже понятным контекстом.</p>
             </div>
-            <div className="direction-grid">
-              {directions.map((direction) => (
-                <Link className="direction-card" href={direction.href} key={direction.id}>
-                  <div className="direction-media"><span className="direction-id">{direction.id}</span><Image src={direction.image} alt="" width={340} height={210} /></div>
-                  <div><span className="direction-accent">{direction.accent}</span><h3>{direction.title}</h3><p>{direction.copy}</p></div>
-                  <small>Перейти к подбору</small><b aria-hidden="true">→</b>
-                </Link>
-              ))}
-            </div>
-            <Link className="consumables-card" href="/catalog">
+            <TaskPathSelector tasks={getProductionTaskPaths(pilotFeedCategorySlugs)} />
+            <Link className="consumables-card" href="/#quick-order">
               <Image src="/category/koronchatye-sverla.webp" alt="Корончатые свёрла и оснастка" width={190} height={120} />
               <span>Сквозной вход</span>
-              <div><h3>Оснастка и расходные материалы</h3><p>Корончатые свёрла, борфрезы, пильные диски, метчики и СОЖ — быстрый выбор по размеру и совместимости.</p></div>
-              <strong>Найти оснастку →</strong>
+              <div><h3>Оснастка и расходные материалы</h3><p>Подберём по вашему станку, размеру, материалу и режиму работы — даже если точный артикул неизвестен.</p></div>
+              <strong>Подобрать оснастку →</strong>
             </Link>
           </div>
         </section>
