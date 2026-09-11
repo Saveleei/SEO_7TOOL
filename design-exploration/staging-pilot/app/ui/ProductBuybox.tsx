@@ -5,10 +5,10 @@ import { useState } from "react";
 import { useRequestCart } from "./RequestCart";
 
 const variants = [
-  { id:"STEYR-35", label:"Ø35 мм", article:"STEYR-35", diameter:"35 мм", spindle:"Weldon 19", power:"1 100 Вт", weight:"10,5 кг", price:"47 999 ₽", available:true, today:true },
-  { id:"STEYR-35-MAX", label:"Ø35 + реверс", article:"STEYR-35 MAX", diameter:"35 мм", spindle:"Weldon 19", power:"1 600 Вт", weight:"12,4 кг", price:"77 910 ₽", available:false, today:false },
-  { id:"STEYR-60", label:"Ø60 мм", article:"STEYR-60", diameter:"60 мм", spindle:"Weldon 19", power:"1 800 Вт", weight:"15,8 кг", price:"Цена по запросу", available:false, today:false },
-  { id:"STEYR-60-R", label:"Ø60 + реверс", article:"STEYR-60 R", diameter:"60 мм", spindle:"Weldon 19", power:"1 900 Вт", weight:"16,2 кг", price:"Цена по запросу", available:false, today:false },
+  { id:"STEYR-35", label:"Ø35 мм", article:"STEYR-35", diameter:"35 мм", spindle:"Weldon 19", power:"1 100 Вт", weight:"10,5 кг", price:"47 999 ₽" },
+  { id:"STEYR-35-MAX", label:"Ø35 + реверс", article:"STEYR-35 MAX", diameter:"35 мм", spindle:"Weldon 19", power:"1 600 Вт", weight:"12,4 кг", price:"77 910 ₽" },
+  { id:"STEYR-60", label:"Ø60 мм", article:"STEYR-60", diameter:"60 мм", spindle:"Weldon 19", power:"1 800 Вт", weight:"15,8 кг", price:"Цена по запросу" },
+  { id:"STEYR-60-R", label:"Ø60 + реверс", article:"STEYR-60 R", diameter:"60 мм", spindle:"Weldon 19", power:"1 900 Вт", weight:"16,2 кг", price:"Цена по запросу" },
 ];
 
 export function ProductBuybox() {
@@ -24,7 +24,7 @@ export function ProductBuybox() {
   return <>
     <div className="variant-selector"><span>Выберите вариант</span><div>{variants.map((variant) => <button className={variant.id === selected.id ? "active" : ""} type="button" key={variant.id} onClick={() => setSelectedId(variant.id)}>{variant.label}</button>)}</div><small>Цена, статус и характеристики относятся к выбранному варианту.</small></div>
     <div className="product-buybox">
-      <div className={`product-status ${selected.available ? "is-in-stock" : "is-on-order"}`}><span>{selected.available ? "В наличии" : "Требует подтверждения"}</span><b>{selected.available && selected.today ? "Отгрузка сегодня" : "Срок укажем в КП"}</b><small>{selected.available ? "Демонстрационный остаток · резерв после подтверждения менеджером" : "Не обещаем срок до ответа поставщика"}</small></div>
+      <div className="product-status is-on-order"><span>Наличие уточняем</span><b>Реальный срок укажем в КП</b><small>После запроса менеджер проверит доступность выбранной модификации у поставщика.</small></div>
       <div className="price-block"><div><b>{selected.price}</b><span>{selected.price.includes("₽") ? "ориентировочная цена с НДС" : "менеджер вернёт цену и срок одним ответом"}</span></div></div>
       <div className="purchase-actions">
         <div className="quantity-control" aria-label="Количество"><button type="button" onClick={() => setQuantity((value) => Math.max(1,value-1))}>−</button><b>{quantity}</b><button type="button" onClick={() => setQuantity((value) => value+1)}>+</button></div>

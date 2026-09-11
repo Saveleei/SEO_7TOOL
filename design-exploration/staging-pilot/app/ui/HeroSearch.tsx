@@ -24,7 +24,7 @@ export function HeroSearch() {
     if (bevel) return { label:"производственная задача", title:"Оборудование для снятия фаски и обработки кромки", meta:"Лист, труба, ширина фаски и угол обработки", href:"/catalog", image:"/category/kromkorezy-po-listu.webp", category:"Обработка кромки" };
     if (cutting) return { label:"производственная задача", title:"Оборудование для резки металла", meta:"Трубы, профиль, лист и подготовка заготовок", href:"/catalog", image:"/category/truborezy.webp", category:"Резка металла" };
     if (welding) return { label:"производственная задача", title:"Оборудование для сварки и автоматизации", meta:"Каретки, вращатели, позиционеры и роботизация", href:"/catalog", image:"/category/karetki-svarochnye.webp", category:"Сварка и автоматизация" };
-    return { label:"запрос по каталогу", title:`Результаты для «${query || "оборудование для производства"}»`, meta:"Ищем по моделям, артикулам, синонимам и техническим параметрам", href:"/catalog", image:"/category/stanki-sverlilnye.webp", category:"Весь каталог 7TOOL" };
+    return { label:"производственная задача", title:`Разобрать запрос «${query || "оборудование для производства"}»`, meta:"Уточним параметры и проверим подходящие варианты поставки", href:"/#quick-order", image:"/category/stanki-sverlilnye.webp", category:"Инженерный подбор 7TOOL" };
   }, [normalized, query]);
 
   function submit(event: FormEvent<HTMLFormElement>) {
@@ -36,7 +36,7 @@ export function HeroSearch() {
     <div className="hero-search-wrap" id="search">
       <form className="hero-search" onSubmit={submit} role="search">
         <span aria-hidden="true">⌕</span>
-        <input value={query} onChange={(event) => { setQuery(event.target.value); setSearched(false); }} placeholder="Модель, артикул или задача" aria-label="Поиск по каталогу" />
+        <input value={query} onChange={(event) => { setQuery(event.target.value); setSearched(false); }} placeholder="Модель или производственная задача" aria-label="Поиск по каталогу" />
         <button type="submit">Найти</button>
       </form>
       <div className="search-examples">
@@ -47,7 +47,7 @@ export function HeroSearch() {
         <div className="search-panel" aria-live="polite">
           <div className="search-understood"><span>Запрос распознан как</span><b>{intent.label}</b>{/35/.test(normalized) && <em>Ø35 мм</em>}{/реверс/.test(normalized) && <em>реверс</em>}</div>
           <Link className="search-hit" href={intent.href}><Image src={intent.image} alt="" width={66} height={66} /><div><small>{intent.category}</small><strong>{intent.title}</strong><span>{intent.meta}</span></div><b>Открыть →</b></Link>
-          <div className="search-more"><Link href={intent.href}>Все результаты по запросу</Link><a href={`mailto:info@7tool.ru?subject=Не%20нашёл%20${encodeURIComponent(query)}`}>Не нашли? Подберём аналог</a></div>
+          <div className="search-more"><Link href={intent.href}>Продолжить подбор</Link><a href={`mailto:info@7tool.ru?subject=Запрос%20на%20подбор%20${encodeURIComponent(query)}`}>Отправить запрос по email</a></div>
         </div>
       )}
     </div>

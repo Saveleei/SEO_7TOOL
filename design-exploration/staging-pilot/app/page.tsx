@@ -22,21 +22,21 @@ export default function Home() {
           <div className="container hero-grid">
             <div className="hero-copy">
               <p className="eyebrow">Инженерный интернет-каталог 7TOOL</p>
-              <h1>Промышленное оборудование и оснастка для металлообработки</h1>
-              <p className="hero-lead">Найдите товар по модели, артикулу или параметрам. Либо отправьте спецификацию — проверим совместимость и подготовим единое КП с НДС.</p>
+              <h1>Подбор промышленного оборудования для металлообработки</h1>
+              <p className="hero-lead">Опишите задачу или укажите известную модель. Проверим подходящее оборудование, совместимость оснастки, цену и реальный срок поставки.</p>
               <div className="hero-scope" aria-label="Ассортимент 7TOOL"><span>Оборудование</span><span>Оснастка</span><span>Расходники</span><span>Сервис</span></div>
               <HeroSearch />
               <div className="intent-grid" aria-label="Способы начать подбор">
-                <Link href="/catalog"><span>01</span><b>Открыть каталог</b><small>Выбрать по техническим параметрам</small></Link>
-                <a href="#quick-order"><span>02</span><b>Отправить список или ТЗ</b><small>Собрать позиции в одно КП</small></a>
+                <a href="#quick-order"><span>01</span><b>Описать задачу</b><small>Подбор без знания артикула</small></a>
+                <Link href="/catalog"><span>02</span><b>Открыть каталог</b><small>Сравнить доступные модели</small></Link>
                 <a href="tel:+79626112419"><span>03</span><b>Проверить с инженером</b><small>+7 (962) 611-24-19</small></a>
               </div>
             </div>
             <div className="hero-procurement-card" aria-label="Быстрый запрос для отдела снабжения">
-              <span className="eyebrow">Для отдела снабжения</span><h2>Есть список позиций?</h2><p>Вставьте артикулы и количество либо отправьте файл. В одном ответе вернём цену с НДС, подтверждённый срок и доступные аналоги.</p>
-              <a className="button button-orange" href="#quick-order">Вставить список артикулов</a>
+              <span className="eyebrow">Для инженера и снабжения</span><h2>Есть задача или спецификация?</h2><p>Необязательно знать наш артикул. Пришлите условия работы, модель для замены либо готовый файл — вернём подходящие варианты с ценой и подтверждённым сроком.</p>
+              <a className="button button-orange" href="#quick-order">Описать задачу</a>
               <a className="hero-procurement-email" href="mailto:info@7tool.ru?subject=Спецификация%20на%20подбор"><span>Отправить обычным письмом</span><b>info@7tool.ru</b></a>
-              <ul><li>Без обязательной регистрации</li><li>Оборудование и оснастка одним запросом</li><li>Инженер проверит совместимость</li></ul>
+              <ul><li>Можно начать с обычного описания</li><li>Подберём аналог отсутствующей модели</li><li>Не обещаем наличие до подтверждения</li></ul>
             </div>
           </div>
         </section>
@@ -77,7 +77,7 @@ export default function Home() {
         </section>
 
         <section className="section section-muted featured-products"><div className="container"><div className="section-heading"><div><p className="eyebrow">Сразу к товару</p><h2>Популярные позиции пилотного каталога</h2></div><p>Карточка сразу показывает решающие характеристики и добавляет позицию в единый запрос КП.</p></div><div className="featured-product-grid">
-          <article><Image src="/products/lenz-steyr-35.jpg" alt="Магнитный сверлильный станок LENZ STEYR-35" width={360} height={280} /><div><small>LENZ · STEYR-35</small><h3>Магнитный сверлильный станок STEYR-35</h3><p>Ø35 мм · Weldon 19 · 1 100 Вт · 10,5 кг</p><span>Демо-статус: подтверждённый остаток</span><b>47 999 ₽</b><div><AddRequestButton item={{ id:"STEYR-35", title:"Магнитный сверлильный станок LENZ STEYR-35", article:"Артикул STEYR-35", price:"47 999 ₽" }}>В запрос</AddRequestButton><Link href="/product/lenz-steyr-35">Подробнее</Link></div></div></article>
+          <article><Image src="/products/lenz-steyr-35.jpg" alt="Магнитный сверлильный станок LENZ STEYR-35" width={360} height={280} /><div><small>LENZ · STEYR-35</small><h3>Магнитный сверлильный станок STEYR-35</h3><p>Ø35 мм · Weldon 19 · 1 100 Вт · 10,5 кг</p><span>Наличие и срок уточняем</span><b>47 999 ₽</b><div><AddRequestButton item={{ id:"STEYR-35", title:"Магнитный сверлильный станок LENZ STEYR-35", article:"Артикул STEYR-35", price:"47 999 ₽" }}>В запрос</AddRequestButton><Link href="/product/lenz-steyr-35">Подробнее</Link></div></div></article>
           <article><Image src="/products/annular-drills.png" alt="Корончатые свёрла Weldon 19" width={360} height={280} /><div><small>Оснастка · Weldon 19</small><h3>Корончатые свёрла для магнитных станков</h3><p>HSS · Ø18–35 мм · рабочая длина 30 мм</p><span>Подбор по станку и операции</span><b>от 2 980 ₽</b><div><AddRequestButton item={{ id:"annular-set", title:"Комплект корончатых свёрл Weldon 19", article:"Ø18/25/35 мм", price:"от 2 980 ₽" }}>В запрос</AddRequestButton><Link href="/catalog/sverlenie">Подобрать</Link></div></div></article>
         </div></div></section>
 
@@ -89,7 +89,7 @@ export default function Home() {
 
         <section className="section procurement-section">
           <div className="container procurement-grid">
-            <div className="procurement-copy"><p className="eyebrow">Инструменты для отдела снабжения</p><h2>Не ищите каждую позицию вручную</h2><p>Вставьте список артикулов, укажите модель для замены или передайте готовую спецификацию — соберём позиции и вернём единое КП.</p><ul><li>Заказ списком артикулов</li><li>Подбор аналога отсутствующей модели</li><li>Разбор спецификации</li></ul><a href="mailto:info@7tool.ru?subject=Спецификация%20на%20подбор">Можно сразу отправить файл на <b>info@7tool.ru</b> →</a></div>
+            <div className="procurement-copy"><p className="eyebrow">Инженерный запрос</p><h2>Начните с задачи, а не с нашего каталога</h2><p>Опишите операцию, материал и условия работы, укажите известную модель либо передайте готовую спецификацию. Подтвердим, что действительно можем поставить.</p><ul><li>Подбор по производственной задаче</li><li>Замена отсутствующей модели</li><li>Разбор ТЗ и спецификации</li></ul><a href="mailto:info@7tool.ru?subject=Запрос%20на%20подбор">Можно сразу написать на <b>info@7tool.ru</b> →</a></div>
             <ProcurementWorkbench />
           </div>
         </section>
