@@ -3,13 +3,13 @@ import Image from "next/image";
 import { HeroSearch } from "./ui/HeroSearch";
 import { PilotFooter } from "./ui/PilotFooter";
 import { PilotHeader } from "./ui/PilotHeader";
-import { TestRequestForm } from "./ui/TestRequestForm";
+import { ProcurementWorkbench } from "./ui/ProcurementWorkbench";
 
 const directions = [
-  { id: "01", title: "Сверление и резьба", copy: "Магнитные станки · корончатые свёрла · метчики", count: "2 078 вариантов", href: "/catalog/sverlenie", accent: "Ø12–200 мм" },
-  { id: "02", title: "Обработка кромки", copy: "Кромкорезы для листа · трубы · фаскосниматели", count: "128 вариантов", href: "/catalog", accent: "Фаска до 60 мм" },
-  { id: "03", title: "Резка металла", copy: "Труборезы · ленточные пилы · диски · лазер", count: "406 вариантов", href: "/catalog", accent: "Сталь и цветмет" },
-  { id: "04", title: "Сварка и автоматизация", copy: "Каретки · вращатели · роботы · позиционеры", count: "72 решения", href: "/catalog", accent: "Ручные и ЧПУ" },
+  { id: "01", title: "Сверление и резьба", copy: "Магнитные станки · корончатые свёрла · метчики", count: "2 078 вариантов", href: "/catalog/sverlenie", accent: "Ø12–200 мм", image: "/category/stanki-sverlilnye.webp" },
+  { id: "02", title: "Обработка кромки", copy: "Кромкорезы для листа · трубы · фаскосниматели", count: "128 вариантов", href: "/catalog", accent: "Фаска до 60 мм", image: "/category/kromkorezy-po-listu.webp" },
+  { id: "03", title: "Резка металла", copy: "Труборезы · ленточные пилы · диски · лазер", count: "406 вариантов", href: "/catalog", accent: "Сталь и цветмет", image: "/category/truborezy.webp" },
+  { id: "04", title: "Сварка и автоматизация", copy: "Каретки · вращатели · роботы · позиционеры", count: "72 решения", href: "/catalog", accent: "Ручные и ЧПУ", image: "/category/karetki-svarochnye.webp" },
 ];
 
 export default function Home() {
@@ -48,6 +48,8 @@ export default function Home() {
           </div>
         </section>
 
+        <nav className="brand-rail" aria-label="Популярные производители"><div className="container"><span>Быстрый переход по бренду</span>{["LENZ","HEDEN","BDS","KARNASCH","PROMOTECH","EUROBOOR"].map((brand) => <Link href="/catalog" key={brand}>{brand}</Link>)}</div></nav>
+
         <section className="section">
           <div className="container">
             <div className="section-heading">
@@ -57,13 +59,14 @@ export default function Home() {
             <div className="direction-grid">
               {directions.map((direction) => (
                 <Link className="direction-card" href={direction.href} key={direction.id}>
-                  <span className="direction-id">{direction.id}</span>
+                  <div className="direction-media"><span className="direction-id">{direction.id}</span><Image src={direction.image} alt="" width={340} height={210} /></div>
                   <div><span className="direction-accent">{direction.accent}</span><h3>{direction.title}</h3><p>{direction.copy}</p></div>
                   <small>{direction.count}</small><b aria-hidden="true">→</b>
                 </Link>
               ))}
             </div>
             <Link className="consumables-card" href="/catalog">
+              <Image src="/category/koronchatye-sverla.webp" alt="Корончатые свёрла и оснастка" width={190} height={120} />
               <span>Сквозной вход</span>
               <div><h3>Оснастка и расходные материалы</h3><p>Корончатые свёрла, борфрезы, пильные диски, метчики и СОЖ — быстрый выбор по размеру и совместимости.</p></div>
               <strong>Найти оснастку →</strong>
@@ -71,10 +74,16 @@ export default function Home() {
           </div>
         </section>
 
+        <section className="section section-muted assurance-section"><div className="container"><div className="section-heading"><div><p className="eyebrow">Не обещания, а проверяемые этапы</p><h2>Что снижает риск закупки</h2></div><p>Инженер, документы и подтверждённые условия поставки находятся рядом с товаром — всё необходимое для решения собрано в одном месте.</p></div><div className="assurance-grid">
+          <article><Image src="/site/why-engineer.webp" alt="Инженер проверяет параметры оборудования" width={420} height={240} /><div><span>01 · Инженер</span><h3>Проверка применимости</h3><p>Сопоставляем операцию, материал, режим работы и совместимую оснастку.</p></div></article>
+          <article><Image src="/site/why-documents.webp" alt="Документы к поставке оборудования" width={420} height={240} /><div><span>02 · Документы</span><h3>Паспорт и сертификаты</h3><p>Собираем пакет документов по конкретному артикулу до оплаты.</p></div></article>
+          <article><Image src="/site/why-stock.webp" alt="Проверка наличия промышленного оборудования" width={420} height={240} /><div><span>03 · Поставка</span><h3>Цена, наличие и срок</h3><p>Фиксируем подтверждённые условия в КП, а не показываем сомнительные остатки.</p></div></article>
+        </div></div></section>
+
         <section className="section procurement-section">
           <div className="container procurement-grid">
-            <div className="procurement-copy"><p className="eyebrow">Если список уже готов</p><h2>Вставьте спецификацию — разберём позиции и соберём КП</h2><p>Подходит для закупщиков, снабжения и инженеров. Можно прислать модели, параметры или свободное описание. В рабочей версии добавим XLSX, PDF и DOCX.</p><ul><li>Сопоставим аналоги и исполнения</li><li>Проверим совместимую оснастку</li><li>Вернём цену с НДС и срок поставки</li></ul><a href="mailto:info@7tool.ru?subject=Спецификация%20на%20подбор">Или отправьте файл на <b>info@7tool.ru</b> →</a></div>
-            <TestRequestForm compact context="Например: магнитный станок до Ø35 мм, 220 В — 2 шт.; корончатые свёрла Ø18/25/35 мм." buttonLabel="Проверить сценарий заявки" />
+            <div className="procurement-copy"><p className="eyebrow">Инструменты для отдела снабжения</p><h2>Не ищите каждую позицию вручную</h2><p>Вставьте список артикулов, укажите модель для замены или передайте готовую спецификацию — соберём позиции и вернём единое КП.</p><ul><li>Заказ списком артикулов</li><li>Подбор аналога отсутствующей модели</li><li>Разбор спецификации</li></ul><a href="mailto:info@7tool.ru?subject=Спецификация%20на%20подбор">Можно сразу отправить файл на <b>info@7tool.ru</b> →</a></div>
+            <ProcurementWorkbench />
           </div>
         </section>
 
