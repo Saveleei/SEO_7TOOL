@@ -33,7 +33,7 @@ const specs = [
 
 export default function ProductPage() {
   return <div className="site-shell"><PilotHeader /><main className="inner-page product-page">
-    <div className="container"><Breadcrumbs items={[{label:"Главная",href:"/"},{label:"Каталог",href:"/catalog"},{label:"Сверление",href:"/catalog/sverlenie"},{label:"Магнитные станки",href:"/catalog/sverlenie/magnitnye-stanki"},{label:"LENZ STEYR-35"}]} /></div>
+    <div className="container"><Breadcrumbs items={[{label:"Главная",href:"/"},{label:"Каталог",href:"/catalog"},{label:"Сверление",href:"/catalog/task/drilling"},{label:"Магнитные станки",href:"/catalog/sverlenie/magnitnye-stanki"},{label:"LENZ STEYR-35"}]} /></div>
     <section className="product-main"><div className="container product-layout">
       <div className="product-gallery"><Image src="/products/lenz-steyr-35.jpg" alt="Магнитный сверлильный станок LENZ STEYR-35" width={760} height={760} priority /><div className="gallery-note"><span>Основной ракурс</span><b>Фото конкретной модели</b></div></div>
       <div className="product-summary">
