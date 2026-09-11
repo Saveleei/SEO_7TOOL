@@ -15,10 +15,10 @@ export function HeroSearch() {
   }
 
   return (
-    <div className="hero-search-wrap">
+    <div className="hero-search-wrap" id="search">
       <form className="hero-search" onSubmit={submit} role="search">
         <span aria-hidden="true">⌕</span>
-        <input value={query} onChange={(event) => { setQuery(event.target.value); setSearched(false); }} placeholder="Например: STEYR-35 или сверление Ø35 мм" aria-label="Поиск по каталогу" />
+        <input value={query} onChange={(event) => { setQuery(event.target.value); setSearched(false); }} placeholder="Модель, артикул или задача" aria-label="Поиск по каталогу" />
         <button type="submit">Найти</button>
       </form>
       <div className="search-examples">
@@ -28,7 +28,7 @@ export function HeroSearch() {
       {showResult && (
         <div className="search-result" aria-live="polite">
           <Image src="/products/lenz-steyr-35.jpg" alt="" width={68} height={68} />
-          <div><span>Точное совпадение · LENZ</span><strong>Магнитный станок STEYR-35</strong><small>Ø35 мм · Weldon 19 · в наличии</small></div>
+          <div><span>Точное совпадение · LENZ</span><strong>Магнитный станок STEYR-35</strong><small>Ø35 мм · Weldon 19 · наличие подтвердим</small></div>
           <b>47 999 ₽</b>
           <Link href="/product/lenz-steyr-35">Открыть</Link>
         </div>
