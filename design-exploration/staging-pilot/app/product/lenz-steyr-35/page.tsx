@@ -4,9 +4,9 @@ import Image from "next/image";
 import { Breadcrumbs } from "../../ui/Breadcrumbs";
 import { PilotFooter } from "../../ui/PilotFooter";
 import { PilotHeader } from "../../ui/PilotHeader";
-import { TestRequestForm } from "../../ui/TestRequestForm";
-import { ProductActions } from "../../ui/ProductActions";
 import { ManagerContactCard } from "../../ui/ManagerContactCard";
+import { ProductBuybox } from "../../ui/ProductBuybox";
+import { AddRequestButton, RequestCartButton } from "../../ui/RequestCart";
 
 export const metadata: Metadata = {
   title: "LENZ STEYR-35 — тестовая карточка 7TOOL",
@@ -31,24 +31,15 @@ const specs = [
   ["Реверс", "Нет"],
 ];
 
-const availability = { inStock: true, shipsToday: true };
-
 export default function ProductPage() {
   return <div className="site-shell"><PilotHeader /><main className="inner-page product-page">
     <div className="container"><Breadcrumbs items={[{label:"Главная",href:"/"},{label:"Каталог",href:"/catalog"},{label:"Сверление",href:"/catalog/sverlenie"},{label:"Магнитные станки",href:"/catalog/sverlenie/magnitnye-stanki"},{label:"LENZ STEYR-35"}]} /></div>
     <section className="product-main"><div className="container product-layout">
-      <div className="product-gallery"><div className="product-badge">−20%</div><Image src="/products/lenz-steyr-35.jpg" alt="Магнитный сверлильный станок LENZ STEYR-35" width={760} height={760} priority /><div className="gallery-note"><span>Основной ракурс</span><b>Фото конкретной модели</b></div></div>
+      <div className="product-gallery"><Image src="/products/lenz-steyr-35.jpg" alt="Магнитный сверлильный станок LENZ STEYR-35" width={760} height={760} priority /><div className="gallery-note"><span>Основной ракурс</span><b>Фото конкретной модели</b></div></div>
       <div className="product-summary">
         <p className="product-code">LENZ · Артикул STEYR-35 · Код товара 378</p><h1>Магнитный сверлильный станок LENZ STEYR-35</h1>
-        <div className="variant-selector"><span>Выберите рабочий класс</span><div><b>Ø35 мм</b><Link href="/compare">Ø35 бесщёточный</Link><Link href="/compare">Ø60 мм</Link><Link href="/compare">Ø60 + реверс</Link></div></div>
-        <div className="product-buybox">
-          <div className={`product-status ${availability.inStock ? "is-in-stock" : "is-on-order"}`}><span>{availability.inStock ? "В наличии" : "Под заказ"}</span><b>{availability.inStock && availability.shipsToday ? "Отгрузка сегодня" : availability.inStock ? "Готов к отгрузке" : "Срок поставки укажем в КП"}</b><small>{availability.inStock ? "Зарезервируем после подтверждения заказа менеджером" : "Менеджер проверит ближайшую поставку и доступный аналог"}</small></div>
-          <div className="price-block"><div><del>59 998 ₽</del><b>47 999 ₽</b><span>Цена с НДС</span></div><small>Экономия 11 999 ₽</small></div>
-          <ProductActions />
-          <div className="purchase-proof" aria-label="Условия запроса"><span>КП и счёт с НДС</span><span>Резерв после подтверждения</span><span>Ответ менеджера с контекстом товара</span></div>
-        </div>
-        <div className="key-specs"><div><span>Корончатое сверло</span><b>до 35 мм</b></div><div><span>Шпиндель</span><b>Weldon 19</b></div><div><span>Мощность</span><b>1 100 Вт</b></div><div><span>Масса</span><b>10,5 кг</b></div></div>
-        <div className="delivery-box"><div><span>Поставка в Москву</span><b>{availability.inStock && availability.shipsToday ? "Отгрузка сегодня" : "Срок подтвердит менеджер"}</b></div><button type="button">Изменить город</button><small>Передадим транспортной компании или подготовим к самовывозу · стоимость доставки войдёт в КП</small></div>
+        <ProductBuybox />
+        <div className="delivery-box"><div><span>Условия поставки</span><b>Стоимость и способ доставки войдут в КП</b></div><small>Город и транспортную компанию уточним в едином запросе. В пилоте география не определяется автоматически.</small></div>
         <ManagerContactCard />
       </div>
     </div></section>
@@ -61,12 +52,12 @@ export default function ProductPage() {
 
     <section className="section equipment-section" id="equipment"><div className="container equipment-grid"><div><p className="eyebrow">Что входит в поставку</p><h2>Стандартная комплектация</h2></div><ul><li>Магнитный сверлильный станок STEYR-35</li><li>Система охлаждения</li><li>Страховочный ремень</li><li>Три ручки подачи привода</li><li>Комплект шестигранных ключей</li><li>Руководство по эксплуатации</li><li>Пластиковый кейс</li></ul><aside><b>Нужен готовый комплект?</b><p>Добавим корончатые свёрла, направляющие штифты, СОЖ и средства безопасности.</p><a href="#request">Собрать комплект →</a></aside></div></section>
 
-    <section className="section section-muted" id="documents"><div className="container"><div className="section-heading"><div><p className="eyebrow">Документы — часть продукта</p><h2>Всё, что нужно инженеру и закупщику</h2></div><p>В production документы должны скачиваться сразу и индексироваться поиском. В пилоте их можно запросить по конкретному артикулу.</p></div><div className="document-grid">{[["PDF","Паспорт изделия"],["PDF","Руководство по эксплуатации"],["PDF","Сертификат / декларация"],["PDF","Гарантийные условия"]].map(([type,title])=><a href={`mailto:info@7tool.ru?subject=${encodeURIComponent(title+" LENZ STEYR-35")}`} key={title}><span>{type}</span><div><b>{title}</b><small>LENZ STEYR-35 · запросить файл</small></div><strong>↓</strong></a>)}</div></div></section>
+    <section className="section section-muted" id="documents"><div className="container"><div className="section-heading"><div><p className="eyebrow">Документы — часть продукта</p><h2>Всё, что нужно инженеру и закупщику</h2></div><p>В рабочей версии подтверждённые документы скачиваются без формы. Пилот честно показывает, какие файлы ещё не подключены.</p></div><div className="document-grid">{[["PDF","Паспорт изделия"],["PDF","Руководство по эксплуатации"],["PDF","Сертификат / декларация"],["PDF","Гарантийные условия"]].map(([type,title])=><div className="document-placeholder" key={title}><span>{type}</span><div><b>{title}</b><small>LENZ STEYR-35 · файл не загружен в пилот</small></div><strong>Ожидается</strong></div>)}</div><a className="document-request-link" href="mailto:info@7tool.ru?subject=Документы%20LENZ%20STEYR-35">Запросить отсутствующий документ →</a></div></section>
 
-    <section className="section"><div className="container"><div className="section-heading"><div><p className="eyebrow">Совместимая оснастка</p><h2>Сразу добавьте корончатые свёрла</h2></div><p>Совместимая оснастка вынесена отдельно от аналогов оборудования, чтобы быстро собрать рабочий комплект и не ошибиться с хвостовиком.</p></div><div className="accessory-grid">{[18,25,35].map(diameter=><article key={diameter}><Image src="/products/annular-drills.png" alt="Корончатое сверло" width={100} height={100} /><small>Weldon 19 · HSS</small><h3>Корончатое сверло Ø{diameter} мм</h3><p>Рабочая длина 30 мм</p><b>{diameter===18?"2 980":diameter===25?"3 640":"4 290"} ₽</b><button type="button">Добавить в комплект</button></article>)}</div></div></section>
+    <section className="section"><div className="container"><div className="section-heading"><div><p className="eyebrow">Совместимая оснастка</p><h2>Сразу добавьте корончатые свёрла</h2></div><p>Совместимость показана по хвостовику Weldon 19 и рабочему диапазону выбранной модели.</p></div><div className="accessory-grid">{[18,25,35].map(diameter=>{ const price=diameter===18?"2 980 ₽":diameter===25?"3 640 ₽":"4 290 ₽"; return <article key={diameter}><Image src="/products/annular-drills.png" alt="Корончатое сверло" width={100} height={100} /><small>Совместимо · Weldon 19 · HSS</small><h3>Корончатое сверло Ø{diameter} мм</h3><p>Рабочая длина 30 мм</p><b>{price}</b><AddRequestButton item={{ id:`annular-${diameter}`, title:`Корончатое сверло Ø${diameter} мм`, article:`Weldon 19 · HSS · Ø${diameter}`, price }}>Добавить в запрос</AddRequestButton></article>;})}</div></div></section>
 
     <section className="section analog-section" id="analogs"><div className="container"><div className="section-heading"><div><p className="eyebrow">Альтернативы, а не случайные рекомендации</p><h2>Сравните близкие модели</h2></div><Link href="/compare">Полная таблица сравнения →</Link></div><div className="analog-grid"><article><Image src="/products/heden-dm-36k.png" alt="HEDEN DM-36K" width={190} height={160} /><div><span>Дешевле</span><h3>HEDEN DM-36K</h3><p>Ø36 мм · 1 600 Вт · Weldon 19</p><b>44 690 ₽</b></div></article><article><Image src="/products/lenz-steyr-35.jpg" alt="LENZ STEYR-35 MAX" width={190} height={160} /><div><span>С реверсом</span><h3>LENZ STEYR-35 MAX</h3><p>Ø35 мм · 6 скоростей · бесщёточный</p><b>77 910 ₽</b></div></article><aside><b>Не нашли нужную модель?</b><p>Пришлите любой артикул или ссылку конкурента — сопоставим характеристики.</p><a href="mailto:info@7tool.ru?subject=Подобрать%20аналог">Подобрать аналог →</a></aside></div></div></section>
 
-    <section className="request-section" id="request"><div className="container request-grid"><div><p className="eyebrow">Ответ в удобном для закупки формате</p><h2>Получить КП на станок и оснастку</h2><p>В рабочей версии запрос можно будет отправить через форму или обычным письмом на <a href="mailto:info@7tool.ru">info@7tool.ru</a>.</p><div className="request-deliverables"><span>Цена с НДС</span><span>Наличие и срок</span><span>Совместимая оснастка</span></div><Link href="/catalog/sverlenie/magnitnye-stanki">← Вернуться к сравнению</Link></div><TestRequestForm context="Прошу подготовить КП на LENZ STEYR-35 и совместимые корончатые свёрла Ø18/25/35 мм." /></div></section>
-  </main><PilotFooter /><nav className="product-mobile-buybar" aria-label="Быстрый запрос по товару"><div><span>Цена с НДС</span><b>47 999 ₽</b></div><a href="#request">Получить КП</a></nav></div>;
+    <section className="request-section" id="request"><div className="container request-grid"><div><p className="eyebrow">Ответ в удобном для закупки формате</p><h2>Соберите станок и оснастку в одном запросе</h2><p>Добавленные позиции, количества и комментарий сохраняются в едином черновике. Альтернативный привычный канал — письмо на <a href="mailto:info@7tool.ru">info@7tool.ru</a>.</p><div className="request-deliverables"><span>Цена с НДС</span><span>Наличие и срок</span><span>Совместимая оснастка</span></div><Link href="/catalog/sverlenie/magnitnye-stanki">← Вернуться к сравнению</Link></div><div className="request-unified-demo"><span>Единый запрос КП</span><b>Не потеряйте позиции между письмами</b><p>Откройте черновик, проверьте количество и укажите компанию, город и допустимость аналогов.</p><RequestCartButton /></div></div></section>
+  </main><PilotFooter /><nav className="product-mobile-buybar" aria-label="Быстрый запрос по товару"><div><span>Ориентировочно, с НДС</span><b>47 999 ₽</b></div><AddRequestButton item={{ id:"STEYR-35", title:"Магнитный сверлильный станок LENZ STEYR-35", article:"Артикул STEYR-35", price:"47 999 ₽" }}>Добавить в запрос</AddRequestButton></nav></div>;
 }

@@ -3,9 +3,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useMemo, useState } from "react";
+import { AddRequestButton } from "./RequestCart";
 
 const products = [
-  { brand: "LENZ", model: "STEYR-35", title: "Магнитный сверлильный станок LENZ STEYR-35", diameter: 35, spindle: "Weldon 19", weight: "10,5 кг", reverse: false, power: 1100, brushless: false, inStock: true, shipsToday: true, priceValue: 47999, price: "47 999 ₽", oldPrice: "59 998 ₽", image: "/products/lenz-steyr-35.jpg", href: "/product/lenz-steyr-35", fit: "Компактный станок для отверстий до Ø35 мм на монтаже" },
+  { brand: "LENZ", model: "STEYR-35", title: "Магнитный сверлильный станок LENZ STEYR-35", diameter: 35, spindle: "Weldon 19", weight: "10,5 кг", reverse: false, power: 1100, brushless: false, inStock: true, shipsToday: true, priceValue: 47999, price: "47 999 ₽", image: "/products/lenz-steyr-35.jpg", href: "/product/lenz-steyr-35", fit: "Компактный станок для отверстий до Ø35 мм на монтаже" },
   { brand: "HEDEN", model: "DM-36K", title: "Магнитный сверлильный станок Heden DM-36K", diameter: 36, spindle: "Weldon 19", weight: "11,8 кг", reverse: false, power: 1600, brushless: false, inStock: false, shipsToday: false, priceValue: 44690, price: "44 690 ₽", image: "/products/heden-dm-36k.png", href: "", fit: "Базовое решение до Ø36 мм с подачей СОЖ" },
   { brand: "LENZ", model: "STEYR-35 MAX", title: "Машина сверлильная LENZ STEYR-35 MAX", diameter: 35, spindle: "Weldon 19", weight: "12,4 кг", reverse: true, power: 1600, brushless: true, inStock: true, shipsToday: true, priceValue: 77910, price: "77 910 ₽", image: "/products/lenz-steyr-35.jpg", href: "", fit: "Для задач, где нужен реверс и нарезание резьбы" },
 ];
@@ -42,12 +43,6 @@ export function ProductListing() {
 
   return (
     <>
-      <div className="selection-brief" aria-label="Порядок подбора станка">
-        <div><span>01</span><b>Диаметр и глубина</b><small>задают мощность и ход</small></div>
-        <div><span>02</span><b>Основание и масса</b><small>важны для места работы</small></div>
-        <div><span>03</span><b>Реверс и двигатель</b><small>зависят от операции и нагрузки</small></div>
-        <Link href="/compare">Сравнить модели по всем параметрам →</Link>
-      </div>
       <div className="listing-layout">
         <aside className={`filters ${filtersOpen ? "open" : ""}`}>
           <div className="filters-title"><b>Быстрый подбор</b><span>{filtered.length} {filtered.length === 1 ? "модель" : filtered.length > 1 && filtered.length < 5 ? "модели" : "моделей"}</span><button className="filters-toggle" type="button" onClick={() => setFiltersOpen((current) => !current)}>{filtersOpen ? "Свернуть" : "Все фильтры"}</button></div>
@@ -72,14 +67,20 @@ export function ProductListing() {
                 <div className="catalog-copy"><small>{product.brand} · {product.model}</small><h2>{product.href ? <Link href={product.href}>{product.title}</Link> : product.title}</h2>
                   <p className="catalog-reason"><b>Подходит:</b> {product.fit}</p>
                   <dl><div><dt>Корончатое сверло</dt><dd>до {product.diameter} мм</dd></div><div><dt>Шпиндель</dt><dd>{product.spindle}</dd></div><div><dt>Мощность</dt><dd>{product.power.toLocaleString("ru-RU")} Вт</dd></div><div><dt>Реверс</dt><dd>{product.reverse ? "Есть" : "Нет"}</dd></div><div><dt>Масса</dt><dd>{product.weight}</dd></div></dl>
-                  <div className="catalog-price"><div>{product.oldPrice && <del>{product.oldPrice}</del>}<b>{product.price}</b><span>с НДС · цену подтвердим в КП</span></div></div>
-                  <div className="catalog-actions"><a href={`mailto:info@7tool.ru?subject=КП%20на%20${encodeURIComponent(product.model)}`}>Запросить КП</a>{product.href ? <Link href={product.href}>Подробнее</Link> : <button type="button" onClick={() => toggleCompare(product.model)}>{selected ? "Добавлено" : "В сравнение"}</button>}</div>
+                  <div className="catalog-price"><div><b>{product.price}</b><span>ориентировочная цена с НДС · подтвердим в КП</span></div></div>
+                  <div className="catalog-actions"><AddRequestButton item={{ id: product.model, title: product.title, article: `Артикул ${product.model}`, price: product.price }}>В запрос</AddRequestButton>{product.href ? <Link href={product.href}>Подробнее</Link> : <button type="button" onClick={() => toggleCompare(product.model)}>{selected ? "Добавлено" : "В сравнение"}</button>}</div>
                 </div>
               </article>;
             })}
           </div>
           {filtered.length === 0 && <div className="empty-result"><b>В пилоте нет моделей с таким сочетанием</b><p>Сбросьте фильтры или отправьте параметры инженеру — отсутствие результата не должно быть тупиком.</p><button type="button" onClick={() => { setRange("all"); setBrands(["LENZ", "HEDEN"]); setInStockOnly(false); setReverseOnly(false); setBrushlessOnly(false); }}>Сбросить фильтры</button><a href="mailto:info@7tool.ru?subject=Подобрать%20аналог%20магнитного%20станка">Подобрать аналог →</a></div>}
         </div>
+      </div>
+      <div className="selection-brief selection-brief--after" aria-label="Порядок подбора станка">
+        <div><span>01</span><b>Диаметр и глубина</b><small>задают рабочий диапазон</small></div>
+        <div><span>02</span><b>Основание и масса</b><small>важны для места работы</small></div>
+        <div><span>03</span><b>Реверс и двигатель</b><small>зависят от операции</small></div>
+        <Link href="/compare">Сравнить модели по всем параметрам →</Link>
       </div>
       {compare.length > 0 && <div className="compare-tray" role="status"><div><b>К сравнению: {compare.length}</b><span>{compare.join(" · ")}</span></div><Link href="/compare">Открыть таблицу сравнения</Link><button type="button" onClick={() => setCompare([])} aria-label="Очистить сравнение">×</button></div>}
     </>

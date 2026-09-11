@@ -1,5 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
+import { HeaderSearch } from "./HeaderSearch";
+import { RequestCartButton } from "./RequestCart";
 
 export function PilotHeader() {
   return (
@@ -9,15 +11,15 @@ export function PilotHeader() {
         <div className="container header-row">
           <Link className="brand" href="/" aria-label="7TOOL — главная"><Image src="/brand/7tool-primary.svg" alt="7TOOL" width={142} height={44} priority /></Link>
           <Link className="catalog-button" href="/catalog"><i aria-hidden="true" />Каталог</Link>
-          <Link className="header-search" href="/#search"><span aria-hidden="true">⌕</span><span>Найти модель, артикул или оборудование</span><b>Поиск</b></Link>
+          <HeaderSearch />
           <Link className="header-quick" href="/#quick-order"><span>≡</span>Заказ списком</Link>
           <a className="header-email" href="mailto:info@7tool.ru"><span>Запросы и спецификации</span><b>info@7tool.ru</b></a>
-          <Link className="header-quote" href="/#quick-order">Получить КП</Link>
+          <RequestCartButton />
         </div>
       </header>
       <nav className="mobile-action-bar" aria-label="Быстрые действия">
         <a href="mailto:info@7tool.ru?subject=Запрос%20в%207TOOL"><span>Написать</span><b>info@7tool.ru</b></a>
-        <Link href="/#quick-order">Получить КП</Link>
+        <RequestCartButton compact />
       </nav>
     </>
   );
