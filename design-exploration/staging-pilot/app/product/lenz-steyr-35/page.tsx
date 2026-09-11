@@ -11,7 +11,8 @@ import { ManagerContactCard } from "../../ui/ManagerContactCard";
 export const metadata: Metadata = {
   title: "LENZ STEYR-35 — тестовая карточка 7TOOL",
   description: "Магнитный сверлильный станок LENZ STEYR-35: характеристики, цена, совместимая оснастка и запрос КП.",
-  openGraph: { title: "LENZ STEYR-35 — 7TOOL", description: "Магнитный сверлильный станок, Ø35 мм, Weldon 19." },
+  openGraph: { title: "LENZ STEYR-35 — 7TOOL", description: "Магнитный сверлильный станок, Ø35 мм, Weldon 19.", images: [{ url: "/products/lenz-steyr-35.jpg", alt: "Магнитный сверлильный станок LENZ STEYR-35" }] },
+  twitter: { card: "summary_large_image", title: "LENZ STEYR-35 — 7TOOL", description: "Магнитный сверлильный станок, Ø35 мм, Weldon 19.", images: ["/products/lenz-steyr-35.jpg"] },
 };
 
 const specs = [
@@ -40,11 +41,14 @@ export default function ProductPage() {
       <div className="product-summary">
         <p className="product-code">LENZ · Артикул STEYR-35 · Код товара 378</p><h1>Магнитный сверлильный станок LENZ STEYR-35</h1>
         <div className="variant-selector"><span>Выберите рабочий класс</span><div><b>Ø35 мм</b><Link href="/compare">Ø35 бесщёточный</Link><Link href="/compare">Ø60 мм</Link><Link href="/compare">Ø60 + реверс</Link></div></div>
-        <div className={`product-status ${availability.inStock ? "is-in-stock" : "is-on-order"}`}><span>{availability.inStock ? "В наличии" : "Под заказ"}</span><b>{availability.inStock && availability.shipsToday ? "Отгрузка сегодня" : availability.inStock ? "Готов к отгрузке" : "Срок поставки укажем в КП"}</b><small>{availability.inStock ? "Зарезервируем после подтверждения заказа менеджером" : "Менеджер проверит ближайшую поставку и доступный аналог"}</small></div>
+        <div className="product-buybox">
+          <div className={`product-status ${availability.inStock ? "is-in-stock" : "is-on-order"}`}><span>{availability.inStock ? "В наличии" : "Под заказ"}</span><b>{availability.inStock && availability.shipsToday ? "Отгрузка сегодня" : availability.inStock ? "Готов к отгрузке" : "Срок поставки укажем в КП"}</b><small>{availability.inStock ? "Зарезервируем после подтверждения заказа менеджером" : "Менеджер проверит ближайшую поставку и доступный аналог"}</small></div>
+          <div className="price-block"><div><del>59 998 ₽</del><b>47 999 ₽</b><span>Цена с НДС</span></div><small>Экономия 11 999 ₽</small></div>
+          <ProductActions />
+          <div className="purchase-proof" aria-label="Условия запроса"><span>КП и счёт с НДС</span><span>Резерв после подтверждения</span><span>Ответ менеджера с контекстом товара</span></div>
+        </div>
         <div className="key-specs"><div><span>Корончатое сверло</span><b>до 35 мм</b></div><div><span>Шпиндель</span><b>Weldon 19</b></div><div><span>Мощность</span><b>1 100 Вт</b></div><div><span>Масса</span><b>10,5 кг</b></div></div>
-        <div className="price-block"><div><del>59 998 ₽</del><b>47 999 ₽</b><span>Цена с НДС</span></div><small>Экономия 11 999 ₽</small></div>
         <div className="delivery-box"><div><span>Поставка в Москву</span><b>{availability.inStock && availability.shipsToday ? "Отгрузка сегодня" : "Срок подтвердит менеджер"}</b></div><button type="button">Изменить город</button><small>Передадим транспортной компании или подготовим к самовывозу · стоимость доставки войдёт в КП</small></div>
-        <ProductActions />
         <ManagerContactCard />
       </div>
     </div></section>
@@ -64,5 +68,5 @@ export default function ProductPage() {
     <section className="section analog-section" id="analogs"><div className="container"><div className="section-heading"><div><p className="eyebrow">Альтернативы, а не случайные рекомендации</p><h2>Сравните близкие модели</h2></div><Link href="/compare">Полная таблица сравнения →</Link></div><div className="analog-grid"><article><Image src="/products/heden-dm-36k.png" alt="HEDEN DM-36K" width={190} height={160} /><div><span>Дешевле</span><h3>HEDEN DM-36K</h3><p>Ø36 мм · 1 600 Вт · Weldon 19</p><b>44 690 ₽</b></div></article><article><Image src="/products/lenz-steyr-35.jpg" alt="LENZ STEYR-35 MAX" width={190} height={160} /><div><span>С реверсом</span><h3>LENZ STEYR-35 MAX</h3><p>Ø35 мм · 6 скоростей · бесщёточный</p><b>77 910 ₽</b></div></article><aside><b>Не нашли нужную модель?</b><p>Пришлите любой артикул или ссылку конкурента — сопоставим характеристики.</p><a href="mailto:info@7tool.ru?subject=Подобрать%20аналог">Подобрать аналог →</a></aside></div></div></section>
 
     <section className="request-section" id="request"><div className="container request-grid"><div><p className="eyebrow">Ответ в удобном для закупки формате</p><h2>Получить КП на станок и оснастку</h2><p>В рабочей версии запрос можно будет отправить через форму или обычным письмом на <a href="mailto:info@7tool.ru">info@7tool.ru</a>.</p><div className="request-deliverables"><span>Цена с НДС</span><span>Наличие и срок</span><span>Совместимая оснастка</span></div><Link href="/catalog/sverlenie/magnitnye-stanki">← Вернуться к сравнению</Link></div><TestRequestForm context="Прошу подготовить КП на LENZ STEYR-35 и совместимые корончатые свёрла Ø18/25/35 мм." /></div></section>
-  </main><PilotFooter /></div>;
+  </main><PilotFooter /><nav className="product-mobile-buybar" aria-label="Быстрый запрос по товару"><div><span>Цена с НДС</span><b>47 999 ₽</b></div><a href="#request">Получить КП</a></nav></div>;
 }
