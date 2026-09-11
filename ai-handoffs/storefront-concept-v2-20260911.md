@@ -357,4 +357,4 @@ Production-приложение `7tool-source/**` в эту задачу не в
 
 ### Commit текущего прохода
 
-`3f30878` — `design: shorten category path to exact variant`.
+`ece46f7` — `design: shorten category path to exact variant`.
