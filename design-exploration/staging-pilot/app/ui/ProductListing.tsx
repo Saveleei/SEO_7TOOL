@@ -5,9 +5,9 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 
 const products = [
-  { brand: "LENZ", model: "STEYR-35", title: "Магнитный сверлильный станок LENZ STEYR-35", diameter: 35, spindle: "Weldon 19", weight: "10,5 кг", reverse: false, power: 1100, brushless: false, priceValue: 47999, price: "47 999 ₽", oldPrice: "59 998 ₽", image: "/products/lenz-steyr-35.jpg", href: "/product/lenz-steyr-35", fit: "Компактный станок для отверстий до Ø35 мм на монтаже" },
-  { brand: "HEDEN", model: "DM-36K", title: "Магнитный сверлильный станок Heden DM-36K", diameter: 36, spindle: "Weldon 19", weight: "11,8 кг", reverse: false, power: 1600, brushless: false, priceValue: 44690, price: "44 690 ₽", image: "/products/heden-dm-36k.png", href: "", fit: "Базовое решение до Ø36 мм с подачей СОЖ" },
-  { brand: "LENZ", model: "STEYR-35 MAX", title: "Машина сверлильная LENZ STEYR-35 MAX", diameter: 35, spindle: "Weldon 19", weight: "12,4 кг", reverse: true, power: 1600, brushless: true, priceValue: 77910, price: "77 910 ₽", image: "/products/lenz-steyr-35.jpg", href: "", fit: "Для задач, где нужен реверс и нарезание резьбы" },
+  { brand: "LENZ", model: "STEYR-35", title: "Магнитный сверлильный станок LENZ STEYR-35", diameter: 35, spindle: "Weldon 19", weight: "10,5 кг", reverse: false, power: 1100, brushless: false, inStock: true, shipsToday: true, priceValue: 47999, price: "47 999 ₽", oldPrice: "59 998 ₽", image: "/products/lenz-steyr-35.jpg", href: "/product/lenz-steyr-35", fit: "Компактный станок для отверстий до Ø35 мм на монтаже" },
+  { brand: "HEDEN", model: "DM-36K", title: "Магнитный сверлильный станок Heden DM-36K", diameter: 36, spindle: "Weldon 19", weight: "11,8 кг", reverse: false, power: 1600, brushless: false, inStock: false, shipsToday: false, priceValue: 44690, price: "44 690 ₽", image: "/products/heden-dm-36k.png", href: "", fit: "Базовое решение до Ø36 мм с подачей СОЖ" },
+  { brand: "LENZ", model: "STEYR-35 MAX", title: "Машина сверлильная LENZ STEYR-35 MAX", diameter: 35, spindle: "Weldon 19", weight: "12,4 кг", reverse: true, power: 1600, brushless: true, inStock: true, shipsToday: true, priceValue: 77910, price: "77 910 ₽", image: "/products/lenz-steyr-35.jpg", href: "", fit: "Для задач, где нужен реверс и нарезание резьбы" },
 ];
 
 type Range = "all" | "35" | "60";
@@ -16,6 +16,7 @@ type Sort = "recommended" | "price";
 export function ProductListing() {
   const [range, setRange] = useState<Range>("all");
   const [brands, setBrands] = useState(["LENZ", "HEDEN"]);
+  const [inStockOnly, setInStockOnly] = useState(false);
   const [reverseOnly, setReverseOnly] = useState(false);
   const [brushlessOnly, setBrushlessOnly] = useState(false);
   const [sort, setSort] = useState<Sort>("recommended");
@@ -26,10 +27,10 @@ export function ProductListing() {
   const filtered = useMemo(() => {
     const result = products.filter((product) => {
       const diameterMatch = range === "all" || (range === "35" ? product.diameter <= 35 : product.diameter > 35 && product.diameter <= 60);
-      return diameterMatch && brands.includes(product.brand) && (!reverseOnly || product.reverse) && (!brushlessOnly || product.brushless);
+      return diameterMatch && brands.includes(product.brand) && (!inStockOnly || product.inStock) && (!reverseOnly || product.reverse) && (!brushlessOnly || product.brushless);
     });
     return sort === "price" ? [...result].sort((a, b) => a.priceValue - b.priceValue) : result;
-  }, [range, brands, reverseOnly, brushlessOnly, sort]);
+  }, [range, brands, inStockOnly, reverseOnly, brushlessOnly, sort]);
 
   function toggleBrand(brand: string) {
     setBrands((current) => current.includes(brand) ? current.filter((item) => item !== brand) : [...current, brand]);
@@ -55,19 +56,19 @@ export function ProductListing() {
             <button className={range === "35" ? "active" : ""} onClick={() => setRange("35")} type="button">до 35 мм</button>
             <button className={range === "60" ? "active" : ""} onClick={() => setRange("60")} type="button">36–60 мм</button>
           </fieldset>
-          <fieldset><legend>Функции</legend><label><input aria-label="Только с реверсом" type="checkbox" checked={reverseOnly} onChange={(event) => setReverseOnly(event.target.checked)} /> Только с реверсом</label><label><input aria-label="Бесщёточный двигатель" type="checkbox" checked={brushlessOnly} onChange={(event) => setBrushlessOnly(event.target.checked)} /> Бесщёточный двигатель</label><label><input aria-label="Подача СОЖ" type="checkbox" checked readOnly /> Подача СОЖ</label></fieldset>
+          <fieldset><legend>Наличие и функции</legend><label><input aria-label="Только в наличии" type="checkbox" checked={inStockOnly} onChange={(event) => setInStockOnly(event.target.checked)} /> Только в наличии</label><label><input aria-label="Только с реверсом" type="checkbox" checked={reverseOnly} onChange={(event) => setReverseOnly(event.target.checked)} /> Только с реверсом</label><label><input aria-label="Бесщёточный двигатель" type="checkbox" checked={brushlessOnly} onChange={(event) => setBrushlessOnly(event.target.checked)} /> Бесщёточный двигатель</label><label><input aria-label="Подача СОЖ" type="checkbox" checked readOnly /> Подача СОЖ</label></fieldset>
           <fieldset><legend>Бренд</legend>{["LENZ", "HEDEN"].map((brand) => <label key={brand}><input aria-label={`Бренд ${brand}`} type="checkbox" checked={brands.includes(brand)} onChange={() => toggleBrand(brand)} /> {brand}</label>)}</fieldset>
           <a className="filter-help" href="mailto:info@7tool.ru?subject=Подбор%20по%20параметрам">Подбор по нестандартным параметрам</a>
         </aside>
 
         <div className="listing-main">
-          {(range !== "all" || reverseOnly || brushlessOnly || brands.length !== 2) && <div className="applied-filters"><span>Вы выбрали:</span>{range !== "all" && <button type="button" onClick={() => setRange("all")}>Ø {range === "35" ? "до 35" : "36–60"} ×</button>}{reverseOnly && <button type="button" onClick={() => setReverseOnly(false)}>С реверсом ×</button>}{brushlessOnly && <button type="button" onClick={() => setBrushlessOnly(false)}>Бесщёточный ×</button>}{brands.length !== 2 && brands.map((brand) => <button type="button" onClick={() => toggleBrand(brand)} key={brand}>{brand} ×</button>)}<button className="reset-all" type="button" onClick={() => { setRange("all"); setBrands(["LENZ", "HEDEN"]); setReverseOnly(false); setBrushlessOnly(false); }}>Сбросить всё</button></div>}
+          {(range !== "all" || inStockOnly || reverseOnly || brushlessOnly || brands.length !== 2) && <div className="applied-filters"><span>Вы выбрали:</span>{range !== "all" && <button type="button" onClick={() => setRange("all")}>Ø {range === "35" ? "до 35" : "36–60"} ×</button>}{inStockOnly && <button type="button" onClick={() => setInStockOnly(false)}>В наличии ×</button>}{reverseOnly && <button type="button" onClick={() => setReverseOnly(false)}>С реверсом ×</button>}{brushlessOnly && <button type="button" onClick={() => setBrushlessOnly(false)}>Бесщёточный ×</button>}{brands.length !== 2 && brands.map((brand) => <button type="button" onClick={() => toggleBrand(brand)} key={brand}>{brand} ×</button>)}<button className="reset-all" type="button" onClick={() => { setRange("all"); setBrands(["LENZ", "HEDEN"]); setInStockOnly(false); setReverseOnly(false); setBrushlessOnly(false); }}>Сбросить всё</button></div>}
           <div className="listing-tools"><p><strong>Показано {filtered.length}</strong> из 3 моделей пилота</p><div><select aria-label="Сортировка" value={sort} onChange={(event) => setSort(event.target.value as Sort)}><option value="recommended">Сначала рекомендуемые</option><option value="price">Сначала дешевле</option></select><span className="view-switch" aria-label="Вид списка"><button className={view === "grid" ? "active" : ""} type="button" onClick={() => setView("grid")}>Плитка</button><button className={view === "list" ? "active" : ""} type="button" onClick={() => setView("list")}>Список</button></span></div></div>
           <div className={`product-grid ${view === "list" ? "product-list-view" : ""}`}>
             {filtered.map((product) => {
               const selected = compare.includes(product.model);
               return <article className="catalog-product" key={product.model}>
-                <div className="catalog-media"><span>Наличие уточняется</span><label className="compare-check"><input aria-label={`Сравнить ${product.model}`} type="checkbox" checked={selected} onChange={() => toggleCompare(product.model)} /> Сравнить</label><Image src={product.image} alt={product.title} width={420} height={360} /></div>
+                <div className="catalog-media"><span className={product.inStock ? "in-stock" : "on-order"}>{product.inStock ? product.shipsToday ? "В наличии · Отгрузка сегодня" : "В наличии" : "Под заказ · Срок в КП"}</span><label className="compare-check"><input aria-label={`Сравнить ${product.model}`} type="checkbox" checked={selected} onChange={() => toggleCompare(product.model)} /> Сравнить</label><Image src={product.image} alt={product.title} width={420} height={360} /></div>
                 <div className="catalog-copy"><small>{product.brand} · {product.model}</small><h2>{product.href ? <Link href={product.href}>{product.title}</Link> : product.title}</h2>
                   <p className="catalog-reason"><b>Подходит:</b> {product.fit}</p>
                   <dl><div><dt>Корончатое сверло</dt><dd>до {product.diameter} мм</dd></div><div><dt>Шпиндель</dt><dd>{product.spindle}</dd></div><div><dt>Мощность</dt><dd>{product.power.toLocaleString("ru-RU")} Вт</dd></div><div><dt>Реверс</dt><dd>{product.reverse ? "Есть" : "Нет"}</dd></div><div><dt>Масса</dt><dd>{product.weight}</dd></div></dl>
@@ -77,7 +78,7 @@ export function ProductListing() {
               </article>;
             })}
           </div>
-          {filtered.length === 0 && <div className="empty-result"><b>В пилоте нет моделей с таким сочетанием</b><p>Сбросьте фильтры или отправьте параметры инженеру — отсутствие результата не должно быть тупиком.</p><button type="button" onClick={() => { setRange("all"); setBrands(["LENZ", "HEDEN"]); setReverseOnly(false); setBrushlessOnly(false); }}>Сбросить фильтры</button><a href="mailto:info@7tool.ru?subject=Подобрать%20аналог%20магнитного%20станка">Подобрать аналог →</a></div>}
+          {filtered.length === 0 && <div className="empty-result"><b>В пилоте нет моделей с таким сочетанием</b><p>Сбросьте фильтры или отправьте параметры инженеру — отсутствие результата не должно быть тупиком.</p><button type="button" onClick={() => { setRange("all"); setBrands(["LENZ", "HEDEN"]); setInStockOnly(false); setReverseOnly(false); setBrushlessOnly(false); }}>Сбросить фильтры</button><a href="mailto:info@7tool.ru?subject=Подобрать%20аналог%20магнитного%20станка">Подобрать аналог →</a></div>}
         </div>
       </div>
       {compare.length > 0 && <div className="compare-tray" role="status"><div><b>К сравнению: {compare.length}</b><span>{compare.join(" · ")}</span></div><Link href="/compare">Открыть таблицу сравнения</Link><button type="button" onClick={() => setCompare([])} aria-label="Очистить сравнение">×</button></div>}

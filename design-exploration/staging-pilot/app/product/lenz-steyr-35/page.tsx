@@ -6,6 +6,7 @@ import { PilotFooter } from "../../ui/PilotFooter";
 import { PilotHeader } from "../../ui/PilotHeader";
 import { TestRequestForm } from "../../ui/TestRequestForm";
 import { ProductActions } from "../../ui/ProductActions";
+import { ManagerContactCard } from "../../ui/ManagerContactCard";
 
 export const metadata: Metadata = {
   title: "LENZ STEYR-35 — тестовая карточка 7TOOL",
@@ -29,6 +30,8 @@ const specs = [
   ["Реверс", "Нет"],
 ];
 
+const availability = { inStock: true, shipsToday: true };
+
 export default function ProductPage() {
   return <div className="site-shell"><PilotHeader /><main className="inner-page product-page">
     <div className="container"><Breadcrumbs items={[{label:"Главная",href:"/"},{label:"Каталог",href:"/catalog"},{label:"Сверление",href:"/catalog/sverlenie"},{label:"Магнитные станки",href:"/catalog/sverlenie/magnitnye-stanki"},{label:"LENZ STEYR-35"}]} /></div>
@@ -37,12 +40,12 @@ export default function ProductPage() {
       <div className="product-summary">
         <p className="product-code">LENZ · Артикул STEYR-35 · Код товара 378</p><h1>Магнитный сверлильный станок LENZ STEYR-35</h1>
         <div className="variant-selector"><span>Выберите рабочий класс</span><div><b>Ø35 мм</b><Link href="/compare">Ø35 бесщёточный</Link><Link href="/compare">Ø60 мм</Link><Link href="/compare">Ø60 + реверс</Link></div></div>
-        <div className="product-status"><span>Остаток уточняется</span><b>Подтвердим наличие и срок в КП</b><small>Не показываем неподтверждённое количество как складской остаток</small></div>
+        <div className={`product-status ${availability.inStock ? "is-in-stock" : "is-on-order"}`}><span>{availability.inStock ? "В наличии" : "Под заказ"}</span><b>{availability.inStock && availability.shipsToday ? "Отгрузка сегодня" : availability.inStock ? "Готов к отгрузке" : "Срок поставки укажем в КП"}</b><small>{availability.inStock ? "Зарезервируем после подтверждения заказа менеджером" : "Менеджер проверит ближайшую поставку и доступный аналог"}</small></div>
         <div className="key-specs"><div><span>Корончатое сверло</span><b>до 35 мм</b></div><div><span>Шпиндель</span><b>Weldon 19</b></div><div><span>Мощность</span><b>1 100 Вт</b></div><div><span>Масса</span><b>10,5 кг</b></div></div>
         <div className="price-block"><div><del>59 998 ₽</del><b>47 999 ₽</b><span>Цена с НДС</span></div><small>Экономия 11 999 ₽</small></div>
-        <div className="delivery-box"><div><span>Поставка в Москву</span><b>Срок подтвердим после проверки остатка</b></div><button type="button">Изменить город</button><small>Транспортная компания или самовывоз · стоимость войдёт в КП</small></div>
+        <div className="delivery-box"><div><span>Поставка в Москву</span><b>{availability.inStock && availability.shipsToday ? "Отгрузка сегодня" : "Срок подтвердит менеджер"}</b></div><button type="button">Изменить город</button><small>Передадим транспортной компании или подготовим к самовывозу · стоимость доставки войдёт в КП</small></div>
         <ProductActions />
-        <div className="manager-mini"><Image src="/people/manager.jpg" alt="Евгений Савельев, персональный менеджер 7TOOL" width={54} height={54} /><div><span>Ваш персональный менеджер</span><b>Евгений Савельев</b><small>Поможет подобрать аналог и согласовать сроки</small></div><a href="mailto:info@7tool.ru?subject=Вопрос%20по%20LENZ%20STEYR-35">Задать вопрос</a></div>
+        <ManagerContactCard />
       </div>
     </div></section>
 

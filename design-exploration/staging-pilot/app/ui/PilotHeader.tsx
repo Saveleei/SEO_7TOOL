@@ -12,12 +12,12 @@ export function PilotHeader() {
           <Link className="header-search" href="/#search"><span aria-hidden="true">⌕</span><span>Найти модель, артикул или оборудование</span><b>Поиск</b></Link>
           <Link className="header-quick" href="/#quick-order"><span>≡</span>Заказ списком</Link>
           <a className="header-email" href="mailto:info@7tool.ru"><span>Запросы и спецификации</span><b>info@7tool.ru</b></a>
-          <Link className="header-quote" href="/product/lenz-steyr-35#request">Получить КП</Link>
+          <Link className="header-quote" href="/#quick-order">Получить КП</Link>
         </div>
       </header>
       <nav className="mobile-action-bar" aria-label="Быстрые действия">
         <a href="mailto:info@7tool.ru?subject=Запрос%20в%207TOOL"><span>Написать</span><b>info@7tool.ru</b></a>
-        <Link href="/product/lenz-steyr-35#request">Получить КП</Link>
+        <Link href="/#quick-order">Получить КП</Link>
       </nav>
     </>
   );

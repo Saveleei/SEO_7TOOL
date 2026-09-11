@@ -20,21 +20,23 @@ export default function Home() {
         <section className="hero" id="top">
           <div className="container hero-grid">
             <div className="hero-copy">
-              <p className="eyebrow">Поставка для производства по всей России</p>
-              <h1>Оборудование и оснастка для металлообработки</h1>
-              <p className="hero-lead">Найдём товар по модели или подберём комплект под задачу. Пришлём КП с НДС, наличием и сроком поставки на email.</p>
+              <p className="eyebrow">Инженерный интернет-каталог 7TOOL</p>
+              <h1>Всё для металлообработки — от станка до готового комплекта</h1>
+              <p className="hero-lead">Ищите по модели, артикулу или производственной задаче. Подберём оборудование, оснастку и расходники, проверим совместимость и пришлём КП с НДС.</p>
+              <div className="hero-scope" aria-label="Ассортимент 7TOOL"><span>Оборудование</span><span>Оснастка</span><span>Расходники</span><span>Сервис</span></div>
               <HeroSearch />
               <div className="intent-grid" aria-label="Способы начать подбор">
-                <Link href="/catalog/sverlenie"><span>01</span><b>Подобрать по задаче</b><small>От операции к параметрам</small></Link>
+                <Link href="/catalog"><span>01</span><b>Открыть весь каталог</b><small>8 производственных направлений</small></Link>
                 <a href="mailto:info@7tool.ru?subject=Запрос%20КП%20по%20спецификации"><span>02</span><b>Отправить спецификацию</b><small>info@7tool.ru</small></a>
-                <a href="tel:+79626112419"><span>03</span><b>Обсудить с инженером</b><small>+7 (962) 611-24-19</small></a>
+                <a href="tel:+79626112419"><span>03</span><b>Подбор инженером</b><small>+7 (962) 611-24-19</small></a>
               </div>
             </div>
-            <div className="hero-visual" aria-label="Рекомендуемый магнитный сверлильный станок">
-              <div className="hero-visual-label"><span>Для монтажных работ</span><strong>LENZ STEYR-35</strong><small>Ø35 мм · Weldon 19 · 10,5 кг</small></div>
-              <Image src="/products/lenz-steyr-35.jpg" alt="Магнитный сверлильный станок LENZ STEYR-35" width={720} height={720} priority />
-              <div className="hero-product-facts"><span>Цена с НДС</span><b>47 999 ₽</b><small>Наличие подтвердит менеджер</small></div>
-              <Link className="visual-link" href="/product/lenz-steyr-35">Характеристики и КП <span>→</span></Link>
+            <div className="hero-catalog" aria-label="Основные направления каталога 7TOOL">
+              <div className="hero-catalog-head"><div><span>Каталог решений</span><strong>3 994 товарных варианта</strong></div><Link href="/catalog">Все 8 направлений →</Link></div>
+              <div className="hero-catalog-grid">
+                {directions.map((direction) => <Link href={direction.href} key={direction.id}><Image src={direction.image} alt="" width={310} height={210} priority={direction.id === "01"} /><span>{direction.title}</span><small>{direction.copy.split(" · ").slice(0,2).join(" · ")}</small><b aria-hidden="true">→</b></Link>)}
+              </div>
+              <div className="hero-catalog-foot"><span><i className="stock-dot" />В наличии — отгрузка сегодня</span><span>Под заказ — срок фиксируем в КП</span></div>
             </div>
           </div>
         </section>
@@ -89,14 +91,14 @@ export default function Home() {
 
         <section className="section section-muted">
           <div className="container route-demo">
-            <div><p className="eyebrow">Пилотный маршрут</p><h2>От задачи до подходящего станка за четыре шага</h2></div>
+            <div><p className="eyebrow">Понятный процесс закупки</p><h2>От запроса до отгрузки — четыре шага</h2></div>
             <ol>
-              <li><span>01</span><b>Сверление</b><small>выбрать операцию</small></li>
-              <li><span>02</span><b>Магнитные станки</b><small>уточнить тип</small></li>
-              <li><span>03</span><b>Ø до 35 мм</b><small>применить фильтр</small></li>
-              <li><span>04</span><b>Получить КП</b><small>email или короткая форма</small></li>
+              <li><span>01</span><b>Задача или модель</b><small>поиск либо спецификация</small></li>
+              <li><span>02</span><b>Проверка инженером</b><small>параметры и совместимость</small></li>
+              <li><span>03</span><b>КП с НДС</b><small>цена, наличие и срок</small></li>
+              <li><span>04</span><b>Комплект и доставка</b><small>всё одной поставкой</small></li>
             </ol>
-            <Link className="button button-orange" href="/catalog/sverlenie/magnitnye-stanki">Пройти маршрут</Link>
+            <Link className="button button-orange" href="/#search">Начать подбор</Link>
           </div>
         </section>
       </main>
