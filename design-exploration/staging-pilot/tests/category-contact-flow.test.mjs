@@ -40,6 +40,16 @@ test("positive feed availability uses a dedicated readable green status", async 
   const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
   assert.match(card, /feed-availability--positive/u);
   assert.match(table, /feed-availability--positive/u);
-  assert.match(styles, /\.feed-availability--positive \{[^}]*color:#087044!important/us);
+  assert.match(styles, /\.feed-availability--positive \{[^}]*color:#087044!important[^}]*font-weight:650!important/us);
   assert.match(styles, /\.feed-table-price>em\.feed-availability \{[^}]*font-size:10px/us);
+});
+
+test("product cards use readable actions and a native full-details navigation", async () => {
+  const card = await readFile(new URL("../app/ui/FeedProductCard.tsx", import.meta.url), "utf8");
+  const table = await readFile(new URL("../app/ui/FeedProductTable.tsx", import.meta.url), "utf8");
+  const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(card, /<a className="feed-all-characteristics" href=/u);
+  assert.match(table, /<a className="feed-all-characteristics" href=/u);
+  assert.match(styles, /\.feed-product-actions button,\.feed-product-actions>a \{[^}]*font-size:11px/us);
+  assert.match(styles, /\.contact-dialog-panel input,\.contact-dialog-panel textarea \{[^}]*font-size:14px/us);
 });

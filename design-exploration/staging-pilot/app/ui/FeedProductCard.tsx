@@ -35,7 +35,7 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
         <p className={product.availableVariantCount > 0 ? "feed-availability feed-availability--positive" : "feed-availability"}>{product.availableVariantCount > 0 ? "Есть исполнения в наличии по данным фида. Подтвердим остаток и срок в КП." : "Наличие и срок поставки уточняем для выбранного исполнения."}</p>
         <div className="feed-product-actions">
           <button type="button" aria-expanded={variantsOpen} aria-controls={`card-variants-${product.id}`} onClick={() => setVariantsOpen((open) => !open)}>{variantsOpen ? "Скрыть исполнения" : product.selectedVariantCount > 1 ? `Выбрать из ${product.selectedVariantCount}` : "Выбрать исполнение"}</button>
-          <Link href={`/product/${product.slug}`}>Все характеристики</Link>
+          <a className="feed-all-characteristics" href={`/product/${product.slug}`} aria-label={`Все характеристики: ${product.title}`}>Все характеристики</a>
         </div>
       </div>
     </div>
