@@ -24,3 +24,22 @@ test("send parameters opens a local callback form instead of composing an email"
   assert.match(dialog, /event\.preventDefault\(\)/u);
   assert.doesNotMatch(dialog, /mailto:/u);
 });
+
+test("selection criteria align the manager with the first parameter row", async () => {
+  const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
+  const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(page, /subcategory-layout--selection/u);
+  assert.match(styles, /grid-template-areas:"heading \." "criteria manager" "note manager"/u);
+  assert.match(styles, /\.selection-criteria-list li \{[^}]*min-height:108px/us);
+  assert.match(styles, /\.subcategory-layout--selection \.manager-contact-head \{[^}]*min-height:108px/us);
+});
+
+test("positive feed availability uses a dedicated readable green status", async () => {
+  const card = await readFile(new URL("../app/ui/FeedProductCard.tsx", import.meta.url), "utf8");
+  const table = await readFile(new URL("../app/ui/FeedProductTable.tsx", import.meta.url), "utf8");
+  const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(card, /feed-availability--positive/u);
+  assert.match(table, /feed-availability--positive/u);
+  assert.match(styles, /\.feed-availability--positive \{[^}]*color:#087044!important/us);
+  assert.match(styles, /\.feed-table-price>em\.feed-availability \{[^}]*font-size:10px/us);
+});

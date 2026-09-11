@@ -32,7 +32,7 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
       <div className="feed-product-commercial">
         <label className="feed-compare-check"><input type="checkbox" aria-label={`Сравнить ${product.title}`} checked={selected} onChange={onCompare} /> Сравнить</label>
         <div className="feed-product-price"><b>{product.price}</b><small>с НДС · подтвердим в КП</small></div>
-        <p>{product.availableVariantCount > 0 ? "Есть исполнения в наличии по данным фида. Подтвердим остаток и срок в КП." : "Наличие и срок поставки уточняем для выбранного исполнения."}</p>
+        <p className={product.availableVariantCount > 0 ? "feed-availability feed-availability--positive" : "feed-availability"}>{product.availableVariantCount > 0 ? "Есть исполнения в наличии по данным фида. Подтвердим остаток и срок в КП." : "Наличие и срок поставки уточняем для выбранного исполнения."}</p>
         <div className="feed-product-actions">
           <button type="button" aria-expanded={variantsOpen} aria-controls={`card-variants-${product.id}`} onClick={() => setVariantsOpen((open) => !open)}>{variantsOpen ? "Скрыть исполнения" : product.selectedVariantCount > 1 ? `Выбрать из ${product.selectedVariantCount}` : "Выбрать исполнение"}</button>
           <Link href={`/product/${product.slug}`}>Все характеристики</Link>
@@ -43,7 +43,7 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
       <header><div><b>Выберите точное исполнение</b><span>В КП попадёт только одна выбранная позиция, а не вся товарная серия.</span></div>{product.variantCount > product.variants.length && <Link href={`/product/${product.slug}`}>Все {product.variantCount} →</Link>}</header>
       <div>{product.variants.map((variant) => <article className={variant.matchesSelection ? "feed-card-variant feed-card-variant--match" : "feed-card-variant"} key={variant.id}>
         <div><span>{variant.matchesSelection ? "Соответствует фильтрам" : "Исполнение"}</span><b>{variant.sku}</b><small>{variant.specs.slice(0, 3).map((spec) => `${spec.label}: ${spec.value}`).join(" · ")}</small></div>
-        <div><b>{variant.price}</b><span>{variant.available ? "В наличии по фиду · подтвердим" : "Наличие и срок уточняем"}</span></div>
+        <div><b>{variant.price}</b><span className={variant.available ? "feed-availability feed-availability--positive" : "feed-availability"}>{variant.available ? "В наличии по фиду · подтвердим" : "Наличие и срок уточняем"}</span></div>
         <AddRequestButton item={{ id:`variant:${variant.id}`, title:variant.title || product.title, article:`Артикул ${variant.sku}`, price:variant.price }}>Добавить в КП</AddRequestButton>
       </article>)}</div>
     </section>}
