@@ -1,8 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { FeedProductCardModel } from "../data/feedCatalog";
-import { AddRequestButton } from "./RequestCart";
 import { FeedProductCard } from "./FeedProductCard";
 
 export function FeedProductList({ products }: { products: FeedProductCardModel[] }) {
@@ -31,7 +31,7 @@ export function FeedProductList({ products }: { products: FeedProductCardModel[]
         <tr><th>Цена</th>{selected.map((product) => <td key={product.id}><b>{product.price}</b><small>подтвердим в КП</small></td>)}</tr>
         <tr><th>Исполнения</th>{selected.map((product) => <td key={product.id}>{product.variantCount}</td>)}</tr>
         {specLabels.map((label) => <tr key={label}><th>{label}</th>{selected.map((product) => <td key={product.id}>{product.specs.find((spec) => spec.label === label)?.value ?? "—"}</td>)}</tr>)}
-        <tr><th>Действие</th>{selected.map((product) => <td key={product.id}><AddRequestButton item={{ id:product.id, title:product.title, article:product.sku ? `Артикул ${product.sku}` : "Товарная группа", price:product.price }}>В запрос КП</AddRequestButton></td>)}</tr>
+        <tr><th>Действие</th>{selected.map((product) => <td key={product.id}><Link href={`/product/${product.slug}`}>Выбрать исполнение</Link></td>)}</tr>
       </tbody></table></div>
       <p>Сравнение помогает отобрать кандидатов. Совместимость, наличие и срок инженер подтверждает для конкретного исполнения.</p>
     </section>}

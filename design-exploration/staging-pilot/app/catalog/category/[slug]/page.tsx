@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Breadcrumbs } from "../../../ui/Breadcrumbs";
+import { BurrSelectionAssistant } from "../../../ui/BurrSelectionAssistant";
+import { BurrShapeMark } from "../../../ui/BurrShapeMark";
 import { FeedProductList } from "../../../ui/FeedProductList";
 import { FeedProductTable } from "../../../ui/FeedProductTable";
 import { ManagerContactCard } from "../../../ui/ManagerContactCard";
@@ -64,8 +66,11 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const end = Math.min(result.page * result.pageSize, result.total);
   const technicalFacets = result.facets.filter((facet) => facet.keyword);
   const promotedFacets = slug === "borfrezy"
-    ? [technicalFacets.find((facet) => facet.keyword === "форма"), technicalFacets.find((facet) => facet.keyword === "диаметр режущей")].filter((facet): facet is NonNullable<typeof facet> => Boolean(facet))
+    ? [technicalFacets.find((facet) => facet.keyword === "форма"), technicalFacets.find((facet) => facet.keyword === "материал"), technicalFacets.find((facet) => facet.keyword === "диаметр режущей")].filter((facet): facet is NonNullable<typeof facet> => Boolean(facet))
     : technicalFacets.slice(0, 2);
+  const shapeFacet = technicalFacets.find((facet) => facet.keyword === "форма");
+  const shankFacet = technicalFacets.find((facet) => facet.keyword === "диаметр хвостовика");
+  const materialFacet = technicalFacets.find((facet) => facet.keyword === "материал");
   const orderedFacets = slug === "borfrezy"
     ? [...result.facets].sort((first, second) => facetOrder(first.keyword) - facetOrder(second.keyword))
     : result.facets;
@@ -87,17 +92,27 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     <section className="section feed-category-listing" id="products"><div className="container">
       <div className="section-heading feed-category-heading"><div><p className="eyebrow">Фактический ассортимент</p><h2>Сначала сузьте выбор</h2></div><p>Главные параметры вынесены наверх. Полный набор фильтров остаётся слева.</p></div>
 
-      {promotedFacets.length > 0 && <nav className="feed-promoted-filters" aria-label="Быстрые фильтры">
+      {promotedFacets.length > 0 && <nav className={`feed-promoted-filters${slug === "borfrezy" ? " feed-promoted-filters--burr" : ""}`} aria-label="Быстрые фильтры">
         <div className="feed-priority-choice"><span>Показывать сначала</span><div>
           <Link className={sort === "relevance" ? "active" : undefined} aria-current={sort === "relevance" ? "true" : undefined} href={categoryUrl(slug, rawSearchParams, { setKey:"sort", setValue:"relevance" })}>Подходящие</Link>
           <Link className={inStockOnly ? "active" : undefined} aria-current={inStockOnly ? "true" : undefined} href={categoryUrl(slug, rawSearchParams, { toggleKey:"availability", toggleValue:"in-stock" })}>В наличии<small>по фиду</small></Link>
         </div></div>
-        {promotedFacets.map((facet) => <div key={facet.key}><span>{facet.label}</span><div>{facet.options.slice(0, 6).map((option) => {
+        {promotedFacets.map((facet) => <div key={facet.key}><span className="feed-promoted-label">{facet.label}{facet.keyword === "форма" && <a href="#burr-selector">Не знаю — подобрать</a>}</span><div>{facet.options.slice(0, 6).map((option) => {
           const selected = filters[facet.key]?.includes(option.value) ?? false;
-          return <Link className={selected ? "active" : undefined} aria-current={selected ? "true" : undefined} href={categoryUrl(slug, rawSearchParams, { toggleKey:`f_${facet.key}`, toggleValue:option.value })} key={option.value}>{option.label}<small>{option.count}</small></Link>;
+          return <Link className={selected ? "active" : undefined} aria-current={selected ? "true" : undefined} href={categoryUrl(slug, rawSearchParams, { toggleKey:`f_${facet.key}`, toggleValue:option.value })} key={option.value}>{facet.keyword === "форма" && <BurrShapeMark shape={option.value} />}{option.label}<small>{option.count}</small></Link>;
         })}</div></div>)}
         <a className="feed-promoted-more" href="#feed-filter-panel">Все параметры →</a>
       </nav>}
+
+      {slug === "borfrezy" && shapeFacet && <BurrSelectionAssistant
+        shapeFacetKey={shapeFacet.key}
+        shapeOptions={shapeFacet.options}
+        shankFacetKey={shankFacet?.key}
+        shankOptions={shankFacet?.options}
+        materialFacetKey={materialFacet?.key}
+        materialOptions={materialFacet?.options}
+        selectedShapes={filters[shapeFacet.key]}
+      />}
 
       <div className="feed-catalog-layout">
         <aside className="feed-filter-panel" id="feed-filter-panel">
@@ -107,7 +122,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
             {requestedView && <input type="hidden" name="view" value={requestedView} />}
             <div className="feed-filter-priority"><span>Быстрый выбор</span><label><input type="checkbox" name="availability" value="in-stock" defaultChecked={inStockOnly} /><b>В наличии</b><em>по данным фида</em></label><label><span>Порядок выдачи</span><select name="sort" defaultValue={sort}>{sortOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label><small>Остаток и срок отгрузки подтвердим перед оплатой.</small></div>
             <label className="feed-filter-search"><span>Поиск в категории</span><input type="search" name="q" defaultValue={search} placeholder="Название, бренд или модель" /></label>
-            {orderedFacets.map((facet) => <fieldset className={facet.keyword === "форма" ? "feed-shape-filter" : undefined} key={facet.key}><legend>{facet.label}</legend><small>{facet.keyword === "форма" ? "Стандартные формы A–N и комбинированные исполнения." : facet.help}</small><div>{facet.options.map((option) => <label key={option.value}><input type="checkbox" name={`f_${facet.key}`} value={option.value} defaultChecked={filters[facet.key]?.includes(option.value)} /><span>{option.label}</span><em>{option.count}</em></label>)}</div></fieldset>)}
+            {orderedFacets.map((facet) => <fieldset className={facet.keyword === "форма" ? "feed-shape-filter" : undefined} key={facet.key}><legend>{facet.label}</legend><small>{facet.keyword === "форма" ? <>Стандартные формы A–N и комбинированные исполнения. <a href="#burr-selector">Не знаете форму? Подобрать по задаче</a></> : facet.help}</small><div>{facet.options.map((option) => <label key={option.value}><input type="checkbox" name={`f_${facet.key}`} value={option.value} defaultChecked={filters[facet.key]?.includes(option.value)} /><span className={facet.keyword === "форма" ? "feed-shape-option" : undefined}>{facet.keyword === "форма" && <BurrShapeMark shape={option.value} />}{option.label}</span><em>{option.count}</em></label>)}</div></fieldset>)}
             <div className="feed-filter-actions"><button className="button button-orange" type="submit">Показать товары</button><Link href={`/catalog/category/${slug}#products`}>Сбросить</Link></div>
           </form>
         </aside>
@@ -131,7 +146,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
             <Link className="feed-reset-all" href={`/catalog/category/${slug}#products`}>Очистить всё</Link>
           </nav>}
 
-          {result.products.length > 0 ? view === "table" ? <FeedProductTable products={productCards} columns={result.facets.filter((facet) => facet.keyword).map((facet) => facet.label).slice(0, 3)} /> : <FeedProductList products={productCards} /> : <div className="feed-state"><span>Нет точных совпадений</span><h2>Ослабьте один из параметров</h2><p>Снимите фильтр или отправьте задачу менеджеру — проверим аналоги, которых может не быть в текущем фиде.</p><div><Link className="button" href={`/catalog/category/${slug}#products`}>Сбросить фильтры</Link><a className="button button-orange" href={`mailto:info@7tool.ru?subject=${subject}`}>Запросить подбор</a></div></div>}
+          {result.products.length > 0 ? view === "table" ? <FeedProductTable products={productCards} columns={result.facets.filter((facet) => facet.keyword).map((facet) => facet.label).slice(0, 3)} /> : <FeedProductList products={productCards} /> : <div className="feed-state"><span>Нет точных совпадений</span><h2>Ослабьте один из параметров</h2><p>Снимите фильтр или подберите форму по геометрии участка — артикул знать не нужно.</p><div><Link className="button" href={`/catalog/category/${slug}#products`}>Сбросить фильтры</Link>{slug === "borfrezy" ? <a className="button button-orange" href="#burr-selector">Подобрать по задаче</a> : <a className="button button-orange" href={`mailto:info@7tool.ru?subject=${subject}`}>Запросить подбор</a>}</div></div>}
 
           {result.pageCount > 1 && <nav className="feed-pagination" aria-label="Страницы товаров">
             {result.page > 1 && <Link className="feed-pagination-direction" href={categoryUrl(slug, rawSearchParams, { page:result.page - 1 })}>← Назад</Link>}
@@ -139,7 +154,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
             {result.page < result.pageCount && <Link className="feed-pagination-direction" href={categoryUrl(slug, rawSearchParams, { page:result.page + 1 })}>Вперёд →</Link>}
           </nav>}
 
-          {result.products.length > 0 && <div className="feed-listing-foot"><p>Не нашли точное сочетание? Это не означает, что поставка невозможна: фид показывает только текущую витрину.</p><a href={`mailto:info@7tool.ru?subject=${subject}`}>Описать задачу менеджеру →</a></div>}
+          {result.products.length > 0 && <div className="feed-listing-foot"><p>Не нашли точное сочетание? Это не означает, что поставка невозможна: фид показывает только текущую витрину.</p>{slug === "borfrezy" ? <a href="#burr-selector">Подобрать без артикула →</a> : <a href={`mailto:info@7tool.ru?subject=${subject}`}>Описать задачу менеджеру →</a>}</div>}
         </div>
       </div>
     </div></section>
@@ -209,8 +224,9 @@ function pluralizeProductGroups(count: number): string {
 
 function facetOrder(keyword?: string): number {
   if (keyword === "форма") return 0;
-  if (keyword === "диаметр режущей") return 1;
-  if (keyword === "диаметр хвостовика") return 2;
-  if (keyword === "длина режущей") return 3;
-  return keyword ? 4 : 5;
+  if (keyword === "материал") return 1;
+  if (keyword === "диаметр режущей") return 2;
+  if (keyword === "диаметр хвостовика") return 3;
+  if (keyword === "длина режущей") return 4;
+  return keyword ? 5 : 6;
 }

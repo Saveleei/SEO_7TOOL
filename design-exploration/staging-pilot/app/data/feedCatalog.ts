@@ -133,7 +133,7 @@ const categorySpecPriorities: Record<string, string[]> = {
   "kromkorezy-po-listu": ["ширина фаски", "угол фаски", "толщина", "привод", "масса"],
   "kromkorezy-dlya-trub": ["диаметр труб", "толщина стенки", "способ крепления", "возможности", "привод"],
   "rezbonareznye-manipulyatory": ["диапазон резьбы", "рабочий радиус", "привод", "частота вращения", "масса"],
-  borfrezy: ["диаметр режущей", "длина режущей", "диаметр хвостовика", "форма", "тип насечки"],
+  borfrezy: ["диаметр режущей", "длина режущей", "диаметр хвостовика", "форма", "материал", "тип насечки"],
   truborezy: ["диапазон труб", "толщина стенки", "привод", "масса"],
   "karetki-svarochnye": ["положения сварки", "скорость", "движение каретки", "грузоподъемность", "масса"],
   "pilnye-diski": ["диаметр диска", "ширина пропила", "посадочное отверстие", "число зубьев", "материал"],
@@ -334,7 +334,7 @@ function getCategoryFacets(slug: string, products: FeedProduct[], selectedFilter
   }
 
   const usedParameterNames = new Set<string>();
-  const technicalFacetLimit = slug === "borfrezy" ? 4 : 3;
+  const technicalFacetLimit = slug === "borfrezy" ? 5 : 3;
   for (const keyword of categorySpecPriorities[slug] ?? []) {
     if (facets.filter((facet) => facet.keyword).length >= technicalFacetLimit) break;
     const matchingNames = getMatchingParameterNames(products, keyword);
