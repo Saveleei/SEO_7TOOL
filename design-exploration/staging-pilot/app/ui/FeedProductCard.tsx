@@ -22,7 +22,7 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
       <div className="feed-product-identity">
         <span>{product.brand}{product.sku ? ` · ${product.sku}` : ""}</span>
         <h3><Link href={`/product/${product.slug}`}>{product.title}</Link></h3>
-        <p>{product.variantCount > 1 ? `${product.variantCount} исполнений в одной товарной группе` : "Одно исполнение"}</p>
+        <p>{product.variantCount > 1 ? `${product.variantCount} ${pluralizeVariants(product.variantCount)} в одной товарной группе` : "Одно исполнение"}</p>
       </div>
 
       <dl className="feed-product-specs">{product.specs.map((spec) => <div key={spec.label}><dt>{spec.label}</dt><dd>{spec.value}</dd></div>)}</dl>
@@ -38,4 +38,13 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
       </div>
     </div>
   </article>;
+}
+
+function pluralizeVariants(count: number): string {
+  const modulo100 = count % 100;
+  const modulo10 = count % 10;
+  if (modulo100 >= 11 && modulo100 <= 14) return "исполнений";
+  if (modulo10 === 1) return "исполнение";
+  if (modulo10 >= 2 && modulo10 <= 4) return "исполнения";
+  return "исполнений";
 }

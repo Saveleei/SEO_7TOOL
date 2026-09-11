@@ -59,6 +59,39 @@ export type FeedProductCardModel = {
   specs: FeedProductSpec[];
 };
 
+export type FeedFacetOption = {
+  value: string;
+  label: string;
+  count: number;
+};
+
+export type FeedFacet = {
+  key: string;
+  label: string;
+  help: string;
+  keyword?: string;
+  options: FeedFacetOption[];
+};
+
+export type FeedCategorySort = "relevance" | "price-asc" | "price-desc" | "name";
+
+export type FeedCategoryQuery = {
+  search?: string;
+  sort?: FeedCategorySort;
+  page?: number;
+  pageSize?: number;
+  filters?: Record<string, string[]>;
+};
+
+export type FeedCategoryPage = {
+  products: FeedProduct[];
+  facets: FeedFacet[];
+  total: number;
+  page: number;
+  pageCount: number;
+  pageSize: number;
+};
+
 type FeedSnapshot = {
   categories: FeedCategory[];
   products: FeedProduct[];
@@ -76,7 +109,7 @@ const productsByCategory = new Map<string, FeedProduct[]>();
 const productsBySlug = new Map<string, FeedProduct>();
 
 const categorySpecPriorities: Record<string, string[]> = {
-  "stanki-sverlilnye": ["макс. диаметр", "диаметр корончат", "мощность", "рабочий ход", "шпиндель", "масса", "реверс"],
+  "stanki-sverlilnye": ["макс. диаметр", "шпиндель", "рабочий ход", "реверс", "мощность", "масса"],
   "koronchatye-sverla": ["диаметр", "рабочая длина", "хвостовик", "материал", "тип сверла"],
   "kromkorezy-po-listu": ["ширина фаски", "угол фаски", "толщина", "привод", "масса"],
   "kromkorezy-dlya-trub": ["диаметр труб", "толщина стенки", "способ крепления", "возможности", "привод"],
@@ -140,6 +173,40 @@ export function getFeedCategoryProducts(slug: string, limit = 6): FeedProduct[] 
     .map(({ product }) => product);
 }
 
+export function getFeedCategoryPage(slug: string, query: FeedCategoryQuery = {}): FeedCategoryPage {
+  const pageSize = Math.min(48, Math.max(6, query.pageSize ?? 12));
+  const allProducts = getRankedCategoryProducts(slug);
+  const facets = getCategoryFacets(slug, allProducts, query.filters ?? {});
+  const normalizedSearch = query.search?.trim().toLocaleLowerCase("ru-RU") ?? "";
+  const filteredProducts = allProducts.filter((product) => {
+    if (normalizedSearch && !getProductSearchText(product).includes(normalizedSearch)) return false;
+    return productMatchesFacetFilters(product, facets, query.filters ?? {});
+  });
+  const sortedProducts = [...filteredProducts];
+
+  if (query.sort === "price-asc") {
+    sortedProducts.sort((a, b) => compareOptionalPrices(a.priceFrom, b.priceFrom, "asc"));
+  } else if (query.sort === "price-desc") {
+    sortedProducts.sort((a, b) => compareOptionalPrices(a.priceFrom, b.priceFrom, "desc"));
+  } else if (query.sort === "name") {
+    sortedProducts.sort((a, b) => a.title.localeCompare(b.title, "ru-RU"));
+  }
+
+  const total = sortedProducts.length;
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  const page = Math.min(pageCount, Math.max(1, query.page ?? 1));
+  const offset = (page - 1) * pageSize;
+
+  return {
+    products: sortedProducts.slice(offset, offset + pageSize),
+    facets,
+    total,
+    page,
+    pageCount,
+    pageSize,
+  };
+}
+
 export function getFeedCategoryProductCount(slug: string): number {
   return productsByCategory.get(slug)?.length ?? 0;
 }
@@ -186,6 +253,136 @@ function scoreFeedProduct(product: FeedProduct, categorySlug: string): number {
   const merchandisingScore = typeof product.manualSortOrder === "number" ? Math.max(0, 25 - product.manualSortOrder) : 0;
   const dataScore = (product.priceFrom ? 5 : 0) + Math.min(8, getFeedProductSpecs(product).length * 2) + (product.variants.length > 1 ? 2 : 0);
   return titleScore - accessoryPenalty + merchandisingScore + dataScore;
+}
+
+function getRankedCategoryProducts(slug: string): FeedProduct[] {
+  return (productsByCategory.get(slug) ?? [])
+    .map((product, sourceOrder) => ({ product, sourceOrder, score: scoreFeedProduct(product, slug) }))
+    .filter(({ product }) => Boolean(getFeedProductImage(product)))
+    .sort((a, b) => b.score - a.score || a.sourceOrder - b.sourceOrder)
+    .map(({ product }) => product);
+}
+
+function getCategoryFacets(slug: string, products: FeedProduct[], selectedFilters: Record<string, string[]>): FeedFacet[] {
+  const facets: FeedFacet[] = [];
+  const brands = countProductValues(products, (product) => product.brand ? [product.brand] : []);
+  if (brands.size > 1) {
+    facets.push({
+      key: "brand",
+      label: "Производитель",
+      help: "Оставьте несколько брендов, если готовы сравнить аналоги.",
+      options: toFacetOptions(brands, selectedFilters.brand),
+    });
+  }
+
+  const usedParameterNames = new Set<string>();
+  for (const keyword of categorySpecPriorities[slug] ?? []) {
+    if (facets.filter((facet) => facet.keyword).length >= 3) break;
+    const matchingNames = getMatchingParameterNames(products, keyword);
+    if (matchingNames.length === 0 || matchingNames.some((name) => usedParameterNames.has(normalizeText(name)))) continue;
+
+    const values = countProductValues(products, (product) => getProductParameterValues(product, keyword));
+    if (values.size < 2) continue;
+
+    const key = `spec${facets.filter((facet) => facet.keyword).length + 1}`;
+    matchingNames.forEach((name) => usedParameterNames.add(normalizeText(name)));
+    facets.push({
+      key,
+      label: matchingNames[0],
+      help: getFacetHelp(keyword),
+      keyword,
+      options: toFacetOptions(values, selectedFilters[key]),
+    });
+  }
+
+  return facets;
+}
+
+function getMatchingParameterNames(products: FeedProduct[], keyword: string): string[] {
+  const counts = new Map<string, number>();
+  for (const product of products) {
+    const names = new Set(product.variants.flatMap((variant) => variant.params ?? [])
+      .map((parameter) => parameter.name)
+      .filter((name) => normalizeText(name).includes(normalizeText(keyword))));
+    for (const name of names) counts.set(name, (counts.get(name) ?? 0) + 1);
+  }
+  return Array.from(counts.entries()).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ru-RU")).map(([name]) => name);
+}
+
+function countProductValues(products: FeedProduct[], getValues: (product: FeedProduct) => string[]): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const product of products) {
+    for (const value of new Set(getValues(product).filter(Boolean))) counts.set(value, (counts.get(value) ?? 0) + 1);
+  }
+  return counts;
+}
+
+function toFacetOptions(counts: Map<string, number>, selectedValues: string[] = []): FeedFacetOption[] {
+  const ranked = Array.from(counts.entries())
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ru-RU"));
+  const visible = ranked.slice(0, 10);
+  for (const selected of selectedValues) {
+    const entry = ranked.find(([value]) => value === selected);
+    if (entry && !visible.some(([value]) => value === selected)) visible.push(entry);
+  }
+  return visible.map(([value, count]) => ({ value, label:value, count }));
+}
+
+function productMatchesFacetFilters(product: FeedProduct, facets: FeedFacet[], filters: Record<string, string[]>): boolean {
+  const selectedBrands = filters.brand?.filter(Boolean) ?? [];
+  if (selectedBrands.length > 0 && !selectedBrands.includes(product.brand)) return false;
+
+  const technicalFacets = facets.filter((facet) => facet.keyword && (filters[facet.key]?.length ?? 0) > 0);
+  if (technicalFacets.length === 0) return true;
+
+  return product.variants.some((variant) => technicalFacets.every((facet) => {
+    const selected = filters[facet.key] ?? [];
+    return getVariantParameterValues(variant, facet.keyword ?? "").some((value) => selected.includes(value));
+  }));
+}
+
+function getProductParameterValues(product: FeedProduct, keyword: string): string[] {
+  return product.variants.flatMap((variant) => getVariantParameterValues(variant, keyword));
+}
+
+function getVariantParameterValues(variant: FeedVariant, keyword: string): string[] {
+  return (variant.params ?? [])
+    .filter((parameter) => normalizeText(parameter.name).includes(normalizeText(keyword)))
+    .map(formatParameterValue);
+}
+
+function formatParameterValue(parameter: FeedParameter): string {
+  return `${parameter.value}${parameter.unit ? ` ${parameter.unit}` : ""}`.trim();
+}
+
+function getProductSearchText(product: FeedProduct): string {
+  return normalizeText([
+    product.title,
+    product.brand,
+    product.sku,
+    ...product.variants.flatMap((variant) => [variant.name, variant.sku]),
+  ].filter(Boolean).join(" "));
+}
+
+function normalizeText(value: string): string {
+  return value.trim().toLocaleLowerCase("ru-RU").replace(/\s+/g, " ");
+}
+
+function compareOptionalPrices(first: number | undefined, second: number | undefined, direction: "asc" | "desc"): number {
+  const firstValue = first && first > 0 ? first : undefined;
+  const secondValue = second && second > 0 ? second : undefined;
+  if (firstValue === undefined && secondValue === undefined) return 0;
+  if (firstValue === undefined) return 1;
+  if (secondValue === undefined) return -1;
+  return direction === "asc" ? firstValue - secondValue : secondValue - firstValue;
+}
+
+function getFacetHelp(keyword: string): string {
+  if (/диаметр|размер|толщина|длина|поле/i.test(keyword)) return "Выбирайте по размеру заготовки или требуемого результата.";
+  if (/мощность|производительность|скорость|частота/i.test(keyword)) return "Сравните рабочую производительность, а не только цену.";
+  if (/грузоподъемность|усилие|масса/i.test(keyword)) return "Проверьте значение с запасом под реальную нагрузку.";
+  if (/резьба|хвостовик|посад/i.test(keyword)) return "Параметр влияет на совместимость с вашей оснасткой.";
+  return "Фильтр построен по характеристикам исполнений из фида.";
 }
 
 function getFeedProductSpecs(product: FeedProduct): FeedProductSpec[] {
