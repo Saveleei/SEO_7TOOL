@@ -1,3 +1,5 @@
+import { getPublishedFeedCategorySlugs } from "./feedCatalog";
+
 export type ProductionSubcategory = {
   slug: string;
   label: string;
@@ -17,7 +19,7 @@ export type ProductionCategoryGroup = {
 
 const definitions: ProductionCategoryGroup[] = [
   { id:"01", slug:"drilling", title:"Сверление и резьба", accent:"От отверстия к готовому комплекту", image:"/category/stanki-sverlilnye.webp", href:"/catalog/task/drilling", featured:true, subcategories:[
-    { slug:"stanki-sverlilnye", label:"Сверлильные станки", href:"/catalog/sverlenie/magnitnye-stanki" },
+    { slug:"stanki-sverlilnye", label:"Сверлильные станки", href:"/catalog/category/stanki-sverlilnye" },
     { slug:"koronchatye-sverla", label:"Корончатые свёрла", href:"/catalog/category/koronchatye-sverla" },
     { slug:"sverla-i-zenkovki", label:"Свёрла и зенковки", href:"/catalog/category/sverla-i-zenkovki" },
     { slug:"rezbonareznye-manipulyatory", label:"Резьбонарезные манипуляторы", href:"/catalog/category/rezbonareznye-manipulyatory" },
@@ -59,8 +61,8 @@ const definitions: ProductionCategoryGroup[] = [
   ]},
 ];
 
-// В production этот список приходит из нормализованного фида.
-export const pilotFeedCategorySlugs = definitions.flatMap((group) => group.subcategories.map((subcategory) => subcategory.slug));
+// Пилот читает опубликованные категории из локального снимка нормализованного фида.
+export const pilotFeedCategorySlugs = getPublishedFeedCategorySlugs();
 
 export function getProductionCategoryGroups(activeCategorySlugs: string[]): ProductionCategoryGroup[] {
   const active = new Set(activeCategorySlugs);
