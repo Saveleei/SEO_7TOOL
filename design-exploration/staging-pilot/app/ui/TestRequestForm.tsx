@@ -16,6 +16,7 @@ export function TestRequestForm({ compact = false, context = "Опишите о�
       <label>Рабочая почта<input type="email" placeholder="name@company.ru" required /></label>
       {!compact && <label>Телефон<input type="tel" placeholder="+7 999 000-00-00" /></label>}
       <label>Что требуется<textarea rows={compact ? 3 : 4} defaultValue={context} /></label>
+      <label className="request-form-check"><input type="checkbox" defaultChecked required /> Я согласен на обработку персональных данных</label>
       <button type="submit">{buttonLabel ?? (compact ? "Подготовить запрос КП" : "Создать тестовую заявку")}</button>
       {sent && <p className="form-success" role="status">Готово для демонстрации. Данные никуда не отправлены.</p>}
       <small>Для реального запроса: <a href="mailto:info@7tool.ru">info@7tool.ru</a></small>

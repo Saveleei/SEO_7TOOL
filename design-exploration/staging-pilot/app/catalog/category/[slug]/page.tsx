@@ -50,7 +50,10 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     .filter(([key]) => key.startsWith("f_"))
     .map(([key, value]) => [key.slice(2), valuesOf(value).filter(Boolean)]));
   const result = getFeedCategoryPage(slug, { search, sort, page:Number.isFinite(requestedPage) ? requestedPage : 1, filters });
-  const productCards = result.products.map(toFeedProductCardModel);
+  const activeVariantFilters = result.facets.flatMap((facet) => facet.keyword && (filters[facet.key]?.length ?? 0) > 0
+    ? [{ keyword:facet.keyword, values:filters[facet.key] }]
+    : []);
+  const productCards = result.products.map((product) => toFeedProductCardModel(product, activeVariantFilters));
   const canUseTable = prefersDenseFeedTable(slug);
   const view = canUseTable && requestedView !== "cards" ? "table" : "cards";
   const activeFilterCount = Object.values(filters).reduce((sum, values) => sum + values.length, 0) + (search ? 1 : 0);
@@ -58,25 +61,35 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const selectorHref = slug === "stanki-sverlilnye" ? "/catalog/sverlenie/magnitnye-stanki" : undefined;
   const start = result.total > 0 ? (result.page - 1) * result.pageSize + 1 : 0;
   const end = Math.min(result.page * result.pageSize, result.total);
+  const promotedFacets = result.facets.filter((facet) => facet.keyword).slice(0, 2);
 
   return <div className="site-shell"><PilotHeader /><main className="inner-page">
     <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Каталог", href:"/catalog" }, { label:group.title, href:group.href }, { label:subcategory.label }]} /></div>
 
-    <section className="page-hero"><div className="container page-hero-grid"><div>
+    <section className="page-hero page-hero--category"><div className="container page-hero-grid"><div>
       <p className="eyebrow">{group.title}</p>
       <h1>{feedCategory?.h1 ?? subcategory.label}</h1>
-      <p>{feedCategory?.intro ?? landing.intro} Цена показана по тестовому снимку фида; наличие и срок подтверждаются для выбранного исполнения.</p>
+      <p>Сравните товарные серии по ключевым параметрам, раскройте нужную строку и добавьте точное исполнение в один запрос КП.</p>
+      <div className="category-hero-facts"><span><b>{result.total.toLocaleString("ru-RU")}</b> {pluralizeProductGroups(result.total)}</span><span>Цена — из тестового фида</span><span>Наличие и срок — после проверки</span></div>
     </div><aside>
-      <b>{selectorHref ? "Нужен технический отбор?" : "Не знаете точную модель?"}</b>
-      <p>{selectorHref ? "Сузьте выбор по диаметру, массе, шпинделю и рабочим функциям." : "Укажите основные параметры задачи. Можно начать без артикула и точной модели."}</p>
+      <b>{selectorHref ? "Нужен технический отбор?" : "Не знаете точное исполнение?"}</b>
+      <p>{selectorHref ? "Сузьте выбор по диаметру, массе, шпинделю и рабочим функциям." : "Пришлите размеры или опишите задачу — артикул знать не обязательно."}</p>
       {selectorHref ? <Link href={selectorHref}>Подобрать магнитный станок →</Link> : <a href={`mailto:info@7tool.ru?subject=${subject}`}>Отправить параметры →</a>}
     </aside></div></section>
 
     <section className="section feed-category-listing" id="products"><div className="container">
-      <div className="section-heading"><div><p className="eyebrow">Фактический ассортимент</p><h2>Выберите подходящее исполнение</h2></div><p>Характеристики и цены взяты из локального снимка фида. Наличие и срок поставки подтверждаем в КП.</p></div>
+      <div className="section-heading feed-category-heading"><div><p className="eyebrow">Фактический ассортимент</p><h2>Сначала сузьте выбор</h2></div><p>Главные параметры вынесены наверх. Полный набор фильтров остаётся слева.</p></div>
+
+      {promotedFacets.length > 0 && <nav className="feed-promoted-filters" aria-label="Быстрые фильтры">
+        {promotedFacets.map((facet) => <div key={facet.key}><span>{facet.label}</span><div>{facet.options.slice(0, 6).map((option) => {
+          const selected = filters[facet.key]?.includes(option.value) ?? false;
+          return <Link className={selected ? "active" : undefined} aria-current={selected ? "true" : undefined} href={categoryUrl(slug, rawSearchParams, { toggleKey:`f_${facet.key}`, toggleValue:option.value })} key={option.value}>{option.label}<small>{option.count}</small></Link>;
+        })}</div></div>)}
+        <a className="feed-promoted-more" href="#feed-filter-panel">Все параметры →</a>
+      </nav>}
 
       <div className="feed-catalog-layout">
-        <aside className="feed-filter-panel">
+        <aside className="feed-filter-panel" id="feed-filter-panel">
           <input className="feed-filter-toggle" type="checkbox" id={`feed-filters-${slug}`} aria-label="Показать или скрыть фильтры" />
           <label className="feed-filter-summary" htmlFor={`feed-filters-${slug}`}><span><b>Фильтры</b><small>{activeFilterCount > 0 ? `Выбрано: ${activeFilterCount}` : "По характеристикам фида"}</small></span><i aria-hidden="true">+</i></label>
           <form method="get" action={`/catalog/category/${slug}#products`}>
@@ -89,7 +102,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
         </aside>
 
         <div className="feed-results">
-          <div className="feed-results-toolbar"><p><b>{result.total.toLocaleString("ru-RU")}</b> {pluralizeProducts(result.total)}{result.total > 0 && <span> · показаны {start}–{end}</span>}</p><div className="feed-toolbar-controls">
+          <div className="feed-results-toolbar"><p><b>{result.total.toLocaleString("ru-RU")}</b> {pluralizeProductGroups(result.total)}{result.total > 0 && <span> · показаны {start}–{end}</span>}</p><div className="feed-toolbar-controls">
             {canUseTable && <nav className="feed-view-switch" aria-label="Вид списка"><a className={view === "table" ? "active" : undefined} href={categoryUrl(slug, rawSearchParams, { setKey:"view", setValue:"table" })}>Таблица</a><a className={view === "cards" ? "active" : undefined} href={categoryUrl(slug, rawSearchParams, { setKey:"view", setValue:"cards" })}>Карточки</a></nav>}
             <form method="get" action={`/catalog/category/${slug}#products`}>
               {requestedView && <input type="hidden" name="view" value={requestedView} />}
@@ -136,17 +149,25 @@ function valuesOf(value: SearchValue): string[] {
   return value ? [value] : [];
 }
 
-function categoryUrl(slug: string, raw: SearchParams, change: { removeKey?: string; removeValue?: string; page?: number; setKey?: string; setValue?: string }): string {
+function categoryUrl(slug: string, raw: SearchParams, change: { removeKey?: string; removeValue?: string; page?: number; setKey?: string; setValue?: string; toggleKey?: string; toggleValue?: string }): string {
   const params = new URLSearchParams();
+  let toggledValueWasSelected = false;
   for (const [key, value] of Object.entries(raw)) {
     if (key === "page" || key === change.setKey) continue;
     if (key === change.removeKey) {
       for (const item of valuesOf(value)) if (change.removeValue && item !== change.removeValue) params.append(key, item);
       continue;
     }
-    for (const item of valuesOf(value)) params.append(key, item);
+    for (const item of valuesOf(value)) {
+      if (key === change.toggleKey && item === change.toggleValue) {
+        toggledValueWasSelected = true;
+        continue;
+      }
+      params.append(key, item);
+    }
   }
   if (change.setKey && change.setValue) params.set(change.setKey, change.setValue);
+  if (change.toggleKey && change.toggleValue && !toggledValueWasSelected) params.append(change.toggleKey, change.toggleValue);
   if (change.page && change.page > 1) params.set("page", String(change.page));
   const query = params.toString();
   return `/catalog/category/${slug}${query ? `?${query}` : ""}#products`;
@@ -164,11 +185,11 @@ function paginationItems(page: number, pageCount: number): Array<number | "…">
   return result;
 }
 
-function pluralizeProducts(count: number): string {
+function pluralizeProductGroups(count: number): string {
   const modulo100 = count % 100;
   const modulo10 = count % 10;
-  if (modulo100 >= 11 && modulo100 <= 14) return "товаров";
-  if (modulo10 === 1) return "товар";
-  if (modulo10 >= 2 && modulo10 <= 4) return "товара";
-  return "товаров";
+  if (modulo100 >= 11 && modulo100 <= 14) return "товарных серий";
+  if (modulo10 === 1) return "товарная серия";
+  if (modulo10 >= 2 && modulo10 <= 4) return "товарные серии";
+  return "товарных серий";
 }

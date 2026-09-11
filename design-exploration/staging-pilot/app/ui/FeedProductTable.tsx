@@ -2,26 +2,65 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import type { FeedProductCardModel } from "../data/feedCatalog";
-import { FeedProductList } from "./FeedProductList";
+import { Fragment, useState, type CSSProperties } from "react";
+import type { FeedProductCardModel, FeedProductVariantModel } from "../data/feedCatalog";
 import { AddRequestButton } from "./RequestCart";
 
 export function FeedProductTable({ products, columns }: { products: FeedProductCardModel[]; columns: string[] }) {
+  const [expandedIds, setExpandedIds] = useState<string[]>([]);
+
+  function toggleProduct(id: string) {
+    setExpandedIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
+  }
+
   return <>
     <div className="feed-product-table-wrap">
       <table className="feed-product-table">
-        <thead><tr><th>Товар</th>{columns.map((column) => <th key={column}>{column}</th>)}<th>Цена</th><th><span className="visually-hidden">Действия</span></th></tr></thead>
-        <tbody>{products.map((product) => <tr key={product.id}>
-          <td><div className="feed-table-product">{product.image && <Link href={`/product/${product.slug}`} tabIndex={-1} aria-hidden="true"><Image src={product.image} alt="" width={74} height={62} unoptimized /></Link>}<div><span>{product.brand}{product.sku ? ` · ${product.sku}` : ""}</span><Link href={`/product/${product.slug}`}>{product.title}</Link><small>{variantLabel(product.variantCount)}</small></div></div></td>
-          {columns.map((column) => <td key={column}>{product.specs.find((spec) => spec.label === column)?.value ?? "—"}</td>)}
-          <td><b>{product.price}</b><small>с НДС · подтвердим в КП</small></td>
-          <td><div className="feed-table-actions"><AddRequestButton item={{ id:product.id, title:product.title, article:product.sku ? `Артикул ${product.sku}` : "Товарная группа", price:product.price }}>В запрос КП</AddRequestButton><Link href={`/product/${product.slug}`}>Подробнее</Link></div></td>
-        </tr>)}</tbody>
+        <thead><tr><th>Товарная серия</th>{columns.map((column) => <th key={column}>{column}</th>)}<th>Цена</th><th><span className="visually-hidden">Действия</span></th></tr></thead>
+        <tbody>{products.map((product) => {
+          const expanded = expandedIds.includes(product.id);
+          return <Fragment key={product.id}>
+            <tr className={expanded ? "feed-product-row feed-product-row--expanded" : "feed-product-row"}>
+              <td><div className="feed-table-product">{product.image && <Link href={`/product/${product.slug}`} tabIndex={-1} aria-hidden="true"><Image src={product.image} alt="" width={86} height={74} unoptimized /></Link>}<div><span>{product.brand}{product.sku ? ` · серия ${product.sku}` : ""}</span><Link href={`/product/${product.slug}`}>{product.title}</Link><small>{variantLabel(product.variantCount)}</small></div></div></td>
+              {columns.map((column) => <td key={column}><span className="feed-table-cell-label">{column}</span>{product.specs.find((spec) => spec.label === column)?.value ?? "—"}</td>)}
+              <td className="feed-table-price"><b>{product.price}</b><small>{product.variantCount > 1 ? "зависит от исполнения" : "с НДС · подтвердим в КП"}</small><em>Наличие и срок уточняем</em></td>
+              <td><div className="feed-table-actions"><button className="feed-variant-toggle" type="button" aria-expanded={expanded} aria-controls={`variants-${product.id}`} onClick={() => toggleProduct(product.id)}>{expanded ? "Скрыть исполнения" : product.variantCount > 1 ? `Выбрать из ${product.variantCount}` : "Выбрать исполнение"}</button><Link href={`/product/${product.slug}`}>Все характеристики</Link></div></td>
+            </tr>
+            {expanded && <tr className="feed-variant-expansion"><td colSpan={columns.length + 3} id={`variants-${product.id}`}>
+              <div className="feed-variant-expansion-head"><div><b>Точные исполнения</b><span>Выберите размер и добавьте конкретную позицию в запрос КП</span></div>{product.variantCount > product.variants.length && <Link href={`/product/${product.slug}`}>Все {product.variantCount} исполнений →</Link>}</div>
+              <div className="feed-inline-variants">{product.variants.map((variant) => <InlineVariant product={product} variant={variant} columns={columns} key={variant.id} />)}</div>
+            </td></tr>}
+          </Fragment>;
+        })}</tbody>
       </table>
-      <p className="feed-table-note">Наличие, срок и совместимость подтверждаем для конкретного исполнения в КП.</p>
+      <p className="feed-table-note">Цена указана по тестовому снимку фида. Наличие, срок и совместимость подтверждаем для выбранного исполнения в КП.</p>
     </div>
-    <div className="feed-product-table-mobile"><FeedProductList products={products} /></div>
+    <div className="feed-product-table-mobile">{products.map((product) => <MobileSeries product={product} columns={columns} key={product.id} />)}</div>
   </>;
+}
+
+function MobileSeries({ product, columns }: { product: FeedProductCardModel; columns: string[] }) {
+  return <details className="feed-mobile-series">
+    <summary>
+      <div className="feed-mobile-series-head">{product.image && <Image src={product.image} alt="" width={92} height={78} unoptimized />}<div><span>{product.brand}{product.sku ? ` · ${product.sku}` : ""}</span><b>{product.title}</b><small>{variantLabel(product.variantCount)}</small></div></div>
+      <dl>{columns.map((column) => <div key={column}><dt>{column}</dt><dd>{product.specs.find((spec) => spec.label === column)?.value ?? "—"}</dd></div>)}</dl>
+      <div className="feed-mobile-series-commercial"><div><b>{product.price}</b><span>Наличие и срок уточняем</span></div><i>Выбрать исполнение</i></div>
+    </summary>
+    <div className="feed-mobile-variants"><div className="feed-variant-expansion-head"><div><b>Точные исполнения</b><span>Добавьте нужный размер в запрос КП</span></div></div>{product.variants.map((variant) => <article className={variant.matchesSelection ? "feed-mobile-variant feed-mobile-variant--match" : "feed-mobile-variant"} key={variant.id}>
+      <div><span>{variant.matchesSelection ? "Соответствует фильтрам" : "Исполнение"}</span><b>{variant.sku}</b></div>
+      <dl>{columns.map((column) => <div key={column}><dt>{column}</dt><dd>{variant.specs.find((spec) => spec.label === column)?.value ?? "—"}</dd></div>)}</dl>
+      <div className="feed-mobile-variant-action"><div><b>{variant.price}</b><span>Наличие и срок уточняем</span></div><AddRequestButton item={{ id:variant.id, title:variant.title || product.title, article:`Артикул ${variant.sku}`, price:variant.price }}>Добавить в запрос</AddRequestButton></div>
+    </article>)}{product.variantCount > product.variants.length && <Link className="feed-mobile-all-variants" href={`/product/${product.slug}`}>Все {product.variantCount} исполнений →</Link>}</div>
+  </details>;
+}
+
+function InlineVariant({ product, variant, columns }: { product: FeedProductCardModel; variant: FeedProductVariantModel; columns: string[] }) {
+  return <article className={variant.matchesSelection ? "feed-inline-variant feed-inline-variant--match" : "feed-inline-variant"} style={{ "--variant-spec-count":Math.max(1, columns.length) } as CSSProperties}>
+    <div className="feed-inline-variant-id"><span>{variant.matchesSelection ? "Соответствует фильтрам" : "Исполнение"}</span><b>{variant.sku}</b></div>
+    {columns.map((column) => <div key={column}><span>{column}</span><b>{variant.specs.find((spec) => spec.label === column)?.value ?? "—"}</b></div>)}
+    <div className="feed-inline-variant-price"><b>{variant.price}</b><span>с НДС · цена из фида</span><small>Наличие и срок уточняем</small></div>
+    <AddRequestButton item={{ id:variant.id, title:variant.title || product.title, article:`Артикул ${variant.sku}`, price:variant.price }}>Добавить в запрос</AddRequestButton>
+  </article>;
 }
 
 function variantLabel(count: number): string {
@@ -29,5 +68,5 @@ function variantLabel(count: number): string {
   const modulo100 = count % 100;
   const modulo10 = count % 10;
   const word = modulo100 >= 11 && modulo100 <= 14 ? "исполнений" : modulo10 >= 2 && modulo10 <= 4 ? "исполнения" : "исполнений";
-  return `${count} ${word}`;
+  return `${count} ${word} · раскройте для выбора`;
 }

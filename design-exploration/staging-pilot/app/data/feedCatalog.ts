@@ -47,6 +47,15 @@ export type FeedProductSpec = {
   value: string;
 };
 
+export type FeedProductVariantModel = {
+  id: string;
+  sku: string;
+  title: string;
+  price: string;
+  specs: FeedProductSpec[];
+  matchesSelection: boolean;
+};
+
 export type FeedProductCardModel = {
   id: string;
   slug: string;
@@ -57,6 +66,12 @@ export type FeedProductCardModel = {
   price: string;
   variantCount: number;
   specs: FeedProductSpec[];
+  variants: FeedProductVariantModel[];
+};
+
+export type FeedVariantFilter = {
+  keyword: string;
+  values: string[];
 };
 
 export type FeedFacetOption = {
@@ -241,11 +256,30 @@ export function getFeedProductPriceLabel(product: FeedProduct): string {
   const from = formatFeedPrice(product.priceFrom);
   const to = formatFeedPrice(product.priceTo);
   if (!from) return "Цена по запросу";
-  if (to && to !== from) return `${from}–${to}`;
+  if (to && to !== from) return `от ${from} до ${to}`;
   return from;
 }
 
-export function toFeedProductCardModel(product: FeedProduct): FeedProductCardModel {
+export function toFeedProductCardModel(product: FeedProduct, activeFilters: FeedVariantFilter[] = []): FeedProductCardModel {
+  const variants = product.variants
+    .map((variant, sourceOrder) => ({
+      variant,
+      sourceOrder,
+      matchesSelection: activeFilters.length === 0 || activeFilters.every((filter) =>
+        getVariantParameterValues(variant, filter.keyword).some((value) => filter.values.includes(value)),
+      ),
+    }))
+    .sort((first, second) => Number(second.matchesSelection) - Number(first.matchesSelection) || first.sourceOrder - second.sourceOrder)
+    .slice(0, 12)
+    .map(({ variant, matchesSelection }) => ({
+      id: variant.id,
+      sku: variant.sku,
+      title: variant.name ?? variant.sku,
+      price: formatFeedPrice(variant.price) ?? "Цена по запросу",
+      specs: getFeedVariantSpecs(product, variant),
+      matchesSelection,
+    }));
+
   return {
     id: product.id,
     slug: product.slug,
@@ -256,6 +290,7 @@ export function toFeedProductCardModel(product: FeedProduct): FeedProductCardMod
     price: getFeedProductPriceLabel(product),
     variantCount: product.variants.length,
     specs: getFeedProductSpecs(product),
+    variants,
   };
 }
 
@@ -365,7 +400,8 @@ function getVariantParameterValues(variant: FeedVariant, keyword: string): strin
 }
 
 function formatParameterValue(parameter: FeedParameter): string {
-  return `${parameter.value}${parameter.unit ? ` ${parameter.unit}` : ""}`.trim();
+  const localizedValue = /^-?\d+(?:\.\d+)?$/.test(parameter.value) ? parameter.value.replace(".", ",") : parameter.value;
+  return `${localizedValue}${parameter.unit ? ` ${parameter.unit}` : ""}`.trim();
 }
 
 function getProductSearchText(product: FeedProduct): string {
@@ -415,8 +451,23 @@ function getFeedProductSpecs(product: FeedProduct): FeedProductSpec[] {
   return orderedNames.slice(0, 4).map((name) => ({ label:name, value:summarizeParameterValues(parameters, name) }));
 }
 
+function getFeedVariantSpecs(product: FeedProduct, variant: FeedVariant): FeedProductSpec[] {
+  const parameters = variant.params ?? [];
+  const priorities = [...(categorySpecPriorities[product.category] ?? []), ...product.paramAxes];
+  const selected: FeedProductSpec[] = [];
+
+  for (const priority of priorities) {
+    const parameter = parameters.find((candidate) => normalizeText(candidate.name).includes(normalizeText(priority)));
+    if (!parameter || selected.some((spec) => spec.label === parameter.name)) continue;
+    selected.push({ label:parameter.name, value:formatParameterValue(parameter) });
+    if (selected.length === 6) break;
+  }
+
+  return selected;
+}
+
 function summarizeParameterValues(parameters: FeedParameter[], name: string): string {
-  const values = Array.from(new Set(parameters.filter((parameter) => parameter.name === name).map((parameter) => `${parameter.value}${parameter.unit ? ` ${parameter.unit}` : ""}`)));
+  const values = Array.from(new Set(parameters.filter((parameter) => parameter.name === name).map(formatParameterValue)));
   if (values.length <= 2) return values.join(" / ");
   return `${values.slice(0, 2).join(" / ")} +${values.length - 2}`;
 }
