@@ -375,3 +375,7 @@ Production-приложение `7tool-source/**` в эту задачу не в
 - без фильтра категория содержит 369 товарных серий, `В наличии` сокращает выдачу до 224;
 - комбинация `В наличии + форма F` возвращает 25 серий;
 - локальное превью: `http://127.0.0.1:3158/catalog/category/borfrezy`.
+
+### Commit фильтров
+
+`9978af3` — `design: prioritize availability and burr shape filters`.
