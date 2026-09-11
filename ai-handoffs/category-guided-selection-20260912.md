@@ -44,6 +44,7 @@
 
 - `39351d5` — `design: add guided burr selection`.
 - `25452a7` — `design: refine burr category contact flow`.
+- `71f9eed` — `design: improve category readability and stock states`.
 - `25452a7` — `design: refine burr category contact flow`.
 
 ## Локальное превью
