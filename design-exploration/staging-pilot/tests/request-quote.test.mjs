@@ -31,18 +31,20 @@ test("local draft numbers are recognisable and date-scoped", () => {
   assert.match(createDraftNumber(new Date(2026, 8, 12, 10, 30, 0)), /^7T-20260912-\d{5}$/u);
 });
 
-test("quote drawer keeps the shortest B2B path and never sends externally", async () => {
+test("quote drawer keeps the shortest B2B path and only submits to the local API", async () => {
   const component = await readFile(new URL("../app/ui/RequestCart.tsx", import.meta.url), "utf8");
   const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
   assert.match(component, /window\.localStorage\.setItem\(STORAGE_KEY/u);
   assert.match(component, /Email для КП/u);
   assert.match(component, /Телефон для уточнения/u);
-  assert.match(component, /Сформировать запрос КП/u);
+  assert.match(component, /Сохранить запрос КП/u);
   assert.match(component, /defaultChecked required/u);
-  assert.match(component, /createDraftNumber\(\)/u);
+  assert.match(component, /fetch\("\/api\/quote-requests"/u);
+  assert.match(component, /crypto\.randomUUID\(\)/u);
+  assert.match(component, /className="request-cart-honeypot"[^>]*name="website"[^>]*tabIndex=\{-1\}[^>]*aria-hidden="true"/u);
   assert.match(component, /ManagerContactCard compact placement="quote_drawer"/u);
   assert.match(component, /page_type:"quote_request"/u);
-  assert.doesNotMatch(component, /fetch\(|mailto:|window\.location/u);
+  assert.doesNotMatch(component, /fetch\("https?:|mailto:/u);
   assert.match(styles, /\.request-cart-drawer \{[^}]*width:min\(720px,100%\)/us);
   assert.match(styles, /\.request-cart-form input,\.request-cart-form textarea \{[^}]*font:[^;]*14px/us);
 });

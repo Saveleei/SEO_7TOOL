@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { createDraftNumber, parseQuotePrice, sanitizeRequestItems, summarizeRequest } from "../data/requestQuote.mjs";
+import { parseQuotePrice, sanitizeRequestItems, summarizeRequest } from "../data/requestQuote.mjs";
 import { ManagerContactCard } from "./ManagerContactCard";
 
 export type RequestItem = {
@@ -115,6 +115,7 @@ function RequestCartDrawer() {
   const [billingProvided, setBillingProvided] = useState(false);
   const [formError, setFormError] = useState("");
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const idempotencyKeyRef = useRef("");
   const summary = useMemo(() => summarizeRequest(items), [items]);
 
   useEffect(() => {
@@ -131,6 +132,7 @@ function RequestCartDrawer() {
     setSent(false);
     setSubmitting(false);
     setFormError("");
+    idempotencyKeyRef.current = "";
     close();
   }
 
@@ -139,7 +141,7 @@ function RequestCartDrawer() {
     trackQuote("change_quote_quantity", { placement:"quote_drawer", item_count:items.length });
   }
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!items.length || submitting) return;
     const formData = new FormData(event.currentTarget);
@@ -150,15 +152,32 @@ function RequestCartDrawer() {
       return;
     }
     setFormError("");
-    setBillingProvided(Boolean(inn || requisitesFile instanceof File && requisitesFile.size > 0));
     setSubmitting(true);
     trackQuote("submit_quote", { placement:"quote_drawer", item_count:items.length });
-    window.setTimeout(() => {
-      setDraftNumber(createDraftNumber());
+    if (!idempotencyKeyRef.current) idempotencyKeyRef.current = crypto.randomUUID();
+    const query = new URLSearchParams(window.location.search);
+    formData.set("idempotency_key", idempotencyKeyRef.current);
+    formData.set("items", JSON.stringify(items));
+    formData.set("source", JSON.stringify({
+      pagePath:window.location.pathname,
+      utmSource:query.get("utm_source") ?? "",
+      utmMedium:query.get("utm_medium") ?? "",
+      utmCampaign:query.get("utm_campaign") ?? "",
+    }));
+    try {
+      const response = await fetch("/api/quote-requests", { method:"POST", body:formData, headers:{ "X-Requested-With":"7tool-local-preview" } });
+      const result = await response.json() as { ok: boolean; requestNumber?: string; billingProvided?: boolean; message?: string };
+      if (!response.ok || !result.ok || !result.requestNumber) throw new Error(result.message || "Не удалось сохранить заявку.");
+      setDraftNumber(result.requestNumber);
+      setBillingProvided(Boolean(result.billingProvided || inn || requisitesFile instanceof File && requisitesFile.size > 0));
       setSubmitting(false);
       setSent(true);
       trackQuote("quote_success", { placement:"quote_drawer", item_count:items.length });
-    }, 450);
+    } catch (error) {
+      setSubmitting(false);
+      setFormError(error instanceof Error ? error.message : "Не удалось сохранить заявку. Попробуйте ещё раз.");
+      trackQuote("quote_error", { placement:"quote_drawer", item_count:items.length });
+    }
   }
 
   if (!isOpen) return null;
@@ -169,10 +188,11 @@ function RequestCartDrawer() {
       <header><div><span>Единый запрос без повторного ввода</span><h2 id="request-cart-title">Запрос коммерческого предложения</h2><p id="request-cart-description">Проверьте позиции и оставьте контакты — комплектность, остаток и срок менеджер подтвердит в ответе.</p></div><button ref={closeButtonRef} type="button" onClick={closeDrawer} aria-label="Закрыть">×</button></header>
       <div className="request-cart-progress" aria-label="Этапы запроса"><b>1 <span>Состав</span></b><b>2 <span>Контакты</span></b><b>3 <span>Ответ менеджера</span></b></div>
 
-      {sent ? <QuoteSuccess draftNumber={draftNumber} itemCount={items.length} totalQuantity={summary.totalQuantity} billingProvided={billingProvided} onEdit={() => setSent(false)} onClose={closeDrawer} /> : <>
+      {sent ? <QuoteSuccess draftNumber={draftNumber} itemCount={items.length} totalQuantity={summary.totalQuantity} billingProvided={billingProvided} onEdit={() => { idempotencyKeyRef.current = ""; setSent(false); }} onClose={closeDrawer} /> : <>
         {items.length > 0 ? <section className="request-cart-composition" aria-labelledby="request-cart-composition-title"><div className="request-cart-section-title"><div><span>Состав запроса</span><h3 id="request-cart-composition-title">{items.length} поз. · {summary.totalQuantity} шт.</h3></div>{summary.pricedItems > 0 && <div><span>Ориентировочно</span><b>{formatMoney(summary.estimatedTotal)}</b></div>}</div><div className="request-cart-items">{items.map((item) => <RequestCartItem item={item} onChange={changeQuantity} onRemove={remove} key={item.id} />)}</div><p className="request-cart-estimate-note">{summary.hasUnpricedItems ? "Итог рассчитан только по позициям с указанной ценой. " : ""}Цена, остаток и дата отгрузки будут повторно подтверждены перед оплатой.</p></section> : <div className="request-cart-empty"><b>В запросе пока нет товаров</b><p>Добавьте нужное исполнение со страницы товара или из категории.</p><button type="button" onClick={closeDrawer}>Продолжить подбор</button></div>}
 
         <form className="request-cart-form" onSubmit={submit}>
+          <input className="request-cart-honeypot" name="website" type="text" tabIndex={-1} autoComplete="off" aria-hidden="true" />
           <div className="request-cart-form-heading"><span>Контакты и требования</span><h3>Куда отправить КП</h3><p>Поля со звёздочкой нужны, чтобы менеджер мог уточнить задачу и вернуть предложение.</p></div>
           <label>Email для КП <span>*</span><input name="email" type="email" autoComplete="email" placeholder="name@company.ru" required /></label>
           <label>Телефон для уточнения <span>*</span><input name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+7 999 000-00-00" required /></label>
@@ -184,7 +204,7 @@ function RequestCartDrawer() {
           <label className="request-cart-wide request-cart-check"><input name="alternatives" type="checkbox" defaultChecked /> Можно предложить подходящий аналог, если он выгоднее или доступен раньше</label>
           <label className="request-cart-wide request-cart-check"><input name="consent" type="checkbox" defaultChecked required /> Я согласен на обработку персональных данных</label>
           {formError && <div className="request-cart-wide request-cart-form-error" role="alert">{formError}</div>}
-          <div className="request-cart-wide request-cart-submit"><button type="submit" disabled={!items.length || submitting}>{submitting ? "Формируем черновик…" : "Сформировать запрос КП"}</button><small>Тестовый стенд: контактные данные и заявка никуда не отправляются.</small></div>
+          <div className="request-cart-wide request-cart-submit"><button type="submit" disabled={!items.length || submitting}>{submitting ? "Надёжно сохраняем…" : "Сохранить запрос КП"}</button><small>Тестовый контур: заявка сохраняется только локально. Email, MAX и CRM отключены.</small></div>
         </form>
         <ManagerContactCard compact placement="quote_drawer" />
       </>}
@@ -199,7 +219,7 @@ function RequestCartItem({ item, onChange, onRemove }: { item: RequestItem; onCh
 }
 
 function QuoteSuccess({ draftNumber, itemCount, totalQuantity, billingProvided, onEdit, onClose }: { draftNumber: string; itemCount: number; totalQuantity: number; billingProvided: boolean; onEdit: () => void; onClose: () => void }) {
-  return <section className="request-cart-success" role="status"><span>Черновик сформирован</span><h3>Запрос {draftNumber}</h3><p>{itemCount} поз. · {totalQuantity} шт. Все товары, количества и требования сохранены в этом окне.</p>{billingProvided && <div className="request-cart-billing-status"><b>Реквизиты добавлены</b><p>В рабочей версии менеджер проверит их и подготовит счёт после подтверждения условий поставки.</p></div>}<div><b>Что произойдёт в рабочей версии</b><ol><li>Заявка получит постоянный номер.</li><li>Менеджер проверит остаток, совместимость и документы.</li><li>КП будет отправлено на указанный email, а детали уточнят по телефону.</li></ol></div><strong>Сейчас ничего не отправлено наружу — это безопасный тестовый результат.</strong><footer><button type="button" onClick={onEdit}>Изменить запрос</button><button type="button" onClick={onClose}>Вернуться к товарам</button></footer></section>;
+  return <section className="request-cart-success" role="status"><span>Заявка сохранена на тестовом сервере</span><h3>Запрос {draftNumber}</h3><p>{itemCount} поз. · {totalQuantity} шт. Состав, контакты и требования записаны до показа этого подтверждения.</p>{billingProvided && <div className="request-cart-billing-status"><b>Реквизиты добавлены</b><p>Менеджер проверит их и подготовит счёт только после подтверждения условий поставки.</p></div>}<div><b>Статус заявки</b><ol><li>Получена и доступна в локальном журнале.</li><li>Ожидает проверки наличия, совместимости и документов.</li><li>Отправка КП будет подключена после утверждения тестового контура.</li></ol></div><strong>Email, MAX и CRM сейчас отключены — заявка не ушла во внешние системы.</strong><footer><Link href="/test/requests">Открыть тестовый журнал</Link><button type="button" onClick={onEdit}>Изменить запрос</button><button type="button" onClick={onClose}>Вернуться к товарам</button></footer></section>;
 }
 
 function formatMoney(value: number): string { return `${new Intl.NumberFormat("ru-RU").format(value)} ₽`; }

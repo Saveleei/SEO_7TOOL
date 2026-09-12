@@ -229,8 +229,10 @@ img { display:block; max-width:100%; }
 .request-cart-success ol { display:grid; gap:8px; margin:11px 0 0; padding-left:21px; color:#4d554e; font-size:14px; line-height:1.45; }
 .request-cart-success>strong { padding:11px 13px; border-radius:6px; background:#e4f2e9; color:#087044; font-size:13px; line-height:1.45; }
 .request-cart-success footer { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
-.request-cart-success footer button { min-height:46px; border:1px solid #252925; border-radius:5px; background:#fff; color:#252925; font-size:13px; font-weight:800; cursor:pointer; }
+.request-cart-success footer a { grid-column:1/-1; }
+.request-cart-success footer button,.request-cart-success footer a { min-height:46px; display:flex; align-items:center; justify-content:center; border:1px solid #252925; border-radius:5px; background:#fff; color:#252925; font-size:13px; font-weight:800; text-align:center; cursor:pointer; }
 .request-cart-success footer button:last-child { background:#252925; color:#fff; }
+.request-cart-honeypot { position:absolute!important; left:-10000px!important; width:1px!important; height:1px!important; overflow:hidden!important; }
 .request-cart-dock { min-width:365px; }
 .request-cart-dock span { font-size:12px; }
 .request-cart-dock b { font-size:14px; }
@@ -269,6 +271,44 @@ img { display:block; max-width:100%; }
   .request-cart-success { margin:20px 15px 90px; padding:20px 17px; }
   .request-cart-success h3 { font-size:23px; }
   .request-cart-success footer { grid-template-columns:1fr; }
+}
+
+/* Local quote-request backend and masked manager journal */
+.quote-journal-hero { padding:42px 0; border-bottom:1px solid #dfe2dc; background:#f2f3ef; }
+.quote-journal-hero h1 { margin:7px 0 9px; font-size:clamp(38px,5vw,58px); line-height:1; letter-spacing:-.035em; }
+.quote-journal-hero p:not(.eyebrow) { max-width:780px; margin:0; color:#535852; font-size:15px; line-height:1.55; }
+.quote-journal-disabled,.quote-journal-empty { max-width:720px; padding:25px; border-top:3px solid var(--cta); border-radius:8px; background:#f3f4f1; }
+.quote-journal-disabled>b,.quote-journal-empty>b { font-size:21px; }
+.quote-journal-disabled p,.quote-journal-empty p { color:#555a54; font-size:14px; line-height:1.55; }
+.quote-journal-disabled a,.quote-journal-empty a { min-height:43px; display:inline-flex; align-items:center; padding:9px 14px; border-radius:5px; background:#252925; color:#fff; font-size:12px; font-weight:800; }
+.quote-journal-list { display:grid; gap:12px; }
+.quote-journal-list>article { overflow:hidden; border:1px solid #d7dbd4; border-radius:8px; background:#fff; }
+.quote-journal-list>article>header { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; padding:18px 20px 14px; border-bottom:1px solid #e2e5df; }
+.quote-journal-list header span { color:#087044; font-size:10px; font-weight:850; text-transform:uppercase; }
+.quote-journal-list header h2 { margin:4px 0 0; font-size:22px; }
+.quote-journal-list time { color:#646963; font-size:12px; }
+.quote-journal-facts { padding:17px 20px; }
+.quote-journal-facts dl { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); margin:0; }
+.quote-journal-facts dl>div { min-width:0; padding:0 15px; border-left:1px solid #e2e5df; }
+.quote-journal-facts dl>div:first-child { padding-left:0; border-left:0; }
+.quote-journal-facts dt { color:#737872; font-size:10px; text-transform:uppercase; }
+.quote-journal-facts dd { margin:5px 0 0; overflow-wrap:anywhere; font-size:13px; font-weight:750; line-height:1.45; }
+.quote-journal-facts>small { display:block; margin-top:15px; color:#727771; font-size:10px; }
+.quote-journal-list article>footer { display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid #e2e5df; background:#f5f6f3; }
+.quote-journal-list article>footer>* { min-height:38px; display:flex; align-items:center; justify-content:center; border-left:1px solid #e2e5df; color:#777c76; font-size:10px; }
+.quote-journal-list article>footer>*:first-child { border-left:0; }
+.quote-journal-list article>footer .active { background:#e8f4ed; color:#087044; }
+
+@media (max-width:760px) {
+  .quote-journal-hero { padding:28px 0; }
+  .quote-journal-hero h1 { font-size:35px; }
+  .quote-journal-list header h2 { font-size:19px; }
+  .quote-journal-facts dl { grid-template-columns:1fr; gap:14px; }
+  .quote-journal-facts dl>div { padding:0 0 12px; border-left:0; border-bottom:1px solid #e2e5df; }
+  .quote-journal-facts dl>div:last-child { padding-bottom:0; border-bottom:0; }
+  .quote-journal-list article>footer { grid-template-columns:1fr 1fr; }
+  .quote-journal-list article>footer>*:nth-child(3) { border-top:1px solid #e2e5df; border-left:0; }
+  .quote-journal-list article>footer>*:nth-child(4) { border-top:1px solid #e2e5df; }
 }
 
 @media (max-width:760px) {

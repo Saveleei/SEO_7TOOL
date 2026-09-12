@@ -6,7 +6,7 @@ import { RequestCartButton } from "./RequestCart";
 export function PilotHeader() {
   return (
     <>
-      <div className="preview-banner"><span>Тестовый стенд</span><p>Безопасный прототип · формы не отправляются · основной сайт не изменён</p></div>
+      <div className="preview-banner"><span>Тестовый стенд</span><p>Локальное сохранение · внешняя отправка отключена · основной сайт не изменён</p></div>
       <header className="site-header">
         <div className="container header-row">
           <Link className="brand" href="/" aria-label="7TOOL — главная"><Image src="/brand/7tool-primary.svg" alt="7TOOL" width={142} height={44} priority /></Link>
