@@ -82,6 +82,14 @@ test("variant articles link to the exact execution and availability copy cannot 
   assert.match(styles, /\.feed-availability-block>small \{[^}]*display:block!important[^}]*margin:0!important/us);
 });
 
+test("applied filters and clear-all use reliable navigation", async () => {
+  const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
+  const appliedFilters = page.slice(page.indexOf('className="feed-applied-filters"'), page.indexOf("{result.products.length"));
+  assert.match(appliedFilters, /<PromotedFilterLink className="feed-reset-all"/u);
+  assert.match(appliedFilters, /filters\[facet\.key\].*<PromotedFilterLink/us);
+  assert.doesNotMatch(appliedFilters, /<Link/u);
+});
+
 test("product cards use readable actions and a native full-details navigation", async () => {
   const card = await readFile(new URL("../app/ui/FeedProductCard.tsx", import.meta.url), "utf8");
   const table = await readFile(new URL("../app/ui/FeedProductTable.tsx", import.meta.url), "utf8");

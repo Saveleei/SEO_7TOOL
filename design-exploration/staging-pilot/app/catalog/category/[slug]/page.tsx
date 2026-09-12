@@ -150,10 +150,10 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
           </div></div>
 
           {activeFilterCount > 0 && <nav className="feed-applied-filters" aria-label="Применённые фильтры"><span>Вы выбрали:</span>
-            {search && <Link href={categoryUrl(slug, rawSearchParams, { removeKey:"q" })}>Поиск: {search}<b aria-hidden="true">×</b></Link>}
-            {inStockOnly && <Link href={categoryUrl(slug, rawSearchParams, { removeKey:"availability" })}>В наличии<b aria-hidden="true">×</b></Link>}
-            {result.facets.flatMap((facet) => (filters[facet.key] ?? []).map((value) => <Link href={categoryUrl(slug, rawSearchParams, { removeKey:`f_${facet.key}`, removeValue:value })} key={`${facet.key}-${value}`}>{facet.label}: {value}<b aria-hidden="true">×</b></Link>))}
-            <Link className="feed-reset-all" href={`/catalog/category/${slug}#products`}>Очистить всё</Link>
+            {search && <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:"q" })}>Поиск: {search}<b aria-hidden="true">×</b></PromotedFilterLink>}
+            {inStockOnly && <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:"availability" })}>В наличии<b aria-hidden="true">×</b></PromotedFilterLink>}
+            {result.facets.flatMap((facet) => (filters[facet.key] ?? []).map((value) => <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:`f_${facet.key}`, removeValue:value })} key={`${facet.key}-${value}`}>{facet.label}: {value}<b aria-hidden="true">×</b></PromotedFilterLink>))}
+            <PromotedFilterLink className="feed-reset-all" href={`/catalog/category/${slug}#products`}>Очистить всё</PromotedFilterLink>
           </nav>}
 
           {result.products.length > 0 ? view === "table" ? <FeedProductTable products={productCards} columns={result.facets.filter((facet) => facet.keyword).map((facet) => facet.label).slice(0, 3)} /> : <FeedProductList products={productCards} /> : <div className="feed-state"><span>Нет точных совпадений</span><h2>Ослабьте один из параметров</h2><p>Снимите фильтр или подберите форму по геометрии участка — артикул знать не нужно.</p><div><Link className="button" href={`/catalog/category/${slug}#products`}>Сбросить фильтры</Link>{slug === "borfrezy" ? <a className="button button-orange" href="#burr-selector">Подобрать по задаче</a> : <a className="button button-orange" href={`mailto:info@7tool.ru?subject=${subject}`}>Запросить подбор</a>}</div></div>}
