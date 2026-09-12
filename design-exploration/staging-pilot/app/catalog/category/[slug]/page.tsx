@@ -10,6 +10,7 @@ import { ManagerContactCard } from "../../../ui/ManagerContactCard";
 import { OpenFullFiltersLink, PromotedFilterLink } from "../../../ui/PromotedFilterControls";
 import { PilotFooter } from "../../../ui/PilotFooter";
 import { PilotHeader } from "../../../ui/PilotHeader";
+import { SelectionConversionBlock } from "../../../ui/SelectionConversionBlock";
 import { getCategoryLandingContent } from "../../../data/categoryLandingContent";
 import { getFeedCategory, getFeedCategoryPage, prefersDenseFeedTable, type FeedCategorySort, toFeedProductCardModel } from "../../../data/feedCatalog";
 import { getProductionSubcategory } from "../../../data/productionCategoryGroups";
@@ -173,6 +174,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
       <div className="section-heading"><div><p className="eyebrow">Критерии выбора</p><h2>{slug === "borfrezy" ? "Для точного подбора достаточно пяти параметров" : "Что сообщить для точного подбора"}</h2><p>{slug === "borfrezy" ? "Укажите то, что знаете. Фотография или эскиз участка может заменить часть размеров." : "Известные параметры помогут быстрее проверить подходящие варианты."}</p></div></div>
       <ol className="selection-criteria-list">{selectionCriteria.map((parameter,index) => <li key={parameter.title}><span>{String(index+1).padStart(2,"0")}</span><div><b>{parameter.title}</b><p>{parameter.copy}</p></div></li>)}</ol>
       {slug === "borfrezy" && <p className="selection-guide-note"><b>Не обязательно знать артикул.</b> Достаточно описать деталь, материал и место обработки; инженер уточнит недостающие параметры.</p>}
+      <SelectionConversionBlock categoryTitle={feedCategory?.h1 ?? subcategory.label} />
     </div><aside><ManagerContactCard compact /></aside></div></section>
 
     <section className="section"><div className="container"><div className="section-heading"><div><p className="eyebrow">В той же производственной задаче</p><h2>Смежные подкатегории</h2></div></div><nav className="related-category-links" aria-label="Смежные подкатегории">{group.subcategories.filter((item) => item.slug !== subcategory.slug).map((item) => <Link href={item.href} key={item.slug}>{item.label}<span>→</span></Link>)}</nav></div></section>

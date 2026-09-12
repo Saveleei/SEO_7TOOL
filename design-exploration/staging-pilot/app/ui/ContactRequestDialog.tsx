@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 
-export function ContactRequestDialog({ categoryTitle }: { categoryTitle: string }) {
+export function ContactRequestDialog({ categoryTitle, buttonLabel = "Отправить параметры →" }: { categoryTitle: string; buttonLabel?: string }) {
   const [open, setOpen] = useState(false);
   const [sent, setSent] = useState(false);
   const phoneRef = useRef<HTMLInputElement>(null);
@@ -31,7 +31,7 @@ export function ContactRequestDialog({ categoryTitle }: { categoryTitle: string 
   }
 
   return <>
-    <button ref={triggerRef} className="contact-dialog-trigger" type="button" onClick={() => { setSent(false); setOpen(true); }}>Отправить параметры →</button>
+    <button ref={triggerRef} className="contact-dialog-trigger" type="button" onClick={() => { setSent(false); setOpen(true); }}>{buttonLabel}</button>
     {open && <div className="contact-dialog-layer" role="dialog" aria-modal="true" aria-labelledby="contact-dialog-title" aria-describedby="contact-dialog-description">
       <button className="contact-dialog-backdrop" type="button" aria-label="Закрыть форму" onClick={() => setOpen(false)} />
       <section className="contact-dialog-panel">

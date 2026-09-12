@@ -90,6 +90,19 @@ test("applied filters and clear-all use reliable navigation", async () => {
   assert.doesNotMatch(appliedFilters, /<Link/u);
 });
 
+test("selection criteria end with one compact conversion block", async () => {
+  const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
+  const block = await readFile(new URL("../app/ui/SelectionConversionBlock.tsx", import.meta.url), "utf8");
+  const dialog = await readFile(new URL("../app/ui/ContactRequestDialog.tsx", import.meta.url), "utf8");
+  const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(page, /<SelectionConversionBlock categoryTitle=/u);
+  assert.match(block, /Отправить параметры на проверку/u);
+  assert.match(block, /telegramUrl/u);
+  assert.match(block, /maxUrl/u);
+  assert.match(dialog, /buttonLabel = "Отправить параметры →"/u);
+  assert.match(styles, /grid-template-areas:"heading \." "criteria manager" "note manager" "conversion manager"/u);
+});
+
 test("product cards use readable actions and a native full-details navigation", async () => {
   const card = await readFile(new URL("../app/ui/FeedProductCard.tsx", import.meta.url), "utf8");
   const table = await readFile(new URL("../app/ui/FeedProductTable.tsx", import.meta.url), "utf8");

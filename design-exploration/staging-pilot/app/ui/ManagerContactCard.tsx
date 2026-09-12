@@ -1,7 +1,7 @@
 import Image from "next/image";
 
-const telegramUrl = "https://t.me/saveleei";
-const maxUrl = "https://max.ru/u/f9LHodD0cOJKwt-kjzgvpW6TLCZbS3ML8WWdL8lPJjF2ceK2seLyXaNOl8w";
+export const telegramUrl = "https://t.me/saveleei";
+export const maxUrl = "https://max.ru/u/f9LHodD0cOJKwt-kjzgvpW6TLCZbS3ML8WWdL8lPJjF2ceK2seLyXaNOl8w";
 
 export function ManagerContactCard({ compact = false }: { compact?: boolean }) {
   return <aside className={`manager-contact-card ${compact ? "manager-contact-card--compact" : ""}`} aria-label="Контакт персонального менеджера">

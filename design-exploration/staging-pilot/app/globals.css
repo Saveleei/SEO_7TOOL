@@ -1738,7 +1738,7 @@ body:has(.feed-compare-tray) .request-cart-dock { bottom:96px; }
 .contact-dialog-success>p { max-width:540px; margin:0 0 8px; color:var(--muted); font-size:13px; line-height:1.55; }
 
 .selection-guide-section { background:#f3f4f1; }
-.subcategory-layout--selection { grid-template-areas:"heading ." "criteria manager" "note manager"; row-gap:12px; }
+.subcategory-layout--selection { grid-template-areas:"heading ." "criteria manager" "note manager" "conversion manager"; row-gap:12px; }
 .subcategory-layout--selection .selection-guide { display:contents; }
 .selection-guide .section-heading { grid-area:heading; margin-bottom:5px; }
 .selection-guide .section-heading .eyebrow { color:#a93c00; font-family:Inter,"Segoe UI",Arial,sans-serif; font-size:10px; font-weight:800; letter-spacing:.12em; }
@@ -1752,6 +1752,17 @@ body:has(.feed-compare-tray) .request-cart-dock { bottom:96px; }
 .selection-criteria-list li:last-child:nth-child(odd) { grid-column:1/-1; }
 .selection-guide-note { grid-area:note; margin:0; padding:13px 15px; border-left:3px solid var(--orange); background:#fff; color:#565b55; font-family:Inter,"Segoe UI",Arial,sans-serif; font-size:11px; line-height:1.55; }
 .selection-guide-note b { color:#202321; }
+.selection-conversion-card { grid-area:conversion; min-width:0; display:grid; grid-template-columns:minmax(0,1fr) 270px; align-items:center; gap:22px; padding:18px 20px; border:1px solid #303431; border-radius:8px; background:#202321; color:#fff; box-shadow:0 10px 28px rgba(26,30,27,.1); }
+.selection-conversion-copy>span { display:block; color:#f2a47b; font:800 9px/1.3 Inter,"Segoe UI",Arial,sans-serif; letter-spacing:.11em; text-transform:uppercase; }
+.selection-conversion-copy h3 { margin:5px 0 6px; color:#fff; font-family:Inter,"Segoe UI",Arial,sans-serif; font-size:20px; font-weight:800; line-height:1.2; letter-spacing:-.018em; }
+.selection-conversion-copy p { max-width:590px; margin:0; color:#c9ceca; font-family:Inter,"Segoe UI",Arial,sans-serif; font-size:11px; line-height:1.5; }
+.selection-conversion-actions { min-width:0; display:grid; gap:8px; }
+.selection-conversion-actions>.contact-dialog-trigger { width:100%; min-height:46px; padding:8px 14px; border:1px solid var(--cta); border-radius:6px; background:var(--cta); color:#fff; font-family:Inter,"Segoe UI",Arial,sans-serif; font-size:11px; font-weight:850; line-height:1.3; cursor:pointer; }
+.selection-conversion-actions>.contact-dialog-trigger:hover { border-color:var(--cta-hover); background:var(--cta-hover); }
+.selection-conversion-actions>div { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+.selection-conversion-actions>div>a { min-height:34px; display:flex; align-items:center; justify-content:center; gap:7px; border:1px solid #4a504c; border-radius:5px; color:#f1f3f1; font-size:10px; font-weight:750; }
+.selection-conversion-actions>div>a:hover { border-color:#7a817c; background:#2c312d; }
+.selection-conversion-actions>div i { width:18px; height:18px; display:grid; place-items:center; border-radius:50%; background:#fff; color:#202321; font-style:normal; font-size:9px; font-weight:900; }
 .subcategory-layout--selection>aside { grid-area:manager; position:sticky; top:16px; }
 .subcategory-layout--selection .manager-contact-card { border-color:#d3d6d0; border-left-width:3px; border-radius:8px; box-shadow:0 8px 24px rgba(26,30,27,.055); }
 .subcategory-layout--selection .manager-contact-head { min-height:108px; grid-template-columns:72px minmax(0,1fr); align-items:center; gap:14px; padding:16px; }
@@ -1839,7 +1850,7 @@ body:has(.feed-compare-tray) .request-cart-dock { bottom:96px; }
   .contact-dialog-actions { align-items:stretch; flex-direction:column; }
   .contact-dialog-actions>button { width:100%; min-height:48px; }
   .contact-dialog-actions small { max-width:none; font-size:11px; text-align:center; }
-  .subcategory-layout--selection { grid-template-areas:"heading" "criteria" "note" "manager"; row-gap:12px; }
+  .subcategory-layout--selection { grid-template-areas:"heading" "criteria" "note" "conversion" "manager"; row-gap:12px; }
   .selection-guide .section-heading { margin-bottom:2px; }
   .selection-guide .section-heading h2 { font-size:28px; }
   .selection-guide .section-heading p { font-size:12px; }
@@ -1849,6 +1860,11 @@ body:has(.feed-compare-tray) .request-cart-dock { bottom:96px; }
   .selection-criteria-list li>span { width:36px; height:36px; }
   .selection-criteria-list li b { font-size:13px; }
   .selection-criteria-list li p { font-size:11px; }
+  .selection-conversion-card { grid-template-columns:1fr; gap:15px; padding:17px; }
+  .selection-conversion-copy h3 { font-size:19px; }
+  .selection-conversion-copy p { font-size:11px; }
+  .selection-conversion-actions>.contact-dialog-trigger { min-height:48px; font-size:12px; }
+  .selection-conversion-actions>div>a { min-height:42px; font-size:11px; }
   .subcategory-layout--selection>aside { position:static; }
   .subcategory-layout--selection .manager-contact-head { min-height:0; }
   .feed-product-commercial>.feed-availability-block .feed-availability { font-size:11px; }
