@@ -3,7 +3,7 @@ import Image from "next/image";
 import { HeaderSearch } from "./HeaderSearch";
 import { RequestCartButton } from "./RequestCart";
 
-export function PilotHeader() {
+export function PilotHeader({ managerMode = false }: { managerMode?: boolean }) {
   return (
     <>
       <div className="preview-banner"><span>Тестовый стенд</span><p>Локальное сохранение · внешняя отправка отключена · основной сайт не изменён</p></div>
@@ -17,10 +17,10 @@ export function PilotHeader() {
           <RequestCartButton />
         </div>
       </header>
-      <nav className="mobile-action-bar" aria-label="Быстрые действия">
+      {!managerMode && <nav className="mobile-action-bar" aria-label="Быстрые действия">
         <a href="mailto:info@7tool.ru?subject=Запрос%20в%207TOOL"><span>Написать</span><b>info@7tool.ru</b></a>
         <RequestCartButton compact />
-      </nav>
+      </nav>}
     </>
   );
 }
