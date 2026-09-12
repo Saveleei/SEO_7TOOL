@@ -89,16 +89,19 @@ test("one reusable stamp is signature-checked and available to new quote revisio
 test("settings API is local-only, same-origin and contains no delivery integration", async () => {
   const previousMode = process.env.QUOTE_TEST_MODE;
   const previousDataDir = process.env.QUOTE_TEST_DATA_DIR;
+  const previousAdmins = process.env.MANAGER_AUTH_ADMIN_EMAILS;
   const dataDir = await mkdtemp(path.join(os.tmpdir(), "7tool-settings-api-"));
   try {
     process.env.QUOTE_TEST_MODE = "0";
-    assert.equal((await getSettings()).status, 503);
+    assert.equal((await getSettings(new Request("http://local.test/api/quote-settings"))).status, 503);
     process.env.QUOTE_TEST_MODE = "1";
     process.env.QUOTE_TEST_DATA_DIR = dataDir;
-    assert.equal((await getSettings()).status, 200);
-    const crossOrigin = await putSettings(new Request("http://local.test/api/quote-settings", { method:"PUT", headers:{ origin:"https://attacker.example", "content-type":"application/json" }, body:JSON.stringify(cloneDefaults()) }));
+    process.env.MANAGER_AUTH_ADMIN_EMAILS = "admin@example.test";
+    assert.equal((await getSettings(new Request("http://local.test/api/quote-settings"))).status, 401);
+    assert.equal((await getSettings(new Request("http://local.test/api/quote-settings", { headers:staffHeaders() }))).status, 200);
+    const crossOrigin = await putSettings(new Request("http://local.test/api/quote-settings", { method:"PUT", headers:staffHeaders("https://attacker.example", true), body:JSON.stringify(cloneDefaults()) }));
     assert.equal(crossOrigin.status, 403);
-    const sameOrigin = await putSettings(new Request("http://local.test/api/quote-settings", { method:"PUT", headers:{ origin:"http://local.test", "content-type":"application/json" }, body:JSON.stringify(templateInput("ООО «Локальный поставщик»")) }));
+    const sameOrigin = await putSettings(new Request("http://local.test/api/quote-settings", { method:"PUT", headers:staffHeaders("http://local.test", true), body:JSON.stringify(templateInput("ООО «Локальный поставщик»")) }));
     assert.equal(sameOrigin.status, 200);
     assert.equal((await sameOrigin.json()).settings.revision, 1);
     assert.equal((await getQuoteTemplateSettings({ dataDir })).seller.legalName, "ООО «Локальный поставщик»");
@@ -112,6 +115,7 @@ test("settings API is local-only, same-origin and contains no delivery integrati
   } finally {
     if (previousMode === undefined) delete process.env.QUOTE_TEST_MODE; else process.env.QUOTE_TEST_MODE = previousMode;
     if (previousDataDir === undefined) delete process.env.QUOTE_TEST_DATA_DIR; else process.env.QUOTE_TEST_DATA_DIR = previousDataDir;
+    if (previousAdmins === undefined) delete process.env.MANAGER_AUTH_ADMIN_EMAILS; else process.env.MANAGER_AUTH_ADMIN_EMAILS = previousAdmins;
     await rm(dataDir, { recursive:true, force:true });
   }
 });
@@ -119,6 +123,10 @@ test("settings API is local-only, same-origin and contains no delivery integrati
 function templateInput(legalName) {
   const settings = cloneDefaults();
   return { ...settings, seller:{ ...settings.seller, legalName } };
+}
+
+function staffHeaders(origin = "http://local.test", json = false) {
+  return { origin, ...(json ? { "content-type":"application/json" } : {}), "oai-authenticated-user-id":"admin-1", "oai-authenticated-user-email":"admin@example.test" };
 }
 
 function cloneDefaults() {

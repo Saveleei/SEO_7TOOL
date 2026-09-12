@@ -2,6 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { mkdir, open, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { deriveWorkflow, getStatusLabel, QUOTE_ASSIGNEES, validateManagerEvent } from "./quoteRequestWorkflow.mjs";
+import type { ManagerRole } from "./managerAccess.ts";
 
 type QuoteStatus = "received" | "checking" | "quote_ready" | "sent";
 type StoredAttachment = { relativePath: string; mime: string; size: number };
@@ -46,6 +47,9 @@ export type QuoteRequestEvent = {
   requestId: string;
   createdAt: string;
   actor: "manager";
+  actorId?: string;
+  actorName?: string;
+  actorRole?: ManagerRole;
   type: "status_changed" | "assigned" | "note_added";
   status?: QuoteStatus;
   assignee?: string;
@@ -77,7 +81,7 @@ type StoredQuote = Omit<ValidatedQuote, "idempotencyKey"> & {
 
 type StoredEvent = QuoteRequestEvent & { idempotencyHash: string };
 type StoreOptions = { dataDir?: string; now?: string | Date; responseMinutes?: number };
-type ManagerEventInput = { requestId: string; idempotencyKey: string; type: string; status?: string; assignee?: string; note?: string };
+type ManagerEventInput = { requestId: string; idempotencyKey: string; type: string; status?: string; assignee?: string; note?: string; actorId?: string; actorName?: string; actorRole?: ManagerRole };
 
 let writeQueue: Promise<unknown> = Promise.resolve();
 
@@ -142,6 +146,9 @@ async function appendQuoteRequestEventSerial(input: ManagerEventInput, options: 
     requestId:record.id,
     createdAt:new Date(options.now || Date.now()).toISOString(),
     actor:"manager",
+    ...(input.actorId ? { actorId:input.actorId.slice(0, 220) } : {}),
+    ...(input.actorName ? { actorName:input.actorName.slice(0, 120) } : {}),
+    ...(input.actorRole ? { actorRole:input.actorRole } : {}),
     type:validation.value.type,
     ...(validation.value.status ? { status:validation.value.status as QuoteStatus } : {}),
     ...(validation.value.assignee ? { assignee:validation.value.assignee } : {}),
@@ -276,6 +283,9 @@ function withoutEventHash(event: StoredEvent): QuoteRequestEvent {
     requestId:event.requestId,
     createdAt:event.createdAt,
     actor:event.actor,
+    ...(event.actorId ? { actorId:event.actorId } : {}),
+    ...(event.actorName ? { actorName:event.actorName } : {}),
+    ...(event.actorRole ? { actorRole:event.actorRole } : {}),
     type:event.type,
     ...(event.status ? { status:event.status } : {}),
     ...(event.assignee ? { assignee:event.assignee } : {}),

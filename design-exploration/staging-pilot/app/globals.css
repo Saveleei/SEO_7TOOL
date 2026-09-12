@@ -2548,8 +2548,39 @@ body:has(.feed-compare-tray) .request-cart-dock { bottom:96px; }
 }
 
 /* Local quote builder and print-ready commercial offer */
-body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page) .request-cart-dock,body:has(.quote-settings-page) .request-cart-dock,body:has(.quote-document-shell) .request-cart-dock { display:none; }
+body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page) .request-cart-dock,body:has(.quote-settings-page) .request-cart-dock,body:has(.quote-document-shell) .request-cart-dock,body:has(.manager-access-page) .request-cart-dock { display:none; }
+.manager-header-actions { display:flex; align-items:center; gap:7px; }
 .manager-settings-link { min-height:44px; display:inline-flex; align-items:center; justify-content:center; padding:0 13px; border:1px solid #252a26; border-radius:6px; background:#252a26; color:#fff; font-size:11px; font-weight:850; white-space:nowrap; }
+.manager-session-control { min-height:44px; display:flex; align-items:center; gap:9px; padding:5px 6px 5px 11px; border:1px solid #d9ddd7; border-radius:6px; background:#f7f8f5; }
+.manager-session-control span,.manager-session-control small,.manager-session-control b { display:block; }
+.manager-session-control small { color:#737a74; font-size:8px; font-weight:750; text-transform:uppercase; }
+.manager-session-control b { margin-top:1px; font-size:10px; white-space:nowrap; }
+.manager-session-control button { min-height:31px; padding:0 8px; border:1px solid #c8cec6; border-radius:4px; background:#fff; color:#303631; font-size:9px; font-weight:800; cursor:pointer; }
+.manager-session-control button:disabled { cursor:wait; opacity:.55; }
+.manager-readonly-notice { padding:16px; border:1px solid #d9ded6; border-radius:7px; background:#f6f8f4; }
+.manager-readonly-notice b { font-size:14px; }
+.manager-readonly-notice p { margin:5px 0 0; color:#606760; font-size:11px; line-height:1.5; }
+.quote-editor-readonly { display:grid; justify-items:start; gap:7px; padding:20px; border:1px solid #d4d9d1; border-left:4px solid #747d75; border-radius:7px; background:#f6f8f4; }
+.quote-editor-readonly b { font-size:17px; }
+.quote-editor-readonly p { max-width:760px; margin:0; color:#5e665f; font-size:12px; line-height:1.55; }
+.quote-editor-readonly a { margin-top:5px; padding:9px 12px; border-radius:5px; background:#252a26; color:#fff; font-size:11px; font-weight:850; }
+
+.manager-access-page { min-height:100vh; display:grid; grid-template-rows:auto 1fr; padding:24px clamp(18px,4vw,56px) 48px; background:linear-gradient(140deg,#f5f7f2 0%,#eef1eb 52%,#e4e9e1 100%); color:#252a26; }
+.manager-access-brand { width:min(1120px,100%); display:flex; align-items:center; justify-content:space-between; gap:20px; margin:0 auto; }
+.manager-access-brand a { color:#1f2420; font-size:25px; font-weight:950; letter-spacing:-.06em; }
+.manager-access-brand a::first-letter { color:#c94a12; }
+.manager-access-brand span { color:#687068; font-size:10px; font-weight:700; }
+.manager-access-card { width:min(620px,100%); align-self:center; justify-self:center; margin:42px auto; padding:clamp(28px,5vw,52px); border:1px solid #d2d8cf; border-radius:12px; background:#fff; box-shadow:0 22px 70px rgba(31,38,32,.12); }
+.manager-access-mark { width:48px; height:48px; display:grid; place-items:center; margin-bottom:22px; border-radius:8px; background:#252a26; color:#fff; font-size:22px; font-weight:950; }
+.manager-access-card h1 { margin:7px 0 13px; font-size:clamp(30px,5vw,46px); line-height:1.02; letter-spacing:-.04em; }
+.manager-access-card>p:not(.eyebrow) { margin:0; color:#5e665f; font-size:14px; line-height:1.6; }
+.manager-access-permissions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:24px 0; }
+.manager-access-permissions span { min-height:52px; display:flex; align-items:center; padding:11px 12px 11px 34px; border:1px solid #dce1da; border-radius:6px; background:#f8f9f6; color:#343a35; font-size:11px; font-weight:750; line-height:1.35; position:relative; }
+.manager-access-permissions span::before { content:"✓"; position:absolute; left:12px; color:#087044; font-size:13px; font-weight:900; }
+.manager-access-card>button { width:100%; min-height:50px; border:1px solid #252a26; border-radius:6px; background:#252a26; color:#fff; font-size:13px; font-weight:900; cursor:pointer; }
+.manager-access-card>button:disabled { cursor:wait; opacity:.62; }
+.manager-access-card>small { display:block; margin-top:13px; color:#737a74; font-size:10px; line-height:1.55; }
+.manager-access-feedback p { margin:12px 0 0; padding:10px 11px; border-radius:5px; background:#fff0eb; color:#97330e; font-size:11px; }
 .quote-builder-open { position:relative; display:grid; gap:3px; margin:14px; padding:14px 42px 14px 14px; border-radius:6px; background:#ecf1ea; color:#252a26; }
 .quote-builder-open span { color:#657066; font-size:10px; font-weight:750; text-transform:uppercase; }
 .quote-builder-open b { font-size:13px; line-height:1.35; }
@@ -2818,6 +2849,7 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
 .quote-signature img { width:200px; height:100px; object-fit:contain; object-position:left center; margin-top:9px; }
 
 @media (max-width:900px) {
+  .manager-header-actions .manager-settings-link { display:none; }
   .quote-builder-layout { grid-template-columns:1fr; }
   .quote-builder-summary { position:static; grid-row:1; }
   .quote-settings-layout { grid-template-columns:1fr; }
@@ -2830,6 +2862,15 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
 }
 
 @media (max-width:760px) {
+  .manager-access-page { padding:18px 15px 32px; }
+  .manager-access-brand { align-items:flex-start; }
+  .manager-access-brand span { max-width:190px; text-align:right; }
+  .manager-access-card { margin:30px auto 0; padding:26px 20px; }
+  .manager-access-card h1 { font-size:34px; }
+  .manager-access-permissions { grid-template-columns:1fr; }
+  .manager-session-control { padding-left:8px; }
+  .manager-session-control span { display:none; }
+  .manager-session-control button { min-height:34px; }
   .quote-builder-hero>.container,.quote-settings-hero>.container { align-items:stretch; flex-direction:column; gap:16px; }
   .quote-builder-hero h1,.quote-settings-hero h1 { font-size:36px; }
   .quote-builder-hero a,.quote-settings-hero a { justify-content:center; }

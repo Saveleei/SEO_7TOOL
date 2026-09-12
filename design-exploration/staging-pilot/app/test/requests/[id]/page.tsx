@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { canManager } from "../../../data/managerAccess";
+import { requireManagerPageAccess } from "../../../data/managerAccessPage";
 import { getQuoteApprovalState } from "../../../data/quoteApprovalStore";
 import { listQuoteDrafts } from "../../../data/quoteDraftStore";
 import { getQuoteRequestDetail, isQuoteTestModeEnabled, type QuoteRequestDetail, type QuoteRequestEvent } from "../../../data/quoteRequestStore";
@@ -16,6 +18,7 @@ export const dynamic = "force-dynamic";
 export default async function TestRequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
   if (!isQuoteTestModeEnabled()) return <DisabledState />;
   const { id } = await params;
+  const actor = await requireManagerPageAccess("requests:view", `/test/requests/${encodeURIComponent(id)}`);
   const request = await getQuoteRequestDetail(decodeURIComponent(id));
   if (!request) notFound();
   const drafts = await listQuoteDrafts(request.id);
@@ -23,7 +26,7 @@ export default async function TestRequestDetailPage({ params }: { params: Promis
     const approval = await getQuoteApprovalState(request.id, draft.revision);
     return { id:draft.id, revision:draft.revision, createdAt:draft.createdAt, status:draft.status, approvalStage:approval?.stage ?? "not_submitted", totalRub:draft.totalRub, itemCount:draft.items.length, fingerprint:approval?.quoteFingerprint ?? "" };
   }));
-  return <div className="site-shell"><PilotHeader managerMode /><main className="inner-page manager-request-page">
+  return <div className="site-shell"><PilotHeader managerMode managerActor={actor} /><main className="inner-page manager-request-page">
     <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Журнал заявок", href:"/test/requests" }, { label:request.id }]} /></div>
     <section className="manager-request-hero"><div className="container">
       <div className="manager-request-hero-main"><span className={`manager-status manager-status--${request.status}`}>{request.statusLabel}</span><h1>{request.id}</h1><p>Получена {formatDate(request.createdAt)} · {request.itemCount} поз. · {request.totalQuantity} шт.</p></div>
@@ -40,7 +43,7 @@ export default async function TestRequestDetailPage({ params }: { params: Promis
         <QuoteRevisionRegister requestId={request.id} entries={revisions} />
         <section className="manager-detail-card manager-history"><header><span>06</span><div><h2>История обработки</h2><p>Append-only журнал: события добавляются, но не стирают исходные данные.</p></div></header><ol><li><i aria-hidden="true" /><div><b>Заявка получена</b><span>{formatDate(request.createdAt)}</span><p>Номер присвоен после локального сохранения.</p></div></li>{request.events.map((event) => <HistoryEvent event={event} key={event.id} />)}</ol></section>
       </div>
-      <aside className="manager-request-sidebar"><ManagerRequestActions requestId={request.id} status={request.status} assignee={request.assignee} /><div className="manager-test-warning"><b>Тестовый контур</b><p>Внешние письма, MAX и CRM не вызываются. Для production понадобятся авторизация, БД, файловое хранилище и outbox.</p></div></aside>
+      <aside className="manager-request-sidebar">{canManager(actor, "requests:update") ? <ManagerRequestActions requestId={request.id} status={request.status} assignee={request.assignee} canPrepareDelivery={canManager(actor, "delivery:prepare")} /> : <div className="manager-readonly-notice"><b>Режим просмотра</b><p>Текущая роль может проверять заявку, но не менять её этапы и заметки.</p></div>}<div className="manager-test-warning"><b>Тестовый контур</b><p>Внешние письма, MAX и CRM не вызываются. Для production понадобятся БД, файловое хранилище и outbox.</p></div></aside>
     </div></section>
   </main><PilotFooter /></div>;
 }
@@ -60,7 +63,13 @@ function SlaState({ request }: { request: QuoteRequestDetail }) {
 
 function HistoryEvent({ event }: { event: QuoteRequestEvent }) {
   const content = event.type === "assigned" ? { title:"Назначен ответственный", description:"Евгений Савельев" } : event.type === "status_changed" ? { title:"Изменён этап", description:statusLabel(event.status) } : { title:"Внутренняя заметка", description:event.note || "" };
-  return <li><i aria-hidden="true" /><div><b>{content.title}</b><span>{formatDate(event.createdAt)}</span><p>{content.description}</p></div></li>;
+  return <li><i aria-hidden="true" /><div><b>{content.title}</b><span>{formatDate(event.createdAt)}{event.actorName ? ` · ${event.actorName}, ${managerRoleLabel(event.actorRole)}` : ""}</span><p>{content.description}</p></div></li>;
+}
+
+function managerRoleLabel(role?: string) {
+  if (role === "admin") return "администратор";
+  if (role === "approver") return "согласующий";
+  return "менеджер";
 }
 
 function statusLabel(status?: string) {

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { canManager } from "../../../../data/managerAccess";
+import { requireManagerPageAccess } from "../../../../data/managerAccessPage";
 import { getQuoteApprovalState, type QuoteApprovalState } from "../../../../data/quoteApprovalStore";
 import { getQuoteDraftOrDefault, getQuoteDraftRevision, type QuoteDraft } from "../../../../data/quoteDraftStore";
 import { supplyStatusLabel } from "../../../../data/quoteDraftValidation.mjs";
@@ -19,6 +21,8 @@ export const dynamic = "force-dynamic";
 export default async function QuoteBuilderPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ mode?: string; revision?: string }> }) {
   if (!isQuoteTestModeEnabled()) notFound();
   const [{ id }, { mode, revision:revisionValue }] = await Promise.all([params, searchParams]);
+  const returnTo = `/test/requests/${encodeURIComponent(id)}/quote${mode === "preview" ? `?mode=preview${revisionValue ? `&revision=${encodeURIComponent(revisionValue)}` : ""}` : ""}`;
+  const actor = await requireManagerPageAccess("requests:view", returnTo);
   const request = await getQuoteRequestDetail(decodeURIComponent(id));
   if (!request) notFound();
   const requestedRevision = Number(revisionValue);
@@ -29,10 +33,10 @@ export default async function QuoteBuilderPage({ params, searchParams }: { param
   const approval = draft.revision > 0 ? await getQuoteApprovalState(request.id, draft.revision) : emptyApprovalState(draft.revision);
   if (mode === "preview") return <QuotePreview request={request} draft={draft} approval={approval ?? emptyApprovalState(draft.revision)} />;
   const templateSettings = await getQuoteTemplateSettings();
-  return <div className="site-shell"><PilotHeader managerMode /><main className="inner-page quote-builder-page">
+  return <div className="site-shell"><PilotHeader managerMode managerActor={actor} /><main className="inner-page quote-builder-page">
     <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Заявки", href:"/test/requests" }, { label:request.id, href:`/test/requests/${request.id}` }, { label:"Конструктор КП" }]} /></div>
     <section className="quote-builder-hero"><div className="container"><div><p className="eyebrow">Локальная подготовка документа</p><h1>Коммерческое предложение</h1><p>Запрос {request.id} · {request.company || "Компания не указана"} · {request.city || "Город не указан"}</p></div><a href={`/test/requests/${request.id}`}>← Вернуться к заявке</a></div></section>
-    <section className="section"><div className="container"><QuoteBuilder initial={draft} senderOptions={templateSettings.senders} /><QuoteApprovalPanel requestId={request.id} quoteId={draft.id} revision={draft.revision} quoteStatus={draft.status} senderName={draft.sender.name} senderRole={draft.sender.role} recipientEmail={request.emailFull} initialState={approval ?? emptyApprovalState(draft.revision)} /></div></section>
+    <section className="section"><div className="container">{canManager(actor, "quotes:edit") ? <QuoteBuilder initial={draft} senderOptions={templateSettings.senders} /> : <div className="quote-editor-readonly"><b>Редактирование недоступно этой роли</b><p>Можно проверить сохранённую редакцию и принять решение по согласованию. Изменить цены, сроки и состав может менеджер или администратор.</p><a href={`/test/requests/${request.id}/quote?mode=preview&revision=${draft.revision}`}>Открыть документ для проверки</a></div>}<QuoteApprovalPanel requestId={request.id} quoteId={draft.id} revision={draft.revision} quoteStatus={draft.status} senderName={draft.sender.name} senderRole={draft.sender.role} recipientEmail={request.emailFull} initialState={approval ?? emptyApprovalState(draft.revision)} actor={actor} canSubmit={canManager(actor, "quotes:edit")} canApprove={canManager(actor, "quotes:approve")} canPrepareDelivery={canManager(actor, "delivery:prepare")} /></div></section>
   </main><PilotFooter /></div>;
 }
 

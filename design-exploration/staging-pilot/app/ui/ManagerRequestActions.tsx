@@ -15,7 +15,7 @@ const previousAction: Partial<Record<Status, { status: Status; label: string }>>
   quote_ready:{ status:"checking", label:"Вернуть на проверку" },
 };
 
-export function ManagerRequestActions({ requestId, status, assignee }: { requestId: string; status: Status; assignee: string | null }) {
+export function ManagerRequestActions({ requestId, status, assignee, canPrepareDelivery }: { requestId: string; status: Status; assignee: string | null; canPrepareDelivery: boolean }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
@@ -51,13 +51,14 @@ export function ManagerRequestActions({ requestId, status, assignee }: { request
 
   const forward = nextAction[status];
   const backward = previousAction[status];
+  const awaitingAdministrator = status === "quote_ready" && !canPrepareDelivery;
   return <section className="manager-action-panel" aria-labelledby="manager-actions-title">
     <div className="manager-action-heading"><span>Работа с заявкой</span><h2 id="manager-actions-title">Следующее действие</h2><p>Все изменения записываются отдельными событиями. Исходная заявка не перезаписывается.</p></div>
     <a className="quote-builder-open" href={`/test/requests/${requestId}/quote`}><span>Документ для клиента</span><b>Подготовить и согласовать КП</b><i aria-hidden="true">→</i></a>
     {!assignee && <button className="manager-assign-button" type="button" disabled={pending} onClick={() => act({ type:"assigned", assignee:"evgeny-savelev" }, "Ответственный назначен.")}><span>Ответственный</span><b>Назначить Евгения Савельева</b></button>}
     {assignee && <div className="manager-assigned"><span>Ответственный</span><b>Евгений Савельев</b></div>}
     <div className="manager-status-actions">
-      {forward ? <button type="button" disabled={pending} onClick={() => act({ type:"status_changed", status:forward.status }, `Этап изменён: ${forward.label}.`)}>{pending ? "Сохраняем…" : forward.label}</button> : <div className="manager-workflow-complete"><b>Заявка завершена</b><span>Этап «Отправлено» зафиксирован в истории.</span></div>}
+      {awaitingAdministrator ? <div className="manager-workflow-complete"><b>Ожидает администратора</b><span>Только администратор может зафиксировать отправку.</span></div> : forward ? <button type="button" disabled={pending} onClick={() => act({ type:"status_changed", status:forward.status }, `Этап изменён: ${forward.label}.`)}>{pending ? "Сохраняем…" : forward.label}</button> : <div className="manager-workflow-complete"><b>Заявка завершена</b><span>Этап «Отправлено» зафиксирован в истории.</span></div>}
       {backward && <button className="secondary" type="button" disabled={pending} onClick={() => act({ type:"status_changed", status:backward.status }, backward.label)}>{backward.label}</button>}
     </div>
     <form className="manager-note-form" onSubmit={submitNote}>

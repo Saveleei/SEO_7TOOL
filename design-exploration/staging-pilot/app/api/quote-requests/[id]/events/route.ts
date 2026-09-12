@@ -1,10 +1,14 @@
 import { appendQuoteRequestEvent, isQuoteTestModeEnabled, QuoteWorkflowError } from "../../../../data/quoteRequestStore";
+import { authorizeManagerRequest } from "../../../../data/managerAccessServer";
+import { canManager } from "../../../../data/managerAccess";
 import { createMemoryRateLimiter } from "../../../../data/quoteRequestValidation.mjs";
 
 const limiter = createMemoryRateLimiter({ limit:30, windowMs:10 * 60 * 1000 });
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   if (!isQuoteTestModeEnabled()) return Response.json({ ok:false, message:"Рабочее место менеджера отключено." }, { status:503 });
+  const access = await authorizeManagerRequest(request, "requests:update");
+  if (!access.ok) return access.response;
   const requestUrl = new URL(request.url);
   const origin = request.headers.get("origin");
   if (origin && origin !== requestUrl.origin) return Response.json({ ok:false, message:"Запрос отклонён проверкой источника." }, { status:403 });
@@ -17,6 +21,9 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   try {
     const { id } = await context.params;
     const body = await request.json() as Record<string, unknown>;
+    if (body.type === "status_changed" && body.status === "sent" && !canManager(access.actor, "delivery:prepare")) {
+      return Response.json({ ok:false, code:"access_denied", message:"Только администратор может отметить пакет отправленным." }, { status:403, headers:{ "Cache-Control":"no-store" } });
+    }
     const result = await appendQuoteRequestEvent({
       requestId:id,
       idempotencyKey:String(body.idempotencyKey ?? ""),
@@ -24,6 +31,9 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       status:body.status == null ? undefined : String(body.status),
       assignee:body.assignee == null ? undefined : String(body.assignee),
       note:body.note == null ? undefined : String(body.note),
+      actorId:access.actor.id,
+      actorName:access.actor.name,
+      actorRole:access.actor.role,
     });
     return Response.json({ ok:true, duplicate:result.duplicate, eventId:result.event.id }, { status:result.duplicate ? 200 : 201, headers:{ "Cache-Control":"no-store" } });
   } catch (error) {

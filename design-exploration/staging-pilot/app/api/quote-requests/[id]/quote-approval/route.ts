@@ -1,5 +1,7 @@
-import { appendQuoteApprovalAction } from "../../../../data/quoteApprovalStore";
-import { isQuoteTestModeEnabled, QuoteWorkflowError } from "../../../../data/quoteRequestStore";
+import { appendQuoteApprovalAction } from "../../../../data/quoteApprovalStore.ts";
+import { authorizeManagerRequest } from "../../../../data/managerAccessServer.ts";
+import type { ManagerCapability } from "../../../../data/managerAccess.ts";
+import { isQuoteTestModeEnabled, QuoteWorkflowError } from "../../../../data/quoteRequestStore.ts";
 import { createMemoryRateLimiter } from "../../../../data/quoteRequestValidation.mjs";
 
 const limiter = createMemoryRateLimiter({ limit:30, windowMs:10 * 60 * 1000 });
@@ -16,13 +18,16 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   try {
     const { id } = await context.params;
     const body = await request.json() as Record<string, unknown>;
+    const actionType = String(body.type ?? "");
+    const access = await authorizeManagerRequest(request, capabilityForAction(actionType));
+    if (!access.ok) return access.response;
     const revision = Number(body.revision);
     if (!Number.isInteger(revision) || revision < 1) throw new QuoteWorkflowError("Редакция КП не указана.", 400);
     const result = await appendQuoteApprovalAction(id, revision, {
       idempotencyKey:String(body.idempotencyKey ?? ""),
-      type:String(body.type ?? ""),
-      actorName:body.actorName,
-      actorRole:body.actorRole,
+      type:actionType,
+      actorName:access.actor.name,
+      actorRole:access.actor.roleLabel,
       checks:body.checks,
       note:body.note,
       channel:body.channel,
@@ -34,4 +39,10 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     console.error("[quote-test] approval action could not be saved", error instanceof Error ? error.message : "unknown error");
     return Response.json({ ok:false, message:"Не удалось сохранить действие согласования." }, { status:500 });
   }
+}
+
+function capabilityForAction(type: string): ManagerCapability {
+  if (type === "submitted") return "quotes:edit";
+  if (type === "delivery_prepared") return "delivery:prepare";
+  return "quotes:approve";
 }

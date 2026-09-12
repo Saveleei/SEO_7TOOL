@@ -1,16 +1,21 @@
 import { isQuoteTestModeEnabled, QuoteWorkflowError } from "../../data/quoteRequestStore.ts";
+import { authorizeManagerRequest } from "../../data/managerAccessServer.ts";
 import { getQuoteTemplateSettings, saveQuoteTemplateSettings } from "../../data/quoteTemplateStore.ts";
 import { createMemoryRateLimiter } from "../../data/quoteRequestValidation.mjs";
 
 const limiter = createMemoryRateLimiter({ limit:20, windowMs:10 * 60 * 1000 });
 
-export async function GET() {
+export async function GET(request: Request) {
   if (!isQuoteTestModeEnabled()) return Response.json({ ok:false, message:"Настройки КП отключены." }, { status:503 });
+  const access = await authorizeManagerRequest(request, "settings:manage");
+  if (!access.ok) return access.response;
   return Response.json({ ok:true, settings:await getQuoteTemplateSettings() }, { headers:{ "Cache-Control":"no-store" } });
 }
 
 export async function PUT(request: Request) {
   if (!isQuoteTestModeEnabled()) return Response.json({ ok:false, message:"Настройки КП отключены." }, { status:503 });
+  const access = await authorizeManagerRequest(request, "settings:manage");
+  if (!access.ok) return access.response;
   const requestUrl = new URL(request.url);
   const origin = request.headers.get("origin");
   if (origin && origin !== requestUrl.origin) return Response.json({ ok:false, message:"Запрос отклонён проверкой источника." }, { status:403 });

@@ -1,4 +1,5 @@
 import { readQuoteStampAsset } from "../../../../data/quoteAssetStore.ts";
+import { authorizeManagerRequest } from "../../../../data/managerAccessServer.ts";
 import { getQuoteApprovalState } from "../../../../data/quoteApprovalStore.ts";
 import { getQuoteDraftRevision } from "../../../../data/quoteDraftStore.ts";
 import { generateQuotePdf, type QuotePdfImage } from "../../../../data/quotePdf.ts";
@@ -6,6 +7,8 @@ import { getQuoteRequestDetail, isQuoteTestModeEnabled } from "../../../../data/
 
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   if (!isQuoteTestModeEnabled()) return Response.json({ ok:false, message:"Скачивание КП отключено." }, { status:503 });
+  const access = await authorizeManagerRequest(request, "quotes:download");
+  if (!access.ok) return access.response;
   const { id } = await context.params;
   const requestId = decodeURIComponent(id);
   const revision = Number(new URL(request.url).searchParams.get("revision"));

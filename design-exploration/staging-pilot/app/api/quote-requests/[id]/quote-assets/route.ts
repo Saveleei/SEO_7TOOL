@@ -1,4 +1,5 @@
 import { saveQuoteStampAsset } from "../../../../data/quoteAssetStore";
+import { authorizeManagerRequest } from "../../../../data/managerAccessServer";
 import { isQuoteTestModeEnabled, QuoteWorkflowError } from "../../../../data/quoteRequestStore";
 import { createMemoryRateLimiter } from "../../../../data/quoteRequestValidation.mjs";
 
@@ -6,6 +7,8 @@ const limiter = createMemoryRateLimiter({ limit:10, windowMs:10 * 60 * 1000 });
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   if (!isQuoteTestModeEnabled()) return Response.json({ ok:false, message:"Конструктор КП отключён." }, { status:503 });
+  const access = await authorizeManagerRequest(request, "quotes:edit");
+  if (!access.ok) return access.response;
   const requestUrl = new URL(request.url);
   const origin = request.headers.get("origin");
   if (origin && origin !== requestUrl.origin) return Response.json({ ok:false, message:"Запрос отклонён проверкой источника." }, { status:403 });

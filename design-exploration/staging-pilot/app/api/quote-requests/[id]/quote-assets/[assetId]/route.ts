@@ -1,8 +1,11 @@
 import { readQuoteStampAsset } from "../../../../../data/quoteAssetStore";
+import { authorizeManagerRequest } from "../../../../../data/managerAccessServer";
 import { isQuoteTestModeEnabled } from "../../../../../data/quoteRequestStore";
 
-export async function GET(_: Request, context: { params: Promise<{ id: string; assetId: string }> }) {
+export async function GET(request: Request, context: { params: Promise<{ id: string; assetId: string }> }) {
   if (!isQuoteTestModeEnabled()) return new Response(null, { status:404 });
+  const access = await authorizeManagerRequest(request, "requests:view");
+  if (!access.ok) return access.response;
   const { id, assetId } = await context.params;
   const asset = await readQuoteStampAsset(id, assetId);
   if (!asset) return new Response(null, { status:404 });

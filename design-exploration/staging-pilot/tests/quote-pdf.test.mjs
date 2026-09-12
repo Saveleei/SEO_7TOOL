@@ -87,12 +87,14 @@ test("PDF endpoint requires approval and keeps the requested historical revision
   const dataDir = await mkdtemp(path.join(os.tmpdir(), "7tool-quote-pdf-"));
   const previousMode = process.env.QUOTE_TEST_MODE;
   const previousDataDir = process.env.QUOTE_TEST_DATA_DIR;
+  const previousAdmins = process.env.MANAGER_AUTH_ADMIN_EMAILS;
   process.env.QUOTE_TEST_MODE = "1";
   process.env.QUOTE_TEST_DATA_DIR = dataDir;
+  process.env.MANAGER_AUTH_ADMIN_EMAILS = "admin@example.test";
   try {
     const request = await createRequest(dataDir);
     const first = await saveQuoteDraft(request.id, readyQuote, { dataDir, now:"2026-09-12T09:00:00.000Z" });
-    const blocked = await downloadQuotePdf(new Request(`http://local.test/api/quote-requests/${request.id}/quote-pdf?revision=1`), { params:Promise.resolve({ id:request.id }) });
+    const blocked = await downloadQuotePdf(pdfRequest(request.id, 1), { params:Promise.resolve({ id:request.id }) });
     assert.equal(blocked.status, 409);
 
     await appendQuoteApprovalAction(request.id, 1, approvalAction("submitted", "402", { checks }), { dataDir, now:"2026-09-12T09:10:00.000Z" });
@@ -101,7 +103,7 @@ test("PDF endpoint requires approval and keeps the requested historical revision
     assert.equal(second.draft.revision, 2);
     assert.deepEqual((await listQuoteDrafts(request.id, { dataDir })).map((draft) => draft.revision), [2, 1]);
 
-    const response = await downloadQuotePdf(new Request(`http://local.test/api/quote-requests/${request.id}/quote-pdf?revision=1`), { params:Promise.resolve({ id:request.id }) });
+    const response = await downloadQuotePdf(pdfRequest(request.id, 1), { params:Promise.resolve({ id:request.id }) });
     assert.equal(response.status, 200);
     assert.equal(response.headers.get("content-type"), "application/pdf");
     assert.equal(response.headers.get("x-content-type-options"), "nosniff");
@@ -112,12 +114,13 @@ test("PDF endpoint requires approval and keeps the requested historical revision
     const pdf = await PDFDocument.load(await response.arrayBuffer());
     assert.equal(pdf.getTitle(), `${first.draft.id}, редакция 1`);
 
-    const latestBlocked = await downloadQuotePdf(new Request(`http://local.test/api/quote-requests/${request.id}/quote-pdf?revision=2`), { params:Promise.resolve({ id:request.id }) });
+    const latestBlocked = await downloadQuotePdf(pdfRequest(request.id, 2), { params:Promise.resolve({ id:request.id }) });
     assert.equal(latestBlocked.status, 409);
     assert.equal((await getQuoteDraftRevision(request.id, 1, { dataDir })).managerComment, first.draft.managerComment);
   } finally {
     if (previousMode === undefined) delete process.env.QUOTE_TEST_MODE; else process.env.QUOTE_TEST_MODE = previousMode;
     if (previousDataDir === undefined) delete process.env.QUOTE_TEST_DATA_DIR; else process.env.QUOTE_TEST_DATA_DIR = previousDataDir;
+    if (previousAdmins === undefined) delete process.env.MANAGER_AUTH_ADMIN_EMAILS; else process.env.MANAGER_AUTH_ADMIN_EMAILS = previousAdmins;
     await rm(dataDir, { recursive:true, force:true });
   }
 });
@@ -137,6 +140,10 @@ async function fixtureQuote() {
     id:"КП-20260912-TEST01", requestId:"7T-20260912-TEST01", revision:1, createdAt:"2026-09-12T09:00:00.000Z", status:"ready", validityDays:10, vatRate:22, paymentTerms:readyQuote.paymentTerms, deliveryTerms:readyQuote.deliveryTerms, managerComment:readyQuote.managerComment, sender:readyQuote.sender, seller:{ ...DEFAULT_QUOTE_TEMPLATE_SETTINGS.seller }, document:{ ...DEFAULT_QUOTE_TEMPLATE_SETTINGS.document }, stampAssetId:"", includeStamp:false,
     items:[{ id:requestItem.id, title:requestItem.title, article:requestItem.article, quantity:1, unitPriceRub:47999, discountPercent:0, supplyStatus:"supplier_confirmed", shipmentText:"Отгрузка в течение 5 рабочих дней", lineTotalRub:47999, productPresentation:null }], totalRub:47999, vatIncludedRub:8655.56,
   };
+}
+
+function pdfRequest(requestId, revision) {
+  return new Request(`http://local.test/api/quote-requests/${requestId}/quote-pdf?revision=${revision}`, { headers:{ "oai-authenticated-user-id":"admin-1", "oai-authenticated-user-email":"admin@example.test" } });
 }
 
 function fixtureRequest() {

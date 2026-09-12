@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { requireManagerPageAccess } from "../../data/managerAccessPage";
 import { isQuoteTestModeEnabled, listQuoteRequestSummaries, type QuoteRequestSummary } from "../../data/quoteRequestStore";
 import { Breadcrumbs } from "../../ui/Breadcrumbs";
 import { PilotFooter } from "../../ui/PilotFooter";
@@ -12,6 +13,7 @@ type Filter = "all" | "new" | "attention" | "work" | "sent";
 
 export default async function TestRequestsPage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
   const enabled = isQuoteTestModeEnabled();
+  const actor = enabled ? await requireManagerPageAccess("requests:view", "/test/requests") : null;
   const requests = enabled ? await listQuoteRequestSummaries() : [];
   const { filter:rawFilter } = await searchParams;
   const filter = normalizeFilter(rawFilter);
@@ -23,7 +25,7 @@ export default async function TestRequestsPage({ searchParams }: { searchParams:
     work:requests.filter((request) => request.status === "checking" || request.status === "quote_ready").length,
     sent:requests.filter((request) => request.status === "sent").length,
   };
-  return <div className="site-shell"><PilotHeader managerMode /><main className="inner-page quote-journal-page">
+  return <div className="site-shell"><PilotHeader managerMode managerActor={actor} /><main className="inner-page quote-journal-page">
     <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Рабочее место менеджера" }]} /></div>
     <section className="quote-journal-hero"><div className="container"><p className="eyebrow">Локальный тестовый контур</p><h1>Запросы коммерческих предложений</h1><p>Очередь помогает не терять B2B-запросы: сначала реакция менеджера, затем проверка поставки и подготовка КП. Внешняя отправка пока отключена.</p></div></section>
     <section className="section"><div className="container">
