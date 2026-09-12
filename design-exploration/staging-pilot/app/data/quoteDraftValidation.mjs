@@ -1,4 +1,12 @@
 const SUPPLY_STATUSES = ["confirmed", "supplier_confirmed", "to_order", "unknown"];
+const STAMP_ASSET_PATTERN = /^[0-9a-f]{64}\.(?:png|jpg|webp)$/u;
+
+export const DEFAULT_QUOTE_SENDER = Object.freeze({
+  name:"Евгений Савельев",
+  role:"Персональный менеджер 7TOOL",
+  phone:"+7 (962) 611-24-19",
+  email:"info@7tool.ru",
+});
 
 export function validateQuoteDraft(input, requestItems) {
   const idempotencyKey = text(input?.idempotencyKey, 64);
@@ -12,6 +20,17 @@ export function validateQuoteDraft(input, requestItems) {
   const paymentTerms = text(input?.paymentTerms, 300);
   const deliveryTerms = text(input?.deliveryTerms, 300);
   const managerComment = multiline(input?.managerComment, 1000);
+  const sender = {
+    name:text(input?.sender?.name ?? DEFAULT_QUOTE_SENDER.name, 100),
+    role:text(input?.sender?.role ?? DEFAULT_QUOTE_SENDER.role, 120),
+    phone:text(input?.sender?.phone ?? DEFAULT_QUOTE_SENDER.phone, 50),
+    email:text(input?.sender?.email ?? DEFAULT_QUOTE_SENDER.email, 160).toLocaleLowerCase("ru-RU"),
+  };
+  if (sender.name.length < 2 || sender.role.length < 2 || !/^\+?[\d\s()+-]{7,50}$/u.test(sender.phone) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(sender.email)) return fail("Проверьте данные отправителя КП.");
+  const stampAssetId = text(input?.stampAssetId, 80).toLocaleLowerCase("ru-RU");
+  if (stampAssetId && !STAMP_ASSET_PATTERN.test(stampAssetId)) return fail("Файл печати и подписи указан некорректно.");
+  const includeStamp = input?.includeStamp === true;
+  if (includeStamp && !stampAssetId) return fail("Загрузите утверждённый файл печати и подписи или отключите его показ.");
   if (status === "ready" && (paymentTerms.length < 3 || deliveryTerms.length < 3)) return fail("Для готового КП заполните условия оплаты и поставки.");
 
   if (!Array.isArray(input?.items) || input.items.length !== requestItems.length) return fail("Состав предложения должен совпадать с заявкой.");
@@ -36,7 +55,7 @@ export function validateQuoteDraft(input, requestItems) {
 
   const totalRub = roundMoney(items.reduce((sum, item) => sum + item.lineTotalRub, 0));
   const vatIncludedRub = vatRate ? roundMoney(totalRub * vatRate / (100 + vatRate)) : 0;
-  return { ok:true, value:{ idempotencyKey, status, validityDays, vatRate, paymentTerms, deliveryTerms, managerComment, items, totalRub, vatIncludedRub } };
+  return { ok:true, value:{ idempotencyKey, status, validityDays, vatRate, paymentTerms, deliveryTerms, managerComment, sender, stampAssetId, includeStamp, items, totalRub, vatIncludedRub } };
 }
 
 export function parsePriceRub(value) {

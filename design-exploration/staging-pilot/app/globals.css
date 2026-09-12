@@ -2547,13 +2547,21 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
 .quote-builder-card>header p { max-width:410px; margin:1px 0 0; color:#687068; font-size:11px; line-height:1.5; }
 .quote-editor-items>article { padding:18px; border-top:1px solid #e4e7e1; }
 .quote-editor-items>article:first-child { border-top:0; }
+.quote-editor-product { display:grid; grid-template-columns:132px minmax(0,1fr); align-items:start; gap:16px; margin-bottom:17px; }
+.quote-editor-product>img { width:132px; height:132px; object-fit:contain; padding:8px; border:1px solid #e0e4dd; border-radius:7px; background:#fff; }
 .quote-editor-product small { color:#9d3b0f; font-size:10px; font-weight:850; text-transform:uppercase; }
-.quote-editor-product h3 { margin:4px 0 15px; font-size:16px; line-height:1.35; }
+.quote-editor-product h3 { margin:4px 0 8px; font-size:16px; line-height:1.35; }
+.quote-verified-variant { display:block; color:#087044; font-size:10px; font-weight:800; }
+.quote-editor-product dl { grid-column:2; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; margin:0; }
+.quote-editor-product dl>div { min-width:0; padding:7px 8px; border-radius:4px; background:#f2f5f0; }
+.quote-editor-product dt { color:#707770; font-size:9px; font-weight:750; line-height:1.25; text-transform:uppercase; }
+.quote-editor-product dd { margin:3px 0 0; font-size:11px; font-weight:800; line-height:1.3; }
+.quote-product-unverified { margin:8px 0 0; padding:9px 10px; border-left:3px solid #a54010; background:#fff5f0; color:#6b5043; font-size:10px; line-height:1.45; }
 .quote-editor-fields { display:grid; grid-template-columns:115px 1fr 105px 1.25fr; gap:11px; }
-.quote-editor-fields label,.quote-commercial-fields label { min-width:0; display:grid; align-content:start; gap:5px; }
-.quote-editor-fields label>span,.quote-commercial-fields label>span { color:#606760; font-size:10px; font-weight:750; }
-.quote-editor-fields input,.quote-editor-fields select,.quote-commercial-fields input,.quote-commercial-fields select,.quote-commercial-fields textarea { width:100%; min-height:43px; padding:9px 10px; border:1px solid #c8cec5; border-radius:5px; background:#fff; color:#252a26; font:14px/1.35 inherit; }
-.quote-editor-fields input:focus,.quote-editor-fields select:focus,.quote-commercial-fields input:focus,.quote-commercial-fields select:focus,.quote-commercial-fields textarea:focus { outline:2px solid rgba(38,44,39,.16); border-color:#5b635c; }
+.quote-editor-fields label,.quote-commercial-fields label,.quote-sender-fields>label { min-width:0; display:grid; align-content:start; gap:5px; }
+.quote-editor-fields label>span,.quote-commercial-fields label>span,.quote-sender-fields>label>span { color:#606760; font-size:10px; font-weight:750; }
+.quote-editor-fields input,.quote-editor-fields select,.quote-commercial-fields input,.quote-commercial-fields select,.quote-commercial-fields textarea,.quote-sender-fields>label>input { width:100%; min-height:43px; padding:9px 10px; border:1px solid #c8cec5; border-radius:5px; background:#fff; color:#252a26; font:14px/1.35 inherit; }
+.quote-editor-fields input:focus,.quote-editor-fields select:focus,.quote-commercial-fields input:focus,.quote-commercial-fields select:focus,.quote-commercial-fields textarea:focus,.quote-sender-fields>label>input:focus { outline:2px solid rgba(38,44,39,.16); border-color:#5b635c; }
 .quote-editor-fields .wide { grid-column:1/4; }
 .quote-editor-line-total { display:grid; align-content:end; justify-items:end; padding-bottom:5px; text-align:right; }
 .quote-editor-line-total span,.quote-editor-line-total b { display:block; }
@@ -2562,6 +2570,17 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
 .quote-commercial-fields { display:grid; grid-template-columns:1fr 1fr; gap:14px; padding:18px; }
 .quote-commercial-fields textarea { min-height:84px; resize:vertical; }
 .quote-commercial-fields .wide { grid-column:1/-1; }
+.quote-sender-fields { display:grid; grid-template-columns:1fr 1fr; gap:14px; padding:18px; }
+.quote-stamp-control { grid-column:1/-1; display:grid; grid-template-columns:230px minmax(0,1fr); gap:18px; padding:15px; border:1px solid #d8ddd5; border-radius:7px; background:#f8f9f6; }
+.quote-stamp-control>div:first-child { min-height:122px; display:grid; place-items:center; overflow:hidden; border:1px dashed #c7cdc4; border-radius:5px; background:#fff; }
+.quote-stamp-control img { width:220px; height:110px; object-fit:contain; }
+.quote-stamp-placeholder { color:#747b74; font-size:11px; }
+.quote-stamp-control b { display:block; margin-top:3px; font-size:14px; }
+.quote-stamp-control p { margin:5px 0 11px; color:#687068; font-size:10px; line-height:1.45; }
+.quote-stamp-upload { position:relative; display:inline-flex; min-height:40px; align-items:center; justify-content:center; overflow:hidden; padding:8px 12px; border:1px solid #252a26; border-radius:5px; background:#252a26; color:#fff; font-size:11px; font-weight:800; cursor:pointer; }
+.quote-stamp-upload input { position:absolute; width:1px; height:1px; opacity:0; }
+.quote-stamp-toggle { display:flex; align-items:center; gap:8px; margin-top:10px; color:#3f4640; font-size:11px; font-weight:750; }
+.quote-stamp-toggle input { width:18px; height:18px; accent-color:#252a26; }
 .quote-builder-summary { position:sticky; top:16px; overflow:hidden; border:1px solid #cbd1c8; border-radius:9px; background:#fff; box-shadow:0 12px 32px rgba(25,29,26,.06); }
 .quote-summary-head { padding:18px; border-bottom:1px solid #e0e4dd; background:#242925; color:#fff; }
 .quote-summary-head span { color:#f1a27b; font-size:10px; font-weight:850; text-transform:uppercase; }
@@ -2612,12 +2631,18 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
 .quote-document-table>.head { background:#252a26; color:#fff; }
 .quote-document-table>.head>span { padding:10px; font-size:9px; font-weight:800; text-transform:uppercase; }
 .quote-document-table>.row { align-items:center; border-top:1px solid #dfe3dc; }
-.quote-document-table>.row>span { min-width:0; padding:13px 10px; font-size:11px; }
-.quote-document-table>.row>span+span { border-left:1px solid #e2e5df; text-align:right; }
-.quote-document-table small,.quote-document-table b,.quote-document-table em { display:block; }
+.quote-document-table>.row>div { min-width:0; padding:13px 10px; font-size:11px; }
+.quote-document-table>.row>div+div { border-left:1px solid #e2e5df; text-align:right; }
+.quote-document-table small,.quote-document-table b,.quote-document-table em,.quote-document-table strong { display:block; }
 .quote-document-table small { color:#9d3b0f; font-size:8px; font-weight:800; text-transform:uppercase; }
 .quote-document-table b { margin:3px 0; font-size:12px; line-height:1.35; }
 .quote-document-table em { color:#626962; font-size:9px; font-style:normal; line-height:1.4; }
+.quote-document-product { display:grid; grid-template-columns:86px minmax(0,1fr); align-items:start; gap:11px; }
+.quote-document-product>img { width:86px; height:86px; object-fit:contain; padding:3px; border:1px solid #e1e4de; background:#fff; }
+.quote-document-product strong { margin:4px 0 5px; color:#087044; font-size:8px; }
+.quote-document-product ul { display:grid; grid-template-columns:1fr 1fr; gap:3px 9px; margin:0 0 7px; padding:0; list-style:none; }
+.quote-document-product li { color:#3f4640; font-size:8px; line-height:1.35; }
+.quote-document-product li span { color:#727972; }
 .quote-document-total { display:flex; justify-content:flex-end; padding:18px 0 25px; }
 .quote-document-total dl { min-width:330px; margin:0; }
 .quote-document-total dl>div { display:flex; justify-content:space-between; gap:20px; padding:7px 0; border-bottom:1px solid #dfe3dc; }
@@ -2627,11 +2652,29 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
 .quote-document-terms { display:grid; grid-template-columns:1fr 1fr; gap:11px; padding:20px 0; border-top:1px solid #d8ddd6; }
 .quote-document-terms>div { padding:13px; background:#f6f8f4; }
 .quote-document-terms p { margin:5px 0 0; font-size:11px; line-height:1.5; white-space:pre-wrap; }
+.quote-technical-appendix { margin-top:27px; padding-top:24px; border-top:3px solid #252a26; }
+.quote-technical-heading>span { color:#9d3b0f; font-size:9px; font-weight:850; text-transform:uppercase; }
+.quote-technical-heading h2 { margin:5px 0 5px; font-size:20px; }
+.quote-technical-heading p { max-width:680px; margin:0 0 16px; color:#626962; font-size:10px; line-height:1.5; }
+.quote-technical-appendix article { break-inside:avoid; padding:13px; border:1px solid #d9ded6; }
+.quote-technical-appendix article+article { margin-top:10px; }
+.quote-technical-appendix article>header { display:grid; grid-template-columns:76px minmax(0,1fr); align-items:center; gap:12px; margin-bottom:12px; }
+.quote-technical-appendix article>header img { width:76px; height:76px; object-fit:contain; }
+.quote-technical-appendix article>header small,.quote-technical-appendix article>header b,.quote-technical-appendix article>header span { display:block; }
+.quote-technical-appendix article>header small { color:#9d3b0f; font-size:8px; font-weight:850; text-transform:uppercase; }
+.quote-technical-appendix article>header b { margin:3px 0; font-size:13px; }
+.quote-technical-appendix article>header span { color:#697069; font-size:9px; }
+.quote-technical-appendix dl { display:grid; grid-template-columns:1fr 1fr; margin:0; border-top:1px solid #dfe3dc; border-left:1px solid #dfe3dc; }
+.quote-technical-appendix dl>div { display:grid; grid-template-columns:minmax(0,1.3fr) minmax(90px,.7fr); border-right:1px solid #dfe3dc; border-bottom:1px solid #dfe3dc; }
+.quote-technical-appendix dt,.quote-technical-appendix dd { margin:0; padding:7px 8px; font-size:9px; line-height:1.35; }
+.quote-technical-appendix dt { color:#626962; }
+.quote-technical-appendix dd { border-left:1px solid #e5e8e2; font-weight:800; }
 .quote-document>footer { display:grid; grid-template-columns:220px 1fr; gap:28px; margin-top:48px; padding-top:20px; border-top:2px solid #252a26; }
 .quote-document>footer b,.quote-document>footer span { display:block; }
 .quote-document>footer b { font-size:14px; }
 .quote-document>footer span { margin-top:3px; color:#656c66; font-size:10px; }
 .quote-document>footer p { margin:0; color:#626962; font-size:9px; line-height:1.5; }
+.quote-signature img { width:200px; height:100px; object-fit:contain; object-position:left center; margin-top:9px; }
 
 @media (max-width:900px) {
   .quote-builder-layout { grid-template-columns:1fr; }
@@ -2639,6 +2682,7 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
   .quote-editor-fields { grid-template-columns:1fr 1fr; }
   .quote-editor-fields .wide { grid-column:1/-1; }
   .quote-editor-line-total { justify-items:start; text-align:left; }
+  .quote-editor-product dl { grid-template-columns:1fr 1fr; }
 }
 
 @media (max-width:760px) {
@@ -2648,10 +2692,14 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
   .quote-builder-card>header { flex-direction:column; gap:8px; padding:15px; }
   .quote-builder-card>header p { max-width:none; }
   .quote-editor-items>article { padding:15px; }
-  .quote-editor-fields,.quote-commercial-fields { grid-template-columns:1fr; }
+  .quote-editor-product { grid-template-columns:88px minmax(0,1fr); gap:12px; }
+  .quote-editor-product>img { width:88px; height:88px; }
+  .quote-editor-product dl { grid-column:1/-1; grid-template-columns:1fr; }
+  .quote-editor-fields,.quote-commercial-fields,.quote-sender-fields { grid-template-columns:1fr; }
   .quote-editor-fields .wide,.quote-commercial-fields .wide { grid-column:auto; }
-  .quote-editor-fields input,.quote-editor-fields select,.quote-commercial-fields input,.quote-commercial-fields select,.quote-commercial-fields textarea { font-size:16px; }
-  .quote-commercial-fields { padding:15px; }
+  .quote-editor-fields input,.quote-editor-fields select,.quote-commercial-fields input,.quote-commercial-fields select,.quote-commercial-fields textarea,.quote-sender-fields>label>input { font-size:16px; }
+  .quote-commercial-fields,.quote-sender-fields { padding:15px; }
+  .quote-stamp-control { grid-template-columns:1fr; }
   .quote-document-shell { padding:0; overflow-x:auto; }
   .quote-preview-toolbar { position:sticky; top:0; z-index:3; min-width:360px; margin:0; border-radius:0; }
   .quote-preview-toolbar span { display:none; }
@@ -2661,12 +2709,21 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
   .quote-document-parties,.quote-document-terms,.quote-document>footer { grid-template-columns:1fr; gap:10px; }
   .quote-document-table>.head { display:none; }
   .quote-document-table>.row { grid-template-columns:1fr 1fr; padding:10px; }
-  .quote-document-table>.row>span { padding:8px; text-align:left; }
-  .quote-document-table>.row>span:first-child { grid-column:1/-1; padding-bottom:12px; border-bottom:1px solid #e2e5df; }
-  .quote-document-table>.row>span+span { border-left:0; text-align:left; }
+  .quote-document-table>.row>div { padding:8px; text-align:left; }
+  .quote-document-table>.row>div:first-child { grid-column:1/-1; padding-bottom:12px; border-bottom:1px solid #e2e5df; }
+  .quote-document-table>.row>div+div { border-left:0; text-align:left; }
+  .quote-document-table>.row>div[data-label]::before { content:attr(data-label); display:block; margin-bottom:2px; color:#747b75; font-size:8px; font-weight:750; text-transform:uppercase; }
+  .quote-document-product { grid-template-columns:72px minmax(0,1fr); }
+  .quote-document-product>img { width:72px; height:72px; }
+  .quote-document-product ul { grid-template-columns:1fr; }
   .quote-document-total { justify-content:stretch; }
   .quote-document-total dl { min-width:0; width:100%; }
+  .quote-document-total dl>div { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; }
+  .quote-document-total dd { min-width:0; font-size:12px; white-space:nowrap; }
+  .quote-document-total dl>div:first-child dt,.quote-document-total dl>div:first-child dd { font-size:18px; }
   .quote-document>footer { margin-top:28px; }
+  .quote-document-product strong,.quote-document-product li { font-size:9px; }
+  .quote-technical-appendix dl { grid-template-columns:1fr; }
 }
 
 @media print {
@@ -2676,4 +2733,5 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
   .quote-document { max-width:none; min-height:0; overflow:visible; padding:0; box-shadow:none; }
   .quote-document-table>.head,.quote-document-table>.row { break-inside:avoid; }
   .quote-document-terms,.quote-document>footer { break-inside:avoid; }
+  .quote-technical-appendix { break-before:page; margin-top:0; }
 }

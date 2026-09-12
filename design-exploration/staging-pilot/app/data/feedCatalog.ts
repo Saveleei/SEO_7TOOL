@@ -1,4 +1,4 @@
-import feedSnapshotJson from "../../../../7tool-source/src/lib/products.json";
+import feedSnapshotJson from "../../../../7tool-source/src/lib/products.json" with { type:"json" };
 import { selectCompatibleAccessories, selectProductAlternatives } from "./productRecommendations.mjs";
 
 export type FeedParameter = {
@@ -148,6 +148,7 @@ const categoriesBySlug = new Map(
 
 const productsByCategory = new Map<string, FeedProduct[]>();
 const productsBySlug = new Map<string, FeedProduct>();
+const variantsById = new Map<string, { product: FeedProduct; variant: FeedVariant }>();
 
 const categorySpecPriorities: Record<string, string[]> = {
   "stanki-sverlilnye": ["макс. диаметр", "шпиндель", "рабочий ход", "реверс", "масса", "мощность"],
@@ -200,6 +201,7 @@ const denseTableCategorySlugs = new Set([
 for (const product of feedSnapshot.products) {
   if (!categoriesBySlug.has(product.category)) continue;
   productsBySlug.set(product.slug, product);
+  for (const variant of product.variants) variantsById.set(variant.id, { product, variant });
   const categoryProducts = productsByCategory.get(product.category) ?? [];
   categoryProducts.push(product);
   productsByCategory.set(product.category, categoryProducts);
@@ -267,6 +269,10 @@ export function getFeedCategoryProductCount(slug: string): number {
 
 export function getFeedProductBySlug(slug: string): FeedProduct | undefined {
   return productsBySlug.get(slug);
+}
+
+export function getFeedProductVariantById(id: string): { product: FeedProduct; variant: FeedVariant } | undefined {
+  return variantsById.get(id);
 }
 
 export function getFeedAccessoryRecommendations(product: FeedProduct, limit = 3): FeedAccessoryRecommendation[] {
@@ -511,7 +517,7 @@ function getFeedProductSpecs(product: FeedProduct): FeedProductSpec[] {
   return orderedNames.slice(0, 4).map((name) => ({ label:name, value:summarizeParameterValues(parameters, name) }));
 }
 
-function getFeedVariantSpecs(product: FeedProduct, variant: FeedVariant): FeedProductSpec[] {
+export function getFeedVariantSpecs(product: FeedProduct, variant: FeedVariant): FeedProductSpec[] {
   const parameters = variant.params ?? [];
   const priorities = [...(categorySpecPriorities[product.category] ?? []), ...product.paramAxes];
   const selected: FeedProductSpec[] = [];
@@ -524,6 +530,20 @@ function getFeedVariantSpecs(product: FeedProduct, variant: FeedVariant): FeedPr
   }
 
   return selected;
+}
+
+export function getFeedVariantTechnicalSpecs(product: FeedProduct, variant: FeedVariant): FeedProductSpec[] {
+  const keySpecs = getFeedVariantSpecs(product, variant);
+  const selected = new Map(keySpecs.map((spec) => [normalizeText(spec.label), spec]));
+
+  for (const parameter of variant.params ?? []) {
+    if (!parameter.name || !parameter.value || lowValueParameterPattern.test(parameter.name)) continue;
+    const key = normalizeText(parameter.name);
+    if (!key || selected.has(key)) continue;
+    selected.set(key, { label:parameter.name, value:formatParameterValue(parameter) });
+  }
+
+  return Array.from(selected.values()).slice(0, 16);
 }
 
 function summarizeParameterValues(parameters: FeedParameter[], name: string): string {

@@ -1,8 +1,17 @@
 import { createHash } from "node:crypto";
 import { mkdir, open, readFile } from "node:fs/promises";
 import path from "node:path";
+import { quoteStampAssetExists } from "./quoteAssetStore.ts";
+import { getQuoteProductPresentation, type QuoteProductPresentation } from "./quoteProductPresentation.ts";
 import { getQuoteRequestDetail, QuoteWorkflowError } from "./quoteRequestStore.ts";
-import { parsePriceRub, validateQuoteDraft } from "./quoteDraftValidation.mjs";
+import { DEFAULT_QUOTE_SENDER, parsePriceRub, validateQuoteDraft } from "./quoteDraftValidation.mjs";
+
+export type QuoteSender = {
+  name: string;
+  role: string;
+  phone: string;
+  email: string;
+};
 
 export type QuoteDraftItem = {
   id: string;
@@ -14,6 +23,7 @@ export type QuoteDraftItem = {
   supplyStatus: "confirmed" | "supplier_confirmed" | "to_order" | "unknown";
   shipmentText: string;
   lineTotalRub: number;
+  productPresentation: QuoteProductPresentation | null;
 };
 
 export type QuoteDraft = {
@@ -27,13 +37,16 @@ export type QuoteDraft = {
   paymentTerms: string;
   deliveryTerms: string;
   managerComment: string;
+  sender: QuoteSender;
+  stampAssetId: string;
+  includeStamp: boolean;
   items: QuoteDraftItem[];
   totalRub: number;
   vatIncludedRub: number;
 };
 
 type StoredQuoteDraft = QuoteDraft & { idempotencyHash: string };
-type DraftInput = { idempotencyKey: string; status: string; validityDays: unknown; vatRate: unknown; paymentTerms: unknown; deliveryTerms: unknown; managerComment: unknown; items: unknown };
+type DraftInput = { idempotencyKey: string; status: string; validityDays: unknown; vatRate: unknown; paymentTerms: unknown; deliveryTerms: unknown; managerComment: unknown; sender?: unknown; stampAssetId?: unknown; includeStamp?: unknown; items: unknown };
 type Options = { dataDir?: string; now?: string | Date };
 
 let quoteWriteQueue: Promise<unknown> = Promise.resolve();
@@ -59,9 +72,12 @@ export async function getQuoteDraftOrDefault(requestId: string, options: Options
     paymentTerms:"",
     deliveryTerms:"",
     managerComment:"",
+    sender:{ ...DEFAULT_QUOTE_SENDER },
+    stampAssetId:"",
+    includeStamp:false,
     items:request.items.map((item) => {
       const unitPriceRub = parsePriceRub(item.price);
-      return { id:item.id, title:item.title, article:item.article, quantity:item.quantity, unitPriceRub, discountPercent:0, supplyStatus:"unknown", shipmentText:"Требует подтверждения", lineTotalRub:unitPriceRub * item.quantity };
+      return { id:item.id, title:item.title, article:item.article, quantity:item.quantity, unitPriceRub, discountPercent:0, supplyStatus:"unknown", shipmentText:"Требует подтверждения", lineTotalRub:unitPriceRub * item.quantity, productPresentation:getQuoteProductPresentation(item.id) };
     }),
     totalRub:request.items.reduce((sum, item) => sum + parsePriceRub(item.price) * item.quantity, 0),
     vatIncludedRub:0,
@@ -79,6 +95,7 @@ async function saveQuoteDraftSerial(requestId: string, input: DraftInput, option
   if (!request) throw new QuoteWorkflowError("Заявка не найдена.", 404);
   const validation = validateQuoteDraft(input, request.items);
   if (!validation.ok) throw new QuoteWorkflowError(validation.message, 400);
+  if (validation.value.includeStamp && !(await quoteStampAssetExists(request.id, validation.value.stampAssetId, options))) throw new QuoteWorkflowError("Файл печати и подписи не найден. Загрузите его повторно или отключите показ.", 400);
   const dataDir = resolveDataDir(options.dataDir);
   const drafts = await readDrafts(dataDir);
   const idempotencyHash = createHash("sha256").update(validation.value.idempotencyKey).digest("hex");
@@ -96,7 +113,10 @@ async function saveQuoteDraftSerial(requestId: string, input: DraftInput, option
     paymentTerms:validation.value.paymentTerms,
     deliveryTerms:validation.value.deliveryTerms,
     managerComment:validation.value.managerComment,
-    items:validation.value.items,
+    sender:validation.value.sender,
+    stampAssetId:validation.value.stampAssetId,
+    includeStamp:validation.value.includeStamp,
+    items:validation.value.items.map((item: Omit<QuoteDraftItem, "productPresentation">) => ({ ...item, productPresentation:getQuoteProductPresentation(item.id) })),
     totalRub:validation.value.totalRub,
     vatIncludedRub:validation.value.vatIncludedRub,
     idempotencyHash,
@@ -140,7 +160,10 @@ function withoutHash(draft: StoredQuoteDraft): QuoteDraft {
     paymentTerms:draft.paymentTerms,
     deliveryTerms:draft.deliveryTerms,
     managerComment:draft.managerComment,
-    items:draft.items,
+    sender:draft.sender ?? { ...DEFAULT_QUOTE_SENDER },
+    stampAssetId:draft.stampAssetId ?? "",
+    includeStamp:Boolean(draft.includeStamp && draft.stampAssetId),
+    items:draft.items.map((item) => ({ ...item, productPresentation:item.productPresentation ?? getQuoteProductPresentation(item.id) })),
     totalRub:draft.totalRub,
     vatIncludedRub:draft.vatIncludedRub,
   };

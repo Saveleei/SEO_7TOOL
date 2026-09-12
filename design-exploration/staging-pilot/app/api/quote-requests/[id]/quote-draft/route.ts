@@ -24,6 +24,9 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       paymentTerms:body.paymentTerms,
       deliveryTerms:body.deliveryTerms,
       managerComment:body.managerComment,
+      sender:body.sender,
+      stampAssetId:body.stampAssetId,
+      includeStamp:body.includeStamp,
       items:body.items,
     });
     return Response.json({ ok:true, duplicate:result.duplicate, quoteId:result.draft.id, revision:result.draft.revision, status:result.draft.status, totalRub:result.draft.totalRub }, { status:result.duplicate ? 200 : 201, headers:{ "Cache-Control":"no-store" } });
