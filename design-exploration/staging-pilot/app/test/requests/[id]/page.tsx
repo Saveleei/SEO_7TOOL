@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getQuoteApprovalState } from "../../../data/quoteApprovalStore";
+import { listQuoteDrafts } from "../../../data/quoteDraftStore";
 import { getQuoteRequestDetail, isQuoteTestModeEnabled, type QuoteRequestDetail, type QuoteRequestEvent } from "../../../data/quoteRequestStore";
 import { Breadcrumbs } from "../../../ui/Breadcrumbs";
 import { ManagerRequestActions } from "../../../ui/ManagerRequestActions";
 import { PilotFooter } from "../../../ui/PilotFooter";
 import { PilotHeader } from "../../../ui/PilotHeader";
+import { QuoteRevisionRegister, type QuoteRevisionEntry } from "../../../ui/QuoteRevisionRegister";
 
 export const metadata: Metadata = { title:"Карточка локальной заявки — 7TOOL", robots:{ index:false, follow:false, nocache:true } };
 export const dynamic = "force-dynamic";
@@ -15,6 +18,11 @@ export default async function TestRequestDetailPage({ params }: { params: Promis
   const { id } = await params;
   const request = await getQuoteRequestDetail(decodeURIComponent(id));
   if (!request) notFound();
+  const drafts = await listQuoteDrafts(request.id);
+  const revisions: QuoteRevisionEntry[] = await Promise.all(drafts.map(async (draft) => {
+    const approval = await getQuoteApprovalState(request.id, draft.revision);
+    return { id:draft.id, revision:draft.revision, createdAt:draft.createdAt, status:draft.status, approvalStage:approval?.stage ?? "not_submitted", totalRub:draft.totalRub, itemCount:draft.items.length, fingerprint:approval?.quoteFingerprint ?? "" };
+  }));
   return <div className="site-shell"><PilotHeader managerMode /><main className="inner-page manager-request-page">
     <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Журнал заявок", href:"/test/requests" }, { label:request.id }]} /></div>
     <section className="manager-request-hero"><div className="container">
@@ -29,7 +37,8 @@ export default async function TestRequestDetailPage({ params }: { params: Promis
         <section className="manager-detail-card"><header><span>02</span><div><h2>Что нужно проверить</h2><p>Чек-лист менеджера сформирован из выбора клиента.</p></div></header><div className="manager-check-grid"><Check active={request.requestedChecks.availability}>Наличие и срок</Check><Check active={request.requestedChecks.compatibility}>Комплектность и совместимость</Check><Check active={request.requestedChecks.documents}>Документы для закупки</Check><Check active={request.alternatives}>Допустимы аналоги</Check></div>{request.comment ? <div className="manager-client-comment"><span>Комментарий клиента</span><p>{request.comment}</p></div> : <p className="manager-empty-value">Комментарий к заявке не добавлен.</p>}</section>
         <section className="manager-detail-card"><header><span>03</span><div><h2>Контакты и организация</h2><p>Полные данные видны только в локальном тестовом контуре.</p></div></header><div className="manager-contact-grid"><dl><div><dt>Телефон</dt><dd><a href={`tel:${request.phoneFull}`} aria-label="Позвонить клиенту">{request.phoneFull}</a></dd></div><div><dt>Email</dt><dd><a href={`mailto:${request.emailFull}?subject=${encodeURIComponent(`Заявка ${request.id} — 7TOOL`)}`} aria-label="Написать клиенту по email">{request.emailFull}</a></dd></div><div><dt>Компания</dt><dd>{request.company || "Не указана"}</dd></div><div><dt>Город</dt><dd>{request.city || "Не указан"}</dd></div></dl><div className="manager-contact-actions"><a href={`tel:${request.phoneFull}`}>Позвонить</a><a href={`mailto:${request.emailFull}?subject=${encodeURIComponent(`Заявка ${request.id} — 7TOOL`)}`}>Подготовить email</a><small>Нажатие только открывает приложение. Автоматическая отправка отключена. Telegram/MAX клиента форма не запрашивала.</small></div></div></section>
         <section className="manager-detail-card"><header><span>04</span><div><h2>Реквизиты и источник</h2><p>Контекст для счёта и оценки эффективности сценария.</p></div></header><div className="manager-meta-grid"><dl><div><dt>ИНН</dt><dd>{request.billingInn || "Не приложен"}</dd></div><div><dt>Файл реквизитов</dt><dd>{request.attachment ? `${attachmentLabel(request.attachment.mime)} · ${formatBytes(request.attachment.size)}` : "Не приложен"}</dd></div></dl><dl><div><dt>Страница</dt><dd>{request.source.pagePath}</dd></div><div><dt>UTM</dt><dd>{formatUtm(request.source)}</dd></div></dl></div></section>
-        <section className="manager-detail-card manager-history"><header><span>05</span><div><h2>История обработки</h2><p>Append-only журнал: события добавляются, но не стирают исходные данные.</p></div></header><ol><li><i aria-hidden="true" /><div><b>Заявка получена</b><span>{formatDate(request.createdAt)}</span><p>Номер присвоен после локального сохранения.</p></div></li>{request.events.map((event) => <HistoryEvent event={event} key={event.id} />)}</ol></section>
+        <QuoteRevisionRegister requestId={request.id} entries={revisions} />
+        <section className="manager-detail-card manager-history"><header><span>06</span><div><h2>История обработки</h2><p>Append-only журнал: события добавляются, но не стирают исходные данные.</p></div></header><ol><li><i aria-hidden="true" /><div><b>Заявка получена</b><span>{formatDate(request.createdAt)}</span><p>Номер присвоен после локального сохранения.</p></div></li>{request.events.map((event) => <HistoryEvent event={event} key={event.id} />)}</ol></section>
       </div>
       <aside className="manager-request-sidebar"><ManagerRequestActions requestId={request.id} status={request.status} assignee={request.assignee} /><div className="manager-test-warning"><b>Тестовый контур</b><p>Внешние письма, MAX и CRM не вызываются. Для production понадобятся авторизация, БД, файловое хранилище и outbox.</p></div></aside>
     </div></section>

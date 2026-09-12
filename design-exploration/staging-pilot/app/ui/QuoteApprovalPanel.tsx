@@ -110,7 +110,7 @@ export function QuoteApprovalPanel({ requestId, quoteId, revision, quoteStatus, 
 
 function DeliveryPrepared({ event, requestId, revision }: { event: QuoteApprovalEvent | undefined; requestId: string; revision: number }) {
   if (!event) return null;
-  return <div className="quote-delivery-ready"><div><span>Имя файла для сохранения</span><h3>{event.deliveryFileName}</h3><p>{channelLabel(event.channel)} · {event.recipient}</p></div><a href={`/test/requests/${requestId}/quote?mode=preview&revision=${revision}`}>Открыть зафиксированную версию для печати</a><small>PDF ещё не создан: используйте системную печать → «Сохранить как PDF». Автоматической отправки нет.</small></div>;
+  return <div className="quote-delivery-ready"><div><span>Пакет утверждённой редакции</span><h3>{event.deliveryFileName}</h3><p>{channelLabel(event.channel)} · {event.recipient}</p></div><div className="quote-delivery-ready-actions"><a href={`/api/quote-requests/${requestId}/quote-pdf?revision=${revision}`}>Скачать PDF</a><a className="secondary" href={`/test/requests/${requestId}/quote?mode=preview&revision=${revision}`}>Предпросмотр</a></div><small>PDF формируется сервером из этой редакции. Автоматической отправки нет.</small></div>;
 }
 
 function latestEvent(events: QuoteApprovalEvent[]) {

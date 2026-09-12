@@ -56,6 +56,13 @@ export async function getLatestQuoteDraft(requestId: string, options: Options = 
   return drafts.length ? withoutHash(drafts.sort((a, b) => b.revision - a.revision)[0]) : null;
 }
 
+export async function listQuoteDrafts(requestId: string, options: Options = {}): Promise<QuoteDraft[]> {
+  return (await readDrafts(resolveDataDir(options.dataDir)))
+    .filter((draft) => draft.requestId === requestId.toUpperCase())
+    .sort((a, b) => b.revision - a.revision)
+    .map(withoutHash);
+}
+
 export async function getQuoteDraftRevision(requestId: string, revision: number, options: Options = {}): Promise<QuoteDraft | null> {
   if (!Number.isInteger(revision) || revision < 1) return null;
   const draft = (await readDrafts(resolveDataDir(options.dataDir))).find((candidate) => candidate.requestId === requestId.toUpperCase() && candidate.revision === revision);
