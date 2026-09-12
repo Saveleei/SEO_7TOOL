@@ -49,4 +49,5 @@ Add a local, server-validated administrative workspace for seller requisites, au
 
 ## Commit
 
-Implementation commit pending.
+- Implementation: `e2a460a` (`feat: add quote template settings`)
+- Handoff completion: recorded in the following documentation commit.
