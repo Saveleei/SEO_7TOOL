@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -15,7 +15,7 @@ const readyDraft = {
   idempotencyKey:"123e4567-e89b-42d3-a456-426614174101",
   status:"ready",
   validityDays:10,
-  vatRate:20,
+  vatRate:22,
   paymentTerms:"Оплата после согласования счёта",
   deliveryTerms:"Доставка рассчитывается отдельно",
   managerComment:"Комплектность указана в приложении.",
@@ -32,7 +32,7 @@ test("quote draft calculates totals and keeps product identity from the saved re
   assert.equal(result.value.items[0].article, "STEYR-35");
   assert.equal(result.value.items[0].lineTotalRub, 95000);
   assert.equal(result.value.totalRub, 95000);
-  assert.equal(result.value.vatIncludedRub, 15833.33);
+  assert.equal(result.value.vatIncludedRub, 17131.15);
   assert.equal(result.value.sender.role, "Менеджер проектов");
   assert.equal(result.value.sender.email, "info@7tool.ru");
   assert.equal(result.value.items[0].productPresentation, undefined);
@@ -55,6 +55,7 @@ test("a ready quote requires confirmed price, supply state and commercial terms"
   assert.equal(validateQuoteDraft({ ...readyDraft, items:[{ ...readyDraft.items[0], unitPriceRub:0 }] }, requestItems).ok, false);
   assert.equal(validateQuoteDraft({ ...readyDraft, items:[{ ...readyDraft.items[0], supplyStatus:"unknown" }] }, requestItems).ok, false);
   assert.equal(validateQuoteDraft({ ...readyDraft, status:"draft", paymentTerms:"", deliveryTerms:"", items:[{ ...readyDraft.items[0], unitPriceRub:0, supplyStatus:"unknown" }] }, requestItems).ok, true);
+  assert.equal(validateQuoteDraft({ ...readyDraft, vatRate:20 }, requestItems).ok, false);
   assert.equal(parsePriceRub("47 999 ₽"), 47999);
   assert.equal(validateQuoteDraft({ ...readyDraft, sender:{ ...readyDraft.sender, email:"invalid" } }, requestItems).ok, false);
 });
@@ -70,6 +71,7 @@ test("quote revisions append durably and retries are idempotent", async () => {
     const initial = await getQuoteDraftOrDefault(request.id, { dataDir });
     assert.equal(initial.revision, 0);
     assert.equal(initial.items[0].unitPriceRub, 47999);
+    assert.equal(initial.vatRate, 22);
     assert.equal(initial.items[0].productPresentation.variantId, "A9409");
 
     const first = await saveQuoteDraft(request.id, readyDraft, { dataDir, now:"2026-09-12T12:00:00.000Z" });
@@ -89,6 +91,19 @@ test("quote revisions append durably and retries are idempotent", async () => {
     assert.match(draftLog, /Новая редакция/u);
     assert.doesNotMatch(draftLog, /123e4567-e89b-42d3-a456-426614174101/u);
     assert.doesNotMatch(draftLog, /"idempotencyKey"/u);
+  } finally {
+    await rm(dataDir, { recursive:true, force:true });
+  }
+});
+
+test("saved historical quote revisions retain their snapshotted VAT rate", async () => {
+  const dataDir = await mkdtemp(path.join(os.tmpdir(), "7tool-legacy-vat-"));
+  try {
+    const legacy = { id:"КП-20251231-LEGACY", requestId:"7T-20251231-LEGACY", revision:1, createdAt:"2025-12-31T12:00:00.000Z", status:"ready", validityDays:10, vatRate:20, paymentTerms:"Оплата по счёту", deliveryTerms:"Самовывоз", managerComment:"", sender:readyDraft.sender, stampAssetId:"", includeStamp:false, items:[], totalRub:95000, vatIncludedRub:15833.33, idempotencyHash:"legacy" };
+    await writeFile(path.join(dataDir, "quote-drafts.jsonl"), `${JSON.stringify(legacy)}\n`, "utf8");
+    const restored = await getLatestQuoteDraft(legacy.requestId, { dataDir });
+    assert.equal(restored.vatRate, 20);
+    assert.equal(restored.vatIncludedRub, 15833.33);
   } finally {
     await rm(dataDir, { recursive:true, force:true });
   }

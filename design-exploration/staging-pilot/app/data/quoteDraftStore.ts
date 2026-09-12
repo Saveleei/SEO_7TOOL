@@ -68,7 +68,7 @@ export async function getQuoteDraftOrDefault(requestId: string, options: Options
     createdAt:request.createdAt,
     status:"draft",
     validityDays:10,
-    vatRate:20,
+    vatRate:22,
     paymentTerms:"",
     deliveryTerms:"",
     managerComment:"",

@@ -16,7 +16,7 @@ export function validateQuoteDraft(input, requestItems) {
   const validityDays = integer(input?.validityDays, 1, 90);
   if (validityDays == null) return fail("Срок действия предложения должен быть от 1 до 90 дней.");
   const vatRate = Number(input?.vatRate);
-  if (![0, 10, 20].includes(vatRate)) return fail("Выберите корректную ставку НДС.");
+  if (![0, 10, 22].includes(vatRate)) return fail("Выберите корректную ставку НДС.");
   const paymentTerms = text(input?.paymentTerms, 300);
   const deliveryTerms = text(input?.deliveryTerms, 300);
   const managerComment = multiline(input?.managerComment, 1000);

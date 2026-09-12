@@ -11,7 +11,8 @@ export function QuoteBuilder({ initial }: { initial: QuoteDraft }) {
   const router = useRouter();
   const [items, setItems] = useState<EditableItem[]>(initial.items.map((item) => ({ ...item })));
   const [validityDays, setValidityDays] = useState(initial.validityDays);
-  const [vatRate, setVatRate] = useState(initial.vatRate);
+  const legacyVatRate = initial.vatRate === 20;
+  const [vatRate, setVatRate] = useState(legacyVatRate ? 22 : initial.vatRate);
   const [paymentTerms, setPaymentTerms] = useState(initial.paymentTerms);
   const [deliveryTerms, setDeliveryTerms] = useState(initial.deliveryTerms);
   const [managerComment, setManagerComment] = useState(initial.managerComment);
@@ -92,7 +93,7 @@ export function QuoteBuilder({ initial }: { initial: QuoteDraft }) {
         <label><span>Условия оплаты</span><textarea rows={3} maxLength={300} value={paymentTerms} onChange={(event) => setPaymentTerms(event.target.value)} placeholder="Заполните после согласования условий" /></label>
         <label><span>Доставка и передача товара</span><textarea rows={3} maxLength={300} value={deliveryTerms} onChange={(event) => setDeliveryTerms(event.target.value)} placeholder="Способ, город, стоимость или условия расчёта" /></label>
         <label><span>Срок действия КП, дней</span><input type="number" min={1} max={90} value={validityDays} onChange={(event) => setValidityDays(Number(event.target.value))} /></label>
-        <label><span>Ставка НДС</span><select value={vatRate} onChange={(event) => setVatRate(Number(event.target.value))}><option value={20}>20%, включён</option><option value={10}>10%, включён</option><option value={0}>Без НДС</option></select></label>
+        <label><span>Ставка НДС</span><select value={vatRate} onChange={(event) => setVatRate(Number(event.target.value))}><option value={22}>22%, включён — основная ставка</option><option value={10}>10%, включён — пониженная ставка</option><option value={0}>Без НДС</option></select>{legacyVatRate && <small>В сохранённой редакции было 20%. Новая редакция будет рассчитана по ставке 22%.</small>}</label>
         <label className="wide"><span>Комментарий менеджера в КП</span><textarea rows={4} maxLength={1000} value={managerComment} onChange={(event) => setManagerComment(event.target.value)} placeholder="Например: аналог возможен после проверки технической применимости." /></label>
       </div></section>
       <section className="quote-builder-card"><header><div><span>03</span><h2>Отправитель и подпись</h2></div><p>Данные сохраняются в конкретной редакции. Используйте только утверждённое компанией изображение.</p></header><div className="quote-sender-fields">
