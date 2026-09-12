@@ -1,40 +1,47 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { getQuoteDraftOrDefault } from "../../../../data/quoteDraftStore";
+import { getQuoteApprovalState, type QuoteApprovalState } from "../../../../data/quoteApprovalStore";
+import { getQuoteDraftOrDefault, getQuoteDraftRevision, type QuoteDraft } from "../../../../data/quoteDraftStore";
 import { supplyStatusLabel } from "../../../../data/quoteDraftValidation.mjs";
 import { getQuoteRequestDetail, isQuoteTestModeEnabled, type QuoteRequestDetail } from "../../../../data/quoteRequestStore";
 import { Breadcrumbs } from "../../../../ui/Breadcrumbs";
 import { PilotFooter } from "../../../../ui/PilotFooter";
 import { PilotHeader } from "../../../../ui/PilotHeader";
+import { QuoteApprovalPanel } from "../../../../ui/QuoteApprovalPanel";
 import { QuoteBuilder } from "../../../../ui/QuoteBuilder";
 import { QuotePrintButton } from "../../../../ui/QuotePrintButton";
 
 export const metadata: Metadata = { title:"Конструктор КП — 7TOOL", robots:{ index:false, follow:false, nocache:true } };
 export const dynamic = "force-dynamic";
 
-export default async function QuoteBuilderPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ mode?: string }> }) {
+export default async function QuoteBuilderPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ mode?: string; revision?: string }> }) {
   if (!isQuoteTestModeEnabled()) notFound();
-  const [{ id }, { mode }] = await Promise.all([params, searchParams]);
+  const [{ id }, { mode, revision:revisionValue }] = await Promise.all([params, searchParams]);
   const request = await getQuoteRequestDetail(decodeURIComponent(id));
   if (!request) notFound();
-  const draft = await getQuoteDraftOrDefault(request.id);
+  const requestedRevision = Number(revisionValue);
+  const draft = mode === "preview" && Number.isInteger(requestedRevision) && requestedRevision > 0
+    ? await getQuoteDraftRevision(request.id, requestedRevision)
+    : await getQuoteDraftOrDefault(request.id);
   if (!draft) notFound();
-  if (mode === "preview") return <QuotePreview request={request} draft={draft} />;
+  const approval = draft.revision > 0 ? await getQuoteApprovalState(request.id, draft.revision) : emptyApprovalState(draft.revision);
+  if (mode === "preview") return <QuotePreview request={request} draft={draft} approval={approval ?? emptyApprovalState(draft.revision)} />;
   return <div className="site-shell"><PilotHeader managerMode /><main className="inner-page quote-builder-page">
     <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Заявки", href:"/test/requests" }, { label:request.id, href:`/test/requests/${request.id}` }, { label:"Конструктор КП" }]} /></div>
     <section className="quote-builder-hero"><div className="container"><div><p className="eyebrow">Локальная подготовка документа</p><h1>Коммерческое предложение</h1><p>Запрос {request.id} · {request.company || "Компания не указана"} · {request.city || "Город не указан"}</p></div><a href={`/test/requests/${request.id}`}>← Вернуться к заявке</a></div></section>
-    <section className="section"><div className="container"><QuoteBuilder initial={draft} /></div></section>
+    <section className="section"><div className="container"><QuoteBuilder initial={draft} /><QuoteApprovalPanel requestId={request.id} quoteId={draft.id} revision={draft.revision} quoteStatus={draft.status} senderName={draft.sender.name} senderRole={draft.sender.role} recipientEmail={request.emailFull} initialState={approval ?? emptyApprovalState(draft.revision)} /></div></section>
   </main><PilotFooter /></div>;
 }
 
-function QuotePreview({ request, draft }: { request: QuoteRequestDetail; draft: NonNullable<Awaited<ReturnType<typeof getQuoteDraftOrDefault>>> }) {
+function QuotePreview({ request, draft, approval }: { request: QuoteRequestDetail; draft: QuoteDraft; approval: QuoteApprovalState }) {
   const validUntil = new Date(new Date(draft.createdAt).getTime() + draft.validityDays * 86_400_000);
   return <main className="quote-document-shell">
-    <nav className="quote-preview-toolbar" aria-label="Действия с предпросмотром"><a href={`/test/requests/${request.id}/quote`}>← Вернуться к редактированию</a><span>{draft.status === "ready" ? "Готово к согласованию" : "Черновик"}</span><QuotePrintButton /></nav>
+    <nav className="quote-preview-toolbar" aria-label="Действия с предпросмотром"><a href={`/test/requests/${request.id}/quote`}>← Вернуться к редактированию</a><span>Редакция №{draft.revision} · {approvalStatusLabel(approval.stage)}</span><QuotePrintButton /></nav>
     <article className="quote-document">
       {draft.status !== "ready" && <div className="quote-draft-watermark">ЧЕРНОВИК</div>}
-      <header><Image src="/brand/7tool-primary.svg" alt="7TOOL" width={170} height={54} /><div><span>Коммерческое предложение</span><h1>{draft.id}</h1><p>от {date(draft.createdAt)}</p></div></header>
+      <header><Image src="/brand/7tool-primary.svg" alt="7TOOL" width={170} height={54} /><div><span>Коммерческое предложение</span><h1>{draft.id}</h1><p>Редакция №{draft.revision} от {date(draft.createdAt)}</p></div></header>
+      <div className="quote-version-meta"><span>{approvalStatusLabel(approval.stage)}</span><p>Контрольная сумма версии: {approval.quoteFingerprint}</p></div>
       <section className="quote-document-parties"><div><span>Поставщик</span><b>7TOOL</b><p>{draft.sender.name}<br />{draft.sender.role}<br />{draft.sender.phone}<br />{draft.sender.email}</p></div><div><span>Покупатель</span><b>{request.company || "Компания не указана"}</b><p>{request.city || "Город не указан"}<br />{request.emailFull}<br />{request.phoneFull}</p></div></section>
       <section><h2>Предложение по вашему запросу</h2><div className="quote-document-table"><div className="head"><span>Позиция</span><span>Кол-во</span><span>Цена</span><span>Скидка</span><span>Сумма</span></div>{draft.items.map((item) => <div className="row" key={item.id}><div className="quote-document-product">{item.productPresentation?.imageUrl && <Image src={item.productPresentation.imageUrl} alt={item.productPresentation.imageAlt} width={94} height={94} sizes="94px" />}<div><small>{item.article || "Без артикула"}</small><b>{item.title}</b>{item.productPresentation && <><strong>✓ Выбранное исполнение</strong><ul>{item.productPresentation.keySpecs.map((spec) => <li key={spec.label}><span>{spec.label}:</span> {spec.value}</li>)}</ul></>}<em>{supplyStatusLabel(item.supplyStatus)} · {item.shipmentText}</em></div></div><div data-label="Количество">{item.quantity} шт.</div><div data-label="Цена">{rub(item.unitPriceRub)}</div><div data-label="Скидка">{item.discountPercent ? `${item.discountPercent}%` : "—"}</div><div data-label="Сумма">{rub(item.lineTotalRub)}</div></div>)}</div></section>
       <section className="quote-document-total"><dl><div><dt>Итого</dt><dd>{rub(draft.totalRub)}</dd></div><div><dt>{draft.vatRate ? `В том числе НДС ${draft.vatRate}%` : "НДС"}</dt><dd>{draft.vatRate ? rub(draft.vatIncludedRub) : "Без НДС"}</dd></div></dl></section>
@@ -43,6 +50,18 @@ function QuotePreview({ request, draft }: { request: QuoteRequestDetail; draft: 
       <footer><div className="quote-signature"><b>{draft.sender.name}</b><span>{draft.sender.role}</span><span>{draft.sender.phone} · {draft.sender.email}</span>{draft.includeStamp && draft.stampAssetId && <Image src={stampAssetUrl(draft.requestId, draft.stampAssetId)} alt="Печать и подпись" width={220} height={110} unoptimized />}</div><p>Цена, наличие и срок действительны только в пределах условий этого предложения. Документ сформирован в локальном тестовом контуре и не был отправлен клиенту автоматически.</p></footer>
     </article>
   </main>;
+}
+
+function emptyApprovalState(revision: number): QuoteApprovalState {
+  return { stage:"not_submitted", revision, quoteFingerprint:"", events:[] };
+}
+
+function approvalStatusLabel(stage: QuoteApprovalState["stage"]) {
+  if (stage === "submitted") return "На внутреннем согласовании";
+  if (stage === "changes_requested") return "Возвращено на доработку";
+  if (stage === "approved") return "Утверждено во внутреннем контуре";
+  if (stage === "delivery_prepared") return "Утверждено · пакет отправки подготовлен";
+  return "Не передано на согласование";
 }
 
 function rub(value: number) {

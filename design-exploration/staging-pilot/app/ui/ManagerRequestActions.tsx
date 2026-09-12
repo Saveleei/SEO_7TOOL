@@ -53,7 +53,7 @@ export function ManagerRequestActions({ requestId, status, assignee }: { request
   const backward = previousAction[status];
   return <section className="manager-action-panel" aria-labelledby="manager-actions-title">
     <div className="manager-action-heading"><span>Работа с заявкой</span><h2 id="manager-actions-title">Следующее действие</h2><p>Все изменения записываются отдельными событиями. Исходная заявка не перезаписывается.</p></div>
-    <a className="quote-builder-open" href={`/test/requests/${requestId}/quote`}><span>Документ для клиента</span><b>Подготовить коммерческое предложение</b><i aria-hidden="true">→</i></a>
+    <a className="quote-builder-open" href={`/test/requests/${requestId}/quote`}><span>Документ для клиента</span><b>Подготовить и согласовать КП</b><i aria-hidden="true">→</i></a>
     {!assignee && <button className="manager-assign-button" type="button" disabled={pending} onClick={() => act({ type:"assigned", assignee:"evgeny-savelev" }, "Ответственный назначен.")}><span>Ответственный</span><b>Назначить Евгения Савельева</b></button>}
     {assignee && <div className="manager-assigned"><span>Ответственный</span><b>Евгений Савельев</b></div>}
     <div className="manager-status-actions">
