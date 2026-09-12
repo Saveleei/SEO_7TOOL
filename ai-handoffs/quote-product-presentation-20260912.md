@@ -3,7 +3,7 @@
 - Agent: Codex
 - Branch: `codex/quote-product-presentation`
 - Base: `8fa26e0`
-- Status: in progress
+- Status: complete
 
 ## Goal
 
@@ -30,12 +30,24 @@ Improve the local commercial quote builder without touching production: add a fe
 
 ## Checks
 
-Pending.
+- Targeted `tests/quote-builder.test.mjs`: 6/6 passed.
+- Full `node --test tests/*.test.mjs`: 56/56 passed.
+- Full ESLint: passed with zero errors and zero warnings.
+- `vinext build`: passed; both quote asset API routes and the quote route were emitted.
+- Browser desktop QA: editor and print preview verified at 1280 px class viewport.
+- Browser mobile QA: editor and preview verified at 390 px; product specifications wrap, totals remain inside the viewport, and actions remain reachable.
+- No forms or messages were sent outside the local test contour.
+- Local preview: `http://127.0.0.1:3172/test/requests/7T-20260912-A551F5/quote?mode=preview`
 
 ## Known limitations
 
-Pending implementation review.
+- The stamp/signature image is a user-supplied facsimile. The UI requires an approved company file, but production still needs authentication, roles, and an organizational approval policy.
+- Assets are stored in the local test data directory. Production needs durable private object storage, authorization on reads, retention rules, and audit logging.
+- Product presentation is snapshotted as feed data in each saved revision; the image URL still points to the feed source rather than an immutable internal media copy.
+- PDF remains browser print/save rather than a server-generated immutable signed PDF.
+- Legal seller requisites remain intentionally absent until approved production data is supplied.
 
 ## Commit
 
-Pending.
+- Feature commit: `222646f`
+- Documentation: this handoff is committed at branch HEAD after the feature commit.
