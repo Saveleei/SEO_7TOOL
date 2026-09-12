@@ -18,7 +18,7 @@ export function HeroSearch() {
     const cutting = /резк|труборез|пил/.test(normalized);
     const welding = /свар|каретк|позиционер|вращател/.test(normalized);
     const diameter = normalized.match(/(?:ø|ф|d|диаметр)?\s?(35|36|50|55|60|100|125)/)?.[1];
-    if (exact) return { label:"точная модель", title:"Магнитный станок LENZ STEYR-35", meta:"Артикул STEYR-35 · Ø35 мм · Weldon 19", href:"/product/lenz-steyr-35", image:"/products/lenz-steyr-35.jpg", category:"Магнитные сверлильные станки" };
+    if (exact) return { label:"точная модель", title:"Магнитный станок LENZ STEYR-35", meta:"Артикул STEYR-35 · Ø35 мм · Weldon 19", href:"/product/magnitnyy-sverlilnyy-stanok-lenz-steyr-35", image:"/products/lenz-steyr-35.jpg", category:"Магнитные сверлильные станки" };
     if (cutter) return { label:"товарный тип", title:`Корончатые свёрла${diameter ? ` Ø${diameter} мм` : ""}`, meta:"Подбор по диаметру, длине, материалу и хвостовику", href:"/catalog/category/koronchatye-sverla", image:"/products/annular-drills.png", category:"Оснастка для сверления" };
     if (reverse) return { label:"характеристика", title:`Магнитные станки с реверсом${diameter ? ` до Ø${diameter} мм` : ""}`, meta:"Поиск внутри технических характеристик", href:"/catalog/sverlenie/magnitnye-stanki", image:"/products/lenz-steyr-35.jpg", category:"Подборка по функции" };
     if (bevel) return { label:"производственная задача", title:"Оборудование для снятия фаски и обработки кромки", meta:"Лист, труба, ширина фаски и угол обработки", href:"/catalog", image:"/category/kromkorezy-po-listu.webp", category:"Обработка кромки" };

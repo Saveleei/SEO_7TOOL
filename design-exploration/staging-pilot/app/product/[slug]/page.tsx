@@ -2,11 +2,15 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Breadcrumbs } from "../../ui/Breadcrumbs";
+import { ContactRequestDialog } from "../../ui/ContactRequestDialog";
+import { FeedAvailability } from "../../ui/FeedAvailability";
+import { FeedProductGallery } from "../../ui/FeedProductGallery";
+import { FeedProductPurchase } from "../../ui/FeedProductPurchase";
 import { ManagerContactCard } from "../../ui/ManagerContactCard";
 import { PilotFooter } from "../../ui/PilotFooter";
 import { PilotHeader } from "../../ui/PilotHeader";
-import { AddRequestButton } from "../../ui/RequestCart";
-import { formatFeedPrice, getFeedCategory, getFeedProductBySlug, getFeedProductImage, getFeedProductPriceLabel } from "../../data/feedCatalog";
+import { AddRequestButton, RequestCartButton } from "../../ui/RequestCart";
+import { formatFeedPrice, getFeedAccessoryRecommendations, getFeedCategory, getFeedProductAlternatives, getFeedProductBySlug, getFeedProductImage, getFeedProductPriceLabel, type FeedParameter, type FeedVariant } from "../../data/feedCatalog";
 import { getProductionSubcategory } from "../../data/productionCategoryGroups";
 
 type RouteProps = { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> };
@@ -17,7 +21,7 @@ export async function generateMetadata({ params }: RouteProps): Promise<Metadata
   return {
     title: product ? `${product.title} — тестовый каталог 7TOOL` : "Товар — 7TOOL",
     description: product ? `${product.title}. Характеристики из каталога поставщика; цену, наличие и срок подтверждаем в КП.` : undefined,
-    robots: { index: false, follow: false },
+    robots: { index:false, follow:false },
   };
 }
 
@@ -29,40 +33,45 @@ export default async function FeedProductPage({ params, searchParams }: RoutePro
 
   const category = getFeedCategory(product.category);
   const productionEntry = getProductionSubcategory(product.category);
-  const image = getFeedProductImage(product);
-  const price = getFeedProductPriceLabel(product);
   const selectedVariantId = typeof rawSearchParams.variant === "string" ? rawSearchParams.variant : "";
   const allVariants = product.variants.filter((variant) => variant.name || variant.sku);
-  const selectedVariant = allVariants.find((variant) => variant.id === selectedVariantId);
-  const variants = (selectedVariant ? [selectedVariant, ...allVariants.filter((variant) => variant.id !== selectedVariant.id)] : allVariants).slice(0, 12);
-  const subject = encodeURIComponent(`Запрос по товару: ${product.title}`);
+  const primaryVariant = allVariants.find((variant) => variant.id === selectedVariantId) ?? allVariants[0];
+  const variants = (primaryVariant ? [primaryVariant, ...allVariants.filter((variant) => variant.id !== primaryVariant.id)] : allVariants).slice(0, 12);
+  const images = Array.from(new Set([...(primaryVariant?.images ?? []), ...product.images].filter(Boolean)));
+  const accessories = product.category === "stanki-sverlilnye" ? getFeedAccessoryRecommendations(product, 3) : [];
+  const alternatives = product.category === "stanki-sverlilnye" ? getFeedProductAlternatives(product, 3) : [];
+  const keySpecs = primaryVariant ? pickKeySpecs(primaryVariant) : [];
+  const fullSpecs = primaryVariant?.params.filter((parameter) => !/^(бренд|производитель)$/i.test(parameter.name)) ?? [];
+  const descriptionParagraphs = product.description?.split(/\n\s*\n/).map((paragraph) => paragraph.trim()).filter(Boolean).slice(0, 2) ?? [];
+  const purchaseVariants = variants.map((variant) => ({ id:variant.id, sku:variant.sku, title:variant.name || product.title, price:formatFeedPrice(variant.price) ?? "Цена по запросу", available:isConfirmedAvailable(variant), keySpecs:pickKeySpecs(variant) }));
+  const primaryPrice = formatFeedPrice(primaryVariant?.price) ?? getFeedProductPriceLabel(product);
 
-  return <div className="site-shell"><PilotHeader /><main className="inner-page feed-product-page">
+  return <div className="site-shell"><PilotHeader /><main className="inner-page feed-product-conversion-page">
     <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Каталог", href:"/catalog" }, ...(productionEntry ? [{ label:productionEntry.group.title, href:productionEntry.group.href }] : []), { label:category?.title ?? product.category, href:`/catalog/category/${product.category}` }, { label:product.brand }]} /></div>
 
-    <section className="section feed-product-main"><div className="container feed-product-detail">
-      <div className="feed-detail-gallery">{image ? <Image src={image} alt={product.title} width={720} height={620} priority unoptimized /> : <span>Изображение уточняется</span>}<small>Фото из каталога поставщика</small></div>
-      <div className="feed-detail-summary">
-        <p className="product-code">{product.brand}{product.sku ? ` · ${product.sku}` : ""}</p>
-        <h1>{product.title}</h1>
-        <div className="feed-detail-state"><span>Условия поставки</span><b>Наличие и срок подтверждаем в КП</b><p>Остаток из тестового снимка не показываем как обещание клиенту.</p></div>
-        <div className="feed-detail-price"><b>{price}</b><span>с НДС · по тестовым данным поставщика</span></div>
-        {product.paramAxes.length > 0 && <div className="feed-axis-list"><span>Выбор исполнения:</span>{product.paramAxes.slice(0, 6).map((axis) => <b key={axis}>{axis}</b>)}</div>}
-        <div className="feed-detail-actions"><AddRequestButton item={{ id:product.id, title:product.title, article:product.sku ? `Артикул ${product.sku}` : "Товарная группа", price }}>Добавить в запрос КП</AddRequestButton><a href={`mailto:info@7tool.ru?subject=${subject}`}>Задать вопрос по товару</a></div>
-        <p className="feed-detail-note">Точный артикул вводить не требуется: выберите исполнение ниже или просто добавьте товарную группу и опишите задачу в комментарии.</p>
-      </div>
+    <section className="feed-conversion-main"><div className="container feed-conversion-layout">
+      <FeedProductGallery images={images} title={product.title} />
+      <div className="feed-conversion-summary"><p className="product-code">{product.brand}{primaryVariant?.sku ? ` · Артикул ${primaryVariant.sku}` : ""}</p><h1>{product.title}</h1><p className="feed-conversion-intro">{descriptionParagraphs[0] ?? "Параметры товара получены из фактического каталога поставщика. Точное исполнение, комплектацию и срок поставки подтвердит менеджер."}</p><div id="variants" className="feed-variant-card--selected"><FeedProductPurchase productId={product.id} productTitle={product.title} variants={purchaseVariants} selectedVariantId={primaryVariant?.id} /></div><ManagerContactCard compact placement="product_manager" productId={product.id} /></div>
     </div></section>
 
-    <section className="section section-muted" id="variants"><div className="container feed-variant-layout"><div>
-      <div className="section-heading"><div><p className="eyebrow">Доступные исполнения</p><h2>{product.variants.length > 1 ? "Выберите подходящий вариант" : "Данные исполнения"}</h2></div><p>Показано до 12 вариантов. Цена относится к конкретному исполнению; доступность подтверждаем отдельно.</p></div>
-      <div className="feed-variant-list">{variants.map((variant) => {
-        const variantPrice = formatFeedPrice(variant.price) ?? "Цена по запросу";
-        const params = variant.params.filter((parameter) => parameter.name !== "Бренд").slice(0, 4);
-        return <article className={variant.id === selectedVariantId ? "feed-variant-card--selected" : undefined} key={variant.id}><div><span>{variant.sku || "Исполнение"}</span><b>{variant.name || product.title}</b><p>{params.map((parameter) => `${parameter.name}: ${parameter.value}${parameter.unit ? ` ${parameter.unit}` : ""}`).join(" · ")}</p></div><div><b>{variantPrice}</b><small>условия уточняем</small></div><AddRequestButton item={{ id:variant.id, title:variant.name || product.title, article:variant.sku ? `Артикул ${variant.sku}` : "Исполнение", price:variantPrice }}>В запрос</AddRequestButton></article>;
-      })}</div>
-      {product.variants.length > variants.length && <p className="feed-variant-more">Остальные {product.variants.length - variants.length} исполнений появятся после подключения полнофункционального фильтра по параметрам.</p>}
-      </div><aside><ManagerContactCard compact /></aside></div></section>
+    <nav className="product-jumpnav feed-conversion-jumpnav" aria-label="Разделы карточки"><div className="container"><a href="#decision">Подходит ли вам</a><a href="#specs">Характеристики</a><a href="#supply">Комплектация и документы</a>{accessories.length > 0 && <a href="#accessories">Оснастка</a>}{alternatives.length > 0 && <a href="#alternatives">Альтернативы</a>}</div></nav>
 
-    <section className="section"><div className="container product-next-step"><div><p className="eyebrow">Короткий путь к решению</p><h2>Не нужно разбираться во всех артикулах</h2><p>Сообщите операцию, материал и размеры. Инженер сопоставит исполнения и вернёт подтверждённые цену, наличие и срок.</p></div><Link className="button button-orange" href={`/#quick-order`}>Описать производственную задачу</Link></div></section>
-  </main><PilotFooter /></div>;
+    <section className="section feed-decision-section" id="decision"><div className="container"><div className="section-heading"><div><p className="eyebrow">Сначала решение, затем детали</p><h2>Когда стоит рассматривать эту модель</h2></div><p>Вывод построен только по названию и характеристикам выбранного исполнения. Финальную применимость подтверждаем по вашей детали и режиму работы.</p></div><div className="feed-decision-grid">{keySpecs.slice(0, 3).map((spec, index) => <article key={spec.label}><span>0{index + 1}</span><div><b>{spec.value}</b><p>{decisionCopy(spec.label)}</p></div></article>)}<aside><span>Нужна инженерная проверка</span><h3>Сообщите материал, толщину и глубину отверстия</h3><p>Этих данных нет в карточке — без них нельзя надёжно подтвердить режим сверления и подобрать корончатое сверло.</p><ContactRequestDialog categoryTitle={product.title} buttonLabel="Проверить под мою задачу" /></aside></div>{descriptionParagraphs.length > 0 && <div className="feed-product-description"><span>Описание из каталога поставщика</span>{descriptionParagraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</div>}</div></section>
+
+    <section className="section section-muted feed-specification-section" id="specs"><div className="container feed-specification-layout"><div><p className="eyebrow">Фактические характеристики</p><h2>{primaryVariant?.sku ? `Исполнение ${primaryVariant.sku}` : "Выбранное исполнение"}</h2><dl className="spec-table feed-conversion-spec-table">{fullSpecs.map((parameter) => <div key={`${parameter.name}-${parameter.value}`}><dt>{parameter.name}</dt><dd>{formatParameter(parameter)}</dd></div>)}</dl><small className="feed-spec-source">Источник — текущий снимок товарного фида. Если параметр отсутствует, мы не дополняем его предположением.</small></div><aside className="feed-spec-checklist"><span>Перед выставлением счёта</span><h3>Что проверит инженер</h3><ol><li>Диаметр, глубину и материал детали</li><li>Тип корончатого или спирального сверла</li><li>Поверхность и условия установки магнита</li><li>Комплектацию, остаток и дату отгрузки</li></ol><ContactRequestDialog categoryTitle={product.title} buttonLabel="Передать параметры" /></aside></div></section>
+
+    <section className="section feed-supply-section" id="supply"><div className="container"><div className="section-heading"><div><p className="eyebrow">Без неподтверждённых обещаний</p><h2>Комплектация и документы</h2></div><p>В фиде нет состава поставки и файлов документов. Поэтому карточка показывает статус данных, а не выдуманный список.</p></div><div className="feed-supply-grid"><article><span>01</span><b>Точный артикул и цена</b><p>{primaryVariant?.sku ?? "Исполнение"} · {primaryPrice} · с НДС по данным поставщика.</p><strong>Есть в фиде</strong></article><article><span>02</span><b>Состав комплектации</b><p>Перечень принадлежностей запросим у поставщика и включим в КП.</p><strong>Требует подтверждения</strong></article><article><span>03</span><b>Паспорт и сертификаты</b><p>Файлы не подключены к текущему товарному фиду.</p><strong>Требует подтверждения</strong></article><article><span>04</span><b>Остаток и отгрузка</b><p>Статус фида проверим повторно перед оплатой и укажем дату в КП.</p><strong>Проверяем перед счётом</strong></article></div><div className="feed-supply-action"><div><b>Нужны документы до оформления?</b><p>Оставьте телефон — менеджер уточнит конкретный документ и свяжет запрос с этим артикулом.</p></div><ContactRequestDialog categoryTitle={`${product.title}: комплектация и документы`} buttonLabel="Запросить документы" /></div></div></section>
+
+    {accessories.length > 0 && <section className="section section-muted feed-accessories-section" id="accessories"><div className="container"><div className="section-heading"><div><p className="eyebrow">Следующий товар в одной закупке</p><h2>Корончатые свёрла для предварительного подбора</h2></div><p>Отобраны реальные исполнения в наличии с хвостовиком, совпадающим с {findParameter(primaryVariant, "шпиндель") || "выбранным шпинделем"}, и диаметром в рабочем диапазоне станка.</p></div><div className="feed-accessory-grid">{accessories.map(({ product:accessory, variant, diameter, spindle, workingLength }) => { const accessoryPrice = formatFeedPrice(variant.price) ?? "Цена по запросу"; return <article key={variant.id}><Link className="feed-accessory-media" href={`/product/${accessory.slug}?variant=${encodeURIComponent(variant.id)}`}><Image src={getFeedProductImage(accessory) ?? ""} alt={variant.name || accessory.title} width={180} height={150} unoptimized /></Link><div><span>Предварительно подходит по хвостовику и диаметру</span><h3><Link href={`/product/${accessory.slug}?variant=${encodeURIComponent(variant.id)}`}>{variant.name || accessory.title}</Link></h3><p>Ø{diameter} мм · {spindle}{workingLength ? ` · рабочая длина ${workingLength}` : ""}</p><div><b>{accessoryPrice}</b><FeedAvailability available={isConfirmedAvailable(variant)} exact /></div><AddRequestButton item={{ id:`variant:${variant.id}`, title:variant.name || accessory.title, article:`Артикул ${variant.sku}`, price:accessoryPrice }}>Добавить в КП</AddRequestButton></div></article>; })}</div><p className="feed-accessory-disclaimer"><b>Важно:</b> совпадение хвостовика и диаметра — первый этап проверки. Рабочую длину, материал сверла и режим резания нужно подтвердить под вашу задачу.</p></div></section>}
+
+    {alternatives.length > 0 && <section className="section feed-alternatives-section" id="alternatives"><div className="container"><div className="section-heading"><div><p className="eyebrow">Осознанная альтернатива</p><h2>Сравните, не возвращаясь в категорию</h2></div><p>Показаны реальные магнитные модели с близким шпинделем: ниже цена, наличие реверса или больший рабочий диаметр.</p></div><div className="feed-alternative-grid">{alternatives.map(({ product:alternative, variant, diameter, spindle, reverse, mass, reason }) => <article key={alternative.id}><Link href={`/product/${alternative.slug}`}><Image src={getFeedProductImage(alternative) ?? ""} alt={alternative.title} width={210} height={180} unoptimized /></Link><div><span>{reason}</span><h3><Link href={`/product/${alternative.slug}`}>{alternative.title}</Link></h3><dl><div><dt>Корончатое сверло</dt><dd>до Ø{diameter} мм</dd></div><div><dt>Шпиндель</dt><dd>{spindle || "—"}</dd></div><div><dt>Реверс</dt><dd>{reverse || "—"}</dd></div><div><dt>Масса</dt><dd>{mass || "—"}</dd></div></dl><div className="feed-alternative-commercial"><b>{getFeedProductPriceLabel(alternative)}</b><FeedAvailability available={isConfirmedAvailable(variant)} /></div><Link className="feed-alternative-link" href={`/product/${alternative.slug}`}>Открыть модель →</Link></div></article>)}</div></div></section>}
+
+    <section className="request-section" id="request"><div className="container request-grid"><div><p className="eyebrow">Финальный шаг без повторного ввода</p><h2>Соберите станок и оснастку в одном запросе</h2><p>Точные артикулы и количество сохраняются в черновике КП. Менеджер добавит подтверждённый срок, комплектацию и документы.</p><Link href={`/catalog/category/${product.category}`}>← Вернуться к категории</Link></div><div className="request-unified-demo"><span>Единый запрос КП</span><b>Контекст товара уже сохранён</b><p>Откройте черновик, проверьте количество и добавьте требования к поставке.</p><RequestCartButton /></div></div></section>
+  </main><PilotFooter />{primaryVariant && <nav className="product-mobile-buybar" aria-label="Быстрый запрос по товару"><div><span>{isConfirmedAvailable(primaryVariant) ? "В наличии по данным фида" : "Статус уточняется"}</span><b>{primaryPrice}</b></div><AddRequestButton item={{ id:`variant:${primaryVariant.id}`, title:primaryVariant.name || product.title, article:`Артикул ${primaryVariant.sku}`, price:primaryPrice }}>Добавить в КП</AddRequestButton></nav>}</div>;
 }
+
+function formatParameter(parameter: FeedParameter): string { return `${parameter.value}${parameter.unit ? ` ${parameter.unit}` : ""}`; }
+function findParameter(variant: FeedVariant | undefined, keyword: string): string { const parameter = variant?.params.find((item) => item.name.toLocaleLowerCase("ru-RU").includes(keyword.toLocaleLowerCase("ru-RU"))); return parameter ? formatParameter(parameter) : ""; }
+function pickKeySpecs(variant: FeedVariant): Array<{ label: string; value: string }> { const priorities = ["макс. диаметр корончатого", "шпиндель", "рабочий ход", "масса", "реверс"]; return priorities.flatMap((keyword) => { const parameter = variant.params.find((item) => item.name.toLocaleLowerCase("ru-RU").includes(keyword)); return parameter ? [{ label:parameter.name, value:formatParameter(parameter) }] : []; }).slice(0, 4); }
+function decisionCopy(label: string): string { const normalized = label.toLocaleLowerCase("ru-RU"); if (normalized.includes("диаметр")) return "Предельный размер корончатого сверла по данным выбранного исполнения."; if (normalized.includes("шпиндель")) return "Именно по этому присоединению предварительно отобрана оснастка ниже."; if (normalized.includes("ход")) return "Сопоставьте ход с требуемой глубиной и доступным пространством над деталью."; if (normalized.includes("масса")) return "Учитывайте массу при переноске и работе на металлоконструкции."; return "Параметр выбранного исполнения из текущего товарного фида."; }
+function isConfirmedAvailable(variant: FeedVariant): boolean { return variant.available && typeof variant.quantity === "number" && variant.quantity > 0; }

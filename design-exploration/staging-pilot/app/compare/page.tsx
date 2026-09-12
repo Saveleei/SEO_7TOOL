@@ -5,7 +5,7 @@ import { PilotFooter } from "../ui/PilotFooter";
 import { PilotHeader } from "../ui/PilotHeader";
 
 const models = [
-  { name: "LENZ STEYR-35", image: "/products/lenz-steyr-35.jpg", price: "47 999 ₽", availability: "Уточняем", diameter: "35 мм", spiral: "13 мм", power: "1 100 Вт", spindle: "Weldon 19", speeds: "1", reverse: "Нет", weight: "10,5 кг", best: "Лёгкий для монтажа", href: "/product/lenz-steyr-35" },
+  { name: "LENZ STEYR-35", image: "/products/lenz-steyr-35.jpg", price: "47 999 ₽", availability: "Уточняем", diameter: "35 мм", spiral: "13 мм", power: "1 100 Вт", spindle: "Weldon 19", speeds: "1", reverse: "Нет", weight: "10,5 кг", best: "Лёгкий для монтажа", href: "/product/magnitnyy-sverlilnyy-stanok-lenz-steyr-35" },
   { name: "HEDEN DM-36K", image: "/products/heden-dm-36k.png", price: "44 690 ₽", availability: "Уточняем", diameter: "36 мм", spiral: "13 мм", power: "1 600 Вт", spindle: "Weldon 19", speeds: "1", reverse: "Нет", weight: "11,8 кг", best: "Ниже ориентировочная цена", href: "/catalog/sverlenie/magnitnye-stanki" },
   { name: "LENZ STEYR-35 MAX", image: "/products/lenz-steyr-35.jpg", price: "77 910 ₽", availability: "Уточняем", diameter: "35 мм", spiral: "13 мм", power: "1 600 Вт", spindle: "Weldon 19", speeds: "6", reverse: "Есть", weight: "12,4 кг", best: "Резьба и регулировка", href: "/catalog/sverlenie/magnitnye-stanki" },
 ];

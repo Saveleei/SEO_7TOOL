@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { AddRequestButton } from "./RequestCart";
 
 const products = [
-  { brand: "LENZ", model: "STEYR-35", title: "Магнитный сверлильный станок LENZ STEYR-35", diameter: 35, spindle: "Weldon 19", weight: "10,5 кг", reverse: false, power: 1100, brushless: false, priceValue: 47999, price: "47 999 ₽", image: "/products/lenz-steyr-35.jpg", href: "/product/lenz-steyr-35", fit: "Компактный станок для отверстий до Ø35 мм на монтаже" },
+  { brand: "LENZ", model: "STEYR-35", title: "Магнитный сверлильный станок LENZ STEYR-35", diameter: 35, spindle: "Weldon 19", weight: "10,5 кг", reverse: false, power: 1100, brushless: false, priceValue: 47999, price: "47 999 ₽", image: "/products/lenz-steyr-35.jpg", href: "/product/magnitnyy-sverlilnyy-stanok-lenz-steyr-35", fit: "Компактный станок для отверстий до Ø35 мм на монтаже" },
   { brand: "HEDEN", model: "DM-36K", title: "Магнитный сверлильный станок Heden DM-36K", diameter: 36, spindle: "Weldon 19", weight: "11,8 кг", reverse: false, power: 1600, brushless: false, priceValue: 44690, price: "44 690 ₽", image: "/products/heden-dm-36k.png", href: "", fit: "Базовое решение до Ø36 мм с подачей СОЖ" },
   { brand: "LENZ", model: "STEYR-35 MAX", title: "Машина сверлильная LENZ STEYR-35 MAX", diameter: 35, spindle: "Weldon 19", weight: "12,4 кг", reverse: true, power: 1600, brushless: true, priceValue: 77910, price: "77 910 ₽", image: "/products/lenz-steyr-35.jpg", href: "", fit: "Для задач, где нужен реверс и нарезание резьбы" },
 ];

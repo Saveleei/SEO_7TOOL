@@ -1,4 +1,5 @@
 import feedSnapshotJson from "../../../../7tool-source/src/lib/products.json";
+import { selectCompatibleAccessories, selectProductAlternatives } from "./productRecommendations.mjs";
 
 export type FeedParameter = {
   name: string;
@@ -31,6 +32,25 @@ export type FeedProduct = {
   priceFrom?: number;
   priceTo?: number;
   manualSortOrder?: number;
+  description?: string;
+};
+
+export type FeedAccessoryRecommendation = {
+  product: FeedProduct;
+  variant: FeedVariant;
+  diameter: number;
+  spindle: string;
+  workingLength: string;
+};
+
+export type FeedProductAlternative = {
+  product: FeedProduct;
+  variant: FeedVariant;
+  diameter: number;
+  spindle: string;
+  reverse: string;
+  mass: string;
+  reason: string;
 };
 
 export type FeedCategory = {
@@ -247,6 +267,14 @@ export function getFeedCategoryProductCount(slug: string): number {
 
 export function getFeedProductBySlug(slug: string): FeedProduct | undefined {
   return productsBySlug.get(slug);
+}
+
+export function getFeedAccessoryRecommendations(product: FeedProduct, limit = 3): FeedAccessoryRecommendation[] {
+  return selectCompatibleAccessories(Array.from(productsBySlug.values()), product, limit) as FeedAccessoryRecommendation[];
+}
+
+export function getFeedProductAlternatives(product: FeedProduct, limit = 3): FeedProductAlternative[] {
+  return selectProductAlternatives(Array.from(productsBySlug.values()), product, limit) as FeedProductAlternative[];
 }
 
 export function getFeedProductImage(product: FeedProduct): string | undefined {
