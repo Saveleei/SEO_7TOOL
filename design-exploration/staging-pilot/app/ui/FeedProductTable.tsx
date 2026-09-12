@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Fragment, useState, type CSSProperties } from "react";
 import type { FeedProductCardModel, FeedProductVariantModel } from "../data/feedCatalog";
 import { AddRequestButton } from "./RequestCart";
+import { FeedAvailability } from "./FeedAvailability";
 
 export function FeedProductTable({ products, columns }: { products: FeedProductCardModel[]; columns: string[] }) {
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
@@ -23,8 +24,8 @@ export function FeedProductTable({ products, columns }: { products: FeedProductC
             <tr className={expanded ? "feed-product-row feed-product-row--expanded" : "feed-product-row"}>
               <td><div className="feed-table-product">{product.image && <Link href={`/product/${product.slug}`} tabIndex={-1} aria-hidden="true"><Image src={product.image} alt="" width={86} height={74} unoptimized /></Link>}<div><span>{product.brand}{product.sku ? ` · серия ${product.sku}` : ""}</span><Link href={`/product/${product.slug}`}>{product.title}</Link><small>{variantLabel(product.selectedVariantCount)}{product.selectedVariantCount !== product.variantCount ? ` из ${product.variantCount}` : ""}</small></div></div></td>
               {columns.map((column) => <td key={column}><span className="feed-table-cell-label">{column}</span>{product.specs.find((spec) => spec.label === column)?.value ?? "—"}</td>)}
-              <td className="feed-table-price"><b>{product.price}</b><small>{product.variantCount > 1 ? "зависит от исполнения" : "с НДС · подтвердим в КП"}</small><em className={product.availableVariantCount > 0 ? "feed-availability feed-availability--positive" : "feed-availability"}>{product.availableVariantCount > 0 ? `${product.availableVariantCount} ${availabilityVariantLabel(product.availableVariantCount)} в наличии по фиду` : "Наличие и срок уточняем"}</em></td>
-              <td><div className="feed-table-actions"><button className="feed-variant-toggle" type="button" aria-expanded={expanded} aria-controls={`variants-${product.id}`} onClick={() => toggleProduct(product.id)}>{expanded ? "Скрыть исполнения" : product.selectedVariantCount > 1 ? `Выбрать из ${product.selectedVariantCount}` : "Выбрать исполнение"}</button><a className="feed-all-characteristics" href={`/product/${product.slug}`} aria-label={`Все характеристики: ${product.title}`}>Все характеристики</a></div></td>
+              <td className="feed-table-price"><b>{product.price}</b><small>{product.variantCount > 1 ? "зависит от исполнения" : "с НДС · подтвердим в КП"}</small><FeedAvailability available={product.availableVariantCount > 0} count={product.availableVariantCount} /></td>
+              <td><div className="feed-table-actions"><button className="feed-variant-toggle" type="button" aria-expanded={expanded} aria-controls={`variants-${product.id}`} onClick={() => toggleProduct(product.id)}>{expanded ? "Скрыть исполнения" : product.selectedVariantCount > 1 ? `Выбрать исполнение · ${product.selectedVariantCount}` : "Выбрать исполнение"}</button><a className="feed-all-characteristics" href={`/product/${product.slug}`} aria-label={`Все характеристики: ${product.title}`}>Все характеристики</a></div></td>
             </tr>
             {expanded && <tr className="feed-variant-expansion"><td colSpan={columns.length + 3} id={`variants-${product.id}`}>
               <div className="feed-variant-expansion-head"><div><b>Точные исполнения</b><span>Выберите размер и добавьте конкретную позицию в запрос КП</span></div>{product.variantCount > product.variants.length && <Link href={`/product/${product.slug}`}>Все {product.variantCount} исполнений →</Link>}</div>
@@ -33,7 +34,7 @@ export function FeedProductTable({ products, columns }: { products: FeedProductC
           </Fragment>;
         })}</tbody>
       </table>
-      <p className="feed-table-note">Цена указана по тестовому снимку фида. Наличие, срок и совместимость подтверждаем для выбранного исполнения в КП.</p>
+      <p className="feed-table-note">Цена указана по тестовым данным поставщика. Наличие, срок и совместимость подтверждаем для выбранного исполнения в КП.</p>
     </div>
     <div className="feed-product-table-mobile">{products.map((product) => <MobileSeries product={product} columns={columns} key={product.id} />)}</div>
   </>;
@@ -44,12 +45,12 @@ function MobileSeries({ product, columns }: { product: FeedProductCardModel; col
     <summary>
       <div className="feed-mobile-series-head">{product.image && <Image src={product.image} alt="" width={92} height={78} unoptimized />}<div><span>{product.brand}{product.sku ? ` · ${product.sku}` : ""}</span><b>{product.title}</b><small>{variantLabel(product.selectedVariantCount)}{product.selectedVariantCount !== product.variantCount ? ` из ${product.variantCount}` : ""}</small></div></div>
       <dl>{columns.map((column) => <div key={column}><dt>{column}</dt><dd>{product.specs.find((spec) => spec.label === column)?.value ?? "—"}</dd></div>)}</dl>
-      <div className="feed-mobile-series-commercial"><div><b>{product.price}</b><span className={product.availableVariantCount > 0 ? "feed-availability feed-availability--positive" : "feed-availability"}>{product.availableVariantCount > 0 ? "Есть в наличии по фиду · подтвердим" : "Наличие и срок уточняем"}</span></div><i>Выбрать исполнение</i></div>
+      <div className="feed-mobile-series-commercial"><div><b>{product.price}</b><FeedAvailability available={product.availableVariantCount > 0} /></div><i>{product.selectedVariantCount > 1 ? `Выбрать · ${product.selectedVariantCount}` : "Выбрать"}</i></div>
     </summary>
     <div className="feed-mobile-variants"><div className="feed-variant-expansion-head"><div><b>Точные исполнения</b><span>Добавьте нужный размер в запрос КП</span></div></div>{product.variants.map((variant) => <article className={variant.matchesSelection ? "feed-mobile-variant feed-mobile-variant--match" : "feed-mobile-variant"} key={variant.id}>
       <div><span>{variant.matchesSelection ? "Соответствует фильтрам" : "Исполнение"}</span><b>{variant.sku}</b></div>
       <dl>{columns.map((column) => <div key={column}><dt>{column}</dt><dd>{variant.specs.find((spec) => spec.label === column)?.value ?? "—"}</dd></div>)}</dl>
-      <div className="feed-mobile-variant-action"><div><b>{variant.price}</b><span className={variant.available ? "feed-availability feed-availability--positive" : "feed-availability"}>{variant.available ? "В наличии по фиду · подтвердим" : "Наличие и срок уточняем"}</span></div><AddRequestButton item={{ id:`variant:${variant.id}`, title:variant.title || product.title, article:`Артикул ${variant.sku}`, price:variant.price }}>Добавить в запрос</AddRequestButton></div>
+      <div className="feed-mobile-variant-action"><div><b>{variant.price}</b><FeedAvailability available={variant.available} exact /></div><AddRequestButton item={{ id:`variant:${variant.id}`, title:variant.title || product.title, article:`Артикул ${variant.sku}`, price:variant.price }}>Добавить в запрос</AddRequestButton></div>
     </article>)}{product.variantCount > product.variants.length && <Link className="feed-mobile-all-variants" href={`/product/${product.slug}`}>Все {product.variantCount} исполнений →</Link>}</div>
   </details>;
 }
@@ -58,7 +59,7 @@ function InlineVariant({ product, variant, columns }: { product: FeedProductCard
   return <article className={variant.matchesSelection ? "feed-inline-variant feed-inline-variant--match" : "feed-inline-variant"} style={{ "--variant-spec-count":Math.max(1, columns.length) } as CSSProperties}>
     <div className="feed-inline-variant-id"><span>{variant.matchesSelection ? "Соответствует фильтрам" : "Исполнение"}</span><b>{variant.sku}</b></div>
     {columns.map((column) => <div key={column}><span>{column}</span><b>{variant.specs.find((spec) => spec.label === column)?.value ?? "—"}</b></div>)}
-    <div className="feed-inline-variant-price"><b>{variant.price}</b><span>с НДС · цена из фида</span><small className={variant.available ? "feed-availability feed-availability--positive" : "feed-availability"}>{variant.available ? "В наличии по фиду · подтвердим" : "Наличие и срок уточняем"}</small></div>
+    <div className="feed-inline-variant-price"><b>{variant.price}</b><span>с НДС · данные поставщика</span><FeedAvailability available={variant.available} exact /></div>
     <AddRequestButton item={{ id:`variant:${variant.id}`, title:variant.title || product.title, article:`Артикул ${variant.sku}`, price:variant.price }}>Добавить в запрос</AddRequestButton>
   </article>;
 }
@@ -69,13 +70,4 @@ function variantLabel(count: number): string {
   const modulo10 = count % 10;
   const word = modulo100 >= 11 && modulo100 <= 14 ? "исполнений" : modulo10 >= 2 && modulo10 <= 4 ? "исполнения" : "исполнений";
   return `${count} ${word} · раскройте для выбора`;
-}
-
-function availabilityVariantLabel(count: number): string {
-  const modulo100 = count % 100;
-  const modulo10 = count % 10;
-  if (modulo100 >= 11 && modulo100 <= 14) return "исполнений";
-  if (modulo10 === 1) return "исполнение";
-  if (modulo10 >= 2 && modulo10 <= 4) return "исполнения";
-  return "исполнений";
 }

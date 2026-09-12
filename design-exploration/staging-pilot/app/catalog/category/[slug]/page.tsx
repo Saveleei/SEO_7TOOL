@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: RouteProps): Promise<Metadata
 export default async function SubcategoryPage({ params, searchParams }: RouteProps) {
   const [{ slug }, rawSearchParams] = await Promise.all([params, searchParams]);
   const entry = getProductionSubcategory(slug);
-  if (!entry) return <div className="site-shell"><PilotHeader /><main className="inner-page"><section className="section"><div className="container empty-result"><b>Категория не найдена в активном фиде</b><p>Вернитесь в каталог или отправьте задачу инженеру.</p><Link href="/catalog">Открыть каталог →</Link></div></section></main><PilotFooter /></div>;
+  if (!entry) return <div className="site-shell"><PilotHeader /><main className="inner-page"><section className="section"><div className="container empty-result"><b>Категория не найдена в текущем каталоге</b><p>Вернитесь в каталог или отправьте задачу инженеру.</p><Link href="/catalog">Открыть каталог →</Link></div></section></main><PilotFooter /></div>;
 
   const { group, subcategory } = entry;
   const landing = getCategoryLandingContent(group.slug);
@@ -91,7 +91,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
       <p className="eyebrow">{group.title}</p>
       <h1>{feedCategory?.h1 ?? subcategory.label}</h1>
       <p>Сравните товарные серии по ключевым параметрам, раскройте нужную строку и добавьте точное исполнение в один запрос КП.</p>
-      <div className="category-hero-facts"><span><b>{result.total.toLocaleString("ru-RU")}</b> {pluralizeProductGroups(result.total)}</span><span>Цена — из тестового фида</span><span>Наличие и срок — после проверки</span></div>
+      <div className="category-hero-facts"><span><b>{result.total.toLocaleString("ru-RU")}</b> {pluralizeProductGroups(result.total)}</span><span>Цена — по данным поставщика</span><span>Наличие и срок — после проверки</span></div>
     </div><aside>
       <b>{selectorHref ? "Нужен технический отбор?" : "Не знаете точное исполнение?"}</b>
       <p>{selectorHref ? "Сузьте выбор по диаметру, массе, шпинделю и рабочим функциям." : "Пришлите размеры или опишите задачу — артикул знать не обязательно."}</p>
@@ -104,7 +104,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
       {promotedFacets.length > 0 && <nav className={`feed-promoted-filters${slug === "borfrezy" ? " feed-promoted-filters--burr" : ""}`} aria-label="Быстрые фильтры">
         <div className="feed-priority-choice"><span>Показывать сначала</span><div>
           <Link className={sort === "relevance" ? "active" : undefined} aria-current={sort === "relevance" ? "true" : undefined} href={categoryUrl(slug, rawSearchParams, { setKey:"sort", setValue:"relevance" })}>Подходящие</Link>
-          <Link className={inStockOnly ? "active" : undefined} aria-current={inStockOnly ? "true" : undefined} href={categoryUrl(slug, rawSearchParams, { toggleKey:"availability", toggleValue:"in-stock" })}>В наличии<small>по фиду</small></Link>
+          <Link className={inStockOnly ? "active" : undefined} aria-current={inStockOnly ? "true" : undefined} href={categoryUrl(slug, rawSearchParams, { toggleKey:"availability", toggleValue:"in-stock" })}>В наличии<small>данные поставщика</small></Link>
         </div></div>
         {promotedFacets.map((facet) => <div key={facet.key}><span className="feed-promoted-label">{facet.label}</span><div>{facet.options.slice(0, 6).map((option) => {
           const selected = filters[facet.key]?.includes(option.value) ?? false;
@@ -126,10 +126,10 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
       <div className="feed-catalog-layout">
         <aside className="feed-filter-panel" id="feed-filter-panel">
           <input className="feed-filter-toggle" type="checkbox" id={`feed-filters-${slug}`} aria-label="Показать или скрыть фильтры" />
-          <label className="feed-filter-summary" htmlFor={`feed-filters-${slug}`}><span><b>Фильтры</b><small>{activeFilterCount > 0 ? `Выбрано: ${activeFilterCount}` : "По характеристикам фида"}</small></span><i aria-hidden="true">+</i></label>
+          <label className="feed-filter-summary" htmlFor={`feed-filters-${slug}`}><span><b>Фильтры</b><small>{activeFilterCount > 0 ? `Выбрано: ${activeFilterCount}` : "По характеристикам товаров"}</small></span><i aria-hidden="true">+</i></label>
           <form method="get" action={`/catalog/category/${slug}#products`}>
             {requestedView && <input type="hidden" name="view" value={requestedView} />}
-            <div className="feed-filter-priority"><span>Быстрый выбор</span><label><input type="checkbox" name="availability" value="in-stock" defaultChecked={inStockOnly} /><b>В наличии</b><em>по данным фида</em></label><label><span>Порядок выдачи</span><select name="sort" defaultValue={sort}>{sortOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label><small>Остаток и срок отгрузки подтвердим перед оплатой.</small></div>
+            <div className="feed-filter-priority"><span>Быстрый выбор</span><label><input type="checkbox" name="availability" value="in-stock" defaultChecked={inStockOnly} /><b>В наличии</b><em>по данным поставщика</em></label><label><span>Порядок выдачи</span><select name="sort" defaultValue={sort}>{sortOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label><small>Остаток и срок отгрузки подтвердим перед оплатой.</small></div>
             <label className="feed-filter-search"><span>Поиск в категории</span><input type="search" name="q" defaultValue={search} placeholder="Название, бренд или модель" /></label>
             {orderedFacets.map((facet) => <fieldset className={facet.keyword === "форма" ? "feed-shape-filter" : undefined} key={facet.key}><legend>{facet.label}</legend><small>{facet.keyword === "форма" ? <>Стандартные формы A–N и комбинированные исполнения. <a href="#burr-selector">Не знаете форму? Подобрать по задаче</a></> : facet.help}</small><div>{facet.options.map((option) => <label key={option.value}><input type="checkbox" name={`f_${facet.key}`} value={option.value} defaultChecked={filters[facet.key]?.includes(option.value)} /><span className={facet.keyword === "форма" ? "feed-shape-option" : undefined}>{facet.keyword === "форма" && <BurrShapeMark shape={option.value} />}{option.label}</span><em>{option.count}</em></label>)}</div></fieldset>)}
             <div className="feed-filter-actions"><button className="button button-orange" type="submit">Показать товары</button><Link href={`/catalog/category/${slug}#products`}>Сбросить</Link></div>
@@ -150,7 +150,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
 
           {activeFilterCount > 0 && <nav className="feed-applied-filters" aria-label="Применённые фильтры"><span>Вы выбрали:</span>
             {search && <Link href={categoryUrl(slug, rawSearchParams, { removeKey:"q" })}>Поиск: {search}<b aria-hidden="true">×</b></Link>}
-            {inStockOnly && <Link href={categoryUrl(slug, rawSearchParams, { removeKey:"availability" })}>В наличии по фиду<b aria-hidden="true">×</b></Link>}
+            {inStockOnly && <Link href={categoryUrl(slug, rawSearchParams, { removeKey:"availability" })}>В наличии<b aria-hidden="true">×</b></Link>}
             {result.facets.flatMap((facet) => (filters[facet.key] ?? []).map((value) => <Link href={categoryUrl(slug, rawSearchParams, { removeKey:`f_${facet.key}`, removeValue:value })} key={`${facet.key}-${value}`}>{facet.label}: {value}<b aria-hidden="true">×</b></Link>))}
             <Link className="feed-reset-all" href={`/catalog/category/${slug}#products`}>Очистить всё</Link>
           </nav>}
@@ -163,7 +163,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
             {result.page < result.pageCount && <Link className="feed-pagination-direction" href={categoryUrl(slug, rawSearchParams, { page:result.page + 1 })}>Вперёд →</Link>}
           </nav>}
 
-          {result.products.length > 0 && <div className="feed-listing-foot"><p>Не нашли точное сочетание? Это не означает, что поставка невозможна: фид показывает только текущую витрину.</p>{slug === "borfrezy" ? <a href="#burr-selector">Подобрать без артикула →</a> : <a href={`mailto:info@7tool.ru?subject=${subject}`}>Описать задачу менеджеру →</a>}</div>}
+          {result.products.length > 0 && <div className="feed-listing-foot"><p>Не нашли точное сочетание? Это не означает, что поставка невозможна: каталог показывает только текущую витрину.</p>{slug === "borfrezy" ? <a href="#burr-selector">Подобрать без артикула →</a> : <a href={`mailto:info@7tool.ru?subject=${subject}`}>Описать задачу менеджеру →</a>}</div>}
         </div>
       </div>
     </div></section>

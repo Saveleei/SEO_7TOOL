@@ -37,11 +37,29 @@ test("selection criteria align the manager with the first parameter row", async 
 test("positive feed availability uses a dedicated readable green status", async () => {
   const card = await readFile(new URL("../app/ui/FeedProductCard.tsx", import.meta.url), "utf8");
   const table = await readFile(new URL("../app/ui/FeedProductTable.tsx", import.meta.url), "utf8");
+  const availability = await readFile(new URL("../app/ui/FeedAvailability.tsx", import.meta.url), "utf8");
   const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
-  assert.match(card, /feed-availability--positive/u);
-  assert.match(table, /feed-availability--positive/u);
+  assert.match(card, /<FeedAvailability/u);
+  assert.match(table, /<FeedAvailability/u);
+  assert.match(availability, /feed-availability--positive/u);
+  assert.match(availability, /Остаток и срок подтвердим перед оплатой/u);
   assert.match(styles, /\.feed-availability--positive \{[^}]*color:#087044!important[^}]*font-weight:650!important/us);
-  assert.match(styles, /\.feed-table-price>em\.feed-availability \{[^}]*font-size:10px/us);
+  assert.match(styles, /\.feed-availability-block>small \{[^}]*font-size:9px/us);
+});
+
+test("the shape-help link opens and focuses the guided selector", async () => {
+  const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
+  const selector = await readFile(new URL("../app/ui/BurrSelectionAssistant.tsx", import.meta.url), "utf8");
+  assert.match(page, /href="#burr-selector">Не знаете форму\? Подобрать по задаче/u);
+  assert.match(selector, /detailsRef\.current\.open = true/u);
+  assert.match(selector, /a\[href="#burr-selector"\]/u);
+  assert.match(selector, /firstTaskRef\.current\?\.focus/u);
+});
+
+test("burr promoted filters wrap instead of hiding options", async () => {
+  const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(styles, /\.feed-promoted-filters--burr>div>div \{[^}]*flex-wrap:wrap[^}]*overflow:visible/us);
+  assert.match(styles, /\.feed-promoted-filters--burr>div:nth-child\(4\) \{[^}]*grid-column:1\/3/us);
 });
 
 test("product cards use readable actions and a native full-details navigation", async () => {
