@@ -112,6 +112,8 @@ function RequestCartDrawer() {
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [draftNumber, setDraftNumber] = useState("");
+  const [billingProvided, setBillingProvided] = useState(false);
+  const [formError, setFormError] = useState("");
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const summary = useMemo(() => summarizeRequest(items), [items]);
 
@@ -128,6 +130,7 @@ function RequestCartDrawer() {
   function closeDrawer() {
     setSent(false);
     setSubmitting(false);
+    setFormError("");
     close();
   }
 
@@ -139,6 +142,15 @@ function RequestCartDrawer() {
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!items.length || submitting) return;
+    const formData = new FormData(event.currentTarget);
+    const inn = String(formData.get("billing_inn") ?? "").trim();
+    const requisitesFile = formData.get("billing_file");
+    if (requisitesFile instanceof File && requisitesFile.size > 10 * 1024 * 1024) {
+      setFormError("Файл реквизитов больше 10 МБ. Выберите файл меньшего размера или укажите только ИНН.");
+      return;
+    }
+    setFormError("");
+    setBillingProvided(Boolean(inn || requisitesFile instanceof File && requisitesFile.size > 0));
     setSubmitting(true);
     trackQuote("submit_quote", { placement:"quote_drawer", item_count:items.length });
     window.setTimeout(() => {
@@ -157,7 +169,7 @@ function RequestCartDrawer() {
       <header><div><span>Единый запрос без повторного ввода</span><h2 id="request-cart-title">Запрос коммерческого предложения</h2><p id="request-cart-description">Проверьте позиции и оставьте контакты — комплектность, остаток и срок менеджер подтвердит в ответе.</p></div><button ref={closeButtonRef} type="button" onClick={closeDrawer} aria-label="Закрыть">×</button></header>
       <div className="request-cart-progress" aria-label="Этапы запроса"><b>1 <span>Состав</span></b><b>2 <span>Контакты</span></b><b>3 <span>Ответ менеджера</span></b></div>
 
-      {sent ? <QuoteSuccess draftNumber={draftNumber} itemCount={items.length} totalQuantity={summary.totalQuantity} onEdit={() => setSent(false)} onClose={closeDrawer} /> : <>
+      {sent ? <QuoteSuccess draftNumber={draftNumber} itemCount={items.length} totalQuantity={summary.totalQuantity} billingProvided={billingProvided} onEdit={() => setSent(false)} onClose={closeDrawer} /> : <>
         {items.length > 0 ? <section className="request-cart-composition" aria-labelledby="request-cart-composition-title"><div className="request-cart-section-title"><div><span>Состав запроса</span><h3 id="request-cart-composition-title">{items.length} поз. · {summary.totalQuantity} шт.</h3></div>{summary.pricedItems > 0 && <div><span>Ориентировочно</span><b>{formatMoney(summary.estimatedTotal)}</b></div>}</div><div className="request-cart-items">{items.map((item) => <RequestCartItem item={item} onChange={changeQuantity} onRemove={remove} key={item.id} />)}</div><p className="request-cart-estimate-note">{summary.hasUnpricedItems ? "Итог рассчитан только по позициям с указанной ценой. " : ""}Цена, остаток и дата отгрузки будут повторно подтверждены перед оплатой.</p></section> : <div className="request-cart-empty"><b>В запросе пока нет товаров</b><p>Добавьте нужное исполнение со страницы товара или из категории.</p><button type="button" onClick={closeDrawer}>Продолжить подбор</button></div>}
 
         <form className="request-cart-form" onSubmit={submit}>
@@ -166,10 +178,12 @@ function RequestCartDrawer() {
           <label>Телефон для уточнения <span>*</span><input name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+7 999 000-00-00" required /></label>
           <label>Компания<input name="company" type="text" autoComplete="organization" placeholder="Название, необязательно" /></label>
           <label>Город поставки<input name="city" type="text" autoComplete="address-level2" placeholder="Например, Екатеринбург" /></label>
+          <details className="request-cart-wide request-cart-requisites"><summary><span>Нужен счёт после подтверждения?</span><small>Добавить реквизиты · необязательно</small></summary><div><p>Укажите ИНН или приложите карточку организации. Остальные поля вручную заполнять не нужно.</p><label>ИНН организации<input name="billing_inn" type="text" inputMode="numeric" autoComplete="off" pattern="[0-9]{10}|[0-9]{12}" placeholder="10 или 12 цифр" /></label><span>или</span><label className="request-cart-file">Карточка организации<input name="billing_file" type="file" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" /><small>PDF, JPG или PNG · до 10 МБ</small></label><strong>Счёт подготовят только после подтверждения цены, наличия, комплектации и даты отгрузки.</strong></div></details>
           <label className="request-cart-wide">Комментарий к закупке<textarea name="comment" rows={4} placeholder="Требуемый срок, условия поставки, режим работы или другие требования" /></label>
           <fieldset className="request-cart-wide request-cart-options"><legend>Что проверить и включить в ответ</legend><label><input name="check_availability" type="checkbox" defaultChecked /> Остаток и ближайшую дату отгрузки</label><label><input name="check_set" type="checkbox" defaultChecked /> Комплектность и совместимость</label><label><input name="check_docs" type="checkbox" defaultChecked /> Паспорт, сертификаты и гарантию</label></fieldset>
           <label className="request-cart-wide request-cart-check"><input name="alternatives" type="checkbox" defaultChecked /> Можно предложить подходящий аналог, если он выгоднее или доступен раньше</label>
           <label className="request-cart-wide request-cart-check"><input name="consent" type="checkbox" defaultChecked required /> Я согласен на обработку персональных данных</label>
+          {formError && <div className="request-cart-wide request-cart-form-error" role="alert">{formError}</div>}
           <div className="request-cart-wide request-cart-submit"><button type="submit" disabled={!items.length || submitting}>{submitting ? "Формируем черновик…" : "Сформировать запрос КП"}</button><small>Тестовый стенд: контактные данные и заявка никуда не отправляются.</small></div>
         </form>
         <ManagerContactCard compact placement="quote_drawer" />
@@ -184,8 +198,8 @@ function RequestCartItem({ item, onChange, onRemove }: { item: RequestItem; onCh
   return <article><div className="request-cart-item-media">{item.image ? <Image src={item.image} alt="" width={84} height={84} unoptimized /> : <span aria-hidden="true">7T</span>}</div><div className="request-cart-item-copy"><b>{item.href ? <Link href={item.href}>{item.title}</Link> : item.title}</b><span>{item.article}</span>{item.price && <small>{item.price} · с НДС</small>}</div><div className="request-cart-item-actions"><span>Количество</span><div className="request-cart-quantity"><button type="button" aria-label={`Уменьшить количество ${item.title}`} onClick={() => onChange(item, Math.max(1, quantity - 1))}>−</button><input aria-label={`Количество ${item.title}`} type="number" min="1" max="999" value={quantity} onChange={(event) => onChange(item, Number(event.target.value) || 1)} /><button type="button" aria-label={`Увеличить количество ${item.title}`} onClick={() => onChange(item, quantity + 1)}>+</button></div>{unitPrice !== null && <b>{formatMoney(unitPrice * quantity)}</b>}</div><button className="request-cart-remove" type="button" onClick={() => onRemove(item.id)} aria-label={`Удалить ${item.title}`}>Удалить</button></article>;
 }
 
-function QuoteSuccess({ draftNumber, itemCount, totalQuantity, onEdit, onClose }: { draftNumber: string; itemCount: number; totalQuantity: number; onEdit: () => void; onClose: () => void }) {
-  return <section className="request-cart-success" role="status"><span>Черновик сформирован</span><h3>Запрос {draftNumber}</h3><p>{itemCount} поз. · {totalQuantity} шт. Все товары, количества и требования сохранены в этом окне.</p><div><b>Что произойдёт в рабочей версии</b><ol><li>Заявка получит постоянный номер.</li><li>Менеджер проверит остаток, совместимость и документы.</li><li>КП будет отправлено на указанный email, а детали уточнят по телефону.</li></ol></div><strong>Сейчас ничего не отправлено наружу — это безопасный тестовый результат.</strong><footer><button type="button" onClick={onEdit}>Изменить запрос</button><button type="button" onClick={onClose}>Вернуться к товарам</button></footer></section>;
+function QuoteSuccess({ draftNumber, itemCount, totalQuantity, billingProvided, onEdit, onClose }: { draftNumber: string; itemCount: number; totalQuantity: number; billingProvided: boolean; onEdit: () => void; onClose: () => void }) {
+  return <section className="request-cart-success" role="status"><span>Черновик сформирован</span><h3>Запрос {draftNumber}</h3><p>{itemCount} поз. · {totalQuantity} шт. Все товары, количества и требования сохранены в этом окне.</p>{billingProvided && <div className="request-cart-billing-status"><b>Реквизиты добавлены</b><p>В рабочей версии менеджер проверит их и подготовит счёт после подтверждения условий поставки.</p></div>}<div><b>Что произойдёт в рабочей версии</b><ol><li>Заявка получит постоянный номер.</li><li>Менеджер проверит остаток, совместимость и документы.</li><li>КП будет отправлено на указанный email, а детали уточнят по телефону.</li></ol></div><strong>Сейчас ничего не отправлено наружу — это безопасный тестовый результат.</strong><footer><button type="button" onClick={onEdit}>Изменить запрос</button><button type="button" onClick={onClose}>Вернуться к товарам</button></footer></section>;
 }
 
 function formatMoney(value: number): string { return `${new Intl.NumberFormat("ru-RU").format(value)} ₽`; }

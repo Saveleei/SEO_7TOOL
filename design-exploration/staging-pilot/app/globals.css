@@ -183,6 +183,23 @@ img { display:block; max-width:100%; }
 .request-cart-form>label>span { color:#a93c00; }
 .request-cart-form input,.request-cart-form textarea { width:100%; min-height:47px; padding:11px 12px; border:1px solid #cbd0c8; border-radius:6px; background:#fff; color:#202321; font:500 14px/1.4 Inter,"Segoe UI",Arial,sans-serif; resize:vertical; }
 .request-cart-form input:focus,.request-cart-form textarea:focus { outline:3px solid rgba(203,70,13,.14); border-color:#a93c00; }
+.request-cart-requisites { overflow:hidden; border:1px solid #cfd4cc; border-radius:7px; background:#fff; }
+.request-cart-requisites>summary { min-height:54px; display:grid; grid-template-columns:1fr auto 24px; align-items:center; gap:12px; padding:0 15px; color:#252925; cursor:pointer; list-style:none; }
+.request-cart-requisites>summary::-webkit-details-marker { display:none; }
+.request-cart-requisites>summary>span { font-size:14px; font-weight:800; }
+.request-cart-requisites>summary>small { color:#626760; font-size:12px; }
+.request-cart-requisites>summary::after { content:"+"; color:#a93c00; font-size:22px; font-weight:500; text-align:center; }
+.request-cart-requisites[open]>summary { border-bottom:1px solid #dfe2dc; }
+.request-cart-requisites[open]>summary::after { content:"−"; }
+.request-cart-requisites>div { display:grid; grid-template-columns:minmax(0,.85fr) 34px minmax(0,1.15fr); align-items:end; gap:10px; padding:15px; background:#f7f8f5; }
+.request-cart-requisites>div>p,.request-cart-requisites>div>strong { grid-column:1/-1; }
+.request-cart-requisites>div>p { margin:0 0 2px; color:#555b54; font-size:13px; line-height:1.5; }
+.request-cart-requisites>div>label { display:grid; gap:7px; color:#303430; font-size:13px; font-weight:750; }
+.request-cart-requisites>div>span { align-self:center; color:#777c76; font-size:12px; text-align:center; }
+.request-cart-requisites .request-cart-file input { min-width:0; padding:8px; font-size:12px; }
+.request-cart-requisites .request-cart-file small { color:#666b65; font-size:11px; font-weight:500; }
+.request-cart-requisites>div>strong { padding:10px 12px; border-left:3px solid #168455; background:#eef7f2; color:#465047; font-size:12px; line-height:1.45; }
+.request-cart-form-error { padding:11px 13px; border-left:3px solid #ad3f24; background:#fff0eb; color:#83301d; font-size:13px; line-height:1.45; }
 .request-cart-options { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:2px 0 0; padding:14px; border:1px solid #d4d8d1; border-radius:7px; background:#fff; }
 .request-cart-options legend { padding:0 5px; color:#303430; font-size:13px; font-weight:800; }
 .request-cart-options label { display:flex; align-items:flex-start; gap:8px; color:#4f554f; font-size:12px; line-height:1.4; }
@@ -206,6 +223,8 @@ img { display:block; max-width:100%; }
 .request-cart-success h3 { margin:0; font-size:28px; }
 .request-cart-success>p { margin:0; color:#4c584f; font-size:15px; line-height:1.5; }
 .request-cart-success>div { padding:17px; border-radius:7px; background:#fff; }
+.request-cart-success>.request-cart-billing-status { border:1px solid #c8e1d2; background:#e8f4ed; }
+.request-cart-billing-status>p { margin:5px 0 0; color:#47604f; font-size:13px; line-height:1.45; }
 .request-cart-success>div>b { font-size:15px; }
 .request-cart-success ol { display:grid; gap:8px; margin:11px 0 0; padding-left:21px; color:#4d554e; font-size:14px; line-height:1.45; }
 .request-cart-success>strong { padding:11px 13px; border-radius:6px; background:#e4f2e9; color:#087044; font-size:13px; line-height:1.45; }
@@ -238,6 +257,12 @@ img { display:block; max-width:100%; }
   .request-cart-form { grid-template-columns:1fr; padding:21px 15px; }
   .request-cart-form>label,.request-cart-form-heading,.request-cart-wide { grid-column:1; }
   .request-cart-options { grid-template-columns:1fr; gap:10px; }
+  .request-cart-requisites>summary { grid-template-columns:1fr 24px; min-height:62px; }
+  .request-cart-requisites>summary>small { grid-column:1; grid-row:2; margin-top:-13px; padding-bottom:8px; }
+  .request-cart-requisites>summary::after { grid-column:2; grid-row:1/3; }
+  .request-cart-requisites>div { grid-template-columns:1fr; align-items:stretch; }
+  .request-cart-requisites>div>p,.request-cart-requisites>div>strong { grid-column:1; }
+  .request-cart-requisites>div>span { padding:1px 0; }
   .request-cart-submit { grid-template-columns:1fr; }
   .request-cart-submit>button { min-height:51px; }
   .request-cart-drawer>.manager-contact-card { margin:15px 15px 88px; }

@@ -46,3 +46,16 @@ test("quote drawer keeps the shortest B2B path and never sends externally", asyn
   assert.match(styles, /\.request-cart-drawer \{[^}]*width:min\(720px,100%\)/us);
   assert.match(styles, /\.request-cart-form input,\.request-cart-form textarea \{[^}]*font:[^;]*14px/us);
 });
+
+test("invoice requisites are optional, progressive and size-bounded", async () => {
+  const component = await readFile(new URL("../app/ui/RequestCart.tsx", import.meta.url), "utf8");
+  const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(component, /<details className="request-cart-wide request-cart-requisites">/u);
+  assert.match(component, /name="billing_inn"[^>]*pattern="\[0-9\]\{10\}\|\[0-9\]\{12\}"/u);
+  assert.match(component, /name="billing_file"[^>]*accept="\.pdf,\.png,\.jpg,\.jpeg,application\/pdf,image\/png,image\/jpeg"/u);
+  assert.match(component, /requisitesFile\.size > 10 \* 1024 \* 1024/u);
+  assert.match(component, /Счёт подготовят только после подтверждения цены, наличия, комплектации и даты отгрузки/u);
+  assert.match(component, /billingProvided && <div className="request-cart-billing-status">/u);
+  assert.doesNotMatch(component, /name="billing_(?:inn|file)"[^>]*required/u);
+  assert.match(styles, /\.request-cart-requisites>summary \{[^}]*cursor:pointer/us);
+});
