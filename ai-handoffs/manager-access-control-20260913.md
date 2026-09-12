@@ -52,4 +52,5 @@ Protect the local manager workspace with server-side authentication and role-bas
 
 ## Commit
 
-Implementation commit pending.
+- Implementation: `8a5f7cb` (`feat: protect manager workspace with roles`)
+- Handoff completion: recorded in the following documentation commit.
