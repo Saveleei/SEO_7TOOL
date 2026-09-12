@@ -67,4 +67,4 @@ Generate a real server-side PDF for one exact approved quote revision and expose
 
 ## Commit
 
-Pending feature commit.
+- Feature commit: `66ce05c` (`feat: generate revision-specific quote PDFs`).
