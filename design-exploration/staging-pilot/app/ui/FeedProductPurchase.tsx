@@ -11,6 +11,8 @@ type PurchaseVariant = {
   price: string;
   available: boolean;
   keySpecs: Array<{ label: string; value: string }>;
+  image?: string;
+  href?: string;
 };
 
 export function FeedProductPurchase({ productId, productTitle, variants, selectedVariantId }: { productId: string; productTitle: string; variants: PurchaseVariant[]; selectedVariantId?: string }) {
@@ -28,7 +30,7 @@ export function FeedProductPurchase({ productId, productTitle, variants, selecte
 
   function addSelected() {
     if (!selected) return;
-    addItem({ id:`variant:${selected.id}`, title:selected.title || productTitle, article:`Артикул ${selected.sku}`, price:selected.price, quantity });
+    addItem({ id:`variant:${selected.id}`, title:selected.title || productTitle, article:`Артикул ${selected.sku}`, price:selected.price, quantity, image:selected.image, href:selected.href });
     track("add_to_quote", "product_buybox");
   }
 
