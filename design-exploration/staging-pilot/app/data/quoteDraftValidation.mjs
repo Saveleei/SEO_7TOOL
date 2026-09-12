@@ -1,5 +1,5 @@
 const SUPPLY_STATUSES = ["confirmed", "supplier_confirmed", "to_order", "unknown"];
-const STAMP_ASSET_PATTERN = /^[0-9a-f]{64}\.(?:png|jpg|webp)$/u;
+const STAMP_ASSET_PATTERN = /^(?:template-)?[0-9a-f]{64}\.(?:png|jpg|webp)$/u;
 
 export const DEFAULT_QUOTE_SENDER = Object.freeze({
   name:"Евгений Савельев",

@@ -5,6 +5,7 @@ import { quoteStampAssetExists } from "./quoteAssetStore.ts";
 import { getQuoteProductPresentation, type QuoteProductPresentation } from "./quoteProductPresentation.ts";
 import { getQuoteRequestDetail, QuoteWorkflowError } from "./quoteRequestStore.ts";
 import { DEFAULT_QUOTE_SENDER, parsePriceRub, validateQuoteDraft } from "./quoteDraftValidation.mjs";
+import { DEFAULT_QUOTE_TEMPLATE_SETTINGS, defaultQuoteSender, getQuoteTemplateSettings, type QuoteTemplateDocument, type QuoteTemplateSeller } from "./quoteTemplateStore.ts";
 
 export type QuoteSender = {
   name: string;
@@ -38,6 +39,8 @@ export type QuoteDraft = {
   deliveryTerms: string;
   managerComment: string;
   sender: QuoteSender;
+  seller: QuoteTemplateSeller;
+  document: QuoteTemplateDocument;
   stampAssetId: string;
   includeStamp: boolean;
   items: QuoteDraftItem[];
@@ -74,26 +77,30 @@ export async function getQuoteDraftOrDefault(requestId: string, options: Options
   if (!request) return null;
   const stored = await getLatestQuoteDraft(request.id, options);
   if (stored) return stored;
+  const settings = await getQuoteTemplateSettings(options);
+  const totalRub = request.items.reduce((sum, item) => sum + parsePriceRub(item.price) * item.quantity, 0);
   return {
     id:`КП-${request.id.slice(3)}`,
     requestId:request.id,
     revision:0,
     createdAt:request.createdAt,
     status:"draft",
-    validityDays:10,
-    vatRate:22,
-    paymentTerms:"",
-    deliveryTerms:"",
-    managerComment:"",
-    sender:{ ...DEFAULT_QUOTE_SENDER },
-    stampAssetId:"",
-    includeStamp:false,
+    validityDays:settings.defaults.validityDays,
+    vatRate:settings.defaults.vatRate,
+    paymentTerms:settings.defaults.paymentTerms,
+    deliveryTerms:settings.defaults.deliveryTerms,
+    managerComment:settings.defaults.managerComment,
+    sender:defaultQuoteSender(settings),
+    seller:{ ...settings.seller },
+    document:{ ...settings.document },
+    stampAssetId:settings.stampAssetId,
+    includeStamp:settings.includeStampByDefault,
     items:request.items.map((item) => {
       const unitPriceRub = parsePriceRub(item.price);
       return { id:item.id, title:item.title, article:item.article, quantity:item.quantity, unitPriceRub, discountPercent:0, supplyStatus:"unknown", shipmentText:"Требует подтверждения", lineTotalRub:unitPriceRub * item.quantity, productPresentation:getQuoteProductPresentation(item.id) };
     }),
-    totalRub:request.items.reduce((sum, item) => sum + parsePriceRub(item.price) * item.quantity, 0),
-    vatIncludedRub:0,
+    totalRub,
+    vatIncludedRub:settings.defaults.vatRate ? Math.round(totalRub * settings.defaults.vatRate / (100 + settings.defaults.vatRate) * 100) / 100 : 0,
   };
 }
 
@@ -114,7 +121,12 @@ async function saveQuoteDraftSerial(requestId: string, input: DraftInput, option
   const idempotencyHash = createHash("sha256").update(validation.value.idempotencyKey).digest("hex");
   const duplicate = drafts.find((draft) => draft.requestId === request.id && draft.idempotencyHash === idempotencyHash);
   if (duplicate) return { draft:withoutHash(duplicate), duplicate:true };
-  const previousRevision = drafts.filter((draft) => draft.requestId === request.id).reduce((max, draft) => Math.max(max, draft.revision), 0);
+  const requestDrafts = drafts.filter((draft) => draft.requestId === request.id);
+  const previousRevision = requestDrafts.reduce((max, draft) => Math.max(max, draft.revision), 0);
+  const previousDraft = requestDrafts.sort((a, b) => b.revision - a.revision)[0];
+  const currentSettings = previousDraft ? null : await getQuoteTemplateSettings({ dataDir });
+  const seller = previousDraft?.seller ?? currentSettings?.seller ?? DEFAULT_QUOTE_TEMPLATE_SETTINGS.seller;
+  const document = previousDraft?.document ?? currentSettings?.document ?? DEFAULT_QUOTE_TEMPLATE_SETTINGS.document;
   const stored: StoredQuoteDraft = {
     id:`КП-${request.id.slice(3)}`,
     requestId:request.id,
@@ -127,6 +139,8 @@ async function saveQuoteDraftSerial(requestId: string, input: DraftInput, option
     deliveryTerms:validation.value.deliveryTerms,
     managerComment:validation.value.managerComment,
     sender:validation.value.sender,
+    seller:{ ...seller },
+    document:{ ...document },
     stampAssetId:validation.value.stampAssetId,
     includeStamp:validation.value.includeStamp,
     items:validation.value.items.map((item: Omit<QuoteDraftItem, "productPresentation">) => ({ ...item, productPresentation:getQuoteProductPresentation(item.id) })),
@@ -174,6 +188,8 @@ function withoutHash(draft: StoredQuoteDraft): QuoteDraft {
     deliveryTerms:draft.deliveryTerms,
     managerComment:draft.managerComment,
     sender:draft.sender ?? { ...DEFAULT_QUOTE_SENDER },
+    seller:{ ...(draft.seller ?? DEFAULT_QUOTE_TEMPLATE_SETTINGS.seller) },
+    document:{ ...(draft.document ?? DEFAULT_QUOTE_TEMPLATE_SETTINGS.document) },
     stampAssetId:draft.stampAssetId ?? "",
     includeStamp:Boolean(draft.includeStamp && draft.stampAssetId),
     items:draft.items.map((item) => ({ ...item, productPresentation:item.productPresentation ?? getQuoteProductPresentation(item.id) })),

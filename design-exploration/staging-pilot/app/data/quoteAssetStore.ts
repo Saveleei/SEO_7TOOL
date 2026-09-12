@@ -5,6 +5,7 @@ import { getQuoteRequestDetail, QuoteWorkflowError } from "./quoteRequestStore.t
 
 const MAX_STAMP_BYTES = 1_500_000;
 const ASSET_PATTERN = /^(?<hash>[0-9a-f]{64})\.(?<extension>png|jpg|webp)$/u;
+const TEMPLATE_ASSET_PATTERN = /^template-(?<hash>[0-9a-f]{64})\.(?<extension>png|jpg|webp)$/u;
 
 type Options = { dataDir?: string };
 type SavedAsset = { assetId: string; mime: string; size: number };
@@ -12,12 +13,19 @@ type SavedAsset = { assetId: string; mime: string; size: number };
 export async function saveQuoteStampAsset(requestId: string, file: File, options: Options = {}): Promise<SavedAsset> {
   const request = await getQuoteRequestDetail(requestId, options);
   if (!request) throw new QuoteWorkflowError("Заявка не найдена.", 404);
+  return saveStampAsset(file, assetDirectory(request.id, resolveDataDir(options.dataDir)), "");
+}
+
+export async function saveQuoteTemplateStampAsset(file: File, options: Options = {}): Promise<SavedAsset> {
+  return saveStampAsset(file, templateAssetDirectory(resolveDataDir(options.dataDir)), "template-");
+}
+
+async function saveStampAsset(file: File, directory: string, prefix: "" | "template-"): Promise<SavedAsset> {
   if (file.size <= 0 || file.size > MAX_STAMP_BYTES) throw new QuoteWorkflowError("Файл печати и подписи должен быть не больше 1,5 МБ.", 413);
   const bytes = Buffer.from(await file.arrayBuffer());
   const format = detectImageFormat(bytes);
   if (!format) throw new QuoteWorkflowError("Загрузите PNG, JPG или WebP с корректным содержимым.", 400);
-  const assetId = `${createHash("sha256").update(bytes).digest("hex")}.${format.extension}`;
-  const directory = assetDirectory(request.id, resolveDataDir(options.dataDir));
+  const assetId = `${prefix}${createHash("sha256").update(bytes).digest("hex")}.${format.extension}`;
   await mkdir(directory, { recursive:true });
   const destination = path.join(directory, assetId);
   try {
@@ -35,10 +43,11 @@ export async function saveQuoteStampAsset(requestId: string, file: File, options
 }
 
 export async function readQuoteStampAsset(requestId: string, assetId: string, options: Options = {}): Promise<{ bytes: Buffer; mime: string } | null> {
-  const parsed = parseAssetId(assetId);
-  if (!parsed) return null;
   const request = await getQuoteRequestDetail(requestId, options);
   if (!request) return null;
+  if (parseTemplateAssetId(assetId)) return readQuoteTemplateStampAsset(assetId, options);
+  const parsed = parseAssetId(assetId);
+  if (!parsed) return null;
   try {
     const bytes = await readFile(path.join(assetDirectory(request.id, resolveDataDir(options.dataDir)), assetId));
     const detected = detectImageFormat(bytes);
@@ -50,12 +59,29 @@ export async function readQuoteStampAsset(requestId: string, assetId: string, op
   }
 }
 
+export async function readQuoteTemplateStampAsset(assetId: string, options: Options = {}): Promise<{ bytes: Buffer; mime: string } | null> {
+  const parsed = parseTemplateAssetId(assetId);
+  if (!parsed) return null;
+  try {
+    const bytes = await readFile(path.join(templateAssetDirectory(resolveDataDir(options.dataDir)), assetId));
+    const detected = detectImageFormat(bytes);
+    if (!detected || detected.extension !== parsed.extension) return null;
+    return { bytes, mime:detected.mime };
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+    throw error;
+  }
+}
+
 export async function quoteStampAssetExists(requestId: string, assetId: string, options: Options = {}): Promise<boolean> {
-  if (!parseAssetId(assetId)) return false;
+  const templateAsset = parseTemplateAssetId(assetId);
+  if (!templateAsset && !parseAssetId(assetId)) return false;
   try {
     const request = await getQuoteRequestDetail(requestId, options);
     if (!request) return false;
-    const file = await stat(path.join(assetDirectory(request.id, resolveDataDir(options.dataDir)), assetId));
+    const dataDir = resolveDataDir(options.dataDir);
+    const directory = templateAsset ? templateAssetDirectory(dataDir) : assetDirectory(request.id, dataDir);
+    const file = await stat(path.join(directory, assetId));
     return file.isFile() && file.size > 0 && file.size <= MAX_STAMP_BYTES;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") return false;
@@ -67,8 +93,27 @@ function parseAssetId(assetId: string) {
   return ASSET_PATTERN.exec(assetId)?.groups as { hash: string; extension: "png" | "jpg" | "webp" } | undefined;
 }
 
+export async function quoteTemplateStampAssetExists(assetId: string, options: Options = {}): Promise<boolean> {
+  if (!parseTemplateAssetId(assetId)) return false;
+  try {
+    const file = await stat(path.join(templateAssetDirectory(resolveDataDir(options.dataDir)), assetId));
+    return file.isFile() && file.size > 0 && file.size <= MAX_STAMP_BYTES;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return false;
+    throw error;
+  }
+}
+
+function parseTemplateAssetId(assetId: string) {
+  return TEMPLATE_ASSET_PATTERN.exec(assetId)?.groups as { hash: string; extension: "png" | "jpg" | "webp" } | undefined;
+}
+
 function assetDirectory(requestId: string, dataDir: string) {
   return path.join(dataDir, "quote-assets", requestId);
+}
+
+function templateAssetDirectory(dataDir: string) {
+  return path.join(dataDir, "settings", "quote-template-assets");
 }
 
 function resolveDataDir(override?: string) {

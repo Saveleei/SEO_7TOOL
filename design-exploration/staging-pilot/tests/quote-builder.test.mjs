@@ -9,6 +9,7 @@ import { parsePriceRub, validateQuoteDraft } from "../app/data/quoteDraftValidat
 import { getQuoteProductPresentation } from "../app/data/quoteProductPresentation.ts";
 import { saveQuoteRequest } from "../app/data/quoteRequestStore.ts";
 import { validateQuoteRequest } from "../app/data/quoteRequestValidation.mjs";
+import { DEFAULT_QUOTE_TEMPLATE_SETTINGS } from "../app/data/quoteTemplateStore.ts";
 
 const requestItems = [{ id:"variant:A9409", title:"Магнитный станок", article:"STEYR-35", quantity:1, price:"47 999 ₽" }];
 const readyDraft = {
@@ -102,6 +103,8 @@ test("saved historical quote revisions retain their snapshotted VAT rate", async
     const legacy = { id:"КП-20251231-LEGACY", requestId:"7T-20251231-LEGACY", revision:1, createdAt:"2025-12-31T12:00:00.000Z", status:"ready", validityDays:10, vatRate:20, paymentTerms:"Оплата по счёту", deliveryTerms:"Самовывоз", managerComment:"", sender:readyDraft.sender, stampAssetId:"", includeStamp:false, items:[], totalRub:95000, vatIncludedRub:15833.33, idempotencyHash:"legacy" };
     await writeFile(path.join(dataDir, "quote-drafts.jsonl"), `${JSON.stringify(legacy)}\n`, "utf8");
     const restored = await getLatestQuoteDraft(legacy.requestId, { dataDir });
+    assert.equal(restored.seller.legalName, DEFAULT_QUOTE_TEMPLATE_SETTINGS.seller.legalName);
+    assert.equal(restored.document.title, DEFAULT_QUOTE_TEMPLATE_SETTINGS.document.title);
     assert.equal(restored.vatRate, 20);
     assert.equal(restored.vatIncludedRub, 15833.33);
   } finally {

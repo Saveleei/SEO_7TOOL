@@ -14,7 +14,7 @@ export function PilotHeader({ managerMode = false }: { managerMode?: boolean }) 
           <HeaderSearch />
           <Link className="header-quick" href="/#quick-order"><span>?</span>Подбор по задаче</Link>
           <a className="header-email" href="mailto:info@7tool.ru"><span>Запросы и спецификации</span><b>info@7tool.ru</b></a>
-          <RequestCartButton />
+          {managerMode ? <Link className="manager-settings-link" href="/test/settings/quote">Настройки КП</Link> : <RequestCartButton />}
         </div>
       </header>
       {!managerMode && <nav className="mobile-action-bar" aria-label="Быстрые действия">

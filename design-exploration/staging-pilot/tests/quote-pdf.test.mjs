@@ -10,6 +10,7 @@ import { getQuoteDraftRevision, listQuoteDrafts, saveQuoteDraft } from "../app/d
 import { generateQuotePdf, loadSafeProductImage } from "../app/data/quotePdf.ts";
 import { saveQuoteRequest } from "../app/data/quoteRequestStore.ts";
 import { validateQuoteRequest } from "../app/data/quoteRequestValidation.mjs";
+import { DEFAULT_QUOTE_TEMPLATE_SETTINGS } from "../app/data/quoteTemplateStore.ts";
 
 const onePixelPng = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64");
 const requestItem = { id:"variant:missing-pdf-test", title:"Магнитный сверлильный станок LENZ STEYR-35", article:"STEYR-35", quantity:1, price:"47 999 ₽" };
@@ -43,8 +44,37 @@ test("PDF generator creates a readable multi-page A4 document with embedded Cyri
   assert.ok(bytes.byteLength > 15_000);
   const document = await PDFDocument.load(bytes);
   assert.equal(document.getTitle(), `${quote.id}, редакция 1`);
+  assert.equal(document.getSubject(), `${quote.document.title} на промышленное оборудование`);
   assert.ok(document.getPageCount() >= 2);
   document.getPages().forEach((page) => assert.deepEqual(page.getSize(), { width:595.28, height:841.89 }));
+});
+
+test("complete bank details share the first-page closing block with the signer", async () => {
+  const quote = await fixtureQuote();
+  quote.seller = {
+    ...quote.seller,
+    inn:"7700000000",
+    kpp:"770001001",
+    ogrn:"1027700000000",
+    bankName:"АО Тестовый банк",
+    bik:"044525000",
+    checkingAccount:"40702810000000000000",
+    correspondentAccount:"30101810000000000000",
+  };
+  quote.document = { ...quote.document, showBankDetails:true };
+  quote.items[0].productPresentation = {
+    exactVariant:true,
+    variantId:"A9409",
+    category:"stanki-sverlilnye",
+    productHref:"/product/test?variant=A9409",
+    imageUrl:"",
+    imageAlt:"Магнитный станок",
+    keySpecs:[{ label:"Шпиндель", value:"Weldon 19" }],
+    technicalSpecs:Array.from({ length:24 }, (_, index) => ({ label:`Технический параметр ${index + 1}`, value:`Значение ${index + 1}` })),
+  };
+  const bytes = await generateQuotePdf({ quote, request:fixtureRequest(), approval:fixtureApproval(quote) });
+  const document = await PDFDocument.load(bytes);
+  assert.equal(document.getPageCount(), 2);
 });
 
 test("product image loader accepts only bounded PNG/JPEG assets from the feed host", async () => {
@@ -104,7 +134,7 @@ test("manager revision UI exposes explicit preview and PDF routes without delive
 
 async function fixtureQuote() {
   return {
-    id:"КП-20260912-TEST01", requestId:"7T-20260912-TEST01", revision:1, createdAt:"2026-09-12T09:00:00.000Z", status:"ready", validityDays:10, vatRate:22, paymentTerms:readyQuote.paymentTerms, deliveryTerms:readyQuote.deliveryTerms, managerComment:readyQuote.managerComment, sender:readyQuote.sender, stampAssetId:"", includeStamp:false,
+    id:"КП-20260912-TEST01", requestId:"7T-20260912-TEST01", revision:1, createdAt:"2026-09-12T09:00:00.000Z", status:"ready", validityDays:10, vatRate:22, paymentTerms:readyQuote.paymentTerms, deliveryTerms:readyQuote.deliveryTerms, managerComment:readyQuote.managerComment, sender:readyQuote.sender, seller:{ ...DEFAULT_QUOTE_TEMPLATE_SETTINGS.seller }, document:{ ...DEFAULT_QUOTE_TEMPLATE_SETTINGS.document }, stampAssetId:"", includeStamp:false,
     items:[{ id:requestItem.id, title:requestItem.title, article:requestItem.article, quantity:1, unitPriceRub:47999, discountPercent:0, supplyStatus:"supplier_confirmed", shipmentText:"Отгрузка в течение 5 рабочих дней", lineTotalRub:47999, productPresentation:null }], totalRub:47999, vatIncludedRub:8655.56,
   };
 }

@@ -1,13 +1,15 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import type { QuoteDraft, QuoteDraftItem } from "../data/quoteDraftStore";
+import type { QuoteTemplateSender } from "../data/quoteTemplateStore";
 
 type EditableItem = Omit<QuoteDraftItem, "lineTotalRub">;
 
-export function QuoteBuilder({ initial }: { initial: QuoteDraft }) {
+export function QuoteBuilder({ initial, senderOptions }: { initial: QuoteDraft; senderOptions: QuoteTemplateSender[] }) {
   const router = useRouter();
   const [items, setItems] = useState<EditableItem[]>(initial.items.map((item) => ({ ...item })));
   const [validityDays, setValidityDays] = useState(initial.validityDays);
@@ -27,6 +29,7 @@ export function QuoteBuilder({ initial }: { initial: QuoteDraft }) {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const totals = useMemo(() => calculateTotals(items, vatRate), [items, vatRate]);
+  const senderChoice = senderOptions.find((option) => option.name === sender.name && option.role === sender.role && option.phone === sender.phone && option.email === sender.email)?.id ?? "custom";
 
   function updateItem(index: number, patch: Partial<EditableItem>) {
     setItems((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item));
@@ -96,7 +99,8 @@ export function QuoteBuilder({ initial }: { initial: QuoteDraft }) {
         <label><span>Ставка НДС</span><select value={vatRate} onChange={(event) => setVatRate(Number(event.target.value))}><option value={22}>22%, включён — основная ставка</option><option value={10}>10%, включён — пониженная ставка</option><option value={0}>Без НДС</option></select>{legacyVatRate && <small>В сохранённой редакции было 20%. Новая редакция будет рассчитана по ставке 22%.</small>}</label>
         <label className="wide"><span>Комментарий менеджера в КП</span><textarea rows={4} maxLength={1000} value={managerComment} onChange={(event) => setManagerComment(event.target.value)} placeholder="Например: аналог возможен после проверки технической применимости." /></label>
       </div></section>
-      <section className="quote-builder-card"><header><div><span>03</span><h2>Отправитель и подпись</h2></div><p>Данные сохраняются в конкретной редакции. Используйте только утверждённое компанией изображение.</p></header><div className="quote-sender-fields">
+      <section className="quote-builder-card"><header><div><span>03</span><h2>Отправитель и подпись</h2></div><p>Данные сохраняются в конкретной редакции. <Link href="/test/settings/quote">Изменить общие настройки КП</Link></p></header><div className="quote-sender-fields">
+        <label className="wide"><span>Подписант из настроек</span><select value={senderChoice} onChange={(event) => { const option = senderOptions.find((candidate) => candidate.id === event.target.value); if (option) setSender({ name:option.name, role:option.role, phone:option.phone, email:option.email }); }}><option value="custom">Введён вручную для этой редакции</option>{senderOptions.map((option) => <option key={option.id} value={option.id}>{option.name} · {option.role}</option>)}</select></label>
         <label><span>ФИО отправителя</span><input value={sender.name} maxLength={100} onChange={(event) => setSender((current) => ({ ...current, name:event.target.value }))} /></label>
         <label><span>Должность</span><input value={sender.role} maxLength={120} onChange={(event) => setSender((current) => ({ ...current, role:event.target.value }))} /></label>
         <label><span>Телефон</span><input type="tel" value={sender.phone} maxLength={50} onChange={(event) => setSender((current) => ({ ...current, phone:event.target.value }))} /></label>

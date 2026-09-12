@@ -39,7 +39,7 @@ export async function generateQuotePdf({ quote, request, approval }: Input, opti
   const stampImage = options.stampImage ? await embedImage(document, options.stampImage) : null;
   document.setTitle(`${quote.id}, редакция ${quote.revision}`);
   document.setAuthor("7TOOL");
-  document.setSubject("Коммерческое предложение на промышленное оборудование");
+  document.setSubject(`${quote.document.title} на промышленное оборудование`);
   document.setProducer("7TOOL quote service");
   document.setCreator("7TOOL");
   document.setCreationDate(new Date(quote.createdAt));
@@ -59,7 +59,7 @@ export async function generateQuotePdf({ quote, request, approval }: Input, opti
   y = drawApprovalBar(page, fonts, y, approval);
   y = drawParties(page, fonts, y, quote, request);
   y -= 23;
-  drawText(page, "Предложение по вашему запросу", margin, y, 18, fonts.bold, colors.ink);
+  drawText(page, truncateToWidth(normalize(quote.document.introText || "Предложение по вашему запросу"), contentWidth, fonts.bold, 18), margin, y, 18, fonts.bold, colors.ink);
   y -= 22;
 
   for (let index = 0; index < quote.items.length; index += 1) {
@@ -73,8 +73,13 @@ export async function generateQuotePdf({ quote, request, approval }: Input, opti
   ensure(172, "Коммерческие условия");
   y = drawTotals(page, fonts, y, quote);
   y = drawTerms(page, fonts, y, quote);
-  ensure(120, "Подпись");
-  y = drawSignature(page, fonts, y, quote, stampImage);
+  if (quote.document.showBankDetails && hasBankDetails(quote)) {
+    ensure(116, "Реквизиты и подпись");
+    y = drawSellerBankAndSignature(page, fonts, y, quote, stampImage);
+  } else {
+    ensure(120, "Подпись");
+    y = drawSignature(page, fonts, y, quote, stampImage);
+  }
 
   const technicalItems = quote.items.filter((item) => item.productPresentation?.technicalSpecs.length);
   if (technicalItems.length) {
@@ -121,7 +126,7 @@ export async function loadQuoteProductImage(item: QuoteDraftItem): Promise<Quote
 
 function drawFirstHeader(page: PDFPage, fonts: Fonts, quote: QuoteDraft) {
   drawLogo(page, margin, 785);
-  drawText(page, "КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ", A4[0] - margin, 798, 8, fonts.bold, colors.orange, "right");
+  drawText(page, truncateToWidth(normalize(quote.document.title).toUpperCase(), 275, fonts.bold, 8), A4[0] - margin, 798, 8, fonts.bold, colors.orange, "right");
   drawText(page, quote.id, A4[0] - margin, 778, 17, fonts.regular, colors.ink, "right");
   drawText(page, `Редакция №${quote.revision} от ${dateRu(quote.createdAt)}`, A4[0] - margin, 762, 8, fonts.regular, colors.muted, "right");
   page.drawRectangle({ x:margin, y:742, width:contentWidth, height:2.2, color:colors.ink });
@@ -160,7 +165,8 @@ function drawParties(page: PDFPage, fonts: Fonts, startY: number, quote: QuoteDr
   const gap = 12;
   const width = (contentWidth - gap) / 2;
   const height = 92;
-  drawPartyCard(page, fonts, margin, startY, width, height, "ПОСТАВЩИК", "7TOOL", [quote.sender.name, quote.sender.role, quote.sender.phone, quote.sender.email]);
+  const registration = [quote.seller.inn && `ИНН ${quote.seller.inn}`, quote.seller.kpp && `КПП ${quote.seller.kpp}`, quote.seller.ogrn && `ОГРН ${quote.seller.ogrn}`].filter(Boolean).join(" · ");
+  drawPartyCard(page, fonts, margin, startY, width, height, "ПОСТАВЩИК", quote.seller.legalName || quote.seller.brandName, [registration, quote.seller.legalAddress, `${quote.sender.name}, ${quote.sender.role}`, `${quote.sender.phone} · ${quote.sender.email}`]);
   drawPartyCard(page, fonts, margin + width + gap, startY, width, height, "ПОКУПАТЕЛЬ", request.company || "Компания не указана", [request.billingInn ? `ИНН ${request.billingInn}` : "ИНН не указан", request.city || "Город не указан", request.emailFull, request.phoneFull]);
   return startY - height;
 }
@@ -253,6 +259,23 @@ function drawSignature(page: PDFPage, fonts: Fonts, startY: number, quote: Quote
   return startY - 92;
 }
 
+function drawSellerBankAndSignature(page: PDFPage, fonts: Fonts, startY: number, quote: QuoteDraft, stamp: PDFImage | null) {
+  const height = 102;
+  const dividerX = margin + 302;
+  page.drawRectangle({ x:margin, y:startY - height, width:contentWidth, height, color:colors.paper, borderColor:colors.line, borderWidth:0.6 });
+  page.drawRectangle({ x:dividerX, y:startY - height + 12, width:0.6, height:height - 24, color:colors.line });
+  drawText(page, "БАНКОВСКИЕ РЕКВИЗИТЫ ПОСТАВЩИКА", margin + 12, startY - 17, 7, fonts.bold, colors.muted);
+  drawText(page, truncateToWidth(normalize(quote.seller.bankName), 276, fonts.bold, 8), margin + 12, startY - 33, 8, fonts.bold, colors.ink);
+  drawText(page, `БИК ${quote.seller.bik}`, margin + 12, startY - 49, 7, fonts.regular, colors.muted);
+  drawText(page, `р/с ${quote.seller.checkingAccount}`, margin + 12, startY - 64, 7, fonts.regular, colors.muted);
+  drawText(page, `к/с ${quote.seller.correspondentAccount}`, margin + 12, startY - 79, 7, fonts.regular, colors.muted);
+  drawText(page, quote.sender.name, dividerX + 15, startY - 21, 9, fonts.bold, colors.ink);
+  drawText(page, truncateToWidth(quote.sender.role, 177, fonts.regular, 7), dividerX + 15, startY - 36, 7, fonts.regular, colors.muted);
+  drawText(page, truncateToWidth(`${quote.sender.phone} · ${quote.sender.email}`, 177, fonts.regular, 6.5), dividerX + 15, startY - 50, 6.5, fonts.regular, colors.muted);
+  if (stamp) drawContainedImage(page, stamp, dividerX + 15, startY - 94, 175, 39);
+  return startY - height - 12;
+}
+
 function drawTechnicalItem(page: PDFPage, fonts: Fonts, startY: number, item: QuoteDraftItem) {
   const specs = item.productPresentation?.technicalSpecs ?? [];
   drawText(page, item.article ? `АРТИКУЛ ${articleValue(item.article)}` : "ТОЧНОЕ ИСПОЛНЕНИЕ", margin, startY, 7, fonts.bold, colors.orange);
@@ -270,8 +293,12 @@ function drawTechnicalItem(page: PDFPage, fonts: Fonts, startY: number, item: Qu
 
 function drawFooter(page: PDFPage, fonts: Fonts, pageNumber: number, totalPages: number, quote: QuoteDraft) {
   page.drawRectangle({ x:margin, y:49, width:contentWidth, height:0.7, color:colors.line });
-  drawText(page, "Цена, наличие и срок действительны только в пределах условий этого предложения.", margin, 34, 6.5, fonts.regular, colors.muted);
+  drawText(page, truncateToWidth(normalize(quote.document.footerText), contentWidth - 160, fonts.regular, 6.5), margin, 34, 6.5, fonts.regular, colors.muted);
   drawText(page, `${quote.id} · стр. ${pageNumber} из ${totalPages}`, A4[0] - margin, 34, 6.5, fonts.bold, colors.muted, "right");
+}
+
+function hasBankDetails(quote: QuoteDraft) {
+  return Boolean(quote.seller.bankName && quote.seller.bik && quote.seller.checkingAccount && quote.seller.correspondentAccount);
 }
 
 async function embedFonts(document: PDFDocument, override?: string): Promise<Fonts> {
