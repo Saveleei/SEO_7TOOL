@@ -75,6 +75,7 @@ export type FeedProductCardModel = {
 export type FeedVariantFilter = {
   keyword: string;
   values: string[];
+  minimum?: number;
 };
 
 export type FeedFacetOption = {
@@ -99,6 +100,7 @@ export type FeedCategoryQuery = {
   page?: number;
   pageSize?: number;
   filters?: Record<string, string[]>;
+  numericMinimums?: Record<string, number>;
   availability?: "in-stock";
 };
 
@@ -128,7 +130,7 @@ const productsByCategory = new Map<string, FeedProduct[]>();
 const productsBySlug = new Map<string, FeedProduct>();
 
 const categorySpecPriorities: Record<string, string[]> = {
-  "stanki-sverlilnye": ["макс. диаметр", "шпиндель", "рабочий ход", "реверс", "мощность", "масса"],
+  "stanki-sverlilnye": ["макс. диаметр", "шпиндель", "рабочий ход", "реверс", "масса", "мощность"],
   "koronchatye-sverla": ["диаметр", "рабочая длина", "хвостовик", "материал", "тип сверла"],
   "kromkorezy-po-listu": ["ширина фаски", "угол фаски", "толщина", "привод", "масса"],
   "kromkorezy-dlya-trub": ["диаметр труб", "толщина стенки", "способ крепления", "возможности", "привод"],
@@ -212,7 +214,7 @@ export function getFeedCategoryPage(slug: string, query: FeedCategoryQuery = {})
   const normalizedSearch = query.search?.trim().toLocaleLowerCase("ru-RU") ?? "";
   const filteredProducts = allProducts.filter((product) => {
     if (normalizedSearch && !getProductSearchText(product).includes(normalizedSearch)) return false;
-    return productMatchesFacetFilters(product, facets, query.filters ?? {}, query.availability === "in-stock");
+    return productMatchesFacetFilters(product, facets, query.filters ?? {}, query.numericMinimums ?? {}, query.availability === "in-stock");
   });
   const sortedProducts = [...filteredProducts];
 
@@ -270,9 +272,12 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
     .map((variant, sourceOrder) => ({
       variant,
       sourceOrder,
-      matchesSelection: hasVariantSelection && (activeFilters.length === 0 || activeFilters.every((filter) =>
-        getVariantParameterValues(variant, filter.keyword).some((value) => filter.values.includes(value)),
-      )) && (!preferAvailable || isConfirmedAvailableVariant(variant)),
+      matchesSelection: hasVariantSelection && (activeFilters.length === 0 || activeFilters.every((filter) => {
+        const values = getVariantParameterValues(variant, filter.keyword);
+        return Number.isFinite(filter.minimum)
+          ? values.some((value) => parseNumericValue(value) >= (filter.minimum ?? Number.POSITIVE_INFINITY))
+          : values.some((value) => filter.values.includes(value));
+      })) && (!preferAvailable || isConfirmedAvailableVariant(variant)),
     }))
     .filter(({ matchesSelection }) => !hasVariantSelection || matchesSelection)
     .sort((first, second) => Number(second.matchesSelection) - Number(first.matchesSelection) || first.sourceOrder - second.sourceOrder);
@@ -334,7 +339,7 @@ function getCategoryFacets(slug: string, products: FeedProduct[], selectedFilter
   }
 
   const usedParameterNames = new Set<string>();
-  const technicalFacetLimit = slug === "borfrezy" ? 5 : 3;
+  const technicalFacetLimit = slug === "borfrezy" || slug === "stanki-sverlilnye" ? 5 : 3;
   for (const keyword of categorySpecPriorities[slug] ?? []) {
     if (facets.filter((facet) => facet.keyword).length >= technicalFacetLimit) break;
     const matchingNames = getMatchingParameterNames(products, keyword);
@@ -396,17 +401,24 @@ function compareFacetValues(first: string, second: string): number {
   return rank(first) - rank(second) || first.localeCompare(second, "ru-RU", { numeric:true });
 }
 
-function productMatchesFacetFilters(product: FeedProduct, facets: FeedFacet[], filters: Record<string, string[]>, requireAvailable = false): boolean {
+function productMatchesFacetFilters(product: FeedProduct, facets: FeedFacet[], filters: Record<string, string[]>, numericMinimums: Record<string, number>, requireAvailable = false): boolean {
   const selectedBrands = filters.brand?.filter(Boolean) ?? [];
   if (selectedBrands.length > 0 && !selectedBrands.includes(product.brand)) return false;
 
   const technicalFacets = facets.filter((facet) => facet.keyword && (filters[facet.key]?.length ?? 0) > 0);
-  if (technicalFacets.length === 0) return !requireAvailable || product.variants.some(isConfirmedAvailableVariant);
+  const minimumFacets = facets.filter((facet) => facet.keyword && Number.isFinite(numericMinimums[facet.key]));
+  if (technicalFacets.length === 0 && minimumFacets.length === 0) return !requireAvailable || product.variants.some(isConfirmedAvailableVariant);
 
   return product.variants.some((variant) => (!requireAvailable || isConfirmedAvailableVariant(variant)) && technicalFacets.every((facet) => {
     const selected = filters[facet.key] ?? [];
     return getVariantParameterValues(variant, facet.keyword ?? "").some((value) => selected.includes(value));
-  }));
+  }) && minimumFacets.every((facet) => getVariantParameterValues(variant, facet.keyword ?? "").some((value) => parseNumericValue(value) >= numericMinimums[facet.key])));
+}
+
+function parseNumericValue(value: string): number {
+  const match = value.replace(",", ".").match(/-?\d+(?:\.\d+)?/);
+  const parsed = Number.parseFloat(match?.[0] ?? "");
+  return Number.isFinite(parsed) ? parsed : Number.NEGATIVE_INFINITY;
 }
 
 function getProductParameterValues(product: FeedProduct, keyword: string): string[] {

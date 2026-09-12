@@ -120,3 +120,36 @@ test("listing actions use a restrained two-level CTA palette", async () => {
   assert.match(styles, /\.feed-product-actions button,\.feed-table-actions \.feed-variant-toggle[^}]*background:var\(--action-dark\)/us);
   assert.match(styles, /\.button-orange,\.request-cart-trigger[^}]*background:var\(--cta\)/us);
 });
+
+test("drilling machines expose the three decision-driving quick facets", async () => {
+  const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
+  const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(page, /slug === "stanki-sverlilnye"[\s\S]*brandFacet[\s\S]*facet\.keyword === "макс\. диаметр"[\s\S]*facet\.keyword === "шпиндель"/u);
+  assert.match(page, /feed-promoted-filters--equipment/u);
+  assert.match(styles, /\.feed-promoted-filters--equipment>div>div \{[^}]*flex-wrap:wrap[^}]*overflow:visible/us);
+  const catalog = await readFile(new URL("../app/data/feedCatalog.ts", import.meta.url), "utf8");
+  assert.match(catalog, /"stanki-sverlilnye": \["макс\. диаметр", "шпиндель", "рабочий ход", "реверс", "масса"/u);
+});
+
+test("drilling selector is integrated and maps to persistent numeric filters", async () => {
+  const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
+  const catalog = await readFile(new URL("../app/data/feedCatalog.ts", import.meta.url), "utf8");
+  const selector = await readFile(new URL("../app/ui/DrillSelectionAssistant.tsx", import.meta.url), "utf8");
+  assert.match(page, /selectorHref = slug === "stanki-sverlilnye" \? "#drill-selector"/u);
+  assert.match(page, /<DrillSelectionAssistant/u);
+  assert.match(page, /name=\{`min_\$\{key\}`\}/u);
+  assert.match(page, /facet\?\.label \?\? "Параметр"[^\n]*от \{value\} мм/u);
+  assert.match(catalog, /numericMinimums\?: Record<string, number>/u);
+  assert.match(catalog, /parseNumericValue\(value\) >= numericMinimums\[facet\.key\]/u);
+  assert.match(selector, /a\[href="#drill-selector"\]/u);
+});
+
+test("single-variant drilling cards can add the exact item without an extra reveal", async () => {
+  const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
+  const list = await readFile(new URL("../app/ui/FeedProductList.tsx", import.meta.url), "utf8");
+  const card = await readFile(new URL("../app/ui/FeedProductCard.tsx", import.meta.url), "utf8");
+  assert.match(page, /directSingleVariant=\{slug === "stanki-sverlilnye"\}/u);
+  assert.match(list, /directSingleVariant=\{directSingleVariant\}/u);
+  assert.match(card, /product\.variantCount === 1 \? product\.variants\[0\]/u);
+  assert.match(card, /<AddRequestButton[^>]*directVariant\.id[\s\S]*Добавить в КП/u);
+});

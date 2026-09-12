@@ -4,6 +4,7 @@ import { Breadcrumbs } from "../../../ui/Breadcrumbs";
 import { BurrSelectionAssistant } from "../../../ui/BurrSelectionAssistant";
 import { BurrShapeMark } from "../../../ui/BurrShapeMark";
 import { ContactRequestDialog } from "../../../ui/ContactRequestDialog";
+import { DrillSelectionAssistant } from "../../../ui/DrillSelectionAssistant";
 import { FeedProductList } from "../../../ui/FeedProductList";
 import { FeedProductTable } from "../../../ui/FeedProductTable";
 import { ManagerContactCard } from "../../../ui/ManagerContactCard";
@@ -55,26 +56,38 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const filters = Object.fromEntries(Object.entries(rawSearchParams)
     .filter(([key]) => key.startsWith("f_"))
     .map(([key, value]) => [key.slice(2), valuesOf(value).filter(Boolean)]));
-  const result = getFeedCategoryPage(slug, { search, sort, page:Number.isFinite(requestedPage) ? requestedPage : 1, filters, availability:inStockOnly ? "in-stock" : undefined });
-  const activeVariantFilters = result.facets.flatMap((facet) => facet.keyword && (filters[facet.key]?.length ?? 0) > 0
-    ? [{ keyword:facet.keyword, values:filters[facet.key] }]
-    : []);
+  const numericMinimums = Object.fromEntries(Object.entries(rawSearchParams)
+    .filter(([key]) => key.startsWith("min_"))
+    .map(([key, value]) => [key.slice(4), Number.parseFloat(firstValue(value) ?? "")])
+    .filter((entry): entry is [string, number] => Number.isFinite(entry[1]) && entry[1] > 0));
+  const result = getFeedCategoryPage(slug, { search, sort, page:Number.isFinite(requestedPage) ? requestedPage : 1, filters, numericMinimums, availability:inStockOnly ? "in-stock" : undefined });
+  const activeVariantFilters = result.facets.flatMap((facet) => {
+    if (!facet.keyword) return [];
+    const facetFilters = [];
+    if ((filters[facet.key]?.length ?? 0) > 0) facetFilters.push({ keyword:facet.keyword, values:filters[facet.key] });
+    if (Number.isFinite(numericMinimums[facet.key])) facetFilters.push({ keyword:facet.keyword, values:[], minimum:numericMinimums[facet.key] });
+    return facetFilters;
+  });
   const productCards = result.products.map((product) => toFeedProductCardModel(product, activeVariantFilters, inStockOnly));
   const canUseTable = prefersDenseFeedTable(slug);
   const view = canUseTable && requestedView !== "cards" ? "table" : "cards";
-  const activeFilterCount = Object.values(filters).reduce((sum, values) => sum + values.length, 0) + (search ? 1 : 0) + (inStockOnly ? 1 : 0);
+  const activeFilterCount = Object.values(filters).reduce((sum, values) => sum + values.length, 0) + Object.keys(numericMinimums).length + (search ? 1 : 0) + (inStockOnly ? 1 : 0);
   const subject = encodeURIComponent(`Запрос: ${subcategory.label}`);
-  const selectorHref = slug === "stanki-sverlilnye" ? "/catalog/sverlenie/magnitnye-stanki" : undefined;
+  const selectorHref = slug === "stanki-sverlilnye" ? "#drill-selector" : undefined;
   const start = result.total > 0 ? (result.page - 1) * result.pageSize + 1 : 0;
   const end = Math.min(result.page * result.pageSize, result.total);
   const technicalFacets = result.facets.filter((facet) => facet.keyword);
   const brandFacet = result.facets.find((facet) => facet.key === "brand");
   const promotedFacets = slug === "borfrezy"
     ? [brandFacet, technicalFacets.find((facet) => facet.keyword === "материал"), technicalFacets.find((facet) => facet.keyword === "диаметр режущей")].filter((facet): facet is NonNullable<typeof facet> => Boolean(facet))
-    : technicalFacets.slice(0, 2);
+    : slug === "stanki-sverlilnye"
+      ? [brandFacet, technicalFacets.find((facet) => facet.keyword === "макс. диаметр"), technicalFacets.find((facet) => facet.keyword === "шпиндель")].filter((facet): facet is NonNullable<typeof facet> => Boolean(facet))
+      : technicalFacets.slice(0, 2);
   const shapeFacet = technicalFacets.find((facet) => facet.keyword === "форма");
   const shankFacet = technicalFacets.find((facet) => facet.keyword === "диаметр хвостовика");
   const materialFacet = technicalFacets.find((facet) => facet.keyword === "материал");
+  const drillDiameterFacet = technicalFacets.find((facet) => facet.keyword === "макс. диаметр");
+  const drillReverseFacet = technicalFacets.find((facet) => facet.keyword === "реверс");
   const orderedFacets = slug === "borfrezy"
     ? [...result.facets].sort((first, second) => facetOrder(first.keyword, first.key) - facetOrder(second.keyword, second.key))
     : result.facets;
@@ -84,6 +97,12 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     { title:"Размер рабочей части", copy:"Желаемый диаметр и длина головки либо размеры обрабатываемого участка." },
     { title:"Хвостовик и инструмент", copy:"Диаметр хвостовика 3, 6 или 8 мм и модель прямошлифовальной машины, если известна." },
     { title:"Требуемый результат", copy:"Быстрый съём, зачистка сварного шва, удаление заусенцев или чистовая обработка." },
+  ] : slug === "stanki-sverlilnye" ? [
+    { title:"Операция и диаметр", copy:"Корончатое или спиральное сверление, зенкование либо резьба; укажите максимальный диаметр и глубину." },
+    { title:"Заготовка", copy:"Материал, толщина, профиль поверхности и доступная зона установки станка." },
+    { title:"Место работы", copy:"Монтаж на конструкции, работа в цехе, вертикальное или потолочное положение." },
+    { title:"Шпиндель и оснастка", copy:"Weldon, конус Морзе или патрон; сообщите имеющиеся свёрла, если их нужно сохранить." },
+    { title:"Рабочие функции", copy:"Реверс, нарезание резьбы, требуемый ход и ограничения по массе оборудования." },
   ] : landing.parameters;
 
   return <div className="site-shell"><PilotHeader /><main className="inner-page">
@@ -92,18 +111,18 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     <section className="page-hero page-hero--category"><div className="container page-hero-grid"><div>
       <p className="eyebrow">{group.title}</p>
       <h1>{feedCategory?.h1 ?? subcategory.label}</h1>
-      <p>Сравните товарные серии по ключевым параметрам, раскройте нужную строку и добавьте точное исполнение в один запрос КП.</p>
+      <p>{slug === "stanki-sverlilnye" ? "Подберите оборудование по диаметру отверстия, шпинделю, рабочему ходу и реверсу. Точную модель и артикул заранее знать не нужно." : "Сравните товарные серии по ключевым параметрам, раскройте нужную строку и добавьте точное исполнение в один запрос КП."}</p>
       <div className="category-hero-facts"><span><b>{result.total.toLocaleString("ru-RU")}</b> {pluralizeProductGroups(result.total)}</span><span>Цена — по данным поставщика</span><span>Наличие и срок — после проверки</span></div>
     </div><aside>
       <b>{selectorHref ? "Нужен технический отбор?" : "Не знаете точное исполнение?"}</b>
       <p>{selectorHref ? "Сузьте выбор по диаметру, массе, шпинделю и рабочим функциям." : "Пришлите размеры или опишите задачу — артикул знать не обязательно."}</p>
-      {selectorHref ? <Link href={selectorHref}>Подобрать магнитный станок →</Link> : <ContactRequestDialog categoryTitle={feedCategory?.h1 ?? subcategory.label} />}
+      {selectorHref ? <a href={selectorHref}>Подобрать станок по задаче →</a> : <ContactRequestDialog categoryTitle={feedCategory?.h1 ?? subcategory.label} />}
     </aside></div></section>
 
     <section className="section feed-category-listing" id="products"><div className="container">
-      <div className="section-heading feed-category-heading"><div><p className="eyebrow">Фактический ассортимент</p><h2>Сначала сузьте выбор</h2></div><p>Главные параметры вынесены наверх. Полный набор фильтров остаётся слева.</p></div>
+      <div className="section-heading feed-category-heading"><div><p className="eyebrow">Фактический ассортимент</p><h2>{slug === "stanki-sverlilnye" ? "Подберите по рабочей задаче" : "Сначала сузьте выбор"}</h2></div><p>Главные параметры вынесены наверх. Полный набор фильтров остаётся слева.</p></div>
 
-      {promotedFacets.length > 0 && <nav className={`feed-promoted-filters${slug === "borfrezy" ? " feed-promoted-filters--burr" : ""}`} aria-label="Быстрые фильтры">
+      {promotedFacets.length > 0 && <nav className={`feed-promoted-filters${slug === "borfrezy" ? " feed-promoted-filters--burr" : ""}${slug === "stanki-sverlilnye" ? " feed-promoted-filters--equipment" : ""}`} aria-label="Быстрые фильтры">
         <div className="feed-priority-choice"><span>Показывать сначала</span><div>
           <PromotedFilterLink className={sort === "relevance" ? "active" : undefined} current={sort === "relevance"} href={categoryUrl(slug, rawSearchParams, { setKey:"sort", setValue:"relevance" })}>Подходящие</PromotedFilterLink>
           <PromotedFilterLink className={inStockOnly ? "active" : undefined} current={inStockOnly} href={categoryUrl(slug, rawSearchParams, { toggleKey:"availability", toggleValue:"in-stock" })}>В наличии<small>данные поставщика</small></PromotedFilterLink>
@@ -125,12 +144,22 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
         selectedShapes={filters[shapeFacet.key]}
       />}
 
+      {slug === "stanki-sverlilnye" && drillDiameterFacet && <DrillSelectionAssistant
+        diameterFacetKey={drillDiameterFacet.key}
+        reverseFacetKey={drillReverseFacet?.key}
+        reverseOptions={drillReverseFacet?.options}
+        selectedDiameter={numericMinimums[drillDiameterFacet.key]}
+        selectedReverse={drillReverseFacet ? filters[drillReverseFacet.key] : []}
+        selectedWork={search === "магнитн" ? "installation" : "unknown"}
+      />}
+
       <div className="feed-catalog-layout">
         <aside className="feed-filter-panel" id="feed-filter-panel">
           <input className="feed-filter-toggle" type="checkbox" id={`feed-filters-${slug}`} aria-label="Показать или скрыть фильтры" />
           <label className="feed-filter-summary" htmlFor={`feed-filters-${slug}`}><span><b>Фильтры</b><small>{activeFilterCount > 0 ? `Выбрано: ${activeFilterCount}` : "По характеристикам товаров"}</small></span><i aria-hidden="true">+</i></label>
           <form method="get" action={`/catalog/category/${slug}#products`}>
             {requestedView && <input type="hidden" name="view" value={requestedView} />}
+            {Object.entries(numericMinimums).map(([key, value]) => <input type="hidden" name={`min_${key}`} value={value} key={`minimum-${key}`} />)}
             <div className="feed-filter-priority"><span>Быстрый выбор</span><label><input type="checkbox" name="availability" value="in-stock" defaultChecked={inStockOnly} /><b>В наличии</b><em>по данным поставщика</em></label><label><span>Порядок выдачи</span><select name="sort" defaultValue={sort}>{sortOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label><small>Остаток и срок отгрузки подтвердим перед оплатой.</small></div>
             <label className="feed-filter-search"><span>Поиск в категории</span><input type="search" name="q" defaultValue={search} placeholder="Название, бренд или модель" /></label>
             {orderedFacets.map((facet) => <fieldset className={facet.keyword === "форма" ? "feed-shape-filter" : undefined} key={facet.key}><legend>{facet.label}</legend><small>{facet.keyword === "форма" ? <>Стандартные формы A–N и комбинированные исполнения. <a href="#burr-selector">Не знаете форму? Подобрать по задаче</a></> : facet.help}</small><div>{facet.options.map((option) => <label key={option.value}><input type="checkbox" name={`f_${facet.key}`} value={option.value} defaultChecked={filters[facet.key]?.includes(option.value)} /><span className={facet.keyword === "форма" ? "feed-shape-option" : undefined}>{facet.keyword === "форма" && <BurrShapeMark shape={option.value} />}{option.label}</span><em>{option.count}</em></label>)}</div></fieldset>)}
@@ -146,6 +175,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
               {search && <input type="hidden" name="q" value={search} />}
               {inStockOnly && <input type="hidden" name="availability" value="in-stock" />}
               {Object.entries(filters).flatMap(([key, values]) => values.map((value) => <input type="hidden" name={`f_${key}`} value={value} key={`${key}-${value}`} />))}
+              {Object.entries(numericMinimums).map(([key, value]) => <input type="hidden" name={`min_${key}`} value={value} key={`sort-minimum-${key}`} />)}
               <label><span>Сортировка</span><select name="sort" defaultValue={sort}>{sortOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label><button type="submit">Применить</button>
             </form>
           </div></div>
@@ -154,10 +184,14 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
             {search && <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:"q" })}>Поиск: {search}<b aria-hidden="true">×</b></PromotedFilterLink>}
             {inStockOnly && <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:"availability" })}>В наличии<b aria-hidden="true">×</b></PromotedFilterLink>}
             {result.facets.flatMap((facet) => (filters[facet.key] ?? []).map((value) => <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:`f_${facet.key}`, removeValue:value })} key={`${facet.key}-${value}`}>{facet.label}: {value}<b aria-hidden="true">×</b></PromotedFilterLink>))}
+            {Object.entries(numericMinimums).map(([key, value]) => {
+              const facet = result.facets.find((candidate) => candidate.key === key);
+              return <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:`min_${key}` })} key={`minimum-${key}`}>{facet?.label ?? "Параметр"}: от {value} мм<b aria-hidden="true">×</b></PromotedFilterLink>;
+            })}
             <PromotedFilterLink className="feed-reset-all" href={`/catalog/category/${slug}#products`}>Очистить всё</PromotedFilterLink>
           </nav>}
 
-          {result.products.length > 0 ? view === "table" ? <FeedProductTable products={productCards} columns={result.facets.filter((facet) => facet.keyword).map((facet) => facet.label).slice(0, 3)} /> : <FeedProductList products={productCards} /> : <div className="feed-state"><span>Нет точных совпадений</span><h2>Ослабьте один из параметров</h2><p>Снимите фильтр или подберите форму по геометрии участка — артикул знать не нужно.</p><div><Link className="button" href={`/catalog/category/${slug}#products`}>Сбросить фильтры</Link>{slug === "borfrezy" ? <a className="button button-orange" href="#burr-selector">Подобрать по задаче</a> : <a className="button button-orange" href={`mailto:info@7tool.ru?subject=${subject}`}>Запросить подбор</a>}</div></div>}
+          {result.products.length > 0 ? view === "table" ? <FeedProductTable products={productCards} columns={result.facets.filter((facet) => facet.keyword).map((facet) => facet.label).slice(0, 3)} /> : <FeedProductList products={productCards} directSingleVariant={slug === "stanki-sverlilnye"} /> : <div className="feed-state"><span>Нет точных совпадений</span><h2>Ослабьте один из параметров</h2><p>{slug === "stanki-sverlilnye" ? "Увеличьте допустимый диапазон или уточните задачу с инженером — модель и артикул знать не нужно." : "Снимите фильтр или подберите форму по геометрии участка — артикул знать не нужно."}</p><div><Link className="button" href={`/catalog/category/${slug}#products`}>Сбросить фильтры</Link>{slug === "borfrezy" ? <a className="button button-orange" href="#burr-selector">Подобрать по задаче</a> : slug === "stanki-sverlilnye" ? <a className="button button-orange" href="#drill-selector">Изменить условия подбора</a> : <ContactRequestDialog categoryTitle={feedCategory?.h1 ?? subcategory.label} buttonLabel="Запросить подбор" />}</div></div>}
 
           {result.pageCount > 1 && <nav className="feed-pagination" aria-label="Страницы товаров">
             {result.page > 1 && <Link className="feed-pagination-direction" href={categoryUrl(slug, rawSearchParams, { page:result.page - 1 })}>← Назад</Link>}
@@ -165,15 +199,15 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
             {result.page < result.pageCount && <Link className="feed-pagination-direction" href={categoryUrl(slug, rawSearchParams, { page:result.page + 1 })}>Вперёд →</Link>}
           </nav>}
 
-          {result.products.length > 0 && <div className="feed-listing-foot"><p>Не нашли точное сочетание? Это не означает, что поставка невозможна: каталог показывает только текущую витрину.</p>{slug === "borfrezy" ? <a href="#burr-selector">Подобрать без артикула →</a> : <a href={`mailto:info@7tool.ru?subject=${subject}`}>Описать задачу менеджеру →</a>}</div>}
+          {result.products.length > 0 && <div className="feed-listing-foot"><p>Не нашли точное сочетание? Это не означает, что поставка невозможна: каталог показывает только текущую витрину.</p>{slug === "borfrezy" ? <a href="#burr-selector">Подобрать без артикула →</a> : slug === "stanki-sverlilnye" ? <a href="#drill-selector">Уточнить условия подбора →</a> : <a href={`mailto:info@7tool.ru?subject=${subject}`}>Описать задачу менеджеру →</a>}</div>}
         </div>
       </div>
     </div></section>
 
     <section className="section section-muted selection-guide-section"><div className="container subcategory-layout subcategory-layout--selection"><div className="selection-guide">
-      <div className="section-heading"><div><p className="eyebrow">Критерии выбора</p><h2>{slug === "borfrezy" ? "Для точного подбора достаточно пяти параметров" : "Что сообщить для точного подбора"}</h2><p>{slug === "borfrezy" ? "Укажите то, что знаете. Фотография или эскиз участка может заменить часть размеров." : "Известные параметры помогут быстрее проверить подходящие варианты."}</p></div></div>
+      <div className="section-heading"><div><p className="eyebrow">Критерии выбора</p><h2>{slug === "borfrezy" || slug === "stanki-sverlilnye" ? "Для точного подбора достаточно пяти параметров" : "Что сообщить для точного подбора"}</h2><p>{slug === "borfrezy" ? "Укажите то, что знаете. Фотография или эскиз участка может заменить часть размеров." : slug === "stanki-sverlilnye" ? "Укажите только известное. Инженер поможет определить тип установки, шпиндель и необходимый запас по мощности." : "Известные параметры помогут быстрее проверить подходящие варианты."}</p></div></div>
       <ol className="selection-criteria-list">{selectionCriteria.map((parameter,index) => <li key={parameter.title}><span>{String(index+1).padStart(2,"0")}</span><div><b>{parameter.title}</b><p>{parameter.copy}</p></div></li>)}</ol>
-      {slug === "borfrezy" && <p className="selection-guide-note"><b>Не обязательно знать артикул.</b> Достаточно описать деталь, материал и место обработки; инженер уточнит недостающие параметры.</p>}
+      {(slug === "borfrezy" || slug === "stanki-sverlilnye") && <p className="selection-guide-note"><b>Не обязательно знать артикул.</b> {slug === "stanki-sverlilnye" ? "Достаточно сообщить задачу, диаметр и условия работы; инженер проверит диапазон, оснастку и комплектацию." : "Достаточно описать деталь, материал и место обработки; инженер уточнит недостающие параметры."}</p>}
       <SelectionConversionBlock categoryTitle={feedCategory?.h1 ?? subcategory.label} />
     </div><aside><ManagerContactCard compact /></aside></div></section>
 

@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import type { FeedProductCardModel } from "../data/feedCatalog";
 import { FeedProductCard } from "./FeedProductCard";
 
-export function FeedProductList({ products }: { products: FeedProductCardModel[] }) {
+export function FeedProductList({ products, directSingleVariant = false }: { products: FeedProductCardModel[]; directSingleVariant?: boolean }) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [compareOpen, setCompareOpen] = useState(false);
   const selected = useMemo(() => products.filter((product) => selectedIds.includes(product.id)), [products, selectedIds]);
@@ -23,7 +23,7 @@ export function FeedProductList({ products }: { products: FeedProductCardModel[]
   const specLabels = Array.from(new Set(selected.flatMap((product) => product.specs.map((spec) => spec.label))));
 
   return <>
-    <div className="feed-product-grid">{products.map((product) => <FeedProductCard product={product} selected={selectedIds.includes(product.id)} onCompare={() => toggleProduct(product.id)} key={product.id} />)}</div>
+    <div className="feed-product-grid">{products.map((product) => <FeedProductCard product={product} directSingleVariant={directSingleVariant} selected={selectedIds.includes(product.id)} onCompare={() => toggleProduct(product.id)} key={product.id} />)}</div>
 
     {compareOpen && selected.length >= 2 && <section className="feed-inline-comparison" id="feed-comparison" aria-label="Сравнение выбранных товаров">
       <header><div><span>Сравнение без ухода из категории</span><h2>{selected.length} товара рядом</h2></div><button type="button" onClick={() => setCompareOpen(false)}>Свернуть</button></header>
