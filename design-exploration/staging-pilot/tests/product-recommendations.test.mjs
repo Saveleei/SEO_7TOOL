@@ -46,6 +46,19 @@ test("product page uses exact variants, honest supply states and local callback 
   assert.doesNotMatch(purchase, /mailto:/u);
 });
 
+test("product description removes incomplete feed fragments and keeps readable type", async () => {
+  const page = await readFile(new URL("../app/product/[slug]/page.tsx", import.meta.url), "utf8");
+  const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(page, /paragraph\.length >= 60 && !paragraph\.endsWith\("\?"\)/u);
+  assert.match(page, /Описание и применение/u);
+  assert.match(page, /buildDrillDescription\(primaryVariant\)/u);
+  assert.match(page, /Отсутствующие параметры не дополнены предположениями/u);
+  assert.match(styles, /\.feed-conversion-intro \{[^}]*font-size:16px[^}]*line-height:1\.58/us);
+  assert.match(styles, /\.feed-product-description p \{[^}]*font-size:16px[^}]*line-height:1\.62/us);
+  assert.match(styles, /\.feed-conversion-spec-table dt,\.feed-conversion-spec-table dd \{[^}]*font-size:14px/us);
+  assert.match(styles, /\.feed-spec-source \{[^}]*font-size:12px/us);
+});
+
 test("product analytics carries context without contact data", async () => {
   const purchase = await readFile(new URL("../app/ui/FeedProductPurchase.tsx", import.meta.url), "utf8");
   const manager = await readFile(new URL("../app/ui/ManagerContactCard.tsx", import.meta.url), "utf8");
