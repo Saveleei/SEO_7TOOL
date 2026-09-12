@@ -1766,14 +1766,17 @@ body:has(.feed-compare-tray) .request-cart-dock { bottom:96px; }
 
 /* Readable commercial states: green communicates stock, orange remains reserved for actions. */
 .feed-availability { color:#626760; font-style:normal; }
-.feed-availability-block { display:grid; justify-items:start; gap:3px; margin-top:8px; }
-.feed-availability-block>small { color:#626760; font-size:9px; font-weight:500; line-height:1.4; }
+.feed-availability-block { min-width:0; display:grid!important; grid-template-columns:minmax(0,1fr); justify-items:start; gap:3px; margin-top:8px; }
+.feed-availability-block>small { display:block!important; margin:0!important; color:#626760; font-size:9px; font-weight:500; line-height:1.4; }
 .feed-availability--positive { display:inline-flex!important; align-items:flex-start; gap:6px; color:#087044!important; font-weight:650!important; }
 .feed-availability--positive::before { content:""; width:7px; height:7px; flex:0 0 auto; margin-top:.35em; border-radius:50%; background:#15945c; box-shadow:0 0 0 3px #e3f3ea; }
 .feed-table-price>.feed-availability-block .feed-availability { font-size:10px; line-height:1.4; }
 .feed-product-commercial>.feed-availability-block { margin:8px 0 12px; }
 .feed-product-commercial>.feed-availability-block .feed-availability { font-size:11px; line-height:1.48; }
 .feed-card-variant>div:nth-child(2) .feed-availability,.feed-inline-variant-price .feed-availability { font-size:10px; line-height:1.4; }
+.feed-variant-sku-link { display:inline-block; margin-top:3px; color:var(--ink); font-size:11px; font-weight:850; text-decoration:underline; text-decoration-color:#c4c7c1; text-underline-offset:3px; }
+.feed-variant-sku-link:hover { color:var(--orange-dark); text-decoration-color:currentColor; }
+.feed-variant-card--selected { border-color:#d2602a!important; background:#fffaf6!important; box-shadow:0 0 0 2px rgba(201,74,18,.12); }
 .feed-product-identity p,.feed-product-specs dt { font-size:10px; line-height:1.45; }
 .feed-product-specs dd { font-size:11px; line-height:1.4; }
 .feed-compare-check,.feed-product-price small { font-size:9px; }

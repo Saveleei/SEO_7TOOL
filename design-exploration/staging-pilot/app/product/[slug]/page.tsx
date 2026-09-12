@@ -9,7 +9,7 @@ import { AddRequestButton } from "../../ui/RequestCart";
 import { formatFeedPrice, getFeedCategory, getFeedProductBySlug, getFeedProductImage, getFeedProductPriceLabel } from "../../data/feedCatalog";
 import { getProductionSubcategory } from "../../data/productionCategoryGroups";
 
-type RouteProps = { params: Promise<{ slug: string }> };
+type RouteProps = { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> };
 
 export async function generateMetadata({ params }: RouteProps): Promise<Metadata> {
   const { slug } = await params;
@@ -21,8 +21,9 @@ export async function generateMetadata({ params }: RouteProps): Promise<Metadata
   };
 }
 
-export default async function FeedProductPage({ params }: RouteProps) {
+export default async function FeedProductPage({ params, searchParams }: RouteProps) {
   const { slug } = await params;
+  const rawSearchParams = await searchParams;
   const product = getFeedProductBySlug(slug);
   if (!product) return <div className="site-shell"><PilotHeader /><main className="inner-page"><section className="section"><div className="container empty-result"><b>Товар не найден в тестовом каталоге</b><p>Вернитесь в каталог или опишите задачу менеджеру.</p><Link href="/catalog">Открыть каталог →</Link></div></section></main><PilotFooter /></div>;
 
@@ -30,7 +31,10 @@ export default async function FeedProductPage({ params }: RouteProps) {
   const productionEntry = getProductionSubcategory(product.category);
   const image = getFeedProductImage(product);
   const price = getFeedProductPriceLabel(product);
-  const variants = product.variants.filter((variant) => variant.name || variant.sku).slice(0, 12);
+  const selectedVariantId = typeof rawSearchParams.variant === "string" ? rawSearchParams.variant : "";
+  const allVariants = product.variants.filter((variant) => variant.name || variant.sku);
+  const selectedVariant = allVariants.find((variant) => variant.id === selectedVariantId);
+  const variants = (selectedVariant ? [selectedVariant, ...allVariants.filter((variant) => variant.id !== selectedVariant.id)] : allVariants).slice(0, 12);
   const subject = encodeURIComponent(`Запрос по товару: ${product.title}`);
 
   return <div className="site-shell"><PilotHeader /><main className="inner-page feed-product-page">
@@ -49,12 +53,12 @@ export default async function FeedProductPage({ params }: RouteProps) {
       </div>
     </div></section>
 
-    <section className="section section-muted"><div className="container feed-variant-layout"><div>
+    <section className="section section-muted" id="variants"><div className="container feed-variant-layout"><div>
       <div className="section-heading"><div><p className="eyebrow">Доступные исполнения</p><h2>{product.variants.length > 1 ? "Выберите подходящий вариант" : "Данные исполнения"}</h2></div><p>Показано до 12 вариантов. Цена относится к конкретному исполнению; доступность подтверждаем отдельно.</p></div>
       <div className="feed-variant-list">{variants.map((variant) => {
         const variantPrice = formatFeedPrice(variant.price) ?? "Цена по запросу";
         const params = variant.params.filter((parameter) => parameter.name !== "Бренд").slice(0, 4);
-        return <article key={variant.id}><div><span>{variant.sku || "Исполнение"}</span><b>{variant.name || product.title}</b><p>{params.map((parameter) => `${parameter.name}: ${parameter.value}${parameter.unit ? ` ${parameter.unit}` : ""}`).join(" · ")}</p></div><div><b>{variantPrice}</b><small>условия уточняем</small></div><AddRequestButton item={{ id:variant.id, title:variant.name || product.title, article:variant.sku ? `Артикул ${variant.sku}` : "Исполнение", price:variantPrice }}>В запрос</AddRequestButton></article>;
+        return <article className={variant.id === selectedVariantId ? "feed-variant-card--selected" : undefined} key={variant.id}><div><span>{variant.sku || "Исполнение"}</span><b>{variant.name || product.title}</b><p>{params.map((parameter) => `${parameter.name}: ${parameter.value}${parameter.unit ? ` ${parameter.unit}` : ""}`).join(" · ")}</p></div><div><b>{variantPrice}</b><small>условия уточняем</small></div><AddRequestButton item={{ id:variant.id, title:variant.name || product.title, article:variant.sku ? `Артикул ${variant.sku}` : "Исполнение", price:variantPrice }}>В запрос</AddRequestButton></article>;
       })}</div>
       {product.variants.length > variants.length && <p className="feed-variant-more">Остальные {product.variants.length - variants.length} исполнений появятся после подключения полнофункционального фильтра по параметрам.</p>}
       </div><aside><ManagerContactCard compact /></aside></div></section>

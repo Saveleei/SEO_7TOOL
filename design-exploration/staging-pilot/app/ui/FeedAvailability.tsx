@@ -11,10 +11,10 @@ export function FeedAvailability({ available, count, exact = false }: FeedAvaila
       : exact ? "В наличии" : "Есть исполнения в наличии"
     : "Наличие и срок уточняем";
 
-  return <span className="feed-availability-block">
+  return <div className="feed-availability-block">
     <span className={available ? "feed-availability feed-availability--positive" : "feed-availability"}>{label}</span>
     {available && <small>Остаток и срок подтвердим перед оплатой</small>}
-  </span>;
+  </div>;
 }
 
 function variantWord(count: number): string {

@@ -57,9 +57,29 @@ test("the shape-help link opens and focuses the guided selector", async () => {
 });
 
 test("burr promoted filters wrap instead of hiding options", async () => {
+  const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
+  const controls = await readFile(new URL("../app/ui/PromotedFilterControls.tsx", import.meta.url), "utf8");
   const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  const promotedFilters = page.slice(page.indexOf("feed-promoted-filters"), page.indexOf("<BurrSelectionAssistant"));
+  assert.match(promotedFilters, /return <PromotedFilterLink className=\{selected/u);
+  assert.doesNotMatch(promotedFilters, /return <Link className=\{selected/u);
+  assert.match(controls, /window\.location\.assign\(href\)/u);
+  assert.match(controls, /toggle\.checked = true/u);
   assert.match(styles, /\.feed-promoted-filters--burr>div>div \{[^}]*flex-wrap:wrap[^}]*overflow:visible/us);
   assert.match(styles, /\.feed-promoted-filters--burr>div:nth-child\(4\) \{[^}]*grid-column:1\/3/us);
+});
+
+test("variant articles link to the exact execution and availability copy cannot collapse inline", async () => {
+  const card = await readFile(new URL("../app/ui/FeedProductCard.tsx", import.meta.url), "utf8");
+  const table = await readFile(new URL("../app/ui/FeedProductTable.tsx", import.meta.url), "utf8");
+  const availability = await readFile(new URL("../app/ui/FeedAvailability.tsx", import.meta.url), "utf8");
+  const product = await readFile(new URL("../app/product/[slug]/page.tsx", import.meta.url), "utf8");
+  const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(card, /\?variant=\$\{encodeURIComponent\(variant\.id\)\}#variants/u);
+  assert.match(table, /\?variant=\$\{encodeURIComponent\(variant\.id\)\}#variants/u);
+  assert.match(product, /feed-variant-card--selected/u);
+  assert.match(availability, /return <div className="feed-availability-block">/u);
+  assert.match(styles, /\.feed-availability-block>small \{[^}]*display:block!important[^}]*margin:0!important/us);
 });
 
 test("product cards use readable actions and a native full-details navigation", async () => {

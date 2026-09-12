@@ -7,6 +7,7 @@ import { ContactRequestDialog } from "../../../ui/ContactRequestDialog";
 import { FeedProductList } from "../../../ui/FeedProductList";
 import { FeedProductTable } from "../../../ui/FeedProductTable";
 import { ManagerContactCard } from "../../../ui/ManagerContactCard";
+import { OpenFullFiltersLink, PromotedFilterLink } from "../../../ui/PromotedFilterControls";
 import { PilotFooter } from "../../../ui/PilotFooter";
 import { PilotHeader } from "../../../ui/PilotHeader";
 import { getCategoryLandingContent } from "../../../data/categoryLandingContent";
@@ -103,14 +104,14 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
 
       {promotedFacets.length > 0 && <nav className={`feed-promoted-filters${slug === "borfrezy" ? " feed-promoted-filters--burr" : ""}`} aria-label="Быстрые фильтры">
         <div className="feed-priority-choice"><span>Показывать сначала</span><div>
-          <Link className={sort === "relevance" ? "active" : undefined} aria-current={sort === "relevance" ? "true" : undefined} href={categoryUrl(slug, rawSearchParams, { setKey:"sort", setValue:"relevance" })}>Подходящие</Link>
-          <Link className={inStockOnly ? "active" : undefined} aria-current={inStockOnly ? "true" : undefined} href={categoryUrl(slug, rawSearchParams, { toggleKey:"availability", toggleValue:"in-stock" })}>В наличии<small>данные поставщика</small></Link>
+          <PromotedFilterLink className={sort === "relevance" ? "active" : undefined} current={sort === "relevance"} href={categoryUrl(slug, rawSearchParams, { setKey:"sort", setValue:"relevance" })}>Подходящие</PromotedFilterLink>
+          <PromotedFilterLink className={inStockOnly ? "active" : undefined} current={inStockOnly} href={categoryUrl(slug, rawSearchParams, { toggleKey:"availability", toggleValue:"in-stock" })}>В наличии<small>данные поставщика</small></PromotedFilterLink>
         </div></div>
         {promotedFacets.map((facet) => <div key={facet.key}><span className="feed-promoted-label">{facet.label}</span><div>{facet.options.slice(0, 6).map((option) => {
           const selected = filters[facet.key]?.includes(option.value) ?? false;
-          return <Link className={selected ? "active" : undefined} aria-current={selected ? "true" : undefined} href={categoryUrl(slug, rawSearchParams, { toggleKey:`f_${facet.key}`, toggleValue:option.value })} key={option.value}>{facet.keyword === "форма" && <BurrShapeMark shape={option.value} />}{option.label}<small>{option.count}</small></Link>;
+          return <PromotedFilterLink className={selected ? "active" : undefined} current={selected} href={categoryUrl(slug, rawSearchParams, { toggleKey:`f_${facet.key}`, toggleValue:option.value })} key={option.value}>{facet.keyword === "форма" && <BurrShapeMark shape={option.value} />}{option.label}<small>{option.count}</small></PromotedFilterLink>;
         })}</div></div>)}
-        <a className="feed-promoted-more" href="#feed-filter-panel">Все параметры →</a>
+        <OpenFullFiltersLink toggleId={`feed-filters-${slug}`} />
       </nav>}
 
       {slug === "borfrezy" && shapeFacet && <BurrSelectionAssistant

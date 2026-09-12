@@ -48,7 +48,7 @@ function MobileSeries({ product, columns }: { product: FeedProductCardModel; col
       <div className="feed-mobile-series-commercial"><div><b>{product.price}</b><FeedAvailability available={product.availableVariantCount > 0} /></div><i>{product.selectedVariantCount > 1 ? `Выбрать · ${product.selectedVariantCount}` : "Выбрать"}</i></div>
     </summary>
     <div className="feed-mobile-variants"><div className="feed-variant-expansion-head"><div><b>Точные исполнения</b><span>Добавьте нужный размер в запрос КП</span></div></div>{product.variants.map((variant) => <article className={variant.matchesSelection ? "feed-mobile-variant feed-mobile-variant--match" : "feed-mobile-variant"} key={variant.id}>
-      <div><span>{variant.matchesSelection ? "Соответствует фильтрам" : "Исполнение"}</span><b>{variant.sku}</b></div>
+      <div><span>{variant.matchesSelection ? "Соответствует фильтрам" : "Исполнение"}</span><a className="feed-variant-sku-link" href={`/product/${product.slug}?variant=${encodeURIComponent(variant.id)}#variants`}>{variant.sku}</a></div>
       <dl>{columns.map((column) => <div key={column}><dt>{column}</dt><dd>{variant.specs.find((spec) => spec.label === column)?.value ?? "—"}</dd></div>)}</dl>
       <div className="feed-mobile-variant-action"><div><b>{variant.price}</b><FeedAvailability available={variant.available} exact /></div><AddRequestButton item={{ id:`variant:${variant.id}`, title:variant.title || product.title, article:`Артикул ${variant.sku}`, price:variant.price }}>Добавить в запрос</AddRequestButton></div>
     </article>)}{product.variantCount > product.variants.length && <Link className="feed-mobile-all-variants" href={`/product/${product.slug}`}>Все {product.variantCount} исполнений →</Link>}</div>
@@ -57,7 +57,7 @@ function MobileSeries({ product, columns }: { product: FeedProductCardModel; col
 
 function InlineVariant({ product, variant, columns }: { product: FeedProductCardModel; variant: FeedProductVariantModel; columns: string[] }) {
   return <article className={variant.matchesSelection ? "feed-inline-variant feed-inline-variant--match" : "feed-inline-variant"} style={{ "--variant-spec-count":Math.max(1, columns.length) } as CSSProperties}>
-    <div className="feed-inline-variant-id"><span>{variant.matchesSelection ? "Соответствует фильтрам" : "Исполнение"}</span><b>{variant.sku}</b></div>
+    <div className="feed-inline-variant-id"><span>{variant.matchesSelection ? "Соответствует фильтрам" : "Исполнение"}</span><a className="feed-variant-sku-link" href={`/product/${product.slug}?variant=${encodeURIComponent(variant.id)}#variants`}>{variant.sku}</a></div>
     {columns.map((column) => <div key={column}><span>{column}</span><b>{variant.specs.find((spec) => spec.label === column)?.value ?? "—"}</b></div>)}
     <div className="feed-inline-variant-price"><b>{variant.price}</b><span>с НДС · данные поставщика</span><FeedAvailability available={variant.available} exact /></div>
     <AddRequestButton item={{ id:`variant:${variant.id}`, title:variant.title || product.title, article:`Артикул ${variant.sku}`, price:variant.price }}>Добавить в запрос</AddRequestButton>

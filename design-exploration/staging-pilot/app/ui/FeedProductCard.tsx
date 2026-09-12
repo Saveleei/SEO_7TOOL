@@ -43,7 +43,7 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
     {variantsOpen && <section className="feed-card-variants" id={`card-variants-${product.id}`} aria-label={`Исполнения ${product.title}`}>
       <header><div><b>Выберите точное исполнение</b><span>В КП попадёт только одна выбранная позиция, а не вся товарная серия.</span></div>{product.variantCount > product.variants.length && <Link href={`/product/${product.slug}`}>Все {product.variantCount} →</Link>}</header>
       <div>{product.variants.map((variant) => <article className={variant.matchesSelection ? "feed-card-variant feed-card-variant--match" : "feed-card-variant"} key={variant.id}>
-        <div><span>{variant.matchesSelection ? "Соответствует фильтрам" : "Исполнение"}</span><b>{variant.sku}</b><small>{variant.specs.slice(0, 3).map((spec) => `${spec.label}: ${spec.value}`).join(" · ")}</small></div>
+        <div><span>{variant.matchesSelection ? "Соответствует фильтрам" : "Исполнение"}</span><a className="feed-variant-sku-link" href={`/product/${product.slug}?variant=${encodeURIComponent(variant.id)}#variants`}>{variant.sku}</a><small>{variant.specs.slice(0, 3).map((spec) => `${spec.label}: ${spec.value}`).join(" · ")}</small></div>
         <div><b>{variant.price}</b><FeedAvailability available={variant.available} exact /></div>
         <AddRequestButton item={{ id:`variant:${variant.id}`, title:variant.title || product.title, article:`Артикул ${variant.sku}`, price:variant.price }}>Добавить в КП</AddRequestButton>
       </article>)}</div>
