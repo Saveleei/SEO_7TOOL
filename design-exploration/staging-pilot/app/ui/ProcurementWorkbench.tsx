@@ -4,9 +4,9 @@ import { useState } from "react";
 
 type Tool = "task" | "analog" | "spec";
 
-export function ProcurementWorkbench() {
+export function ProcurementWorkbench({ initialTask }: { initialTask?: string }) {
   const [tool, setTool] = useState<Tool>("task");
-  const [task, setTask] = useState("Нужно сверлить отверстия Ø35 мм в металлоконструкции на монтаже");
+  const [task, setTask] = useState(initialTask?.trim().slice(0, 500) || "Нужно сверлить отверстия Ø35 мм в металлоконструкции на монтаже");
   const [analog, setAnalog] = useState("FE Powertools ECO.50S+");
   const [checked, setChecked] = useState(false);
 

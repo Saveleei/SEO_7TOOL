@@ -8,7 +8,9 @@ import { AddRequestButton } from "./ui/RequestCart";
 import { ProductionCategoryGrid } from "./ui/ProductionCategoryGrid";
 import { getProductionCategoryGroups, pilotFeedCategorySlugs } from "./data/productionCategoryGroups";
 
-export default function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const rawSearchParams = await searchParams;
+  const initialTask = typeof rawSearchParams.task === "string" ? rawSearchParams.task : undefined;
   return (
     <div className="site-shell">
       <PilotHeader />
@@ -69,7 +71,7 @@ export default function Home() {
         <section className="section procurement-section">
           <div className="container procurement-grid">
             <div className="procurement-copy"><p className="eyebrow">Инженерный запрос</p><h2>Начните с задачи, а не с нашего каталога</h2><p>Опишите операцию, материал и условия работы, укажите известную модель либо передайте готовую спецификацию. Подтвердим, что действительно можем поставить.</p><ul><li>Подбор по производственной задаче</li><li>Замена отсутствующей модели</li><li>Разбор ТЗ и спецификации</li></ul><a href="mailto:info@7tool.ru?subject=Запрос%20на%20подбор">Можно сразу написать на <b>info@7tool.ru</b> →</a></div>
-            <ProcurementWorkbench />
+            <ProcurementWorkbench initialTask={initialTask} />
           </div>
         </section>
 

@@ -72,7 +72,9 @@ test("product analytics carries context without contact data", async () => {
 test("legacy STEYR route and all primary search links converge on the feed product", async () => {
   const legacy = await readFile(new URL("../app/product/lenz-steyr-35/page.tsx", import.meta.url), "utf8");
   const headerSearch = await readFile(new URL("../app/ui/HeaderSearch.tsx", import.meta.url), "utf8");
+  const catalogSearch = await readFile(new URL("../app/data/catalogSearch.ts", import.meta.url), "utf8");
   const canonicalPath = "/product/magnitnyy-sverlilnyy-stanok-lenz-steyr-35";
   assert.match(legacy, new RegExp(canonicalPath));
-  assert.match(headerSearch, new RegExp(canonicalPath));
+  assert.match(headerSearch, /<SmartSearch placement="header" \/>/u);
+  assert.match(catalogSearch, /`\/product\/\$\{product\.slug\}/u);
 });
