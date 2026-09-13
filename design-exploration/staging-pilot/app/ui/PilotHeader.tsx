@@ -12,11 +12,7 @@ export function PilotHeader({ managerMode = false, managerActor = null }: { mana
       <header className="site-header">
         <div className="container header-row">
           <Link className="brand" href="/" aria-label="7TOOL — главная"><Image src="/brand/7tool-primary.svg" alt="7TOOL" width={142} height={44} priority /></Link>
-          <Link className="catalog-button" href="/catalog"><i aria-hidden="true" />Каталог</Link>
-          <HeaderSearch />
-          <Link className="header-quick" href="/#quick-order"><span>?</span>Подбор по задаче</Link>
-          <a className="header-email" href="mailto:info@7tool.ru"><span>Запросы и спецификации</span><b>info@7tool.ru</b></a>
-          {managerMode ? <div className="manager-header-actions">{managerActor && canManager(managerActor, "settings:manage") && <Link className="manager-settings-link" href="/test/settings/quote">Настройки КП</Link>}{managerActor && <ManagerSessionControl actor={managerActor} />}</div> : <RequestCartButton />}
+          {managerMode ? <div className="manager-header-actions"><nav className="manager-workspace-nav" aria-label="Рабочее место"><Link href="/test/requests">Заявки</Link>{managerActor && canManager(managerActor, "delivery:prepare") && <Link href="/test/delivery">Очередь КП</Link>}{managerActor && canManager(managerActor, "settings:manage") && <Link href="/test/settings/quote">Настройки КП</Link>}</nav>{managerActor && <ManagerSessionControl actor={managerActor} />}</div> : <><Link className="catalog-button" href="/catalog"><i aria-hidden="true" />Каталог</Link><HeaderSearch /><Link className="header-quick" href="/#quick-order"><span>?</span>Подбор по задаче</Link><a className="header-email" href="mailto:info@7tool.ru"><span>Запросы и спецификации</span><b>info@7tool.ru</b></a><RequestCartButton /></>}
         </div>
       </header>
       {!managerMode && <nav className="mobile-action-bar" aria-label="Быстрые действия">

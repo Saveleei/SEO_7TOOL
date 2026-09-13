@@ -39,6 +39,13 @@ export type QuoteDeliveryOutboxRecord = QuoteDeliveryPackage & {
   attempts: 0;
 };
 export type QuoteDeliveryWorkspace = { package: QuoteDeliveryPackage; outbox: QuoteDeliveryOutboxRecord | null };
+export type QuoteDeliveryJournalEntry = QuoteDeliveryOutboxRecord & {
+  company: string;
+  city: string;
+  totalRub: number | null;
+  itemCount: number;
+};
+export type QuoteDeliveryJournalChannel = "all" | QuoteDeliveryChannel;
 
 type StoredRecord = QuoteDeliveryOutboxRecord & { idempotencyHash: string };
 type DeliveryInput = { idempotencyKey: unknown; confirmations: unknown };
@@ -50,6 +57,45 @@ export async function getQuoteDeliveryWorkspace(requestId: string, revision: num
   const deliveryPackage = await buildQuoteDeliveryPackage(requestId, revision, options);
   const record = (await readOutbox(resolveDataDir(options.dataDir))).find((candidate) => sameApprovedPackage(candidate, deliveryPackage));
   return { package:deliveryPackage, outbox:record ? withoutHash(record) : null };
+}
+
+export async function listQuoteDeliveryJournal(options: Options = {}): Promise<QuoteDeliveryJournalEntry[]> {
+  const records = (await readOutbox(resolveDataDir(options.dataDir))).map(withoutHash).sort((a, b) => b.queuedAt.localeCompare(a.queuedAt));
+  const entries = await Promise.all(records.map(async (record) => {
+    const [request, quote] = await Promise.all([
+      getQuoteRequestDetail(record.requestId, options),
+      getQuoteDraftRevision(record.requestId, record.revision, options),
+    ]);
+    return {
+      ...record,
+      company:request?.company || "Компания не указана",
+      city:request?.city || "Город не указан",
+      totalRub:quote?.totalRub ?? null,
+      itemCount:quote?.items.length ?? request?.items.length ?? 0,
+    };
+  }));
+  return entries;
+}
+
+export function filterQuoteDeliveryJournal(entries: QuoteDeliveryJournalEntry[], input: { q?: unknown; channel?: unknown }): { entries: QuoteDeliveryJournalEntry[]; q: string; channel: QuoteDeliveryJournalChannel } {
+  const q = normalizeJournalSearch(input.q);
+  const channel = normalizeJournalChannel(input.channel);
+  const folded = q.toLocaleLowerCase("ru-RU");
+  const filtered = entries.filter((entry) => {
+    if (channel !== "all" && entry.channel !== channel) return false;
+    if (!folded) return true;
+    return [entry.id, entry.requestId, entry.quoteId, entry.company, entry.city, entry.recipient]
+      .some((value) => value.toLocaleLowerCase("ru-RU").includes(folded));
+  });
+  return { entries:filtered, q, channel };
+}
+
+export function normalizeJournalSearch(value: unknown): string {
+  return String(value ?? "").replace(/[\u0000-\u001f\u007f]/gu, " ").replace(/\s+/gu, " ").trim().slice(0, 100);
+}
+
+export function normalizeJournalChannel(value: unknown): QuoteDeliveryJournalChannel {
+  return value === "email" || value === "telegram" || value === "max" ? value : "all";
 }
 
 export function enqueueQuoteDeliveryPackage(requestId: string, revision: number, input: DeliveryInput, actor: ManagerActor, options: Options = {}): Promise<{ workspace: QuoteDeliveryWorkspace; duplicate: boolean }> {
