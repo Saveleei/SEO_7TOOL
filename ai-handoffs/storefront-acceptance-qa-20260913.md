@@ -6,7 +6,8 @@
 - Branch: `codex/storefront-acceptance-qa`
 - Base: `dac2ea0` (`codex/storefront-release-candidate`)
 - Application: `design-exploration/staging-pilot`
-- Status: in progress
+- Status: complete
+- Implementation commit: `b7d6832` (`fix: harden storefront release acceptance`)
 
 ## Goal
 
