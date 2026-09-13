@@ -109,7 +109,7 @@ test("settings API is local-only, same-origin and contains no delivery integrati
     const stampApi = await readFile(new URL("../app/api/quote-settings/stamp/route.ts", import.meta.url), "utf8");
     const form = await readFile(new URL("../app/ui/QuoteTemplateSettingsForm.tsx", import.meta.url), "utf8");
     assert.match(api, /isQuoteTestModeEnabled/u);
-    assert.match(api, /origin !== requestUrl\.origin/u);
+    assert.match(api, /isSameOriginRequest\(request\)/u);
     assert.match(form, /Настройки действуют только для новых КП/u);
     assert.doesNotMatch(`${api}\n${stampApi}\n${form}`, /sendMail|smtp|crm\.|fetch\(["']https/iu);
   } finally {

@@ -90,7 +90,7 @@ test("manager actions append an auditable event log without rewriting the reques
 test("manager action API stays local, same-origin and free of delivery endpoints", async () => {
   const api = await readFile(new URL("../app/api/quote-requests/[id]/events/route.ts", import.meta.url), "utf8");
   assert.match(api, /isQuoteTestModeEnabled\(\)/u);
-  assert.match(api, /origin !== requestUrl\.origin/u);
+  assert.match(api, /isSameOriginRequest\(request\)/u);
   assert.match(api, /status:429/u);
   assert.doesNotMatch(api, /https?:\/\/|mailto:|t\.me|max\.ru|sendMail|fetch\(["']https/u);
 });

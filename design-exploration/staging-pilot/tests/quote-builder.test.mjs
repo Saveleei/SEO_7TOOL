@@ -141,7 +141,7 @@ test("quote API and preview contain no external send integration", async () => {
   const page = await readFile(new URL("../app/test/requests/[id]/quote/page.tsx", import.meta.url), "utf8");
   const printButton = await readFile(new URL("../app/ui/QuotePrintButton.tsx", import.meta.url), "utf8");
   assert.match(api, /isQuoteTestModeEnabled\(\)/u);
-  assert.match(api, /origin !== requestUrl\.origin/u);
+  assert.match(api, /isSameOriginRequest\(request\)/u);
   assert.match(printButton, /Печать \/ сохранить PDF/u);
   assert.match(assetApi, /saveQuoteStampAsset/u);
   assert.doesNotMatch(`${api}\n${assetApi}\n${page}\n${printButton}`, /sendMail|fetch\(["']https|smtp|crm\./iu);

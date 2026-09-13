@@ -92,7 +92,7 @@ test("approval API and UI prepare delivery without external sending", async () =
   const store = await readFile(new URL("../app/data/quoteApprovalStore.ts", import.meta.url), "utf8");
   const panel = await readFile(new URL("../app/ui/QuoteApprovalPanel.tsx", import.meta.url), "utf8");
   const page = await readFile(new URL("../app/test/requests/[id]/quote/page.tsx", import.meta.url), "utf8");
-  assert.match(api, /origin !== requestUrl\.origin/u);
+  assert.match(api, /isSameOriginRequest\(request\)/u);
   assert.match(store, /quote-approval-events\.jsonl/u);
   assert.match(panel, /Сайт ничего не отправит автоматически/u);
   assert.match(page, /getQuoteDraftRevision/u);

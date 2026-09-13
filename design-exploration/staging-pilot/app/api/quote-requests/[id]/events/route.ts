@@ -2,6 +2,7 @@ import { appendQuoteRequestEvent, isQuoteTestModeEnabled, QuoteWorkflowError } f
 import { authorizeManagerRequest } from "../../../../data/managerAccessServer";
 import { canManager } from "../../../../data/managerAccess";
 import { createMemoryRateLimiter } from "../../../../data/quoteRequestValidation.mjs";
+import { isSameOriginRequest } from "../../../../data/requestOrigin.ts";
 
 const limiter = createMemoryRateLimiter({ limit:30, windowMs:10 * 60 * 1000 });
 
@@ -9,9 +10,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   if (!isQuoteTestModeEnabled()) return Response.json({ ok:false, message:"Рабочее место менеджера отключено." }, { status:503 });
   const access = await authorizeManagerRequest(request, "requests:update");
   if (!access.ok) return access.response;
-  const requestUrl = new URL(request.url);
-  const origin = request.headers.get("origin");
-  if (origin && origin !== requestUrl.origin) return Response.json({ ok:false, message:"Запрос отклонён проверкой источника." }, { status:403 });
+  if (!isSameOriginRequest(request)) return Response.json({ ok:false, message:"Запрос отклонён проверкой источника." }, { status:403 });
   if (Number(request.headers.get("content-length") ?? 0) > 20_000) return Response.json({ ok:false, message:"Данные действия слишком большие." }, { status:413 });
 
   const clientKey = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local-manager";

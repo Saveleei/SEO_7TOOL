@@ -2,6 +2,7 @@ import { authorizeManagerRequest } from "../../../../data/managerAccessServer.ts
 import { enqueueQuoteDeliveryPackage, getQuoteDeliveryWorkspace } from "../../../../data/quoteDeliveryStore.ts";
 import { createMemoryRateLimiter } from "../../../../data/quoteRequestValidation.mjs";
 import { isQuoteTestModeEnabled, QuoteWorkflowError } from "../../../../data/quoteRequestStore.ts";
+import { isSameOriginRequest } from "../../../../data/requestOrigin.ts";
 
 const limiter = createMemoryRateLimiter({ limit:20, windowMs:10 * 60 * 1000 });
 
@@ -21,9 +22,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   if (!isQuoteTestModeEnabled()) return Response.json({ ok:false, message:"Очередь отправки КП отключена." }, { status:503 });
-  const requestUrl = new URL(request.url);
-  const origin = request.headers.get("origin");
-  if (origin && origin !== requestUrl.origin) return Response.json({ ok:false, message:"Запрос отклонён проверкой источника." }, { status:403 });
+  if (!isSameOriginRequest(request)) return Response.json({ ok:false, message:"Запрос отклонён проверкой источника." }, { status:403 });
   if (Number(request.headers.get("content-length") ?? 0) > 20_000) return Response.json({ ok:false, message:"Запрос превышает допустимый размер." }, { status:413 });
   const access = await authorizeManagerRequest(request, "delivery:prepare");
   if (!access.ok) return access.response;

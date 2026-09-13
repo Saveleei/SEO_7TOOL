@@ -2,6 +2,7 @@ import { saveQuoteStampAsset } from "../../../../data/quoteAssetStore";
 import { authorizeManagerRequest } from "../../../../data/managerAccessServer";
 import { isQuoteTestModeEnabled, QuoteWorkflowError } from "../../../../data/quoteRequestStore";
 import { createMemoryRateLimiter } from "../../../../data/quoteRequestValidation.mjs";
+import { isSameOriginRequest } from "../../../../data/requestOrigin.ts";
 
 const limiter = createMemoryRateLimiter({ limit:10, windowMs:10 * 60 * 1000 });
 
@@ -9,9 +10,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   if (!isQuoteTestModeEnabled()) return Response.json({ ok:false, message:"Конструктор КП отключён." }, { status:503 });
   const access = await authorizeManagerRequest(request, "quotes:edit");
   if (!access.ok) return access.response;
-  const requestUrl = new URL(request.url);
-  const origin = request.headers.get("origin");
-  if (origin && origin !== requestUrl.origin) return Response.json({ ok:false, message:"Запрос отклонён проверкой источника." }, { status:403 });
+  if (!isSameOriginRequest(request)) return Response.json({ ok:false, message:"Запрос отклонён проверкой источника." }, { status:403 });
   if (Number(request.headers.get("content-length") ?? 0) > 1_700_000) return Response.json({ ok:false, message:"Файл превышает допустимый размер." }, { status:413 });
   const clientKey = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local-quote-asset";
   const rate = limiter.check(clientKey);

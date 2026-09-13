@@ -2,6 +2,7 @@ import { isQuoteTestModeEnabled, QuoteWorkflowError } from "../../data/quoteRequ
 import { authorizeManagerRequest } from "../../data/managerAccessServer.ts";
 import { getQuoteTemplateSettings, saveQuoteTemplateSettings } from "../../data/quoteTemplateStore.ts";
 import { createMemoryRateLimiter } from "../../data/quoteRequestValidation.mjs";
+import { isSameOriginRequest } from "../../data/requestOrigin.ts";
 
 const limiter = createMemoryRateLimiter({ limit:20, windowMs:10 * 60 * 1000 });
 
@@ -16,9 +17,7 @@ export async function PUT(request: Request) {
   if (!isQuoteTestModeEnabled()) return Response.json({ ok:false, message:"Настройки КП отключены." }, { status:503 });
   const access = await authorizeManagerRequest(request, "settings:manage");
   if (!access.ok) return access.response;
-  const requestUrl = new URL(request.url);
-  const origin = request.headers.get("origin");
-  if (origin && origin !== requestUrl.origin) return Response.json({ ok:false, message:"Запрос отклонён проверкой источника." }, { status:403 });
+  if (!isSameOriginRequest(request)) return Response.json({ ok:false, message:"Запрос отклонён проверкой источника." }, { status:403 });
   if (Number(request.headers.get("content-length") ?? 0) > 100_000) return Response.json({ ok:false, message:"Настройки превышают допустимый размер." }, { status:413 });
   const clientKey = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local-quote-settings";
   const rate = limiter.check(clientKey);

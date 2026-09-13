@@ -1,13 +1,12 @@
 import { isQuoteTestModeEnabled, saveQuoteRequest } from "../../data/quoteRequestStore";
 import { createMemoryRateLimiter, validateQuoteAttachment, validateQuoteRequest } from "../../data/quoteRequestValidation.mjs";
+import { isSameOriginRequest } from "../../data/requestOrigin.ts";
 
 const limiter = createMemoryRateLimiter({ limit:8, windowMs:10 * 60 * 1000 });
 
 export async function POST(request: Request) {
   if (!isQuoteTestModeEnabled()) return Response.json({ ok:false, message:"Тестовый контур заявок отключён." }, { status:503 });
-  const requestUrl = new URL(request.url);
-  const origin = request.headers.get("origin");
-  if (origin && origin !== requestUrl.origin) return Response.json({ ok:false, message:"Запрос отклонён проверкой источника." }, { status:403 });
+  if (!isSameOriginRequest(request)) return Response.json({ ok:false, message:"Запрос отклонён проверкой источника." }, { status:403 });
   const contentLength = Number(request.headers.get("content-length") ?? 0);
   if (contentLength > 12 * 1024 * 1024) return Response.json({ ok:false, message:"Общий размер запроса слишком большой." }, { status:413 });
 

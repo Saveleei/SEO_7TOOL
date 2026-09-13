@@ -29,7 +29,7 @@ export function ManagerAccessForm({ returnTo, denied = false }: { returnTo: stri
       <span>Все заявки и контакты</span><span>Редактирование и согласование КП</span><span>Реквизиты и печать</span><span>Подготовка пакета отправки</span>
     </div>
     <button type="button" onClick={signIn} disabled={pending}>{pending ? "Открываем защищённую сессию…" : "Войти как администратор"}</button>
-    <small>Тестовый вход работает только на 127.0.0.1 при включённом локальном контуре. В production роль назначается по серверному списку разрешённых корпоративных email.</small>
+    <small>Тестовый вход работает на защищённом тестовом домене и локальном стенде. В production роль назначается по серверному списку разрешённых корпоративных email.</small>
     <div className="manager-access-feedback" aria-live="polite">{error && <p>{error}</p>}</div>
   </section>;
 }

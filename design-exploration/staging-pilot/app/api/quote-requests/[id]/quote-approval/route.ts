@@ -3,14 +3,13 @@ import { authorizeManagerRequest } from "../../../../data/managerAccessServer.ts
 import type { ManagerCapability } from "../../../../data/managerAccess.ts";
 import { isQuoteTestModeEnabled, QuoteWorkflowError } from "../../../../data/quoteRequestStore.ts";
 import { createMemoryRateLimiter } from "../../../../data/quoteRequestValidation.mjs";
+import { isSameOriginRequest } from "../../../../data/requestOrigin.ts";
 
 const limiter = createMemoryRateLimiter({ limit:30, windowMs:10 * 60 * 1000 });
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   if (!isQuoteTestModeEnabled()) return Response.json({ ok:false, message:"Согласование КП отключено." }, { status:503 });
-  const requestUrl = new URL(request.url);
-  const origin = request.headers.get("origin");
-  if (origin && origin !== requestUrl.origin) return Response.json({ ok:false, message:"Запрос отклонён проверкой источника." }, { status:403 });
+  if (!isSameOriginRequest(request)) return Response.json({ ok:false, message:"Запрос отклонён проверкой источника." }, { status:403 });
   if (Number(request.headers.get("content-length") ?? 0) > 50_000) return Response.json({ ok:false, message:"Запрос превышает допустимый размер." }, { status:413 });
   const clientKey = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local-quote-approval";
   const rate = limiter.check(clientKey);
