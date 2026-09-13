@@ -1,4 +1,5 @@
 import feedSnapshotJson from "../../../../7tool-source/src/lib/products.json" with { type:"json" };
+import { getCategoryFacetKeywords } from "./categoryExpertProfiles.mjs";
 import { selectCompatibleAccessories, selectProductAlternatives } from "./productRecommendations.mjs";
 
 export type FeedParameter = {
@@ -138,6 +139,11 @@ type FeedSnapshot = {
   products: FeedProduct[];
 };
 
+type CachedFeedFacet = Omit<FeedFacet, "options"> & {
+  allOptions: FeedFacetOption[];
+  optionLimit: number;
+};
+
 const feedSnapshot = feedSnapshotJson as unknown as FeedSnapshot;
 
 const categoriesBySlug = new Map(
@@ -149,33 +155,7 @@ const categoriesBySlug = new Map(
 const productsByCategory = new Map<string, FeedProduct[]>();
 const productsBySlug = new Map<string, FeedProduct>();
 const variantsById = new Map<string, { product: FeedProduct; variant: FeedVariant }>();
-
-const categorySpecPriorities: Record<string, string[]> = {
-  "stanki-sverlilnye": ["макс. диаметр", "шпиндель", "рабочий ход", "реверс", "масса", "мощность"],
-  "koronchatye-sverla": ["диаметр", "рабочая длина", "хвостовик", "материал", "тип сверла"],
-  "kromkorezy-po-listu": ["ширина фаски", "угол фаски", "толщина", "привод", "масса"],
-  "kromkorezy-dlya-trub": ["диаметр труб", "толщина стенки", "способ крепления", "возможности", "привод"],
-  "rezbonareznye-manipulyatory": ["диапазон резьбы", "рабочий радиус", "привод", "частота вращения", "масса"],
-  borfrezy: ["диаметр режущей", "длина режущей", "диаметр хвостовика", "форма", "материал", "тип насечки"],
-  truborezy: ["диапазон труб", "толщина стенки", "привод", "масса"],
-  "karetki-svarochnye": ["положения сварки", "скорость", "движение каретки", "грузоподъемность", "масса"],
-  "pilnye-diski": ["диаметр диска", "ширина пропила", "посадочное отверстие", "число зубьев", "материал"],
-  "karetki-termicheskoy-rezki": ["назначение", "тип резки", "количество резаков", "скорость", "толщина"],
-  metchiki: ["резьба", "диаметр хвостовика", "общая длина", "рабочая длина", "материал"],
-  "lentochnopilnye-stanki": ["макс. размер", "диаметр", "мощность", "скорость", "масса"],
-  "shlifovalnoe-i-zatochnoe-oborudovanie": ["мощность", "диаметр", "частота вращения", "напряжение", "масса"],
-  "magnitnaya-osnastka": ["грузоподъемность", "усилие", "размер", "масса"],
-  "almaznoe-burenie": ["диаметр", "рабочая длина", "мощность", "хвостовик"],
-  "svarochnye-vrashchateli-i-pozitsionery": ["грузоподъемность", "диаметр", "скорость", "угол наклона", "масса"],
-  "zahvaty-dlya-gruzov": ["грузоподъемность", "толщина материала", "масса", "высота"],
-  "sozh-i-sots": ["объем", "концентрация", "назначение", "тип"],
-  "disko-otreznye-stanki": ["диаметр диска", "мощность", "макс. размер", "частота вращения", "масса"],
-  kompressory: ["производительность", "объем ресивера", "мощность", "параметры питания", "тип смазки"],
-  "sverla-i-zenkovki": ["диаметр режущей", "общая длина", "диаметр зенкования", "диаметр хвостовика", "материал"],
-  "stanki-lazernoy-rezki": ["мощность", "рабочее поле", "толщина", "точность", "скорость"],
-  "svarochnye-roboty": ["грузоподъемность", "радиус", "количество осей", "точность", "масса"],
-  "stanochnaya-osnastka": ["тип", "размер", "посадка", "диаметр", "масса"],
-};
+const categoryFacetCache = new Map<string, CachedFeedFacet[]>();
 
 const primaryTitlePatterns: Partial<Record<string, RegExp>> = {
   "stanki-sverlilnye": /(станок|машин[аы]? сверлил)/i,
@@ -360,25 +340,37 @@ function getRankedCategoryProducts(slug: string): FeedProduct[] {
 }
 
 function getCategoryFacets(slug: string, products: FeedProduct[], selectedFilters: Record<string, string[]>): FeedFacet[] {
-  const facets: FeedFacet[] = [];
-  const brands = countProductValues(products, (product) => product.brand ? [product.brand] : []);
+  let cachedFacets = categoryFacetCache.get(slug);
+  if (!cachedFacets) {
+    cachedFacets = buildCategoryFacets(slug, products);
+    categoryFacetCache.set(slug, cachedFacets);
+  }
+  return cachedFacets.map(({ allOptions, optionLimit, ...facet }) => ({
+    ...facet,
+    options:selectFacetOptions(allOptions, selectedFilters[facet.key], optionLimit),
+  }));
+}
+
+function buildCategoryFacets(slug: string, products: FeedProduct[]): CachedFeedFacet[] {
+  const facets: CachedFeedFacet[] = [];
+  const categoryFacetKeywords = getCategoryFacetKeywords(slug);
+  const { brands, parameters } = analyzeCategoryFacets(products, categoryFacetKeywords);
   if (brands.size > 1) {
     facets.push({
       key: "brand",
       label: "Производитель",
       help: "Оставьте несколько брендов, если готовы сравнить аналоги.",
-      options: toFacetOptions(brands, selectedFilters.brand),
+      allOptions: toFacetOptions(brands),
+      optionLimit:10,
     });
   }
 
   const usedParameterNames = new Set<string>();
-  const technicalFacetLimit = slug === "borfrezy" || slug === "stanki-sverlilnye" ? 5 : 3;
-  for (const keyword of categorySpecPriorities[slug] ?? []) {
+  const technicalFacetLimit = Math.min(5, categoryFacetKeywords.length);
+  for (const { keyword, names, values } of parameters) {
     if (facets.filter((facet) => facet.keyword).length >= technicalFacetLimit) break;
-    const matchingNames = getMatchingParameterNames(products, keyword);
+    const matchingNames = Array.from(names.entries()).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ru-RU")).map(([name]) => name);
     if (matchingNames.length === 0 || matchingNames.some((name) => usedParameterNames.has(normalizeText(name)))) continue;
-
-    const values = countProductValues(products, (product) => getProductParameterValues(product, keyword));
     if (values.size < 2) continue;
 
     const key = `spec${facets.filter((facet) => facet.keyword).length + 1}`;
@@ -388,45 +380,61 @@ function getCategoryFacets(slug: string, products: FeedProduct[], selectedFilter
       label: matchingNames[0],
       help: getFacetHelp(keyword),
       keyword,
-      options: toFacetOptions(values, selectedFilters[key], keyword === "форма" ? 100 : 10, keyword === "форма"),
+      allOptions: toFacetOptions(values, keyword === "форма"),
+      optionLimit:keyword === "форма" ? 100 : 10,
     });
   }
 
   return facets;
 }
 
+function analyzeCategoryFacets(products: FeedProduct[], keywords: string[]) {
+  const brands = new Map<string, number>();
+  const parameters = keywords.map((keyword) => ({ keyword, normalizedKeyword:normalizeText(keyword), names:new Map<string, number>(), values:new Map<string, number>() }));
+
+  for (const product of products) {
+    if (product.brand) brands.set(product.brand, (brands.get(product.brand) ?? 0) + 1);
+    const productNames = parameters.map(() => new Set<string>());
+    const productValues = parameters.map(() => new Set<string>());
+
+    for (const variant of product.variants) {
+      for (const parameter of variant.params ?? []) {
+        const normalizedName = normalizeText(parameter.name);
+        parameters.forEach((analysis, index) => {
+          if (!normalizedName.includes(analysis.normalizedKeyword)) return;
+          productNames[index].add(parameter.name);
+          const value = formatParameterValue(parameter);
+          if (value) productValues[index].add(value);
+        });
+      }
+    }
+
+    parameters.forEach((analysis, index) => {
+      for (const name of productNames[index]) analysis.names.set(name, (analysis.names.get(name) ?? 0) + 1);
+      for (const value of productValues[index]) analysis.values.set(value, (analysis.values.get(value) ?? 0) + 1);
+    });
+  }
+
+  return { brands, parameters };
+}
+
 function isConfirmedAvailableVariant(variant: FeedVariant): boolean {
   return variant.available && typeof variant.quantity === "number" && variant.quantity > 0;
 }
 
-function getMatchingParameterNames(products: FeedProduct[], keyword: string): string[] {
-  const counts = new Map<string, number>();
-  for (const product of products) {
-    const names = new Set(product.variants.flatMap((variant) => variant.params ?? [])
-      .map((parameter) => parameter.name)
-      .filter((name) => normalizeText(name).includes(normalizeText(keyword))));
-    for (const name of names) counts.set(name, (counts.get(name) ?? 0) + 1);
-  }
-  return Array.from(counts.entries()).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ru-RU")).map(([name]) => name);
-}
-
-function countProductValues(products: FeedProduct[], getValues: (product: FeedProduct) => string[]): Map<string, number> {
-  const counts = new Map<string, number>();
-  for (const product of products) {
-    for (const value of new Set(getValues(product).filter(Boolean))) counts.set(value, (counts.get(value) ?? 0) + 1);
-  }
-  return counts;
-}
-
-function toFacetOptions(counts: Map<string, number>, selectedValues: string[] = [], limit = 10, sortByValue = false): FeedFacetOption[] {
+function toFacetOptions(counts: Map<string, number>, sortByValue = false): FeedFacetOption[] {
   const ranked = Array.from(counts.entries())
     .sort((a, b) => sortByValue ? compareFacetValues(a[0], b[0]) : b[1] - a[1] || a[0].localeCompare(b[0], "ru-RU"));
-  const visible = ranked.slice(0, limit);
+  return ranked.map(([value, count]) => ({ value, label:value, count }));
+}
+
+function selectFacetOptions(allOptions: FeedFacetOption[], selectedValues: string[] = [], limit = 10): FeedFacetOption[] {
+  const visible = allOptions.slice(0, limit);
   for (const selected of selectedValues) {
-    const entry = ranked.find(([value]) => value === selected);
-    if (entry && !visible.some(([value]) => value === selected)) visible.push(entry);
+    const entry = allOptions.find((option) => option.value === selected);
+    if (entry && !visible.some((option) => option.value === selected)) visible.push(entry);
   }
-  return visible.map(([value, count]) => ({ value, label:value, count }));
+  return visible;
 }
 
 function compareFacetValues(first: string, second: string): number {
@@ -452,10 +460,6 @@ function parseNumericValue(value: string): number {
   const match = value.replace(",", ".").match(/-?\d+(?:\.\d+)?/);
   const parsed = Number.parseFloat(match?.[0] ?? "");
   return Number.isFinite(parsed) ? parsed : Number.NEGATIVE_INFINITY;
-}
-
-function getProductParameterValues(product: FeedProduct, keyword: string): string[] {
-  return product.variants.flatMap((variant) => getVariantParameterValues(variant, keyword));
 }
 
 function getVariantParameterValues(variant: FeedVariant, keyword: string): string[] {
@@ -502,7 +506,7 @@ function getFacetHelp(keyword: string): string {
 function getFeedProductSpecs(product: FeedProduct): FeedProductSpec[] {
   const parameters = product.variants.flatMap((variant) => variant.params ?? []);
   const names = Array.from(new Set(parameters.map((parameter) => parameter.name).filter((name) => name && !lowValueParameterPattern.test(name))));
-  const priorities = [...(categorySpecPriorities[product.category] ?? []), ...product.paramAxes];
+  const priorities = [...getCategoryFacetKeywords(product.category), ...product.paramAxes];
   const orderedNames: string[] = [];
 
   for (const priority of priorities) {
@@ -518,7 +522,7 @@ function getFeedProductSpecs(product: FeedProduct): FeedProductSpec[] {
 
 export function getFeedVariantSpecs(product: FeedProduct, variant: FeedVariant): FeedProductSpec[] {
   const parameters = variant.params ?? [];
-  const priorities = [...(categorySpecPriorities[product.category] ?? []), ...product.paramAxes];
+  const priorities = [...getCategoryFacetKeywords(product.category), ...product.paramAxes];
   const selected: FeedProductSpec[] = [];
 
   for (const priority of priorities) {

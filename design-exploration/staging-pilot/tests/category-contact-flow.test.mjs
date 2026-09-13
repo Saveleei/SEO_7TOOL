@@ -4,9 +4,10 @@ import test from "node:test";
 
 test("burr quick filters prioritize manufacturer and omit the duplicated shape row", async () => {
   const source = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
-  assert.match(source, /\? \[brandFacet, technicalFacets\.find\(\(facet\) => facet\.keyword === "материал"\)/u);
-  assert.doesNotMatch(source, /\? \[technicalFacets\.find\(\(facet\) => facet\.keyword === "форма"\)/u);
-  assert.match(source, /if \(key === "brand"\) return 0/u);
+  const profiles = await readFile(new URL("../app/data/categoryExpertProfiles.mjs", import.meta.url), "utf8");
+  assert.match(source, /selectCategoryFacets\(slug, result\.facets/u);
+  assert.match(profiles, /"borfrezy"[\s\S]*promotedFacetKeywords:\["brand", "материал", "диаметр режущей"\]/u);
+  assert.doesNotMatch(profiles.slice(profiles.indexOf('"borfrezy"'), profiles.indexOf('"truborezy"')), /promotedFacetKeywords:[^\n]*"форма"/u);
 });
 
 test("guided selection asks for a phone after the preliminary result", async () => {
@@ -17,8 +18,11 @@ test("guided selection asks for a phone after the preliminary result", async () 
 
 test("send parameters opens a local callback form instead of composing an email", async () => {
   const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
+  const assistant = await readFile(new URL("../app/ui/CategorySelectionAssistant.tsx", import.meta.url), "utf8");
   const dialog = await readFile(new URL("../app/ui/ContactRequestDialog.tsx", import.meta.url), "utf8");
-  assert.match(page, /<ContactRequestDialog categoryTitle=/u);
+  assert.match(page, /<CategorySelectionAssistant/u);
+  assert.match(assistant, /primaryContact="phone"/u);
+  assert.match(assistant, /Передать задачу инженеру/u);
   assert.match(dialog, /Телефон для связи/u);
   assert.match(dialog, /defaultChecked required/u);
   assert.match(dialog, /event\.preventDefault\(\)/u);
@@ -123,19 +127,21 @@ test("listing actions use a restrained two-level CTA palette", async () => {
 
 test("drilling machines expose the three decision-driving quick facets", async () => {
   const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
+  const profiles = await readFile(new URL("../app/data/categoryExpertProfiles.mjs", import.meta.url), "utf8");
   const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
-  assert.match(page, /slug === "stanki-sverlilnye"[\s\S]*brandFacet[\s\S]*facet\.keyword === "макс\. диаметр"[\s\S]*facet\.keyword === "шпиндель"/u);
+  assert.match(page, /selectCategoryFacets\(slug, result\.facets/u);
+  assert.match(profiles, /"stanki-sverlilnye"[\s\S]*promotedFacetKeywords:\["brand", "макс\. диаметр", "шпиндель"\]/u);
   assert.match(page, /feed-promoted-filters--equipment/u);
   assert.match(styles, /\.feed-promoted-filters--equipment>div>div \{[^}]*flex-wrap:wrap[^}]*overflow:visible/us);
   const catalog = await readFile(new URL("../app/data/feedCatalog.ts", import.meta.url), "utf8");
-  assert.match(catalog, /"stanki-sverlilnye": \["макс\. диаметр", "шпиндель", "рабочий ход", "реверс", "масса"/u);
+  assert.match(catalog, /getCategoryFacetKeywords\(slug\)/u);
 });
 
 test("drilling selector is integrated and maps to persistent numeric filters", async () => {
   const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
   const catalog = await readFile(new URL("../app/data/feedCatalog.ts", import.meta.url), "utf8");
   const selector = await readFile(new URL("../app/ui/DrillSelectionAssistant.tsx", import.meta.url), "utf8");
-  assert.match(page, /selectorHref = slug === "stanki-sverlilnye" \? "#drill-selector"/u);
+  assert.match(page, /selectorHref = slug === "borfrezy" \? "#burr-selector" : slug === "stanki-sverlilnye" \? "#drill-selector" : "#category-selector"/u);
   assert.match(page, /<DrillSelectionAssistant/u);
   assert.match(page, /name=\{`min_\$\{key\}`\}/u);
   assert.match(page, /facet\?\.label \?\? "Параметр"[^\n]*от \{value\} мм/u);

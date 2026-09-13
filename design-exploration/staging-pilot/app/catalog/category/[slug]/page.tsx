@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Breadcrumbs } from "../../../ui/Breadcrumbs";
 import { BurrSelectionAssistant } from "../../../ui/BurrSelectionAssistant";
 import { BurrShapeMark } from "../../../ui/BurrShapeMark";
-import { ContactRequestDialog } from "../../../ui/ContactRequestDialog";
+import { CategorySelectionAssistant } from "../../../ui/CategorySelectionAssistant";
 import { DrillSelectionAssistant } from "../../../ui/DrillSelectionAssistant";
 import { FeedProductList } from "../../../ui/FeedProductList";
 import { FeedProductTable } from "../../../ui/FeedProductTable";
@@ -12,7 +12,7 @@ import { OpenFullFiltersLink, PromotedFilterLink } from "../../../ui/PromotedFil
 import { PilotFooter } from "../../../ui/PilotFooter";
 import { PilotHeader } from "../../../ui/PilotHeader";
 import { SelectionConversionBlock } from "../../../ui/SelectionConversionBlock";
-import { getCategoryLandingContent } from "../../../data/categoryLandingContent";
+import { getCategoryExpertProfile, selectCategoryFacets } from "../../../data/categoryExpertProfiles.mjs";
 import { getFeedCategory, getFeedCategoryPage, prefersDenseFeedTable, type FeedCategorySort, toFeedProductCardModel } from "../../../data/feedCatalog";
 import { getProductionSubcategory } from "../../../data/productionCategoryGroups";
 
@@ -45,7 +45,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   if (!entry) return <div className="site-shell"><PilotHeader /><main className="inner-page"><section className="section"><div className="container empty-result"><b>Категория не найдена в текущем каталоге</b><p>Вернитесь в каталог или отправьте задачу инженеру.</p><Link href="/catalog">Открыть каталог →</Link></div></section></main><PilotFooter /></div>;
 
   const { group, subcategory } = entry;
-  const landing = getCategoryLandingContent(group.slug);
+  const profile = getCategoryExpertProfile(slug);
   const feedCategory = getFeedCategory(slug);
   const search = firstValue(rawSearchParams.q)?.trim() ?? "";
   const requestedSort = firstValue(rawSearchParams.sort);
@@ -72,17 +72,12 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const canUseTable = prefersDenseFeedTable(slug);
   const view = canUseTable && requestedView !== "cards" ? "table" : "cards";
   const activeFilterCount = Object.values(filters).reduce((sum, values) => sum + values.length, 0) + Object.keys(numericMinimums).length + (search ? 1 : 0) + (inStockOnly ? 1 : 0);
-  const subject = encodeURIComponent(`Запрос: ${subcategory.label}`);
-  const selectorHref = slug === "stanki-sverlilnye" ? "#drill-selector" : undefined;
+  const selectorHref = slug === "borfrezy" ? "#burr-selector" : slug === "stanki-sverlilnye" ? "#drill-selector" : "#category-selector";
   const start = result.total > 0 ? (result.page - 1) * result.pageSize + 1 : 0;
   const end = Math.min(result.page * result.pageSize, result.total);
   const technicalFacets = result.facets.filter((facet) => facet.keyword);
-  const brandFacet = result.facets.find((facet) => facet.key === "brand");
-  const promotedFacets = slug === "borfrezy"
-    ? [brandFacet, technicalFacets.find((facet) => facet.keyword === "материал"), technicalFacets.find((facet) => facet.keyword === "диаметр режущей")].filter((facet): facet is NonNullable<typeof facet> => Boolean(facet))
-    : slug === "stanki-sverlilnye"
-      ? [brandFacet, technicalFacets.find((facet) => facet.keyword === "макс. диаметр"), technicalFacets.find((facet) => facet.keyword === "шпиндель")].filter((facet): facet is NonNullable<typeof facet> => Boolean(facet))
-      : technicalFacets.slice(0, 2);
+  const promotedFacets = selectCategoryFacets(slug, result.facets, slug === "borfrezy" || slug === "stanki-sverlilnye" ? 3 : 2);
+  const assistantFacets = selectCategoryFacets(slug, technicalFacets, 3);
   const shapeFacet = technicalFacets.find((facet) => facet.keyword === "форма");
   const shankFacet = technicalFacets.find((facet) => facet.keyword === "диаметр хвостовика");
   const materialFacet = technicalFacets.find((facet) => facet.keyword === "материал");
@@ -91,19 +86,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const orderedFacets = slug === "borfrezy"
     ? [...result.facets].sort((first, second) => facetOrder(first.keyword, first.key) - facetOrder(second.keyword, second.key))
     : result.facets;
-  const selectionCriteria = slug === "borfrezy" ? [
-    { title:"Геометрия участка", copy:"Плоскость, радиус, паз, фаска или труднодоступная зона — это определяет форму A–N." },
-    { title:"Материал детали", copy:"Сталь, нержавеющая или закалённая сталь, чугун, титан либо цветной металл — для выбора насечки." },
-    { title:"Размер рабочей части", copy:"Желаемый диаметр и длина головки либо размеры обрабатываемого участка." },
-    { title:"Хвостовик и инструмент", copy:"Диаметр хвостовика 3, 6 или 8 мм и модель прямошлифовальной машины, если известна." },
-    { title:"Требуемый результат", copy:"Быстрый съём, зачистка сварного шва, удаление заусенцев или чистовая обработка." },
-  ] : slug === "stanki-sverlilnye" ? [
-    { title:"Операция и диаметр", copy:"Корончатое или спиральное сверление, зенкование либо резьба; укажите максимальный диаметр и глубину." },
-    { title:"Заготовка", copy:"Материал, толщина, профиль поверхности и доступная зона установки станка." },
-    { title:"Место работы", copy:"Монтаж на конструкции, работа в цехе, вертикальное или потолочное положение." },
-    { title:"Шпиндель и оснастка", copy:"Weldon, конус Морзе или патрон; сообщите имеющиеся свёрла, если их нужно сохранить." },
-    { title:"Рабочие функции", copy:"Реверс, нарезание резьбы, требуемый ход и ограничения по массе оборудования." },
-  ] : landing.parameters;
+  const selectionCriteria = profile.criteria;
 
   return <div className="site-shell"><PilotHeader /><main className="inner-page">
     <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Каталог", href:"/catalog" }, { label:group.title, href:group.href }, { label:subcategory.label }]} /></div>
@@ -111,16 +94,16 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     <section className="page-hero page-hero--category"><div className="container page-hero-grid"><div>
       <p className="eyebrow">{group.title}</p>
       <h1>{feedCategory?.h1 ?? subcategory.label}</h1>
-      <p>{slug === "stanki-sverlilnye" ? "Подберите оборудование по диаметру отверстия, шпинделю, рабочему ходу и реверсу. Точную модель и артикул заранее знать не нужно." : "Сравните товарные серии по ключевым параметрам, раскройте нужную строку и добавьте точное исполнение в один запрос КП."}</p>
-      <div className="category-hero-facts"><span><b>{result.total.toLocaleString("ru-RU")}</b> {pluralizeProductGroups(result.total)}</span><span>Цена — по данным поставщика</span><span>Наличие и срок — после проверки</span></div>
+      <p>{profile.heroIntro}</p>
+      <div className="category-hero-facts"><span><b>{(feedCategory?.count ?? result.total).toLocaleString("ru-RU")}</b> {pluralizeProductGroups(feedCategory?.count ?? result.total)}</span><span>Цена — по данным поставщика</span><span>Наличие и срок — после проверки</span></div>
     </div><aside>
-      <b>{selectorHref ? "Нужен технический отбор?" : "Не знаете точное исполнение?"}</b>
-      <p>{selectorHref ? "Сузьте выбор по диаметру, массе, шпинделю и рабочим функциям." : "Пришлите размеры или опишите задачу — артикул знать не обязательно."}</p>
-      {selectorHref ? <a href={selectorHref}>Подобрать станок по задаче →</a> : <ContactRequestDialog categoryTitle={feedCategory?.h1 ?? subcategory.label} />}
+      <b>{profile.selectorTitle}</b>
+      <p>{profile.selectorIntro}</p>
+      <a href={selectorHref}>Ответить на несколько вопросов →</a>
     </aside></div></section>
 
     <section className="section feed-category-listing" id="products"><div className="container">
-      <div className="section-heading feed-category-heading"><div><p className="eyebrow">Фактический ассортимент</p><h2>{slug === "stanki-sverlilnye" ? "Подберите по рабочей задаче" : "Сначала сузьте выбор"}</h2></div><p>Главные параметры вынесены наверх. Полный набор фильтров остаётся слева.</p></div>
+      <div className="section-heading feed-category-heading"><div><p className="eyebrow">Фактический ассортимент</p><h2>{profile.listingTitle}</h2></div><p>Главные параметры вынесены наверх. Полный набор фильтров остаётся слева.</p></div>
 
       {promotedFacets.length > 0 && <nav className={`feed-promoted-filters${slug === "borfrezy" ? " feed-promoted-filters--burr" : ""}${slug === "stanki-sverlilnye" ? " feed-promoted-filters--equipment" : ""}`} aria-label="Быстрые фильтры">
         <div className="feed-priority-choice"><span>Показывать сначала</span><div>
@@ -151,6 +134,16 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
         selectedDiameter={numericMinimums[drillDiameterFacet.key]}
         selectedReverse={drillReverseFacet ? filters[drillReverseFacet.key] : []}
         selectedWork={search === "магнитн" ? "installation" : "unknown"}
+      />}
+
+      {slug !== "borfrezy" && slug !== "stanki-sverlilnye" && <CategorySelectionAssistant
+        categoryTitle={feedCategory?.h1 ?? subcategory.label}
+        selectorTitle={profile.selectorTitle}
+        selectorIntro={profile.selectorIntro}
+        selectorResult={profile.selectorResult}
+        facets={assistantFacets}
+        selectedFilters={filters}
+        criteria={selectionCriteria}
       />}
 
       <div className="feed-catalog-layout">
@@ -191,7 +184,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
             <PromotedFilterLink className="feed-reset-all" href={`/catalog/category/${slug}#products`}>Очистить всё</PromotedFilterLink>
           </nav>}
 
-          {result.products.length > 0 ? view === "table" ? <FeedProductTable products={productCards} columns={result.facets.filter((facet) => facet.keyword).map((facet) => facet.label).slice(0, 3)} /> : <FeedProductList products={productCards} directSingleVariant={slug === "stanki-sverlilnye"} /> : <div className="feed-state"><span>Нет точных совпадений</span><h2>Ослабьте один из параметров</h2><p>{slug === "stanki-sverlilnye" ? "Увеличьте допустимый диапазон или уточните задачу с инженером — модель и артикул знать не нужно." : "Снимите фильтр или подберите форму по геометрии участка — артикул знать не нужно."}</p><div><Link className="button" href={`/catalog/category/${slug}#products`}>Сбросить фильтры</Link>{slug === "borfrezy" ? <a className="button button-orange" href="#burr-selector">Подобрать по задаче</a> : slug === "stanki-sverlilnye" ? <a className="button button-orange" href="#drill-selector">Изменить условия подбора</a> : <ContactRequestDialog categoryTitle={feedCategory?.h1 ?? subcategory.label} buttonLabel="Запросить подбор" />}</div></div>}
+          {result.products.length > 0 ? view === "table" ? <FeedProductTable products={productCards} columns={result.facets.filter((facet) => facet.keyword).map((facet) => facet.label).slice(0, 3)} /> : <FeedProductList products={productCards} directSingleVariant={slug === "stanki-sverlilnye"} /> : <div className="feed-state"><span>Нет точных совпадений</span><h2>Ослабьте один из параметров</h2><p>{profile.emptyCopy}</p><div><Link className="button" href={`/catalog/category/${slug}#products`}>Сбросить фильтры</Link><a className="button button-orange" href={selectorHref}>{slug === "borfrezy" ? "Подобрать форму по задаче" : "Изменить условия подбора"}</a></div></div>}
 
           {result.pageCount > 1 && <nav className="feed-pagination" aria-label="Страницы товаров">
             {result.page > 1 && <Link className="feed-pagination-direction" href={categoryUrl(slug, rawSearchParams, { page:result.page - 1 })}>← Назад</Link>}
@@ -199,15 +192,15 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
             {result.page < result.pageCount && <Link className="feed-pagination-direction" href={categoryUrl(slug, rawSearchParams, { page:result.page + 1 })}>Вперёд →</Link>}
           </nav>}
 
-          {result.products.length > 0 && <div className="feed-listing-foot"><p>Не нашли точное сочетание? Это не означает, что поставка невозможна: каталог показывает только текущую витрину.</p>{slug === "borfrezy" ? <a href="#burr-selector">Подобрать без артикула →</a> : slug === "stanki-sverlilnye" ? <a href="#drill-selector">Уточнить условия подбора →</a> : <a href={`mailto:info@7tool.ru?subject=${subject}`}>Описать задачу менеджеру →</a>}</div>}
+          {result.products.length > 0 && <div className="feed-listing-foot"><p>Не нашли точное сочетание? Это не означает, что поставка невозможна: каталог показывает только текущую витрину.</p><a href={selectorHref}>{slug === "borfrezy" ? "Подобрать без артикула →" : "Уточнить условия подбора →"}</a></div>}
         </div>
       </div>
     </div></section>
 
     <section className="section section-muted selection-guide-section"><div className="container subcategory-layout subcategory-layout--selection"><div className="selection-guide">
-      <div className="section-heading"><div><p className="eyebrow">Критерии выбора</p><h2>{slug === "borfrezy" || slug === "stanki-sverlilnye" ? "Для точного подбора достаточно пяти параметров" : "Что сообщить для точного подбора"}</h2><p>{slug === "borfrezy" ? "Укажите то, что знаете. Фотография или эскиз участка может заменить часть размеров." : slug === "stanki-sverlilnye" ? "Укажите только известное. Инженер поможет определить тип установки, шпиндель и необходимый запас по мощности." : "Известные параметры помогут быстрее проверить подходящие варианты."}</p></div></div>
+      <div className="section-heading"><div><p className="eyebrow">Критерии выбора</p><h2>{profile.criteriaTitle}</h2><p>{profile.criteriaIntro}</p></div></div>
       <ol className="selection-criteria-list">{selectionCriteria.map((parameter,index) => <li key={parameter.title}><span>{String(index+1).padStart(2,"0")}</span><div><b>{parameter.title}</b><p>{parameter.copy}</p></div></li>)}</ol>
-      {(slug === "borfrezy" || slug === "stanki-sverlilnye") && <p className="selection-guide-note"><b>Не обязательно знать артикул.</b> {slug === "stanki-sverlilnye" ? "Достаточно сообщить задачу, диаметр и условия работы; инженер проверит диапазон, оснастку и комплектацию." : "Достаточно описать деталь, материал и место обработки; инженер уточнит недостающие параметры."}</p>}
+      <p className="selection-guide-note"><b>Не обязательно знать артикул.</b> Достаточно описать задачу и известные параметры; инженер проверит совместимость, исполнение и комплектность.</p>
       <SelectionConversionBlock categoryTitle={feedCategory?.h1 ?? subcategory.label} />
     </div><aside><ManagerContactCard compact /></aside></div></section>
 
