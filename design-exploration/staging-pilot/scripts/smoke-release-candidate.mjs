@@ -31,6 +31,7 @@ export const PUBLIC_RELEASE_ROUTES = Array.from(new Set([
 
 export const PROTECTED_RELEASE_ROUTES = [
   "/test/requests",
+  "/test/catalog-quality",
   "/test/delivery",
   "/test/settings/quote",
 ];

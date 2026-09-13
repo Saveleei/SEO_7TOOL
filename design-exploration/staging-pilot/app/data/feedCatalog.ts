@@ -159,7 +159,7 @@ export type FeedCategoryRecoverySuggestion = {
   resultCount: number;
 };
 
-type FeedSnapshot = {
+export type FeedSnapshot = {
   categories: FeedCategory[];
   products: FeedProduct[];
 };
@@ -217,6 +217,13 @@ export function getFeedCategory(slug: string): FeedCategory | undefined {
 
 export function getPublishedFeedCategorySlugs(): string[] {
   return Array.from(categoriesBySlug.keys());
+}
+
+export function getPublishedFeedCatalogSnapshot(): FeedSnapshot {
+  return {
+    categories:Array.from(categoriesBySlug.values()),
+    products:Array.from(productsByCategory.values()).flat(),
+  };
 }
 
 export function prefersDenseFeedTable(slug: string): boolean {
