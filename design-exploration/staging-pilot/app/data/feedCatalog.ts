@@ -1,6 +1,7 @@
 import feedSnapshotJson from "../../../../7tool-source/src/lib/products.json" with { type:"json" };
 import { getCategoryCardArchetype } from "./categoryCardArchetypes.mjs";
 import { getCategoryExpertProfile, getCategoryFacetKeywords } from "./categoryExpertProfiles.mjs";
+import { getCategorySelectionRule } from "./categorySelection.mjs";
 import { selectCompatibleAccessories, selectProductAlternatives } from "./productRecommendations.mjs";
 
 export type FeedParameter = {
@@ -152,6 +153,12 @@ export type FeedCategoryPage = {
   pageSize: number;
 };
 
+export type FeedCategoryRecoverySuggestion = {
+  removeKeys: string[];
+  label: string;
+  resultCount: number;
+};
+
 type FeedSnapshot = {
   categories: FeedCategory[];
   products: FeedProduct[];
@@ -258,6 +265,53 @@ export function getFeedCategoryPage(slug: string, query: FeedCategoryQuery = {})
     pageCount,
     pageSize,
   };
+}
+
+export function getFeedCategoryRecoverySuggestions(slug: string, query: FeedCategoryQuery = {}, limit = 3): FeedCategoryRecoverySuggestion[] {
+  const facets = getCategoryFacets(slug, getRankedCategoryProducts(slug), query.filters ?? {});
+  const facetsByKey = new Map(facets.map((facet) => [facet.key, facet]));
+  const candidates: Array<{ removeKeys: string[]; label: string }> = [];
+  const consumedMaximums = new Set<string>();
+
+  if (query.search?.trim()) candidates.push({ removeKeys:["q"], label:`Убрать поиск «${query.search.trim()}»` });
+  if (query.availability === "in-stock") candidates.push({ removeKeys:["availability"], label:"Показать также товары с уточнением наличия" });
+
+  for (const [key, values] of Object.entries(query.filters ?? {})) {
+    if (values.length === 0) continue;
+    const facet = facetsByKey.get(key);
+    candidates.push({ removeKeys:[`f_${key}`], label:`Не ограничивать «${facet?.label ?? "параметр"}»` });
+  }
+
+  for (const [key, value] of Object.entries(query.numericMinimums ?? {})) {
+    if (!Number.isFinite(value)) continue;
+    const facet = facetsByKey.get(key);
+    const rule = getCategorySelectionRule(slug, facet?.keyword);
+    const minimumFacet = rule.mode === "range" ? facets.find((candidate) => candidate.keyword === rule.minimumKeyword) : undefined;
+    const removeKeys = [`min_${key}`];
+    if (minimumFacet && Number.isFinite(query.numericMaximums?.[minimumFacet.key])) {
+      removeKeys.push(`max_${minimumFacet.key}`);
+      consumedMaximums.add(minimumFacet.key);
+    }
+    candidates.push({
+      removeKeys,
+      label:rule.mode === "range"
+        ? `Не ограничивать «${rule.question ?? facet?.label ?? "рабочий диапазон"}»`
+        : `Убрать требование «${facet?.label ?? "Параметр"}: не менее ${value}»`,
+    });
+  }
+
+  for (const [key, value] of Object.entries(query.numericMaximums ?? {})) {
+    if (!Number.isFinite(value) || consumedMaximums.has(key)) continue;
+    const facet = facetsByKey.get(key);
+    candidates.push({ removeKeys:[`max_${key}`], label:`Убрать требование «${facet?.label ?? "Параметр"}: не более ${value}»` });
+  }
+
+  return candidates.map((candidate) => {
+    const relaxedQuery = removeCategoryQueryKeys(query, candidate.removeKeys);
+    return { ...candidate, resultCount:getFeedCategoryPage(slug, { ...relaxedQuery, page:1, pageSize:6 }).total };
+  }).filter((candidate) => candidate.resultCount > 0)
+    .sort((first, second) => first.resultCount - second.resultCount || first.label.localeCompare(second.label, "ru-RU"))
+    .slice(0, Math.max(0, limit));
 }
 
 export function getFeedCategoryProductCount(slug: string): number {
@@ -534,6 +588,21 @@ function productMatchesFacetFilters(product: FeedProduct, facets: FeedFacet[], f
     return getVariantParameterValues(variant, facet.keyword ?? "").some((value) => selected.includes(value));
   }) && minimumFacets.every((facet) => getVariantParameterValues(variant, facet.keyword ?? "").some((value) => parseNumericValue(value) >= numericMinimums[facet.key]))
     && maximumFacets.every((facet) => getVariantParameterValues(variant, facet.keyword ?? "").some((value) => parseNumericValue(value) <= numericMaximums[facet.key])));
+}
+
+function removeCategoryQueryKeys(query: FeedCategoryQuery, removeKeys: string[]): FeedCategoryQuery {
+  const removed = new Set(removeKeys);
+  const filters = Object.fromEntries(Object.entries(query.filters ?? {}).filter(([key]) => !removed.has(`f_${key}`)));
+  const numericMinimums = Object.fromEntries(Object.entries(query.numericMinimums ?? {}).filter(([key]) => !removed.has(`min_${key}`)));
+  const numericMaximums = Object.fromEntries(Object.entries(query.numericMaximums ?? {}).filter(([key]) => !removed.has(`max_${key}`)));
+  return {
+    ...query,
+    search:removed.has("q") ? undefined : query.search,
+    availability:removed.has("availability") ? undefined : query.availability,
+    filters,
+    numericMinimums,
+    numericMaximums,
+  };
 }
 
 function parseNumericValue(value: string): number {

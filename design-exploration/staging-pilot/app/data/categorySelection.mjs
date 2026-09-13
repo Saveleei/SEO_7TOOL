@@ -86,3 +86,20 @@ export function buildCategorySelectionContext(categoryTitle, selections) {
     : "структурированные параметры в фиде отсутствуют или пока не выбраны";
   return `Категория: ${categoryTitle}. Известные параметры: ${details}. Нужна проверка совместимости и подходящего исполнения.`;
 }
+
+export function buildCategoryQueryContext(categoryTitle, facets = [], query = {}) {
+  const facetsByKey = new Map(facets.map((facet) => [facet.key, facet]));
+  const details = [];
+  if (query.search?.trim()) details.push(`поиск: ${query.search.trim()}`);
+  if (query.availability === "in-stock") details.push("нужно подтверждённое наличие");
+  for (const [key, values] of Object.entries(query.filters ?? {})) {
+    if (values.length > 0) details.push(`${facetsByKey.get(key)?.label ?? key}: ${values.join(", ")}`);
+  }
+  for (const [key, value] of Object.entries(query.numericMinimums ?? {})) {
+    if (Number.isFinite(value)) details.push(`${facetsByKey.get(key)?.label ?? key}: не менее ${value}`);
+  }
+  for (const [key, value] of Object.entries(query.numericMaximums ?? {})) {
+    if (Number.isFinite(value)) details.push(`${facetsByKey.get(key)?.label ?? key}: не более ${value}`);
+  }
+  return `Категория: ${categoryTitle}. Условия клиента: ${details.length > 0 ? details.join("; ") : "нужно уточнить задачу"}. Нужен подбор совместимого исполнения без артикула.`;
+}

@@ -4,6 +4,7 @@ import { Breadcrumbs } from "../../../ui/Breadcrumbs";
 import { BurrSelectionAssistant } from "../../../ui/BurrSelectionAssistant";
 import { BurrShapeMark } from "../../../ui/BurrShapeMark";
 import { CategorySelectionAssistant } from "../../../ui/CategorySelectionAssistant";
+import { CategoryResultGuidance } from "../../../ui/CategoryResultGuidance";
 import { DrillSelectionAssistant } from "../../../ui/DrillSelectionAssistant";
 import { FeedProductList } from "../../../ui/FeedProductList";
 import { FeedProductTable } from "../../../ui/FeedProductTable";
@@ -12,9 +13,10 @@ import { OpenFullFiltersLink, PromotedFilterLink } from "../../../ui/PromotedFil
 import { PilotFooter } from "../../../ui/PilotFooter";
 import { PilotHeader } from "../../../ui/PilotHeader";
 import { SelectionConversionBlock } from "../../../ui/SelectionConversionBlock";
-import { findCategorySelectionOption, getCategorySelectionRule } from "../../../data/categorySelection.mjs";
+import { TestRequestForm } from "../../../ui/TestRequestForm";
+import { buildCategoryQueryContext, findCategorySelectionOption, getCategorySelectionRule } from "../../../data/categorySelection.mjs";
 import { getCategoryExpertProfile, selectCategoryFacets } from "../../../data/categoryExpertProfiles.mjs";
-import { getFeedCategory, getFeedCategoryPage, getGuidedFacetOptions, getPromotedFacetOptions, prefersDenseFeedTable, type FeedCategorySort, type FeedVariantFilter, toFeedProductCardModel } from "../../../data/feedCatalog";
+import { getFeedCategory, getFeedCategoryPage, getFeedCategoryRecoverySuggestions, getGuidedFacetOptions, getPromotedFacetOptions, prefersDenseFeedTable, type FeedCategoryQuery, type FeedCategorySort, type FeedVariantFilter, toFeedProductCardModel } from "../../../data/feedCatalog";
 import { getProductionSubcategory } from "../../../data/productionCategoryGroups";
 
 type SearchValue = string | string[] | undefined;
@@ -65,7 +67,9 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     .filter(([key]) => key.startsWith("max_"))
     .map(([key, value]) => [key.slice(4), Number.parseFloat(firstValue(value) ?? "")])
     .filter((entry): entry is [string, number] => Number.isFinite(entry[1]) && entry[1] > 0));
-  const result = getFeedCategoryPage(slug, { search, sort, page:Number.isFinite(requestedPage) ? requestedPage : 1, filters, numericMinimums, numericMaximums, availability:inStockOnly ? "in-stock" : undefined });
+  const categoryQuery: FeedCategoryQuery = { search, sort, page:Number.isFinite(requestedPage) ? requestedPage : 1, filters, numericMinimums, numericMaximums, availability:inStockOnly ? "in-stock" : undefined };
+  const result = getFeedCategoryPage(slug, categoryQuery);
+  const recoverySuggestions = result.total === 0 ? getFeedCategoryRecoverySuggestions(slug, categoryQuery) : [];
   const activeVariantFilters = result.facets.flatMap((facet) => {
     if (!facet.keyword) return [];
     const facetFilters: FeedVariantFilter[] = [];
@@ -103,6 +107,12 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
       hasMoreOptions:facet.options.length > options.length,
     };
   });
+  const nextDecisionFacet = assistantFacets.find((facet) => !(filters[facet.key]?.length)
+    && !Number.isFinite(numericMinimums[facet.key])
+    && !Number.isFinite(numericMaximums[facet.key])
+    && !(facet.minimumFacetKey && Number.isFinite(numericMaximums[facet.minimumFacetKey])));
+  const categoryTitle = feedCategory?.h1 ?? subcategory.label;
+  const activeQueryContext = buildCategoryQueryContext(categoryTitle, result.facets, categoryQuery);
   const shapeFacet = technicalFacets.find((facet) => facet.keyword === "форма");
   const shankFacet = technicalFacets.find((facet) => facet.keyword === "диаметр хвостовика");
   const materialFacet = technicalFacets.find((facet) => facet.keyword === "материал");
@@ -221,7 +231,18 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
             <PromotedFilterLink className="feed-reset-all" href={`/catalog/category/${slug}#products`}>Очистить всё</PromotedFilterLink>
           </nav>}
 
-          {result.products.length > 0 ? view === "table" ? <FeedProductTable products={productCards} columns={result.facets.filter((facet) => facet.keyword).map((facet) => facet.label).slice(0, 3)} /> : <FeedProductList products={productCards} /> : <div className="feed-state"><span>Нет точных совпадений</span><h2>Ослабьте один из параметров</h2><p>{profile.emptyCopy}</p><div><Link className="button" href={`/catalog/category/${slug}#products`}>Сбросить фильтры</Link><a className="button button-orange" href={selectorHref}>{slug === "borfrezy" ? "Подобрать форму по задаче" : "Изменить условия подбора"}</a></div></div>}
+          <CategoryResultGuidance
+            total={result.total}
+            activeFilterCount={activeFilterCount}
+            selectorHref={selectorHref}
+            nextDecisionLabel={nextDecisionFacet?.question ?? nextDecisionFacet?.label}
+          />
+
+          {result.products.length > 0 ? view === "table" ? <FeedProductTable products={productCards} columns={result.facets.filter((facet) => facet.keyword).map((facet) => facet.label).slice(0, 3)} /> : <FeedProductList products={productCards} /> : <div className="feed-state feed-state--guided"><span>Нет точных совпадений</span><h2>Не нужно начинать подбор заново</h2><p>{profile.emptyCopy}</p>
+            {recoverySuggestions.length > 0 && <nav className="feed-recovery-options" aria-label="Как расширить результаты"><b>Сохранить остальные условия и:</b>{recoverySuggestions.map((suggestion) => <Link href={categoryUrl(slug, rawSearchParams, { removeKeys:suggestion.removeKeys })} key={suggestion.removeKeys.join("|")}><span>{suggestion.label}</span><small>{suggestion.resultCount.toLocaleString("ru-RU")} {pluralizeProductGroups(suggestion.resultCount)}</small></Link>)}</nav>}
+            <div className="feed-state-actions"><Link className="button" href={`/catalog/category/${slug}#products`}>Сбросить все условия</Link><a className="button button-orange" href={selectorHref}>{slug === "borfrezy" ? "Изменить подбор формы" : "Изменить условия подбора"}</a></div>
+            <details className="feed-zero-request"><summary>Не ослаблять требования — передать инженеру</summary><TestRequestForm compact primaryContact="phone" context={activeQueryContext} buttonLabel="Заказать проверку параметров" /></details>
+          </div>}
 
           {result.pageCount > 1 && <nav className="feed-pagination" aria-label="Страницы товаров">
             {result.page > 1 && <Link className="feed-pagination-direction" href={categoryUrl(slug, rawSearchParams, { page:result.page - 1 })}>← Назад</Link>}
@@ -254,11 +275,12 @@ function valuesOf(value: SearchValue): string[] {
   return value ? [value] : [];
 }
 
-function categoryUrl(slug: string, raw: SearchParams, change: { removeKey?: string; removeValue?: string; page?: number; setKey?: string; setValue?: string; toggleKey?: string; toggleValue?: string }): string {
+function categoryUrl(slug: string, raw: SearchParams, change: { removeKey?: string; removeKeys?: string[]; removeValue?: string; page?: number; setKey?: string; setValue?: string; toggleKey?: string; toggleValue?: string }): string {
   const params = new URLSearchParams();
   let toggledValueWasSelected = false;
   for (const [key, value] of Object.entries(raw)) {
     if (key === "page" || key === change.setKey) continue;
+    if (change.removeKeys?.includes(key)) continue;
     if (key === change.removeKey) {
       for (const item of valuesOf(value)) if (change.removeValue && item !== change.removeValue) params.append(key, item);
       continue;
