@@ -5,7 +5,8 @@
 - Branch: `codex/storefront-release-candidate`
 - Base: `1fe9a96` (`codex/quote-delivery-workspace`)
 - Application: `design-exploration/staging-pilot`
-- Status: in progress
+- Status: complete
+- Implementation commit: `4899d2f` (`test: add storefront release candidate smoke`)
 
 ## Goal
 
@@ -47,4 +48,19 @@ All named implementation branch tips from `codex/storefront-concept-v2` through 
 
 ## Verification
 
-Pending.
+- Targeted release-candidate tests: 3/3 passed.
+- ESLint for changed JavaScript files: passed.
+- Full ESLint: passed.
+- Full test suite: 86/86 passed.
+- Production build: passed.
+- Loopback release smoke at `http://127.0.0.1:3180`: 15/15 checks passed.
+  - Eight representative public routes returned HTTP 200.
+  - Three protected staff routes redirected anonymous visitors to `/test/access`.
+  - Local administrator sign-in succeeded; all three protected staff routes then returned HTTP 200.
+- No customer form, quote write API, delivery write API or external transport was called.
+
+## Local preview
+
+- Storefront: `http://127.0.0.1:3180/`
+- Staff access: `http://127.0.0.1:3180/test/access`
+- The preview uses `QUOTE_TEST_MODE=1` and local ignored test data only.
