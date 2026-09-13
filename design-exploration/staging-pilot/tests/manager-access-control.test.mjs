@@ -113,6 +113,7 @@ test("every staff API is server-protected while customer quote submission stays 
     "../app/api/quote-requests/[id]/events/route.ts",
     "../app/api/quote-requests/[id]/quote-draft/route.ts",
     "../app/api/quote-requests/[id]/quote-approval/route.ts",
+    "../app/api/quote-requests/[id]/delivery/route.ts",
     "../app/api/quote-requests/[id]/quote-pdf/route.ts",
     "../app/api/quote-requests/[id]/quote-assets/route.ts",
     "../app/api/quote-requests/[id]/quote-assets/[assetId]/route.ts",

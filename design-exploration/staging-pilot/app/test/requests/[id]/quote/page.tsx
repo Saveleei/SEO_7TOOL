@@ -4,11 +4,13 @@ import { notFound } from "next/navigation";
 import { canManager } from "../../../../data/managerAccess";
 import { requireManagerPageAccess } from "../../../../data/managerAccessPage";
 import { getQuoteApprovalState, type QuoteApprovalState } from "../../../../data/quoteApprovalStore";
+import { getQuoteDeliveryWorkspace } from "../../../../data/quoteDeliveryStore";
 import { getQuoteDraftOrDefault, getQuoteDraftRevision, type QuoteDraft } from "../../../../data/quoteDraftStore";
 import { supplyStatusLabel } from "../../../../data/quoteDraftValidation.mjs";
-import { getQuoteRequestDetail, isQuoteTestModeEnabled, type QuoteRequestDetail } from "../../../../data/quoteRequestStore";
+import { getQuoteRequestDetail, isQuoteTestModeEnabled, QuoteWorkflowError, type QuoteRequestDetail } from "../../../../data/quoteRequestStore";
 import { getQuoteTemplateSettings } from "../../../../data/quoteTemplateStore";
 import { Breadcrumbs } from "../../../../ui/Breadcrumbs";
+import { DeliveryOutboxPanel } from "../../../../ui/DeliveryOutboxPanel";
 import { PilotFooter } from "../../../../ui/PilotFooter";
 import { PilotHeader } from "../../../../ui/PilotHeader";
 import { QuoteApprovalPanel } from "../../../../ui/QuoteApprovalPanel";
@@ -33,10 +35,19 @@ export default async function QuoteBuilderPage({ params, searchParams }: { param
   const approval = draft.revision > 0 ? await getQuoteApprovalState(request.id, draft.revision) : emptyApprovalState(draft.revision);
   if (mode === "preview") return <QuotePreview request={request} draft={draft} approval={approval ?? emptyApprovalState(draft.revision)} />;
   const templateSettings = await getQuoteTemplateSettings();
+  let deliveryWorkspace = null;
+  let deliveryWorkspaceError = "";
+  if (approval?.stage === "delivery_prepared" && canManager(actor, "delivery:prepare")) {
+    try {
+      deliveryWorkspace = await getQuoteDeliveryWorkspace(request.id, draft.revision);
+    } catch (error) {
+      deliveryWorkspaceError = error instanceof QuoteWorkflowError ? error.message : "Пакет отправки недоступен.";
+    }
+  }
   return <div className="site-shell"><PilotHeader managerMode managerActor={actor} /><main className="inner-page quote-builder-page">
     <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Заявки", href:"/test/requests" }, { label:request.id, href:`/test/requests/${request.id}` }, { label:"Конструктор КП" }]} /></div>
     <section className="quote-builder-hero"><div className="container"><div><p className="eyebrow">Локальная подготовка документа</p><h1>Коммерческое предложение</h1><p>Запрос {request.id} · {request.company || "Компания не указана"} · {request.city || "Город не указан"}</p></div><a href={`/test/requests/${request.id}`}>← Вернуться к заявке</a></div></section>
-    <section className="section"><div className="container">{canManager(actor, "quotes:edit") ? <QuoteBuilder initial={draft} senderOptions={templateSettings.senders} /> : <div className="quote-editor-readonly"><b>Редактирование недоступно этой роли</b><p>Можно проверить сохранённую редакцию и принять решение по согласованию. Изменить цены, сроки и состав может менеджер или администратор.</p><a href={`/test/requests/${request.id}/quote?mode=preview&revision=${draft.revision}`}>Открыть документ для проверки</a></div>}<QuoteApprovalPanel requestId={request.id} quoteId={draft.id} revision={draft.revision} quoteStatus={draft.status} senderName={draft.sender.name} senderRole={draft.sender.role} recipientEmail={request.emailFull} initialState={approval ?? emptyApprovalState(draft.revision)} actor={actor} canSubmit={canManager(actor, "quotes:edit")} canApprove={canManager(actor, "quotes:approve")} canPrepareDelivery={canManager(actor, "delivery:prepare")} /></div></section>
+    <section className="section"><div className="container">{canManager(actor, "quotes:edit") ? <QuoteBuilder initial={draft} senderOptions={templateSettings.senders} /> : <div className="quote-editor-readonly"><b>Редактирование недоступно этой роли</b><p>Можно проверить сохранённую редакцию и принять решение по согласованию. Изменить цены, сроки и состав может менеджер или администратор.</p><a href={`/test/requests/${request.id}/quote?mode=preview&revision=${draft.revision}`}>Открыть документ для проверки</a></div>}<QuoteApprovalPanel requestId={request.id} quoteId={draft.id} revision={draft.revision} quoteStatus={draft.status} senderName={draft.sender.name} senderRole={draft.sender.role} recipientEmail={request.emailFull} initialState={approval ?? emptyApprovalState(draft.revision)} actor={actor} canSubmit={canManager(actor, "quotes:edit")} canApprove={canManager(actor, "quotes:approve")} canPrepareDelivery={canManager(actor, "delivery:prepare")} />{deliveryWorkspace && <DeliveryOutboxPanel initial={deliveryWorkspace} />}{deliveryWorkspaceError && <div className="quote-outbox-blocked" role="alert"><b>Пакет этой редакции заблокирован</b><p>{deliveryWorkspaceError} Создайте новую редакцию КП и пройдите согласование повторно — это сохранит аудит неизменным.</p></div>}</div></section>
   </main><PilotFooter /></div>;
 }
 
