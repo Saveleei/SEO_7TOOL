@@ -33,7 +33,12 @@ test("product selector exposes the full searchable size range and keeps SKU seco
   assert.doesNotMatch(page, /allVariants\.filter[\s\S]{0,200}\.slice\(0, 12\)/u);
   assert.match(page, /getProductVariantChoices\(product\)/u);
   assert.match(page, /variantsEndpoint=\{`\/api\/catalog-product-variants/u);
-  assert.match(purchase, /Все \$\{totalVariantCount\}/u);
+  assert.match(purchase, /Сейчас показано \$\{collapsedVariantCount\} из \$\{totalVariantCount\}/u);
+  assert.match(purchase, /`Все \$\{totalVariantCount\} \$\{variantWord/u);
+  assert.match(purchase, /Есть ещё \{hiddenVariantCount\}/u);
+  assert.match(purchase, /Выбрать из всех \{totalVariantCount\}/u);
+  assert.match(purchase, /className="feed-variant-reveal"/u);
+  assert.match(purchase, /track\("open_variant_list", "product_buybox"\)/u);
   assert.match(purchase, /Найти по размеру или артикулу/u);
   assert.match(purchase, /<b>\{variant\.choiceLabel\}<\/b>/u);
   assert.match(purchase, /<small>\{selected\.choiceContext[\s\S]*артикул \$\{selected\.sku\}/u);

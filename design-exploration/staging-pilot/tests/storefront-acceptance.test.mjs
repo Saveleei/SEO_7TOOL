@@ -58,6 +58,20 @@ test("desktop and mobile navigation expose one reusable four-channel contact men
   assert.match(layout, /<ContactAnalytics \/>/u);
 });
 
+test("product manager card uses official messenger marks and readable contact hierarchy", async () => {
+  const card = await readFile(new URL("../app/ui/ManagerContactCard.tsx", import.meta.url), "utf8");
+  const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(card, /manager-messenger-mark--telegram/u);
+  assert.match(card, /viewBox="0 0 128 128"/u);
+  assert.match(card, /fill="#229ED9"/u);
+  assert.match(card, /manager-messenger-mark--max/u);
+  assert.match(card, /viewBox="0 0 100 100"/u);
+  assert.doesNotMatch(card, /<i aria-hidden="true">[TM]<\/i>/u);
+  assert.match(styles, /data-contact-placement="product_manager"[\s\S]{0,180}grid-template-columns:74px/u);
+  assert.match(styles, /data-contact-placement="product_manager"[\s\S]{0,180}font-size:19px/u);
+  assert.match(styles, /manager-messenger-mark--max[^}]*#00bfff[^}]*#6e1aff[^}]*#9500ff/u);
+});
+
 test("customer dialogs trap keyboard focus and restore a usable target", async () => {
   const callbackDialog = await readFile(new URL("../app/ui/ContactRequestDialog.tsx", import.meta.url), "utf8");
   const quoteDrawer = await readFile(new URL("../app/ui/RequestCart.tsx", import.meta.url), "utf8");

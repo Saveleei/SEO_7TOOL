@@ -44,6 +44,8 @@ export function FeedProductPurchase({ productId, productTitle, variants, totalVa
     return [selected, ...initial].slice(0, limit);
   }, [matchingVariants, selected, variantQuery, variantsOpen, visibleVariantCount]);
   const added = selected ? items.some((item) => item.id === `variant:${selected.id}`) : false;
+  const collapsedVariantCount = Math.min(INITIAL_VARIANTS, totalVariantCount);
+  const hiddenVariantCount = Math.max(0, totalVariantCount - collapsedVariantCount);
 
   function track(event: string, placement: string, trackedVariantId = selected?.id) {
     if (!trackedVariantId) return;
@@ -58,10 +60,12 @@ export function FeedProductPurchase({ productId, productTitle, variants, totalVa
 
   async function toggleAllVariants() {
     if (variantsOpen) {
+      track("close_variant_list", "product_buybox");
       setVariantsOpen(false);
       setVariantQuery("");
       return;
     }
+    track("open_variant_list", "product_buybox");
     setVariantsOpen(true);
     if (!variantsEndpoint || availableVariants.length >= totalVariantCount || variantsLoading) return;
     setVariantsLoading(true);
@@ -82,9 +86,10 @@ export function FeedProductPurchase({ productId, productTitle, variants, totalVa
   if (!selected) return null;
 
   return <div className="feed-conversion-buybox" id="purchase">
-      {totalVariantCount > 1 && <div className="feed-conversion-variants"><div className="feed-variant-selector-head"><div><span>Выберите {selected.selectorLabel.toLocaleLowerCase("ru-RU")}</span><small>{totalVariantCount} {variantWord(totalVariantCount, selected.selectorLabel)} в этой товарной группе</small></div>{totalVariantCount > INITIAL_VARIANTS && <button type="button" aria-expanded={variantsOpen} aria-controls="feed-product-variant-options" onClick={() => void toggleAllVariants()} disabled={variantsLoading}>{variantsLoading ? "Загружаем…" : variantsOpen ? "Свернуть список" : `Все ${totalVariantCount} ${variantWord(totalVariantCount, selected.selectorLabel)}`}</button>}</div>
+      {totalVariantCount > 1 && <div className="feed-conversion-variants"><div className="feed-variant-selector-head"><div><span>Выберите {selected.selectorLabel.toLocaleLowerCase("ru-RU")}</span><small>{variantsOpen ? `Доступен полный список: ${totalVariantCount} ${variantWord(totalVariantCount, selected.selectorLabel)}` : `Сейчас показано ${collapsedVariantCount} из ${totalVariantCount}`}</small></div>{totalVariantCount > INITIAL_VARIANTS && <button type="button" aria-expanded={variantsOpen} aria-controls="feed-product-variant-options" onClick={() => void toggleAllVariants()} disabled={variantsLoading}>{variantsLoading ? "Загружаем…" : variantsOpen ? "Свернуть" : `Все ${totalVariantCount} ${variantWord(totalVariantCount, selected.selectorLabel)}`}</button>}</div>
         {totalVariantCount > INITIAL_VARIANTS && variantsOpen && <label className="feed-variant-search"><span>Найти по размеру или артикулу</span><input type="search" value={variantQuery} disabled={variantsLoading} onChange={(event) => { setVariantQuery(event.target.value); setVisibleVariantCount(INITIAL_VARIANTS + VARIANT_PAGE_SIZE); }} placeholder="Например: 35 × 30" /></label>}
         <div className="feed-variant-options" id="feed-product-variant-options">{visibleVariants.map((variant) => <a className={variant.id === selected.id ? "active" : undefined} href={variant.href} aria-current={variant.id === selected.id ? "true" : undefined} aria-label={`Открыть ${variant.choiceLabel}${variant.sku ? `, артикул ${variant.sku}` : ""}, ${variant.price}`} onClick={() => track("select_variant", "product_buybox", variant.id)} key={variant.id}><b>{variant.choiceLabel}</b>{variant.choiceContext && <span>{variant.choiceContext}</span>}<small>{variant.price}</small></a>)}</div>
+        {totalVariantCount > INITIAL_VARIANTS && !variantsOpen && <button className="feed-variant-reveal" type="button" aria-expanded="false" aria-controls="feed-product-variant-options" onClick={() => void toggleAllVariants()}><span><b>Есть ещё {hiddenVariantCount} {variantWord(hiddenVariantCount, selected.selectorLabel)}</b><small>Откройте полный ряд и найдите нужный параметр без перехода в каталог.</small></span><strong>Выбрать из всех {totalVariantCount} →</strong></button>}
         {variantsError && <p className="feed-variant-load-error" role="status">{variantsError}</p>}
         {matchingVariants.length === 0 && <div className="feed-variant-empty"><b>Такого размера в этой группе нет</b><span>Измените запрос или передайте параметры менеджеру.</span></div>}
         {(variantsOpen || variantQuery) && visibleVariants.length < matchingVariants.length && <button className="feed-variant-more" type="button" onClick={() => setVisibleVariantCount((count) => count + VARIANT_PAGE_SIZE)}>Показать ещё {Math.min(VARIANT_PAGE_SIZE, matchingVariants.length - visibleVariants.length)}</button>}
