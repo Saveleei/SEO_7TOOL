@@ -5,7 +5,7 @@
 - Base commit: `27e6e80`
 - Scope: isolated release of `design-exploration/staging-pilot` to `test.7tool.ru`; no production switch, feed publication, production database migration, DNS change, or external lead delivery.
 - Completion criteria: explicit staging-host admin access remains deny-by-default, full local validation passes, the candidate runs as a separate PM2 process on port 3000, authenticated test-domain smoke passes, and rollback remains the stopped test process/release only.
-- Files owned: staging-pilot manager access configuration/tests, this handoff, and the new test-only server release directory.
+- Files owned: staging-pilot manager access configuration/tests, the test-only PM2 configuration, this handoff, and the new test-only server release directory.
 
 ## Status
 

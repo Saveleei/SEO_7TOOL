@@ -1,0 +1,18 @@
+module.exports = {
+  apps: [
+    {
+      name: "7tool-storefront-test",
+      cwd: __dirname,
+      script: "node_modules/vinext/dist/cli.js",
+      args: "start",
+      interpreter: "node",
+      env: {
+        NODE_ENV: "production",
+        PORT: "3000",
+        QUOTE_TEST_MODE: "1",
+        QUOTE_TEST_DATA_DIR: "/var/www/7tool-test-shared/quote-requests",
+        MANAGER_AUTH_TEST_HOSTS: "test.7tool.ru",
+      },
+    },
+  ],
+};
