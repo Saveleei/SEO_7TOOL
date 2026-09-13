@@ -11,6 +11,8 @@
 
 Complete. The accepted storefront concept is running behind the existing Basic Auth gate at `https://test.7tool.ru/`. Production remains on its separate port and process.
 
+On 2026-09-13, internal clicks on the authenticated staging host were found to be intercepted without completing client-side navigation. Commit `6adf5f7` adds a test-host-only full-document navigation fallback. It preserves normal anchor, external, phone, email, download and modified-click behaviour, and also covers programmatic search and staff-workspace refreshes. The fallback is enabled only by `FORCE_DOCUMENT_NAVIGATION=1` in the isolated test PM2 configuration.
+
 ## Checks
 
 - Targeted manager access tests: 6/6 passed.
@@ -26,17 +28,24 @@ Complete. The accepted storefront concept is running behind the existing Basic A
 - External HTTPS gate: `test.7tool.ru` returns the expected `401` Basic Auth challenge before credentials; `7tool.ru` remains `200`.
 - Runtime: `7tool-storefront-test` online with zero restarts; `7tool-prod` remains online and was not restarted or reconfigured.
 - Post-release capacity: 15 GB disk available, 1.6 GiB memory available, 2.0 GiB swap available, low load average.
+- Navigation hotfix targeted tests: 3/3 passed locally and on the server.
+- Navigation hotfix full local suite: 94/94 passed.
+- Navigation hotfix ESLint and production build: passed locally; changed-file ESLint and production build passed on the server.
+- Post-hotfix server smoke: 44/44 passed without customer, quote or delivery writes.
+- Post-hotfix loopback HTML contains `data-document-navigation="true"`; root, catalog, category, product, search and access routes return their expected status.
 
 ## Commit
 
 - `e0b1f09` — explicit, deny-by-default staging-host administrator session.
 - `a83c01d` — reproducible isolated PM2 configuration for the test process.
+- `6adf5f7` — authenticated staging navigation fallback and regression coverage.
 
 ## Server isolation and rollback
 
-- Release directory: `/var/www/7tool-release-20260913-storefront-e0b1f09`
+- Active release directory: `/var/www/7tool-release-20260913-storefront-6adf5f7`
+- Preserved rollback release: `/var/www/7tool-release-20260913-storefront-e0b1f09`
 - Persistent test-only data: `/var/www/7tool-test-shared/quote-requests`
 - Test process: `7tool-storefront-test`, port 3000
 - Production process: `7tool-prod`, separate port 3108
 - External delivery remains disabled by `QUOTE_TEST_MODE=1`.
-- Rollback requires only stopping `7tool-storefront-test`; no production symlink, cron, DNS, database or Nginx configuration was changed.
+- Rollback requires only recreating `7tool-storefront-test` from the preserved release; no production symlink, cron, DNS, database or Nginx configuration was changed.
