@@ -11,16 +11,39 @@ type PurchaseVariant = {
   price: string;
   available: boolean;
   keySpecs: Array<{ label: string; value: string }>;
+  choiceLabel: string;
+  choiceContext: string;
+  selectorLabel: "Размер" | "Параметры исполнения";
   image?: string;
   href?: string;
 };
 
-export function FeedProductPurchase({ productId, productTitle, variants, selectedVariantId }: { productId: string; productTitle: string; variants: PurchaseVariant[]; selectedVariantId?: string }) {
+const INITIAL_VARIANTS = 12;
+const VARIANT_PAGE_SIZE = 24;
+
+export function FeedProductPurchase({ productId, productTitle, variants, totalVariantCount = variants.length, variantsEndpoint, selectedVariantId }: { productId: string; productTitle: string; variants: PurchaseVariant[]; totalVariantCount?: number; variantsEndpoint?: string; selectedVariantId?: string }) {
   const initialId = variants.some((variant) => variant.id === selectedVariantId) ? selectedVariantId : variants[0]?.id;
+  const [availableVariants, setAvailableVariants] = useState(variants);
   const [variantId, setVariantId] = useState(initialId);
   const [quantity, setQuantity] = useState(1);
+  const [variantsOpen, setVariantsOpen] = useState(false);
+  const [variantQuery, setVariantQuery] = useState("");
+  const [visibleVariantCount, setVisibleVariantCount] = useState(INITIAL_VARIANTS + VARIANT_PAGE_SIZE);
+  const [variantsLoading, setVariantsLoading] = useState(false);
+  const [variantsError, setVariantsError] = useState("");
   const { items, addItem, open } = useRequestCart();
-  const selected = useMemo(() => variants.find((variant) => variant.id === variantId) ?? variants[0], [variantId, variants]);
+  const selected = useMemo(() => availableVariants.find((variant) => variant.id === variantId) ?? availableVariants[0], [availableVariants, variantId]);
+  const matchingVariants = useMemo(() => {
+    const query = normalizeSearch(variantQuery);
+    if (!query) return availableVariants;
+    return availableVariants.filter((variant) => normalizeSearch([variant.choiceLabel, variant.choiceContext, variant.sku].join(" ")).includes(query));
+  }, [availableVariants, variantQuery]);
+  const visibleVariants = useMemo(() => {
+    const limit = variantsOpen || variantQuery ? visibleVariantCount : INITIAL_VARIANTS;
+    const initial = matchingVariants.slice(0, limit);
+    if (!selected || !matchingVariants.some((variant) => variant.id === selected.id) || initial.some((variant) => variant.id === selected.id)) return initial;
+    return [selected, ...initial].slice(0, limit);
+  }, [matchingVariants, selected, variantQuery, variantsOpen, visibleVariantCount]);
   const added = selected ? items.some((item) => item.id === `variant:${selected.id}`) : false;
 
   function track(event: string, placement: string, trackedVariantId = selected?.id) {
@@ -34,10 +57,46 @@ export function FeedProductPurchase({ productId, productTitle, variants, selecte
     track("add_to_quote", "product_buybox");
   }
 
+  function selectVariant(variant: PurchaseVariant) {
+    setVariantId(variant.id);
+    track("select_variant", "product_buybox", variant.id);
+    if (variant.href) window.history.replaceState(window.history.state, "", variant.href);
+  }
+
+  async function toggleAllVariants() {
+    if (variantsOpen) {
+      setVariantsOpen(false);
+      setVariantQuery("");
+      return;
+    }
+    setVariantsOpen(true);
+    if (!variantsEndpoint || availableVariants.length >= totalVariantCount || variantsLoading) return;
+    setVariantsLoading(true);
+    setVariantsError("");
+    try {
+      const response = await fetch(variantsEndpoint, { headers:{ Accept:"application/json" } });
+      const payload = await response.json() as { ok?: boolean; variants?: unknown };
+      const loaded = Array.isArray(payload.variants) ? payload.variants.filter(isPurchaseVariant) : [];
+      if (!response.ok || !payload.ok || loaded.length < totalVariantCount) throw new Error("variant_list_unavailable");
+      setAvailableVariants(loaded);
+    } catch {
+      setVariantsError("Не удалось загрузить все размеры. Повторите попытку или передайте размер менеджеру.");
+    } finally {
+      setVariantsLoading(false);
+    }
+  }
+
   if (!selected) return null;
 
   return <div className="feed-conversion-buybox" id="purchase">
-      {variants.length > 1 && <div className="feed-conversion-variants"><span>Исполнение</span><div>{variants.map((variant) => <button className={variant.id === selected.id ? "active" : undefined} type="button" aria-pressed={variant.id === selected.id} onClick={() => { setVariantId(variant.id); track("select_variant", "product_buybox", variant.id); }} key={variant.id}><b>{variant.sku || "Без артикула в фиде"}</b><small>{variant.price}</small></button>)}</div><small>Цена и характеристики меняются вместе с исполнением.</small></div>}
+      {totalVariantCount > 1 && <div className="feed-conversion-variants"><div className="feed-variant-selector-head"><div><span>Выберите {selected.selectorLabel.toLocaleLowerCase("ru-RU")}</span><small>{totalVariantCount} {variantWord(totalVariantCount, selected.selectorLabel)} в этой товарной группе</small></div>{totalVariantCount > INITIAL_VARIANTS && <button type="button" aria-expanded={variantsOpen} aria-controls="feed-product-variant-options" onClick={() => void toggleAllVariants()} disabled={variantsLoading}>{variantsLoading ? "Загружаем…" : variantsOpen ? "Свернуть список" : `Все ${totalVariantCount} ${variantWord(totalVariantCount, selected.selectorLabel)}`}</button>}</div>
+        {totalVariantCount > INITIAL_VARIANTS && variantsOpen && <label className="feed-variant-search"><span>Найти по размеру или артикулу</span><input type="search" value={variantQuery} disabled={variantsLoading} onChange={(event) => { setVariantQuery(event.target.value); setVisibleVariantCount(INITIAL_VARIANTS + VARIANT_PAGE_SIZE); }} placeholder="Например: 35 × 30" /></label>}
+        <div className="feed-variant-options" id="feed-product-variant-options">{visibleVariants.map((variant) => <button className={variant.id === selected.id ? "active" : undefined} type="button" aria-pressed={variant.id === selected.id} aria-label={`Выбрать ${variant.choiceLabel}${variant.sku ? `, артикул ${variant.sku}` : ""}, ${variant.price}`} onClick={() => selectVariant(variant)} key={variant.id}><b>{variant.choiceLabel}</b>{variant.choiceContext && <span>{variant.choiceContext}</span>}<small>{variant.price}</small></button>)}</div>
+        {variantsError && <p className="feed-variant-load-error" role="status">{variantsError}</p>}
+        {matchingVariants.length === 0 && <div className="feed-variant-empty"><b>Такого размера в этой группе нет</b><span>Измените запрос или передайте параметры менеджеру.</span></div>}
+        {(variantsOpen || variantQuery) && visibleVariants.length < matchingVariants.length && <button className="feed-variant-more" type="button" onClick={() => setVisibleVariantCount((count) => count + VARIANT_PAGE_SIZE)}>Показать ещё {Math.min(VARIANT_PAGE_SIZE, matchingVariants.length - visibleVariants.length)}</button>}
+        <div className="feed-selected-variant"><span>Выбрано</span><b>{selected.choiceLabel}</b><small>{selected.choiceContext ? `${selected.choiceContext} · ` : ""}{selected.sku ? `артикул ${selected.sku}` : "артикул не указан в фиде"}</small></div>
+        <small className="feed-variant-help">Сначала выбирайте рабочий размер и параметры совместимости. Артикул нужен для точной фиксации позиции в КП.</small></div>}
 
     <div className={selected.available ? "feed-conversion-stock feed-conversion-stock--positive" : "feed-conversion-stock"}>
       <span>{selected.available ? "В наличии по данным поставщика" : "Поставка под заказ или статус уточняется"}</span>
@@ -60,4 +119,32 @@ export function FeedProductPurchase({ productId, productTitle, variants, selecte
     <dl className="feed-conversion-key-specs">{selected.keySpecs.map((spec) => <div key={spec.label}><dt>{spec.label}</dt><dd>{spec.value}</dd></div>)}</dl>
     <p className="feed-conversion-proof">В КП попадёт точный артикул, количество и контекст товара. Форма прототипа ничего не отправляет наружу.</p>
   </div>;
+}
+
+function normalizeSearch(value: string): string {
+  return value.toLocaleLowerCase("ru-RU").replace(/ё/gu, "е").replace(/[×хx*]/gu, "x").replace(/[^a-zа-я0-9]+/giu, " ").trim();
+}
+
+function variantWord(count: number, selectorLabel: PurchaseVariant["selectorLabel"]): string {
+  const forms = selectorLabel === "Размер" ? ["размер", "размера", "размеров"] : ["исполнение", "исполнения", "исполнений"];
+  const mod100 = count % 100;
+  const mod10 = count % 10;
+  if (mod100 >= 11 && mod100 <= 14) return forms[2];
+  if (mod10 === 1) return forms[0];
+  if (mod10 >= 2 && mod10 <= 4) return forms[1];
+  return forms[2];
+}
+
+function isPurchaseVariant(value: unknown): value is PurchaseVariant {
+  if (!value || typeof value !== "object") return false;
+  const variant = value as Partial<PurchaseVariant>;
+  return typeof variant.id === "string"
+    && typeof variant.sku === "string"
+    && typeof variant.title === "string"
+    && typeof variant.price === "string"
+    && typeof variant.available === "boolean"
+    && Array.isArray(variant.keySpecs)
+    && typeof variant.choiceLabel === "string"
+    && typeof variant.choiceContext === "string"
+    && (variant.selectorLabel === "Размер" || variant.selectorLabel === "Параметры исполнения");
 }
