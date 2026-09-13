@@ -125,6 +125,7 @@ export type FeedFacet = {
   label: string;
   help: string;
   keyword?: string;
+  numeric?: boolean;
   options: FeedFacetOption[];
 };
 
@@ -367,7 +368,7 @@ function getCategoryFacets(slug: string, products: FeedProduct[], selectedFilter
   }
   return cachedFacets.map(({ allOptions, optionLimit, ...facet }) => ({
     ...facet,
-    options:selectFacetOptions(allOptions, selectedFilters[facet.key], optionLimit),
+    options:selectFacetOptions(allOptions, selectedFilters[facet.key], optionLimit, facet.numeric),
   }));
 }
 
@@ -394,14 +395,16 @@ function buildCategoryFacets(slug: string, products: FeedProduct[]): CachedFeedF
     if (values.size < 2) continue;
 
     const key = `spec${facets.filter((facet) => facet.keyword).length + 1}`;
+    const numeric = isNumericFacet(keyword, matchingNames[0], values);
     matchingNames.forEach((name) => usedParameterNames.add(normalizeText(name)));
     facets.push({
       key,
       label: matchingNames[0],
       help: getFacetHelp(keyword),
       keyword,
-      allOptions: toFacetOptions(values, keyword === "форма"),
-      optionLimit:keyword === "форма" ? 100 : 10,
+      numeric,
+      allOptions:toFacetOptions(values, keyword === "форма" ? "value" : numeric ? "numeric" : "count"),
+      optionLimit:keyword === "форма" ? 100 : numeric ? values.size : 10,
     });
   }
 
@@ -442,24 +445,57 @@ function isConfirmedAvailableVariant(variant: FeedVariant): boolean {
   return variant.available && typeof variant.quantity === "number" && variant.quantity > 0;
 }
 
-function toFacetOptions(counts: Map<string, number>, sortByValue = false): FeedFacetOption[] {
+function toFacetOptions(counts: Map<string, number>, sortMode: "count" | "value" | "numeric" = "count"): FeedFacetOption[] {
   const ranked = Array.from(counts.entries())
-    .sort((a, b) => sortByValue ? compareFacetValues(a[0], b[0]) : b[1] - a[1] || a[0].localeCompare(b[0], "ru-RU"));
+    .sort((a, b) => sortMode === "numeric"
+      ? compareNumericFacetValues(a[0], b[0])
+      : sortMode === "value"
+        ? compareFacetValues(a[0], b[0])
+        : b[1] - a[1] || a[0].localeCompare(b[0], "ru-RU"));
   return ranked.map(([value, count]) => ({ value, label:value, count }));
 }
 
-function selectFacetOptions(allOptions: FeedFacetOption[], selectedValues: string[] = [], limit = 10): FeedFacetOption[] {
-  const visible = allOptions.slice(0, limit);
+function selectFacetOptions(allOptions: FeedFacetOption[], selectedValues: string[] = [], limit = 10, preserveRange = false): FeedFacetOption[] {
+  const visible = preserveRange && allOptions.length > limit
+    ? [...allOptions.slice(0, Math.max(1, limit - 1)), allOptions.at(-1)!]
+    : allOptions.slice(0, limit);
   for (const selected of selectedValues) {
     const entry = allOptions.find((option) => option.value === selected);
     if (entry && !visible.some((option) => option.value === selected)) visible.push(entry);
   }
-  return visible;
+  return preserveRange ? visible.sort((first, second) => compareNumericFacetValues(first.value, second.value)) : visible;
+}
+
+export function getPromotedFacetOptions(facet: FeedFacet, limit = 6, selectedValues: string[] = []): FeedFacetOption[] {
+  if (limit <= 0) return [];
+  if (limit === 1) return facet.options.slice(0, 1);
+  if (!facet.numeric || facet.options.length <= limit) return facet.options.slice(0, limit);
+  const sampled = Array.from({ length:limit }, (_, index) => facet.options[Math.round(index * (facet.options.length - 1) / (limit - 1))]);
+  for (const selected of selectedValues) {
+    const entry = facet.options.find((option) => option.value === selected);
+    if (entry && !sampled.some((option) => option.value === selected)) sampled.push(entry);
+  }
+  return Array.from(new Map(sampled.map((option) => [option.value, option])).values())
+    .sort((first, second) => compareNumericFacetValues(first.value, second.value));
 }
 
 function compareFacetValues(first: string, second: string): number {
   const rank = (value: string) => /^[A-ZА-Я]$/i.test(value) ? 0 : /^[A-ZА-Я][+\-]?$/i.test(value) ? 1 : 2;
   return rank(first) - rank(second) || first.localeCompare(second, "ru-RU", { numeric:true });
+}
+
+function compareNumericFacetValues(first: string, second: string): number {
+  const firstNumber = parseNumericValue(first);
+  const secondNumber = parseNumericValue(second);
+  if (Number.isFinite(firstNumber) && Number.isFinite(secondNumber) && firstNumber !== secondNumber) return firstNumber - secondNumber;
+  if (Number.isFinite(firstNumber) !== Number.isFinite(secondNumber)) return Number.isFinite(firstNumber) ? -1 : 1;
+  return first.localeCompare(second, "ru-RU", { numeric:true });
+}
+
+function isNumericFacet(keyword: string, label: string, values: Map<string, number>): boolean {
+  if (!/(диаметр|длина|ширина|толщина|мощность|производительность|объ[её]м|масса|грузопод|усилие|радиус|охват|частота|скорость|напряжение|угол|количество|число|резьба|ход|поле|размер)/i.test(`${keyword} ${label}`)) return false;
+  const entries = Array.from(values.keys());
+  return entries.length > 0 && entries.filter((value) => Number.isFinite(parseNumericValue(value))).length / entries.length >= .75;
 }
 
 function productMatchesFacetFilters(product: FeedProduct, facets: FeedFacet[], filters: Record<string, string[]>, numericMinimums: Record<string, number>, requireAvailable = false): boolean {
