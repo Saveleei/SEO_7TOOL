@@ -66,4 +66,4 @@ Turn the product buy-box action “Сравнить похожие модели�
 
 ## Commit
 
-Pending.
+- `26a1f5de4c0ad05f319b21590b8908e6e35083f2` — `feat: add product comparison dialog`
