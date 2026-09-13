@@ -112,6 +112,7 @@ export type FeedVariantFilter = {
   label?: string;
   values: string[];
   minimum?: number;
+  maximum?: number;
 };
 
 export type FeedFacetOption = {
@@ -138,6 +139,7 @@ export type FeedCategoryQuery = {
   pageSize?: number;
   filters?: Record<string, string[]>;
   numericMinimums?: Record<string, number>;
+  numericMaximums?: Record<string, number>;
   availability?: "in-stock";
 };
 
@@ -231,7 +233,7 @@ export function getFeedCategoryPage(slug: string, query: FeedCategoryQuery = {})
   const normalizedSearch = query.search?.trim().toLocaleLowerCase("ru-RU") ?? "";
   const filteredProducts = allProducts.filter((product) => {
     if (normalizedSearch && !getProductSearchText(product).includes(normalizedSearch)) return false;
-    return productMatchesFacetFilters(product, facets, query.filters ?? {}, query.numericMinimums ?? {}, query.availability === "in-stock");
+    return productMatchesFacetFilters(product, facets, query.filters ?? {}, query.numericMinimums ?? {}, query.numericMaximums ?? {}, query.availability === "in-stock");
   });
   const sortedProducts = [...filteredProducts];
 
@@ -305,7 +307,9 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
         const values = getVariantParameterValues(variant, filter.keyword);
         return Number.isFinite(filter.minimum)
           ? values.some((value) => parseNumericValue(value) >= (filter.minimum ?? Number.POSITIVE_INFINITY))
-          : values.some((value) => filter.values.includes(value));
+          : Number.isFinite(filter.maximum)
+            ? values.some((value) => parseNumericValue(value) <= (filter.maximum ?? Number.NEGATIVE_INFINITY))
+            : values.some((value) => filter.values.includes(value));
       })) && (!preferAvailable || isConfirmedAvailableVariant(variant)),
     }))
     .filter(({ matchesSelection }) => !hasVariantSelection || matchesSelection)
@@ -337,8 +341,10 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
     specs: getFeedProductSpecs(product),
     variants,
     matchReasons:activeFilters.flatMap((filter) => Number.isFinite(filter.minimum)
-      ? [`${filter.label ?? filter.keyword}: от ${filter.minimum}`]
-      : filter.values.map((value) => `${filter.label ?? filter.keyword}: ${value}`)).slice(0, 4),
+      ? [`${filter.label ?? filter.keyword}: не менее ${filter.minimum}`]
+      : Number.isFinite(filter.maximum)
+        ? [`${filter.label ?? filter.keyword}: не более ${filter.maximum}`]
+        : filter.values.map((value) => `${filter.label ?? filter.keyword}: ${value}`)).slice(0, 4),
     decisionPrompts:getCategoryExpertProfile(product.category).criteria.map((item) => item.title).slice(0, 3),
     cardArchetype:getCategoryCardArchetype(product.category),
   };
@@ -479,6 +485,12 @@ export function getPromotedFacetOptions(facet: FeedFacet, limit = 6, selectedVal
     .sort((first, second) => compareNumericFacetValues(first.value, second.value));
 }
 
+export function getGuidedFacetOptions(facet: FeedFacet, limit = 6, selectedValues: string[] = []): FeedFacetOption[] {
+  if (!facet.numeric) return getPromotedFacetOptions(facet, limit, selectedValues);
+  const usableOptions = facet.options.filter((option) => isUsableGuidedNumericOption(facet, option.value));
+  return getPromotedFacetOptions({ ...facet, options:usableOptions.length > 0 ? usableOptions : facet.options }, limit, selectedValues);
+}
+
 function compareFacetValues(first: string, second: string): number {
   const rank = (value: string) => /^[A-ZА-Я]$/i.test(value) ? 0 : /^[A-ZА-Я][+\-]?$/i.test(value) ? 1 : 2;
   return rank(first) - rank(second) || first.localeCompare(second, "ru-RU", { numeric:true });
@@ -498,18 +510,30 @@ function isNumericFacet(keyword: string, label: string, values: Map<string, numb
   return entries.length > 0 && entries.filter((value) => Number.isFinite(parseNumericValue(value))).length / entries.length >= .75;
 }
 
-function productMatchesFacetFilters(product: FeedProduct, facets: FeedFacet[], filters: Record<string, string[]>, numericMinimums: Record<string, number>, requireAvailable = false): boolean {
+function isUsableGuidedNumericOption(facet: FeedFacet, value: string): boolean {
+  if (/резьб/i.test(`${facet.keyword ?? ""} ${facet.label}`)) return true;
+  if (/угол/i.test(`${facet.keyword ?? ""} ${facet.label}`)) return true;
+  if (/^[a-zа-я]+\d+$/iu.test(value.trim())) return false;
+  if (/\/\s*[+\-−–]\s*\d/u.test(value) || /\d\s*\/\s*[+\-−–]/u.test(value)) return false;
+  const numeric = parseNumericValue(value);
+  if (!Number.isFinite(numeric)) return false;
+  return !/(диаметр|длина|ширина|толщина|мощность|производительность|объ[её]м|масса|грузопод|усилие|радиус|охват|частота|скорость|напряжение|ход|поле|размер)/i.test(`${facet.keyword ?? ""} ${facet.label}`) || numeric > 0;
+}
+
+function productMatchesFacetFilters(product: FeedProduct, facets: FeedFacet[], filters: Record<string, string[]>, numericMinimums: Record<string, number>, numericMaximums: Record<string, number>, requireAvailable = false): boolean {
   const selectedBrands = filters.brand?.filter(Boolean) ?? [];
   if (selectedBrands.length > 0 && !selectedBrands.includes(product.brand)) return false;
 
   const technicalFacets = facets.filter((facet) => facet.keyword && (filters[facet.key]?.length ?? 0) > 0);
   const minimumFacets = facets.filter((facet) => facet.keyword && Number.isFinite(numericMinimums[facet.key]));
-  if (technicalFacets.length === 0 && minimumFacets.length === 0) return !requireAvailable || product.variants.some(isConfirmedAvailableVariant);
+  const maximumFacets = facets.filter((facet) => facet.keyword && Number.isFinite(numericMaximums[facet.key]));
+  if (technicalFacets.length === 0 && minimumFacets.length === 0 && maximumFacets.length === 0) return !requireAvailable || product.variants.some(isConfirmedAvailableVariant);
 
   return product.variants.some((variant) => (!requireAvailable || isConfirmedAvailableVariant(variant)) && technicalFacets.every((facet) => {
     const selected = filters[facet.key] ?? [];
     return getVariantParameterValues(variant, facet.keyword ?? "").some((value) => selected.includes(value));
-  }) && minimumFacets.every((facet) => getVariantParameterValues(variant, facet.keyword ?? "").some((value) => parseNumericValue(value) >= numericMinimums[facet.key])));
+  }) && minimumFacets.every((facet) => getVariantParameterValues(variant, facet.keyword ?? "").some((value) => parseNumericValue(value) >= numericMinimums[facet.key]))
+    && maximumFacets.every((facet) => getVariantParameterValues(variant, facet.keyword ?? "").some((value) => parseNumericValue(value) <= numericMaximums[facet.key])));
 }
 
 function parseNumericValue(value: string): number {

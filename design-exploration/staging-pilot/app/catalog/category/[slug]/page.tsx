@@ -12,8 +12,9 @@ import { OpenFullFiltersLink, PromotedFilterLink } from "../../../ui/PromotedFil
 import { PilotFooter } from "../../../ui/PilotFooter";
 import { PilotHeader } from "../../../ui/PilotHeader";
 import { SelectionConversionBlock } from "../../../ui/SelectionConversionBlock";
+import { findCategorySelectionOption, getCategorySelectionRule } from "../../../data/categorySelection.mjs";
 import { getCategoryExpertProfile, selectCategoryFacets } from "../../../data/categoryExpertProfiles.mjs";
-import { getFeedCategory, getFeedCategoryPage, getPromotedFacetOptions, prefersDenseFeedTable, type FeedCategorySort, toFeedProductCardModel } from "../../../data/feedCatalog";
+import { getFeedCategory, getFeedCategoryPage, getGuidedFacetOptions, getPromotedFacetOptions, prefersDenseFeedTable, type FeedCategorySort, type FeedVariantFilter, toFeedProductCardModel } from "../../../data/feedCatalog";
 import { getProductionSubcategory } from "../../../data/productionCategoryGroups";
 
 type SearchValue = string | string[] | undefined;
@@ -60,27 +61,48 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     .filter(([key]) => key.startsWith("min_"))
     .map(([key, value]) => [key.slice(4), Number.parseFloat(firstValue(value) ?? "")])
     .filter((entry): entry is [string, number] => Number.isFinite(entry[1]) && entry[1] > 0));
-  const result = getFeedCategoryPage(slug, { search, sort, page:Number.isFinite(requestedPage) ? requestedPage : 1, filters, numericMinimums, availability:inStockOnly ? "in-stock" : undefined });
+  const numericMaximums = Object.fromEntries(Object.entries(rawSearchParams)
+    .filter(([key]) => key.startsWith("max_"))
+    .map(([key, value]) => [key.slice(4), Number.parseFloat(firstValue(value) ?? "")])
+    .filter((entry): entry is [string, number] => Number.isFinite(entry[1]) && entry[1] > 0));
+  const result = getFeedCategoryPage(slug, { search, sort, page:Number.isFinite(requestedPage) ? requestedPage : 1, filters, numericMinimums, numericMaximums, availability:inStockOnly ? "in-stock" : undefined });
   const activeVariantFilters = result.facets.flatMap((facet) => {
     if (!facet.keyword) return [];
-    const facetFilters = [];
+    const facetFilters: FeedVariantFilter[] = [];
     if ((filters[facet.key]?.length ?? 0) > 0) facetFilters.push({ keyword:facet.keyword, label:facet.label, values:filters[facet.key] });
     if (Number.isFinite(numericMinimums[facet.key])) facetFilters.push({ keyword:facet.keyword, label:facet.label, values:[], minimum:numericMinimums[facet.key] });
+    if (Number.isFinite(numericMaximums[facet.key])) facetFilters.push({ keyword:facet.keyword, label:facet.label, values:[], maximum:numericMaximums[facet.key] });
     return facetFilters;
   });
   const productCards = result.products.map((product) => toFeedProductCardModel(product, activeVariantFilters, inStockOnly));
   const canUseTable = prefersDenseFeedTable(slug);
   const view = canUseTable && requestedView !== "cards" ? "table" : "cards";
-  const activeFilterCount = Object.values(filters).reduce((sum, values) => sum + values.length, 0) + Object.keys(numericMinimums).length + (search ? 1 : 0) + (inStockOnly ? 1 : 0);
+  const activeFilterCount = Object.values(filters).reduce((sum, values) => sum + values.length, 0) + Object.keys(numericMinimums).length + Object.keys(numericMaximums).length + (search ? 1 : 0) + (inStockOnly ? 1 : 0);
   const selectorHref = slug === "borfrezy" ? "#burr-selector" : slug === "stanki-sverlilnye" ? "#drill-selector" : "#category-selector";
   const start = result.total > 0 ? (result.page - 1) * result.pageSize + 1 : 0;
   const end = Math.min(result.page * result.pageSize, result.total);
   const technicalFacets = result.facets.filter((facet) => facet.keyword);
   const promotedFacets = selectCategoryFacets(slug, result.facets, slug === "borfrezy" || slug === "stanki-sverlilnye" ? 3 : 2);
-  const assistantFacets = selectCategoryFacets(slug, technicalFacets, 3).map((facet) => ({
-    ...facet,
-    options:getPromotedFacetOptions(facet, 6, filters[facet.key]),
-  }));
+  const assistantFacets = selectCategoryFacets(slug, technicalFacets, 3).map((facet) => {
+    const rule = getCategorySelectionRule(slug, facet.keyword);
+    const selectedOption = rule.mode === "exact"
+      ? facet.options.find((option) => filters[facet.key]?.includes(option.value))
+      : findCategorySelectionOption(facet.options, numericMinimums[facet.key]);
+    const options = getGuidedFacetOptions(facet, 6, selectedOption ? [selectedOption.value] : []);
+    const minimumFacet = rule.mode === "range"
+      ? technicalFacets.find((candidate) => candidate.keyword === rule.minimumKeyword)
+      : undefined;
+    return {
+      ...facet,
+      options,
+      selectionMode:rule.mode,
+      minimumFacetKey:minimumFacet?.key,
+      initialValue:selectedOption?.value,
+      question:rule.question,
+      selectionHint:rule.hint,
+      hasMoreOptions:facet.options.length > options.length,
+    };
+  });
   const shapeFacet = technicalFacets.find((facet) => facet.keyword === "форма");
   const shankFacet = technicalFacets.find((facet) => facet.keyword === "диаметр хвостовика");
   const materialFacet = technicalFacets.find((facet) => facet.keyword === "материал");
@@ -162,6 +184,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
           <form method="get" action={`/catalog/category/${slug}#products`}>
             {requestedView && <input type="hidden" name="view" value={requestedView} />}
             {Object.entries(numericMinimums).map(([key, value]) => <input type="hidden" name={`min_${key}`} value={value} key={`minimum-${key}`} />)}
+            {Object.entries(numericMaximums).map(([key, value]) => <input type="hidden" name={`max_${key}`} value={value} key={`maximum-${key}`} />)}
             <div className="feed-filter-priority"><span>Быстрый выбор</span><label><input type="checkbox" name="availability" value="in-stock" defaultChecked={inStockOnly} /><b>В наличии</b><em>по данным поставщика</em></label><label><span>Порядок выдачи</span><select name="sort" defaultValue={sort}>{sortOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label><small>Остаток и срок отгрузки подтвердим перед оплатой.</small></div>
             <label className="feed-filter-search"><span>Поиск в категории</span><input type="search" name="q" defaultValue={search} placeholder="Название, бренд или модель" /></label>
             {orderedFacets.map((facet) => <fieldset className={[facet.keyword === "форма" ? "feed-shape-filter" : "", facet.numeric ? "feed-numeric-filter" : ""].filter(Boolean).join(" ") || undefined} key={facet.key}><legend>{facet.label}</legend><small>{facet.keyword === "форма" ? <>Стандартные формы A–N и комбинированные исполнения. <a href="#burr-selector">Не знаете форму? Подобрать по задаче</a></> : facet.numeric && facet.options.length > 1 ? <>Диапазон фида: <b>{facet.options[0].label}–{facet.options[facet.options.length - 1].label}</b>. {facet.help}</> : facet.help}</small><div>{facet.options.map((option) => <label key={option.value}><input type="checkbox" name={`f_${facet.key}`} value={option.value} defaultChecked={filters[facet.key]?.includes(option.value)} /><span className={facet.keyword === "форма" ? "feed-shape-option" : undefined}>{facet.keyword === "форма" && <BurrShapeMark shape={option.value} />}{option.label}</span><em>{option.count}</em></label>)}</div></fieldset>)}
@@ -178,6 +201,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
               {inStockOnly && <input type="hidden" name="availability" value="in-stock" />}
               {Object.entries(filters).flatMap(([key, values]) => values.map((value) => <input type="hidden" name={`f_${key}`} value={value} key={`${key}-${value}`} />))}
               {Object.entries(numericMinimums).map(([key, value]) => <input type="hidden" name={`min_${key}`} value={value} key={`sort-minimum-${key}`} />)}
+              {Object.entries(numericMaximums).map(([key, value]) => <input type="hidden" name={`max_${key}`} value={value} key={`sort-maximum-${key}`} />)}
               <label><span>Сортировка</span><select name="sort" defaultValue={sort}>{sortOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label><button type="submit">Применить</button>
             </form>
           </div></div>
@@ -188,7 +212,11 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
             {result.facets.flatMap((facet) => (filters[facet.key] ?? []).map((value) => <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:`f_${facet.key}`, removeValue:value })} key={`${facet.key}-${value}`}>{facet.label}: {value}<b aria-hidden="true">×</b></PromotedFilterLink>))}
             {Object.entries(numericMinimums).map(([key, value]) => {
               const facet = result.facets.find((candidate) => candidate.key === key);
-              return <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:`min_${key}` })} key={`minimum-${key}`}>{facet?.label ?? "Параметр"}: от {value} мм<b aria-hidden="true">×</b></PromotedFilterLink>;
+              return <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:`min_${key}` })} key={`minimum-${key}`}>{facet?.label ?? "Параметр"}: не менее {value}<b aria-hidden="true">×</b></PromotedFilterLink>;
+            })}
+            {Object.entries(numericMaximums).map(([key, value]) => {
+              const facet = result.facets.find((candidate) => candidate.key === key);
+              return <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:`max_${key}` })} key={`maximum-${key}`}>{facet?.label ?? "Параметр"}: не более {value}<b aria-hidden="true">×</b></PromotedFilterLink>;
             })}
             <PromotedFilterLink className="feed-reset-all" href={`/catalog/category/${slug}#products`}>Очистить всё</PromotedFilterLink>
           </nav>}

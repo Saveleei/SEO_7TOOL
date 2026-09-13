@@ -51,7 +51,7 @@ test("category forms render prepared choices, the full range and a path to exact
     readFile(new URL("../app/ui/DrillSelectionAssistant.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/ui/BurrSelectionAssistant.tsx", import.meta.url), "utf8"),
   ]);
-  assert.match(page, /options:getPromotedFacetOptions\(facet, 6, filters\[facet\.key\]\)/u);
+  assert.match(page, /getGuidedFacetOptions\(facet, 6, selectedOption \? \[selectedOption\.value\] : \[\]\)/u);
   assert.match(page, /diameterOptions=\{drillDiameterFacet\.options\}/u);
   assert.doesNotMatch(genericSelector, /facet\.options\.slice\(0, 6\)/u);
   assert.match(genericSelector, /Диапазон каталога:/u);

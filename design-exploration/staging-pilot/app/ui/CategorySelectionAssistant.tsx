@@ -6,6 +6,14 @@ import type { FeedFacet } from "../data/feedCatalog";
 import { TestRequestForm } from "./TestRequestForm";
 
 type Criterion = { title: string; copy: string };
+type SelectionFacet = FeedFacet & {
+  selectionMode?: "exact" | "minimum" | "range";
+  minimumFacetKey?: string;
+  initialValue?: string;
+  question?: string;
+  selectionHint?: string;
+  hasMoreOptions?: boolean;
+};
 
 export function CategorySelectionAssistant({
   categoryTitle,
@@ -20,14 +28,20 @@ export function CategorySelectionAssistant({
   selectorTitle: string;
   selectorIntro: string;
   selectorResult: string;
-  facets: FeedFacet[];
+  facets: SelectionFacet[];
   selectedFilters: Record<string, string[]>;
   criteria: Criterion[];
 }) {
   const detailsRef = useRef<HTMLDetailsElement>(null);
   const firstChoiceRef = useRef<HTMLButtonElement>(null);
-  const [values, setValues] = useState<Record<string, string>>(() => Object.fromEntries(facets.map((facet) => [facet.key, selectedFilters[facet.key]?.[0] ?? ""])));
-  const selections = useMemo(() => facets.map((facet) => ({ key:facet.key, label:facet.label, value:values[facet.key] ?? "" })), [facets, values]);
+  const [values, setValues] = useState<Record<string, string>>(() => Object.fromEntries(facets.map((facet) => [facet.key, facet.initialValue ?? selectedFilters[facet.key]?.[0] ?? ""])));
+  const selections = useMemo(() => facets.map((facet) => ({
+    key:facet.key,
+    label:facet.question ?? facet.label,
+    value:values[facet.key] ?? "",
+    mode:facet.selectionMode ?? "exact",
+    minimumFacetKey:facet.minimumFacetKey,
+  })), [facets, values]);
   const selectedCount = selections.filter((selection) => selection.value).length;
   const requestContext = buildCategorySelectionContext(categoryTitle, selections);
 
@@ -76,10 +90,10 @@ export function CategorySelectionAssistant({
 
       {facets.length > 0 ? <>
         <div className="category-selector-fields">
-          {facets.map((facet, facetIndex) => <fieldset key={facet.key}><legend><span>{String(facetIndex + 1).padStart(2, "0")}</span>{facet.label}</legend><div>
+          {facets.map((facet, facetIndex) => <fieldset key={facet.key}><legend><span>{String(facetIndex + 1).padStart(2, "0")}</span>{facet.question ?? facet.label}</legend><div>
             <button ref={facetIndex === 0 ? firstChoiceRef : undefined} className={!values[facet.key] ? "active" : undefined} type="button" onClick={() => setValues((current) => ({ ...current, [facet.key]:"" }))} aria-pressed={!values[facet.key]}>Не важно</button>
             {facet.options.map((option) => <button className={values[facet.key] === option.value ? "active" : undefined} type="button" onClick={() => setValues((current) => ({ ...current, [facet.key]:option.value }))} aria-pressed={values[facet.key] === option.value} key={option.value}><span>{option.label}</span><small>{option.count}</small></button>)}
-          </div><small>{facet.numeric && facet.options.length > 1 ? <>Диапазон каталога: <b>{facet.options[0].label}–{facet.options[facet.options.length - 1].label}</b>. Показаны ключевые значения. <a href="#feed-filter-panel">Другой точный размер — в полном фильтре</a>.</> : facet.help}</small></fieldset>)}
+          </div><small>{facet.numeric && facet.options.length > 1 ? <>Диапазон каталога: <b>{facet.options[0].label}–{facet.options[facet.options.length - 1].label}</b>. {facet.selectionHint} {facet.hasMoreOptions && <><a href="#feed-filter-panel">Другой точный размер — в полном фильтре</a>.</>}</> : <>{facet.help} {facet.hasMoreOptions && <><a href="#feed-filter-panel">Другой вариант — в полном фильтре</a>.</>}</>}</small></fieldset>)}
         </div>
         <section className="burr-finder-result" aria-live="polite"><div><span>Предварительный отбор</span><h4>{selectedCount > 0 ? `Выбрано параметров: ${selectedCount}` : "Можно начать с одного параметра"}</h4><p>{selectorResult}</p><small>Цена, комплектность, наличие и срок проверяются по выбранному исполнению перед оплатой.</small></div><div className="burr-result-actions"><button className="button button-orange" type="button" onClick={showProducts}>{selectedCount > 0 ? "Показать подходящие товары" : "Показать весь каталог"}</button><details><summary>Проверить с инженером</summary><TestRequestForm key={requestContext} compact primaryContact="phone" context={requestContext} buttonLabel="Заказать звонок инженера" /></details></div></section>
       </> : <div className="category-selector-manual"><ol>{criteria.slice(0, 3).map((item, index) => <li key={item.title}><span>{String(index + 1).padStart(2, "0")}</span><div><b>{item.title}</b><p>{item.copy}</p></div></li>)}</ol><TestRequestForm compact primaryContact="phone" context={requestContext} buttonLabel="Передать задачу инженеру" /></div>}

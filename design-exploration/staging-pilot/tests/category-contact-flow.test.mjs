@@ -144,7 +144,7 @@ test("drilling selector is integrated and maps to persistent numeric filters", a
   assert.match(page, /selectorHref = slug === "borfrezy" \? "#burr-selector" : slug === "stanki-sverlilnye" \? "#drill-selector" : "#category-selector"/u);
   assert.match(page, /<DrillSelectionAssistant/u);
   assert.match(page, /name=\{`min_\$\{key\}`\}/u);
-  assert.match(page, /facet\?\.label \?\? "Параметр"[^\n]*от \{value\} мм/u);
+  assert.match(page, /facet\?\.label \?\? "Параметр"[^\n]*не менее \{value\}/u);
   assert.match(catalog, /numericMinimums\?: Record<string, number>/u);
   assert.match(catalog, /parseNumericValue\(value\) >= numericMinimums\[facet\.key\]/u);
   assert.match(selector, /a\[href="#drill-selector"\]/u);
