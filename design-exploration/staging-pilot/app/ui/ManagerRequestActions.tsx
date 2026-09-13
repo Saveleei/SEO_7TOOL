@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { refreshRoute } from "../data/clientNavigation";
 
 type Status = "received" | "checking" | "quote_ready" | "sent";
 const nextAction: Record<Status, { status: Status; label: string } | null> = {
@@ -36,7 +37,7 @@ export function ManagerRequestActions({ requestId, status, assignee, canPrepareD
       if (!response.ok || !result.ok) throw new Error(result.message || "Действие не сохранено.");
       setMessage(successMessage);
       if (payload.type === "note_added") setNote("");
-      router.refresh();
+      refreshRoute(router);
     } catch (actionError) {
       setError(actionError instanceof Error ? actionError.message : "Действие не сохранено.");
     } finally {

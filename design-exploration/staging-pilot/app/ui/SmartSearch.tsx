@@ -5,6 +5,7 @@ import Link from "next/link";
 import { FormEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { CatalogSearchHit, CatalogSearchResponse } from "../data/catalogSearchTypes";
+import { navigateTo } from "../data/clientNavigation";
 
 const examples = ["STEYR-35", "снять фаску с трубы", "автоматизировать сварку"];
 
@@ -54,8 +55,8 @@ export function SmartSearch({ placement }: { placement: "header" | "hero" }) {
     event.preventDefault();
     if (!normalized) return;
     trackSearch("search_submit", { placement, query_length:normalized.length, result_count:items.length, query_type:response?.interpretation ?? "unknown" });
-    if (activeIndex >= 0 && items[activeIndex]) router.push(items[activeIndex].href);
-    else router.push(`/search?q=${encodeURIComponent(normalized)}`);
+    if (activeIndex >= 0 && items[activeIndex]) navigateTo(router, items[activeIndex].href);
+    else navigateTo(router, `/search?q=${encodeURIComponent(normalized)}`);
     setOpen(false);
   }
 

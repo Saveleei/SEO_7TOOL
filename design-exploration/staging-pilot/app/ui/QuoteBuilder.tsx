@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { refreshRoute } from "../data/clientNavigation";
 import type { QuoteDraft, QuoteDraftItem } from "../data/quoteDraftStore";
 import type { QuoteTemplateSender } from "../data/quoteTemplateStore";
 
@@ -72,7 +73,7 @@ export function QuoteBuilder({ initial, senderOptions }: { initial: QuoteDraft; 
       setRevision(result.revision || revision);
       setStatus(result.status || nextStatus);
       setMessage(nextStatus === "ready" ? "КП готово к внутреннему согласованию." : "Черновик сохранён локально.");
-      router.refresh();
+      refreshRoute(router);
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Черновик не сохранён.");
     } finally {

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ContactAnalytics } from "./ui/ContactAnalytics";
+import { DocumentNavigationFallback } from "./ui/DocumentNavigationFallback";
 import { RequestCartProvider } from "./ui/RequestCart";
 
 export const metadata: Metadata = {
@@ -17,5 +18,6 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="ru" data-scroll-behavior="smooth"><body><ContactAnalytics /><RequestCartProvider>{children}</RequestCartProvider></body></html>;
+  const forceDocumentNavigation = process.env.FORCE_DOCUMENT_NAVIGATION === "1";
+  return <html lang="ru" data-scroll-behavior="smooth" data-document-navigation={forceDocumentNavigation ? "true" : undefined}><body>{forceDocumentNavigation && <DocumentNavigationFallback />}<ContactAnalytics /><RequestCartProvider>{children}</RequestCartProvider></body></html>;
 }

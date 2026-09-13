@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { refreshRoute } from "../data/clientNavigation";
 import type { ManagerActor } from "../data/managerAccess";
 import type { QuoteApprovalEvent, QuoteApprovalState } from "../data/quoteApprovalStore";
 
@@ -65,7 +66,7 @@ export function QuoteApprovalPanel({ requestId, quoteId, revision, quoteStatus, 
       setState(result.state);
       setMessage(successMessage);
       setNote("");
-      router.refresh();
+      refreshRoute(router);
     } catch (actionError) {
       setError(actionError instanceof Error ? actionError.message : "Действие не сохранено.");
     } finally {

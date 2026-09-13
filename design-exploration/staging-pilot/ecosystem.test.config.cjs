@@ -12,6 +12,7 @@ module.exports = {
         QUOTE_TEST_MODE: "1",
         QUOTE_TEST_DATA_DIR: "/var/www/7tool-test-shared/quote-requests",
         MANAGER_AUTH_TEST_HOSTS: "test.7tool.ru",
+        FORCE_DOCUMENT_NAVIGATION: "1",
       },
     },
   ],
