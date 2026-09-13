@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { buildDrillSelectionUrl, drillDiameterOptions, drillWorkOptions, resolveReverseFacetValue } from "../data/drillSelection.mjs";
+import { buildDrillDiameterOptions, buildDrillSelectionUrl, drillWorkOptions, resolveReverseFacetValue } from "../data/drillSelection.mjs";
 import { TestRequestForm } from "./TestRequestForm";
 
 type FacetOption = { value: string; label: string; count: number };
 
 export function DrillSelectionAssistant({
   diameterFacetKey,
+  diameterOptions,
   reverseFacetKey,
   reverseOptions = [],
   selectedDiameter = 35,
@@ -15,6 +16,7 @@ export function DrillSelectionAssistant({
   selectedWork = "unknown",
 }: {
   diameterFacetKey: string;
+  diameterOptions: FacetOption[];
   reverseFacetKey?: string;
   reverseOptions?: FacetOption[];
   selectedDiameter?: number;
@@ -23,6 +25,8 @@ export function DrillSelectionAssistant({
 }) {
   const detailsRef = useRef<HTMLDetailsElement>(null);
   const firstWorkRef = useRef<HTMLButtonElement>(null);
+  const allDiameterOptions = useMemo(() => buildDrillDiameterOptions(diameterOptions, Math.max(1, diameterOptions.length)), [diameterOptions]);
+  const visibleDiameterOptions = useMemo(() => buildDrillDiameterOptions(diameterOptions, 6, selectedDiameter), [diameterOptions, selectedDiameter]);
   const [work, setWork] = useState(selectedWork);
   const [diameter, setDiameter] = useState(selectedDiameter);
   const [threading, setThreading] = useState(selectedReverse.includes("Да"));
@@ -85,7 +89,7 @@ export function DrillSelectionAssistant({
       <div className="burr-finder-heading"><div><span>Технический отбор</span><h3>Начните с условий работы</h3><p>Подбор предварительный: точную совместимость, комплектацию и режим работы подтвердит инженер.</p></div><small>Артикул и контакты пока не нужны</small></div>
       <div className="drill-selector-steps">
         <fieldset><legend><span>01</span> Где будет работать станок?</legend><div className="burr-task-options" role="group" aria-label="Условия работы">{drillWorkOptions.map((option, index) => <button ref={index === 0 ? firstWorkRef : undefined} className={work === option.id ? "active" : undefined} type="button" onClick={() => setWork(option.id)} aria-pressed={work === option.id} key={option.id}><b>{option.label}</b><span>{option.hint}</span></button>)}</div></fieldset>
-        <fieldset><legend><span>02</span> Какой диаметр отверстия требуется?</legend><div className="drill-diameter-options">{drillDiameterOptions.map((option) => <button className={diameter === option.value ? "active" : undefined} type="button" onClick={() => setDiameter(option.value)} aria-pressed={diameter === option.value} key={option.value}>{option.label}</button>)}</div></fieldset>
+        <fieldset><legend><span>02</span> Какой диаметр отверстия требуется?</legend><div className="drill-diameter-options">{visibleDiameterOptions.map((option) => <button className={diameter === option.value ? "active" : undefined} type="button" onClick={() => setDiameter(option.value)} aria-pressed={diameter === option.value} key={option.value}>{option.label}</button>)}</div><small>{allDiameterOptions.length > 1 ? <>Диапазон каталога: <b>{allDiameterOptions[0].label.replace("до Ø", "")}–{allDiameterOptions[allDiameterOptions.length - 1].label.replace("до Ø", "")}</b>. Показаны ключевые размеры. <a href="#feed-filter-panel">Другой размер — в полном фильтре</a>.</> : "Размеры взяты из текущего каталога."}</small></fieldset>
         <fieldset><legend><span>03</span> Нужен реверс или нарезание резьбы?</legend><div className="drill-diameter-options"><button className={!threading ? "active" : undefined} type="button" onClick={() => setThreading(false)} aria-pressed={!threading}>Не требуется</button><button className={threading ? "active" : undefined} type="button" onClick={() => setThreading(true)} aria-pressed={threading}>Требуется</button></div><small>{threading ? "В выдаче оставим модели с реверсом. Возможность нарезания резьбы проверим отдельно." : "Не ограничиваем выдачу по реверсу."}</small></fieldset>
       </div>
       <section className="burr-finder-result" aria-live="polite"><div><span>Предварительный результат</span><h4>{recommendation.title}</h4><p>{recommendation.note}</p><small>Наличие и пригодность для конкретной операции подтверждаются после выбора модели.</small></div><div className="burr-result-actions"><button className="button button-orange" type="button" onClick={showProducts}>Показать подходящие станки</button><details><summary>Проверить с инженером</summary><TestRequestForm compact primaryContact="phone" context={requestContext} buttonLabel="Заказать звонок инженера" /></details></div></section>

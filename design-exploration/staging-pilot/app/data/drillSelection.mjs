@@ -4,12 +4,22 @@ export const drillWorkOptions = Object.freeze([
   Object.freeze({ id:"unknown", label:"Пока не знаю", hint:"Покажем оборудование без ограничения по типу установки" }),
 ]);
 
-export const drillDiameterOptions = Object.freeze([
-  Object.freeze({ value:16, label:"до Ø16 мм" }),
-  Object.freeze({ value:35, label:"до Ø35 мм" }),
-  Object.freeze({ value:50, label:"до Ø50 мм" }),
-  Object.freeze({ value:63, label:"до Ø63 мм" }),
-]);
+export function buildDrillDiameterOptions(availableOptions = [], limit = 6, selectedValue = 0) {
+  if (limit <= 0) return [];
+  const unique = new Map();
+  for (const option of availableOptions) {
+    const value = Number.parseFloat(String(option.value ?? option.label ?? "").replace(",", ".").match(/\d+(?:\.\d+)?/)?.[0] ?? "");
+    if (!Number.isFinite(value) || value <= 0 || unique.has(value)) continue;
+    unique.set(value, Object.freeze({ value, label:`до Ø${option.label ?? option.value}` }));
+  }
+  const ordered = Array.from(unique.values()).sort((first, second) => first.value - second.value);
+  if (ordered.length <= limit) return ordered;
+  if (limit === 1) return ordered.slice(0, 1);
+  const sampled = Array.from({ length:limit }, (_, index) => ordered[Math.round(index * (ordered.length - 1) / (limit - 1))]);
+  const selected = ordered.find((option) => option.value === selectedValue);
+  if (selected && !sampled.some((option) => option.value === selected.value)) sampled.push(selected);
+  return Array.from(new Map(sampled.map((option) => [option.value, option])).values()).sort((first, second) => first.value - second.value);
+}
 
 export function resolveReverseFacetValue(required, availableValues = []) {
   if (!required) return "";

@@ -77,7 +77,10 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const end = Math.min(result.page * result.pageSize, result.total);
   const technicalFacets = result.facets.filter((facet) => facet.keyword);
   const promotedFacets = selectCategoryFacets(slug, result.facets, slug === "borfrezy" || slug === "stanki-sverlilnye" ? 3 : 2);
-  const assistantFacets = selectCategoryFacets(slug, technicalFacets, 3);
+  const assistantFacets = selectCategoryFacets(slug, technicalFacets, 3).map((facet) => ({
+    ...facet,
+    options:getPromotedFacetOptions(facet, 6, filters[facet.key]),
+  }));
   const shapeFacet = technicalFacets.find((facet) => facet.keyword === "форма");
   const shankFacet = technicalFacets.find((facet) => facet.keyword === "диаметр хвостовика");
   const materialFacet = technicalFacets.find((facet) => facet.keyword === "материал");
@@ -134,6 +137,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
 
       {slug === "stanki-sverlilnye" && drillDiameterFacet && <DrillSelectionAssistant
         diameterFacetKey={drillDiameterFacet.key}
+        diameterOptions={drillDiameterFacet.options}
         reverseFacetKey={drillReverseFacet?.key}
         reverseOptions={drillReverseFacet?.options}
         selectedDiameter={numericMinimums[drillDiameterFacet.key]}
