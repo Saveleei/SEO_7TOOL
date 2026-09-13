@@ -150,12 +150,12 @@ test("drilling selector is integrated and maps to persistent numeric filters", a
   assert.match(selector, /a\[href="#drill-selector"\]/u);
 });
 
-test("single-variant drilling cards can add the exact item without an extra reveal", async () => {
+test("an exact category result can be added without an extra reveal", async () => {
   const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
   const list = await readFile(new URL("../app/ui/FeedProductList.tsx", import.meta.url), "utf8");
   const card = await readFile(new URL("../app/ui/FeedProductCard.tsx", import.meta.url), "utf8");
-  assert.match(page, /directSingleVariant=\{slug === "stanki-sverlilnye"\}/u);
-  assert.match(list, /directSingleVariant=\{directSingleVariant\}/u);
-  assert.match(card, /product\.variantCount === 1 \? product\.variants\[0\]/u);
-  assert.match(card, /<AddRequestButton[^>]*directVariant\.id[\s\S]*Добавить в КП/u);
+  assert.match(page, /<FeedProductList products=\{productCards\} \/>/u);
+  assert.doesNotMatch(list, /directSingleVariant/u);
+  assert.match(card, /product\.selectedVariantCount === 1 \? product\.variants\[0\]/u);
+  assert.match(card, /<AddRequestButton[^>]*directVariant\.id[\s\S]*archetype\.singleAction/u);
 });

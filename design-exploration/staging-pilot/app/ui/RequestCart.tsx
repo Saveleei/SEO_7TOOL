@@ -98,7 +98,8 @@ export function RequestCartButton({ compact = false }: { compact?: boolean }) {
 export function AddRequestButton({ item, className, children }: { item: RequestItem; className?: string; children?: ReactNode }) {
   const { items, addItem } = useRequestCart();
   const added = items.some((current) => current.id === item.id);
-  return <button className={className} type="button" onClick={() => addItem(item)}>{children ?? (added ? "Добавить ещё" : "В запрос")}</button>;
+  const buttonClassName = [className, added ? "request-item-added" : ""].filter(Boolean).join(" ") || undefined;
+  return <button className={buttonClassName} type="button" onClick={() => addItem(item)} aria-live="polite">{added ? "Добавлено · ещё +1" : children ?? "В запрос"}</button>;
 }
 
 function RequestCartDock() {

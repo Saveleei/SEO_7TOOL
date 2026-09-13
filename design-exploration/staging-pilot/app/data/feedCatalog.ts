@@ -1,5 +1,6 @@
 import feedSnapshotJson from "../../../../7tool-source/src/lib/products.json" with { type:"json" };
-import { getCategoryFacetKeywords } from "./categoryExpertProfiles.mjs";
+import { getCategoryCardArchetype } from "./categoryCardArchetypes.mjs";
+import { getCategoryExpertProfile, getCategoryFacetKeywords } from "./categoryExpertProfiles.mjs";
 import { selectCompatibleAccessories, selectProductAlternatives } from "./productRecommendations.mjs";
 
 export type FeedParameter = {
@@ -80,6 +81,7 @@ export type FeedProductVariantModel = {
 
 export type FeedProductCardModel = {
   id: string;
+  categorySlug: string;
   slug: string;
   title: string;
   brand: string;
@@ -91,10 +93,23 @@ export type FeedProductCardModel = {
   availableVariantCount: number;
   specs: FeedProductSpec[];
   variants: FeedProductVariantModel[];
+  matchReasons: string[];
+  decisionPrompts: string[];
+  cardArchetype: {
+    id: string;
+    badge: string;
+    variantForms: [string, string, string];
+    singleAction: string;
+    multipleAction: string;
+    detailAction: string;
+    tableIdentity: string;
+    priceRequestNote: string;
+  };
 };
 
 export type FeedVariantFilter = {
   keyword: string;
+  label?: string;
   values: string[];
   minimum?: number;
 };
@@ -174,7 +189,6 @@ const denseTableCategorySlugs = new Set([
   "metchiki",
   "pilnye-diski",
   "sozh-i-sots",
-  "stanochnaya-osnastka",
   "sverla-i-zenkovki",
 ]);
 
@@ -309,6 +323,7 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
 
   return {
     id: product.id,
+    categorySlug: product.category,
     slug: product.slug,
     title: product.title,
     brand: product.brand,
@@ -320,6 +335,11 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
     availableVariantCount: product.variants.filter(isConfirmedAvailableVariant).length,
     specs: getFeedProductSpecs(product),
     variants,
+    matchReasons:activeFilters.flatMap((filter) => Number.isFinite(filter.minimum)
+      ? [`${filter.label ?? filter.keyword}: от ${filter.minimum}`]
+      : filter.values.map((value) => `${filter.label ?? filter.keyword}: ${value}`)).slice(0, 4),
+    decisionPrompts:getCategoryExpertProfile(product.category).criteria.map((item) => item.title).slice(0, 3),
+    cardArchetype:getCategoryCardArchetype(product.category),
   };
 }
 

@@ -1,0 +1,81 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+import {
+  categoryCardArchetypes,
+  getCategoryCardArchetype,
+  getCategoryCardArchetypeSlugs,
+  pluralizeCardVariants,
+} from "../app/data/categoryCardArchetypes.mjs";
+import {
+  getFeedCategoryPage,
+  getPublishedFeedCategorySlugs,
+  prefersDenseFeedTable,
+  toFeedProductCardModel,
+} from "../app/data/feedCatalog.ts";
+
+test("every published category has an explicit buying-archetype", () => {
+  assert.deepEqual(
+    [...getCategoryCardArchetypeSlugs()].sort(),
+    [...getPublishedFeedCategorySlugs()].sort(),
+  );
+  for (const slug of getPublishedFeedCategorySlugs()) {
+    const profile = getCategoryCardArchetype(slug);
+    assert.ok(categoryCardArchetypes[profile.id], `${slug}: unknown archetype`);
+    assert.equal(profile.variantForms.length, 3, `${slug}: Russian variant forms`);
+    for (const key of ["badge", "singleAction", "multipleAction", "detailAction", "tableIdentity", "priceRequestNote"]) {
+      assert.ok(profile[key]?.trim(), `${slug}: ${key}`);
+    }
+  }
+});
+
+test("archetypes follow the industrial buying decision", () => {
+  assert.equal(getCategoryCardArchetype("kompressory").id, "machine");
+  assert.equal(getCategoryCardArchetype("borfrezy").id, "precision-tooling");
+  assert.equal(getCategoryCardArchetype("sozh-i-sots").id, "process-supply");
+  assert.equal(getCategoryCardArchetype("stanki-lazernoy-rezki").id, "project-system");
+  assert.equal(getCategoryCardArchetype("stanochnaya-osnastka").id, "fixtures");
+});
+
+test("product cards explain selected feed filters", () => {
+  const slug = "borfrezy";
+  const initial = getFeedCategoryPage(slug, { pageSize:12 });
+  const facet = initial.facets.find((item) => item.keyword && item.options.length > 0);
+  assert.ok(facet);
+  const option = facet.options[0];
+  const filtered = getFeedCategoryPage(slug, { filters:{ [facet.key]:[option.value] }, pageSize:12 });
+  assert.ok(filtered.products.length > 0);
+  const card = toFeedProductCardModel(filtered.products[0], [{ keyword:facet.keyword, label:facet.label, values:[option.value] }]);
+  assert.ok(card.matchReasons.includes(`${facet.label}: ${option.value}`));
+  assert.equal(card.cardArchetype.id, "precision-tooling");
+});
+
+test("cards with sparse feed data provide category-specific clarification prompts", () => {
+  const product = getFeedCategoryPage("stanochnaya-osnastka", { pageSize:6 }).products[0];
+  const card = toFeedProductCardModel(product);
+  assert.equal(card.specs.length, 0);
+  assert.equal(card.cardArchetype.id, "fixtures");
+  assert.equal(card.decisionPrompts.length, 3);
+  assert.ok(card.decisionPrompts.every(Boolean));
+  assert.equal(prefersDenseFeedTable("stanochnaya-osnastka"), false);
+});
+
+test("an exact filtered execution is actionable without another reveal", async () => {
+  const card = await readFile(new URL("../app/ui/FeedProductCard.tsx", import.meta.url), "utf8");
+  const table = await readFile(new URL("../app/ui/FeedProductTable.tsx", import.meta.url), "utf8");
+  const requestCart = await readFile(new URL("../app/ui/RequestCart.tsx", import.meta.url), "utf8");
+  assert.match(card, /product\.selectedVariantCount === 1 \? product\.variants\[0\]/u);
+  assert.match(table, /product\.selectedVariantCount === 1 \? product\.variants\[0\]/u);
+  assert.match(card, /product\.matchReasons\.length > 0/u);
+  assert.match(card, /feed-product-specs--fallback/u);
+  assert.match(table, /feed-mobile-series--direct/u);
+  assert.match(requestCart, /added \? "Добавлено · ещё \+1"/u);
+  assert.match(requestCart, /aria-live="polite"/u);
+});
+
+test("variant labels use Russian singular and plural forms", () => {
+  const forms = categoryCardArchetypes["precision-tooling"].variantForms;
+  assert.equal(pluralizeCardVariants(1, forms), "1 типоразмер");
+  assert.equal(pluralizeCardVariants(2, forms), "2 типоразмера");
+  assert.equal(pluralizeCardVariants(11, forms), "11 типоразмеров");
+});

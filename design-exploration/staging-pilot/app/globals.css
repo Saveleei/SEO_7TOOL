@@ -1988,8 +1988,43 @@ body:has(.feed-compare-tray) .request-cart-dock { bottom:96px; }
 .feed-product-actions button:hover,.feed-table-actions .feed-variant-toggle:hover,.feed-card-variant>button:hover,.feed-inline-variant>button:hover,.feed-mobile-series-commercial i:hover,.feed-mobile-variant-action>button:hover { border-color:var(--action-dark-hover); background:var(--action-dark-hover); }
 .button-orange,.request-cart-trigger,.burr-finder>summary>i,.contact-dialog-actions>button,.contact-dialog-success>button,.feed-detail-actions button,.purchase-actions .purchase-open-request { border-color:var(--cta); background:var(--cta); color:#fff; transition:background-color .16s ease,border-color .16s ease,transform .16s ease; }
 .button-orange:hover,.request-cart-trigger:hover,.burr-finder>summary>i:hover,.contact-dialog-actions>button:hover,.contact-dialog-success>button:hover,.feed-detail-actions button:hover,.purchase-actions .purchase-open-request:hover { border-color:var(--cta-hover); background:var(--cta-hover); }
+.request-item-added { border-color:#285b43!important; background:#285b43!important; color:#fff!important; }
+
+/* Category-specific product cards: the structure changes with the buying decision, while facts remain feed-grounded. */
+.feed-product-card,.feed-product-row,.feed-mobile-series { --card-accent:#46534b; }
+.feed-product-card--mobile-processing,.feed-product-row--mobile-processing,.feed-mobile-series--mobile-processing { --card-accent:#35645d; }
+.feed-product-card--precision-tooling,.feed-product-row--precision-tooling,.feed-mobile-series--precision-tooling { --card-accent:#635b4b; }
+.feed-product-card--fixtures,.feed-product-row--fixtures,.feed-mobile-series--fixtures { --card-accent:#465d6b; }
+.feed-product-card--process-supply,.feed-product-row--process-supply,.feed-mobile-series--process-supply { --card-accent:#735f3d; }
+.feed-product-card--project-system,.feed-product-row--project-system,.feed-mobile-series--project-system { --card-accent:#2e4439; }
+.feed-product-card { border-top:3px solid var(--card-accent); }
+.feed-product-card--machine,.feed-product-card--project-system { grid-template-columns:230px minmax(0,1fr); }
+.feed-product-card--precision-tooling,.feed-product-card--process-supply { grid-template-columns:185px minmax(0,1fr); }
+.feed-product-card--precision-tooling .feed-product-media img,.feed-product-card--process-supply .feed-product-media img { height:160px; }
+.feed-product-card--project-system .feed-product-media { background:#f1f4f1; }
+.feed-product-kind,.feed-table-product em,.feed-mobile-series-head em { display:inline-flex; width:max-content; max-width:100%; margin:0 0 7px; padding:4px 6px; border:1px solid color-mix(in srgb,var(--card-accent) 28%,#fff); border-radius:3px; background:color-mix(in srgb,var(--card-accent) 8%,#fff); color:var(--card-accent); font-family:Inter,"Segoe UI",Arial,sans-serif; font-size:9px; font-style:normal; font-weight:800; line-height:1.2; letter-spacing:.035em; text-transform:uppercase; }
+.feed-product-match { display:flex; flex-wrap:wrap; gap:5px; margin-top:12px; }
+.feed-product-match b { width:100%; color:#315d49; font-size:10px; line-height:1.35; }
+.feed-product-match span { padding:4px 6px; border-radius:3px; background:#edf6f0; color:#285540; font-size:9px; font-weight:700; line-height:1.3; }
+.feed-product-specs--fallback { align-content:center; gap:7px; background:#fafbf9; }
+.feed-product-specs--fallback>span { color:#735f3d; font-size:9px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
+.feed-product-specs--fallback>b { font-size:13px; line-height:1.3; }
+.feed-product-specs--fallback ul { display:grid; gap:6px; margin:1px 0 0; padding:0; list-style:none; }
+.feed-product-specs--fallback li { position:relative; padding-left:13px; color:#555b55; font-size:10px; line-height:1.38; }
+.feed-product-specs--fallback li::before { content:""; width:5px; height:5px; position:absolute; top:.48em; left:0; border-radius:50%; background:var(--card-accent); }
+.feed-table-product--no-image,.feed-mobile-series-head--no-image { grid-template-columns:minmax(0,1fr); }
+.feed-table-product em,.feed-mobile-series-head em { margin-bottom:5px; padding:3px 5px; font-size:8px; }
+.feed-table-match { margin-top:7px; color:#315d49; font-size:9px; font-weight:700; line-height:1.35; }
+.feed-mobile-series-head>div>a { display:-webkit-box; overflow:hidden; margin-top:4px; font-size:13px; font-weight:800; line-height:1.28; -webkit-box-orient:vertical; -webkit-line-clamp:3; }
+.feed-mobile-series--direct { padding:12px; border-top:3px solid var(--card-accent); }
+.feed-mobile-series--direct>dl { margin:10px 0 0; border-top:1px solid #eceeea; }
+.feed-mobile-series--direct>dl>div { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:6px 0; border-bottom:1px solid #eceeea; }
+.feed-mobile-series-commercial>button { min-height:42px; padding:0 11px; border:1px solid var(--action-dark); border-radius:5px; background:var(--action-dark); color:#fff; font-size:11px; font-weight:850; }
+.feed-mobile-series-commercial>button:hover { border-color:var(--action-dark-hover); background:var(--action-dark-hover); }
 
 @media (max-width:980px) {
+  .feed-product-card { grid-template-columns:175px minmax(0,1fr); }
+  .feed-product-copy { grid-template-columns:minmax(190px,.9fr) minmax(210px,1fr) 195px; }
   .burr-task-options { grid-template-columns:repeat(3,minmax(0,1fr)); }
   .burr-finder-result { grid-template-columns:minmax(0,1fr) 300px; }
   .category-selector-fields { grid-template-columns:1fr 1fr; }
@@ -2075,6 +2110,7 @@ body:has(.feed-compare-tray) .request-cart-dock { bottom:96px; }
   .selection-conversion-actions>div>a { min-height:42px; font-size:11px; }
   .subcategory-layout--selection>aside { position:static; }
   .subcategory-layout--selection .manager-contact-head { min-height:0; }
+  .feed-product-card { grid-template-columns:105px minmax(0,1fr); }
   .feed-product-commercial>.feed-availability-block .feed-availability { font-size:11px; }
   .feed-mobile-series-commercial .feed-availability,.feed-mobile-variant-action .feed-availability { font-size:10px; }
 }

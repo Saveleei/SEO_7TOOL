@@ -64,8 +64,8 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const activeVariantFilters = result.facets.flatMap((facet) => {
     if (!facet.keyword) return [];
     const facetFilters = [];
-    if ((filters[facet.key]?.length ?? 0) > 0) facetFilters.push({ keyword:facet.keyword, values:filters[facet.key] });
-    if (Number.isFinite(numericMinimums[facet.key])) facetFilters.push({ keyword:facet.keyword, values:[], minimum:numericMinimums[facet.key] });
+    if ((filters[facet.key]?.length ?? 0) > 0) facetFilters.push({ keyword:facet.keyword, label:facet.label, values:filters[facet.key] });
+    if (Number.isFinite(numericMinimums[facet.key])) facetFilters.push({ keyword:facet.keyword, label:facet.label, values:[], minimum:numericMinimums[facet.key] });
     return facetFilters;
   });
   const productCards = result.products.map((product) => toFeedProductCardModel(product, activeVariantFilters, inStockOnly));
@@ -184,7 +184,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
             <PromotedFilterLink className="feed-reset-all" href={`/catalog/category/${slug}#products`}>Очистить всё</PromotedFilterLink>
           </nav>}
 
-          {result.products.length > 0 ? view === "table" ? <FeedProductTable products={productCards} columns={result.facets.filter((facet) => facet.keyword).map((facet) => facet.label).slice(0, 3)} /> : <FeedProductList products={productCards} directSingleVariant={slug === "stanki-sverlilnye"} /> : <div className="feed-state"><span>Нет точных совпадений</span><h2>Ослабьте один из параметров</h2><p>{profile.emptyCopy}</p><div><Link className="button" href={`/catalog/category/${slug}#products`}>Сбросить фильтры</Link><a className="button button-orange" href={selectorHref}>{slug === "borfrezy" ? "Подобрать форму по задаче" : "Изменить условия подбора"}</a></div></div>}
+          {result.products.length > 0 ? view === "table" ? <FeedProductTable products={productCards} columns={result.facets.filter((facet) => facet.keyword).map((facet) => facet.label).slice(0, 3)} /> : <FeedProductList products={productCards} /> : <div className="feed-state"><span>Нет точных совпадений</span><h2>Ослабьте один из параметров</h2><p>{profile.emptyCopy}</p><div><Link className="button" href={`/catalog/category/${slug}#products`}>Сбросить фильтры</Link><a className="button button-orange" href={selectorHref}>{slug === "borfrezy" ? "Подобрать форму по задаче" : "Изменить условия подбора"}</a></div></div>}
 
           {result.pageCount > 1 && <nav className="feed-pagination" aria-label="Страницы товаров">
             {result.page > 1 && <Link className="feed-pagination-direction" href={categoryUrl(slug, rawSearchParams, { page:result.page - 1 })}>← Назад</Link>}
