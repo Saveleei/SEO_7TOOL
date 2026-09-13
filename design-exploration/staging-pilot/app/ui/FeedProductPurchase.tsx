@@ -15,16 +15,14 @@ type PurchaseVariant = {
   choiceContext: string;
   selectorLabel: "Размер" | "Параметры исполнения";
   image?: string;
-  href?: string;
+  href: string;
 };
 
 const INITIAL_VARIANTS = 12;
 const VARIANT_PAGE_SIZE = 24;
 
 export function FeedProductPurchase({ productId, productTitle, variants, totalVariantCount = variants.length, variantsEndpoint, selectedVariantId }: { productId: string; productTitle: string; variants: PurchaseVariant[]; totalVariantCount?: number; variantsEndpoint?: string; selectedVariantId?: string }) {
-  const initialId = variants.some((variant) => variant.id === selectedVariantId) ? selectedVariantId : variants[0]?.id;
   const [availableVariants, setAvailableVariants] = useState(variants);
-  const [variantId, setVariantId] = useState(initialId);
   const [quantity, setQuantity] = useState(1);
   const [variantsOpen, setVariantsOpen] = useState(false);
   const [variantQuery, setVariantQuery] = useState("");
@@ -32,7 +30,7 @@ export function FeedProductPurchase({ productId, productTitle, variants, totalVa
   const [variantsLoading, setVariantsLoading] = useState(false);
   const [variantsError, setVariantsError] = useState("");
   const { items, addItem, open } = useRequestCart();
-  const selected = useMemo(() => availableVariants.find((variant) => variant.id === variantId) ?? availableVariants[0], [availableVariants, variantId]);
+  const selected = useMemo(() => availableVariants.find((variant) => variant.id === selectedVariantId) ?? availableVariants[0], [availableVariants, selectedVariantId]);
   const matchingVariants = useMemo(() => {
     const query = normalizeSearch(variantQuery);
     if (!query) return availableVariants;
@@ -55,12 +53,6 @@ export function FeedProductPurchase({ productId, productTitle, variants, totalVa
     if (!selected) return;
     addItem({ id:`variant:${selected.id}`, title:selected.title || productTitle, article:selected.sku ? `Артикул ${selected.sku}` : "Артикул не указан в фиде", price:selected.price, quantity, image:selected.image, href:selected.href });
     track("add_to_quote", "product_buybox");
-  }
-
-  function selectVariant(variant: PurchaseVariant) {
-    setVariantId(variant.id);
-    track("select_variant", "product_buybox", variant.id);
-    if (variant.href) window.history.replaceState(window.history.state, "", variant.href);
   }
 
   async function toggleAllVariants() {
@@ -91,12 +83,12 @@ export function FeedProductPurchase({ productId, productTitle, variants, totalVa
   return <div className="feed-conversion-buybox" id="purchase">
       {totalVariantCount > 1 && <div className="feed-conversion-variants"><div className="feed-variant-selector-head"><div><span>Выберите {selected.selectorLabel.toLocaleLowerCase("ru-RU")}</span><small>{totalVariantCount} {variantWord(totalVariantCount, selected.selectorLabel)} в этой товарной группе</small></div>{totalVariantCount > INITIAL_VARIANTS && <button type="button" aria-expanded={variantsOpen} aria-controls="feed-product-variant-options" onClick={() => void toggleAllVariants()} disabled={variantsLoading}>{variantsLoading ? "Загружаем…" : variantsOpen ? "Свернуть список" : `Все ${totalVariantCount} ${variantWord(totalVariantCount, selected.selectorLabel)}`}</button>}</div>
         {totalVariantCount > INITIAL_VARIANTS && variantsOpen && <label className="feed-variant-search"><span>Найти по размеру или артикулу</span><input type="search" value={variantQuery} disabled={variantsLoading} onChange={(event) => { setVariantQuery(event.target.value); setVisibleVariantCount(INITIAL_VARIANTS + VARIANT_PAGE_SIZE); }} placeholder="Например: 35 × 30" /></label>}
-        <div className="feed-variant-options" id="feed-product-variant-options">{visibleVariants.map((variant) => <button className={variant.id === selected.id ? "active" : undefined} type="button" aria-pressed={variant.id === selected.id} aria-label={`Выбрать ${variant.choiceLabel}${variant.sku ? `, артикул ${variant.sku}` : ""}, ${variant.price}`} onClick={() => selectVariant(variant)} key={variant.id}><b>{variant.choiceLabel}</b>{variant.choiceContext && <span>{variant.choiceContext}</span>}<small>{variant.price}</small></button>)}</div>
+        <div className="feed-variant-options" id="feed-product-variant-options">{visibleVariants.map((variant) => <a className={variant.id === selected.id ? "active" : undefined} href={variant.href} aria-current={variant.id === selected.id ? "true" : undefined} aria-label={`Открыть ${variant.choiceLabel}${variant.sku ? `, артикул ${variant.sku}` : ""}, ${variant.price}`} onClick={() => track("select_variant", "product_buybox", variant.id)} key={variant.id}><b>{variant.choiceLabel}</b>{variant.choiceContext && <span>{variant.choiceContext}</span>}<small>{variant.price}</small></a>)}</div>
         {variantsError && <p className="feed-variant-load-error" role="status">{variantsError}</p>}
         {matchingVariants.length === 0 && <div className="feed-variant-empty"><b>Такого размера в этой группе нет</b><span>Измените запрос или передайте параметры менеджеру.</span></div>}
         {(variantsOpen || variantQuery) && visibleVariants.length < matchingVariants.length && <button className="feed-variant-more" type="button" onClick={() => setVisibleVariantCount((count) => count + VARIANT_PAGE_SIZE)}>Показать ещё {Math.min(VARIANT_PAGE_SIZE, matchingVariants.length - visibleVariants.length)}</button>}
         <div className="feed-selected-variant"><span>Выбрано</span><b>{selected.choiceLabel}</b><small>{selected.choiceContext ? `${selected.choiceContext} · ` : ""}{selected.sku ? `артикул ${selected.sku}` : "артикул не указан в фиде"}</small></div>
-        <small className="feed-variant-help">Сначала выбирайте рабочий размер и параметры совместимости. Артикул нужен для точной фиксации позиции в КП.</small></div>}
+        <small className="feed-variant-help">Выбор обновляет всю карточку: фото, характеристики, цену, наличие и позицию в КП. Артикул служит для точной фиксации.</small></div>}
 
     <div className={selected.available ? "feed-conversion-stock feed-conversion-stock--positive" : "feed-conversion-stock"}>
       <span>{selected.available ? "В наличии по данным поставщика" : "Поставка под заказ или статус уточняется"}</span>

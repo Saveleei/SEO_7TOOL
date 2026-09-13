@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { GET as getProductVariants } from "../app/api/catalog-product-variants/route.ts";
-import { getVariantChoicePresentation, sortVariantsForChoice } from "../app/data/variantPresentation.ts";
+import { CATEGORY_VARIANT_PRESENTATION_RULES, getProductVariantChoices, getVariantChoicePresentation, sortVariantsForChoice } from "../app/data/variantPresentation.ts";
 
 const snapshot = JSON.parse(await readFile(new URL("../../../7tool-source/src/lib/products.json", import.meta.url), "utf8"));
 const annularCutters = snapshot.products.find((product) => product.slug === "sverla-koronchatye-lzhs");
@@ -37,6 +37,9 @@ test("product selector exposes the full searchable size range and keeps SKU seco
   assert.match(purchase, /<b>\{variant\.choiceLabel\}<\/b>/u);
   assert.match(purchase, /<small>\{selected\.choiceContext[\s\S]*артикул \$\{selected\.sku\}/u);
   assert.doesNotMatch(purchase, /<b>\{variant\.sku/u);
+  assert.match(purchase, /<a[^>]*href=\{variant\.href\}[^>]*aria-current=/u);
+  assert.doesNotMatch(purchase, /history\.replaceState/u);
+  assert.match(purchase, /Выбор обновляет всю карточку/u);
 });
 
 test("full size list is loaded on demand in natural order", async () => {
@@ -59,3 +62,85 @@ test("compatible accessory cards lead with working size and keep article as refe
   assert.match(page, /<small>Артикул \{variant\.sku/u);
   assert.doesNotMatch(page, /<h3><Link[^>]*>\{variant\.name/u);
 });
+
+test("every feed category has a buyer-first variant presentation rule", () => {
+  const categories = new Set(snapshot.products.map((product) => product.category));
+  assert.deepEqual([...categories].filter((category) => !CATEGORY_VARIANT_PRESENTATION_RULES[category]), []);
+});
+
+test("all feed choices stay readable and never use SKU as the primary label", () => {
+  let choiceCount = 0;
+  for (const product of snapshot.products) {
+    for (const variant of product.variants) {
+      const choice = getVariantChoicePresentation(product, variant);
+      choiceCount += 1;
+      assert.ok(choice.label.trim(), `${product.slug}/${variant.id} has an empty label`);
+      assert.ok(choice.label.length <= 72, `${product.slug}/${variant.id} has an overlong label: ${choice.label}`);
+      if (variant.sku.trim()) assert.notEqual(normalize(choice.label), normalize(variant.sku), `${product.slug}/${variant.id} leads with SKU`);
+    }
+  }
+  const snapshotVariantCount = snapshot.products.reduce((sum, product) => sum + product.variants.length, 0);
+  assert.ok(choiceCount > 18_000);
+  assert.equal(choiceCount, snapshotVariantCount);
+});
+
+test("category matrix leads with the actual industrial decision parameter", () => {
+  const tap = findVariant("metchiki", (variant) => variant.sku === "20.1820-002");
+  assert.equal(getVariantChoicePresentation(tap.product, tap.variant).label, "M3");
+  assert.match(getVariantChoicePresentation(tap.product, tap.variant).context, /DIN 371/u);
+
+  const pipeBeveler = findVariant("kromkorezy-dlya-trub", (variant) => variant.sku === "ТВР-170 П");
+  assert.equal(getVariantChoicePresentation(pipeBeveler.product, pipeBeveler.variant).label, "Ø60–159 мм");
+
+  const pipeCutter = findVariant("truborezy", (variant) => variant.sku === "H2S");
+  assert.equal(getVariantChoicePresentation(pipeCutter.product, pipeCutter.variant).label, "Ø25–63 мм");
+
+  const sawBlade = findVariant("pilnye-diski", (variant) => variant.sku === "5.1000.200.010");
+  assert.equal(getVariantChoicePresentation(sawBlade.product, sawBlade.variant).label, "Ø200 × 1,2 × 32 мм");
+
+  const compressor = findVariant("kompressory", (variant) => variant.sku === "45681472");
+  const compressorChoice = getVariantChoicePresentation(compressor.product, compressor.variant);
+  assert.equal(compressorChoice.label, "440 л/мин");
+  assert.match(compressorChoice.context, /ресивер 100 л/u);
+  assert.match(compressorChoice.context, /2,2 кВт/u);
+  assert.match(getProductVariantChoices(compressor.product).find((choice) => choice.id === compressor.variant.id).choiceContext, /арт\. 45681472/u);
+
+  const coolant = findVariant("sozh-i-sots", (variant) => variant.sku === "60.1100-050");
+  assert.equal(getVariantChoicePresentation(coolant.product, coolant.variant).label, "5 л");
+
+  const loadGrab = findVariant("zahvaty-dlya-gruzov", (variant) => variant.sku === "EML-500");
+  assert.equal(getVariantChoicePresentation(loadGrab.product, loadGrab.variant).label, "500 кг");
+});
+
+test("every variant deep link preserves the exact selection and returns to the selector", () => {
+  for (const product of snapshot.products) {
+    for (const choice of getProductVariantChoices(product)) {
+      assert.equal(choice.href, `/product/${product.slug}?variant=${encodeURIComponent(choice.id)}#variants`);
+    }
+  }
+});
+
+test("selected execution drives every server-rendered product area", async () => {
+  const page = await readFile(new URL("../app/product/[slug]/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /const primaryVariant = allVariants\.find\(\(variant\) => variant\.id === selectedVariantId\)/u);
+  assert.match(page, /primaryVariant\?\.images/u);
+  assert.match(page, /getFeedVariantSpecs\(product, primaryVariant\)/u);
+  assert.match(page, /formatFeedPrice\(primaryVariant\?\.price\)/u);
+  assert.match(page, /id:`variant:\$\{primaryVariant\.id\}`/u);
+  assert.match(page, /selectedProductContext/u);
+  assert.match(page, /expertProfile\.criteria/u);
+  assert.doesNotMatch(page, /Сообщите материал, толщину и глубину отверстия/u);
+});
+
+function findVariant(category, predicate) {
+  for (const product of snapshot.products) {
+    if (product.category !== category) continue;
+    const variant = product.variants.find(predicate);
+    if (variant) return { product, variant };
+  }
+  assert.fail(`Variant fixture not found for ${category}`);
+}
+
+function normalize(value) {
+  return String(value).toLocaleLowerCase("ru-RU").replace(/ё/gu, "е").replace(/[^a-zа-я0-9]+/giu, " ").trim();
+}
