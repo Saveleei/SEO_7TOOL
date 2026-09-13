@@ -5,7 +5,8 @@
 - Branch: `codex/quote-delivery-outbox`
 - Base: `153699f` (`codex/manager-access-control`)
 - Application: `design-exploration/staging-pilot`
-- Status: in progress
+- Status: complete
+- Feature commit: `aa9ce22` (`feat: add guarded quote delivery outbox`)
 
 ## Goal
 
@@ -39,4 +40,19 @@ Add an admin-only internal delivery package and append-only outbox for an approv
 
 ## Verification
 
-Pending.
+- Targeted tests: `9/9` passed for manager access and delivery outbox.
+- Full tests: `80/80` passed.
+- Full ESLint: passed.
+- Production build: passed; `/api/quote-requests/:id/delivery` is present in the route manifest.
+- HTTP smoke against the final build:
+  - anonymous staff page: `307` to sign-in;
+  - anonymous delivery API: `401`;
+  - authenticated current quote page: `200`;
+  - authenticated delivery package API: `200`;
+  - legacy quote with a stale fingerprint: page stays available with a safe blocked-state explanation (`200`) instead of failing.
+- Local preview: `http://127.0.0.1:3178/test/requests/7T-20260913-B52DA3/quote`
+- No delivery action was invoked during browser/HTTP smoke; the preview package remains outside the outbox until the administrator confirms it in the UI.
+
+## Supplemental compiler note
+
+`tsc --noEmit` is not a green baseline for this prototype. Existing diagnostics include explicit `.ts` import paths without `allowImportingTsExtensions`, older target settings for named capture groups, Fetch `BodyInit` typing, and JavaScript validator narrowing. The required Vinext production build is green. This branch keeps the explicit `.ts` server imports because the direct Node regression suite requires them; aligning the standalone TypeScript configuration should be a separate repository-wide task.
