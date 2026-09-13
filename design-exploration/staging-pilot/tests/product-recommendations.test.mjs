@@ -61,12 +61,14 @@ test("product description removes incomplete feed fragments and keeps readable t
 
 test("product analytics carries context without contact data", async () => {
   const purchase = await readFile(new URL("../app/ui/FeedProductPurchase.tsx", import.meta.url), "utf8");
-  const manager = await readFile(new URL("../app/ui/ManagerContactCard.tsx", import.meta.url), "utf8");
+  const contactAnalytics = await readFile(new URL("../app/data/contactAnalytics.mjs", import.meta.url), "utf8");
   assert.match(purchase, /page_type:"product", product_id:productId, variant_id:trackedVariantId/u);
-  assert.match(manager, /PHONE_CLICK/u);
-  assert.match(manager, /EMAIL_CLICK/u);
-  assert.match(manager, /click_messenger/u);
+  assert.match(contactAnalytics, /PHONE_CLICK/u);
+  assert.match(contactAnalytics, /EMAIL_CLICK/u);
+  assert.match(contactAnalytics, /click_messenger/u);
+  assert.match(contactAnalytics, /SAFE_CONTEXT_FIELDS = \["placement", "product_id", "variant_id", "category"\]/u);
   assert.doesNotMatch(purchase, /phone:|email:|name:/u);
+  assert.doesNotMatch(contactAnalytics, /detail\.(phone|email|name)\s*=/u);
 });
 
 test("legacy STEYR route and all primary search links converge on the feed product", async () => {

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FormEvent, ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, KeyboardEvent as ReactKeyboardEvent, ReactNode, RefObject, createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { parseQuotePrice, sanitizeRequestItems, summarizeRequest } from "../data/requestQuote.mjs";
 import { ManagerContactCard } from "./ManagerContactCard";
 
@@ -27,6 +27,7 @@ type RequestCartValue = {
 };
 
 const STORAGE_KEY = "7tool:quote-draft:v1";
+const FOCUSABLE_SELECTOR = "a[href],button:not([disabled]),input:not([disabled]):not([type='hidden']),textarea:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex='-1'])";
 const RequestCartContext = createContext<RequestCartValue | null>(null);
 
 export function RequestCartProvider({ children }: { children: ReactNode }) {
@@ -115,18 +116,36 @@ function RequestCartDrawer() {
   const [billingProvided, setBillingProvided] = useState(false);
   const [formError, setFormError] = useState("");
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+  const successCloseRef = useRef<HTMLButtonElement>(null);
   const idempotencyKeyRef = useRef("");
   const summary = useMemo(() => summarizeRequest(items), [items]);
 
   useEffect(() => {
     if (!isOpen) return;
     const previousOverflow = document.body.style.overflow;
+    returnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     document.body.style.overflow = "hidden";
     closeButtonRef.current?.focus();
     const closeOnEscape = (event: KeyboardEvent) => { if (event.key === "Escape") close(); };
     window.addEventListener("keydown", closeOnEscape);
-    return () => { window.removeEventListener("keydown", closeOnEscape); document.body.style.overflow = previousOverflow; };
+    return () => { window.removeEventListener("keydown", closeOnEscape); document.body.style.overflow = previousOverflow; returnFocusRef.current?.focus(); };
   }, [isOpen, close]);
+
+  useEffect(() => {
+    if (isOpen && sent) successCloseRef.current?.focus();
+  }, [isOpen, sent]);
+
+  function trapFocus(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "Tab") return;
+    const focusable = Array.from(drawerRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR) ?? []).filter((element) => element.offsetParent !== null);
+    const first = focusable[0];
+    const last = focusable.at(-1);
+    if (!first || !last) return;
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  }
 
   function closeDrawer() {
     setSent(false);
@@ -182,13 +201,13 @@ function RequestCartDrawer() {
 
   if (!isOpen) return null;
 
-  return <div className="request-cart-layer" role="dialog" aria-modal="true" aria-labelledby="request-cart-title" aria-describedby="request-cart-description">
+  return <div className="request-cart-layer" role="dialog" aria-modal="true" aria-labelledby="request-cart-title" aria-describedby="request-cart-description" onKeyDown={trapFocus}>
     <button className="request-cart-backdrop" type="button" onClick={closeDrawer} aria-label="Закрыть запрос" />
-    <aside className="request-cart-drawer">
+    <aside ref={drawerRef} className="request-cart-drawer">
       <header><div><span>Единый запрос без повторного ввода</span><h2 id="request-cart-title">Запрос коммерческого предложения</h2><p id="request-cart-description">Проверьте позиции и оставьте контакты — комплектность, остаток и срок менеджер подтвердит в ответе.</p></div><button ref={closeButtonRef} type="button" onClick={closeDrawer} aria-label="Закрыть">×</button></header>
       <div className="request-cart-progress" aria-label="Этапы запроса"><b>1 <span>Состав</span></b><b>2 <span>Контакты</span></b><b>3 <span>Ответ менеджера</span></b></div>
 
-      {sent ? <QuoteSuccess draftNumber={draftNumber} itemCount={items.length} totalQuantity={summary.totalQuantity} billingProvided={billingProvided} onEdit={() => { idempotencyKeyRef.current = ""; setSent(false); }} onClose={closeDrawer} /> : <>
+      {sent ? <QuoteSuccess draftNumber={draftNumber} itemCount={items.length} totalQuantity={summary.totalQuantity} billingProvided={billingProvided} onEdit={() => { idempotencyKeyRef.current = ""; setSent(false); }} onClose={closeDrawer} closeRef={successCloseRef} /> : <>
         {items.length > 0 ? <section className="request-cart-composition" aria-labelledby="request-cart-composition-title"><div className="request-cart-section-title"><div><span>Состав запроса</span><h3 id="request-cart-composition-title">{items.length} поз. · {summary.totalQuantity} шт.</h3></div>{summary.pricedItems > 0 && <div><span>Ориентировочно</span><b>{formatMoney(summary.estimatedTotal)}</b></div>}</div><div className="request-cart-items">{items.map((item) => <RequestCartItem item={item} onChange={changeQuantity} onRemove={remove} key={item.id} />)}</div><p className="request-cart-estimate-note">{summary.hasUnpricedItems ? "Итог рассчитан только по позициям с указанной ценой. " : ""}Цена, остаток и дата отгрузки будут повторно подтверждены перед оплатой.</p></section> : <div className="request-cart-empty"><b>В запросе пока нет товаров</b><p>Добавьте нужное исполнение со страницы товара или из категории.</p><button type="button" onClick={closeDrawer}>Продолжить подбор</button></div>}
 
         <form className="request-cart-form" onSubmit={submit}>
@@ -218,8 +237,8 @@ function RequestCartItem({ item, onChange, onRemove }: { item: RequestItem; onCh
   return <article><div className="request-cart-item-media">{item.image ? <Image src={item.image} alt="" width={84} height={84} unoptimized /> : <span aria-hidden="true">7T</span>}</div><div className="request-cart-item-copy"><b>{item.href ? <Link href={item.href}>{item.title}</Link> : item.title}</b><span>{item.article}</span>{item.price && <small>{item.price} · с НДС</small>}</div><div className="request-cart-item-actions"><span>Количество</span><div className="request-cart-quantity"><button type="button" aria-label={`Уменьшить количество ${item.title}`} onClick={() => onChange(item, Math.max(1, quantity - 1))}>−</button><input aria-label={`Количество ${item.title}`} type="number" min="1" max="999" value={quantity} onChange={(event) => onChange(item, Number(event.target.value) || 1)} /><button type="button" aria-label={`Увеличить количество ${item.title}`} onClick={() => onChange(item, quantity + 1)}>+</button></div>{unitPrice !== null && <b>{formatMoney(unitPrice * quantity)}</b>}</div><button className="request-cart-remove" type="button" onClick={() => onRemove(item.id)} aria-label={`Удалить ${item.title}`}>Удалить</button></article>;
 }
 
-function QuoteSuccess({ draftNumber, itemCount, totalQuantity, billingProvided, onEdit, onClose }: { draftNumber: string; itemCount: number; totalQuantity: number; billingProvided: boolean; onEdit: () => void; onClose: () => void }) {
-  return <section className="request-cart-success" role="status"><span>Заявка сохранена на тестовом сервере</span><h3>Запрос {draftNumber}</h3><p>{itemCount} поз. · {totalQuantity} шт. Состав, контакты и требования записаны до показа этого подтверждения.</p>{billingProvided && <div className="request-cart-billing-status"><b>Реквизиты добавлены</b><p>Менеджер проверит их и подготовит счёт только после подтверждения условий поставки.</p></div>}<div><b>Статус заявки</b><ol><li>Получена и доступна в локальном журнале.</li><li>Ожидает проверки наличия, совместимости и документов.</li><li>Отправка КП будет подключена после утверждения тестового контура.</li></ol></div><strong>Email, MAX и CRM сейчас отключены — заявка не ушла во внешние системы.</strong><footer><Link href="/test/requests">Открыть тестовый журнал</Link><button type="button" onClick={onEdit}>Изменить запрос</button><button type="button" onClick={onClose}>Вернуться к товарам</button></footer></section>;
+function QuoteSuccess({ draftNumber, itemCount, totalQuantity, billingProvided, onEdit, onClose, closeRef }: { draftNumber: string; itemCount: number; totalQuantity: number; billingProvided: boolean; onEdit: () => void; onClose: () => void; closeRef: RefObject<HTMLButtonElement | null> }) {
+  return <section className="request-cart-success" role="status"><span>Заявка сохранена на тестовом сервере</span><h3>Запрос {draftNumber}</h3><p>{itemCount} поз. · {totalQuantity} шт. Состав, контакты и требования записаны до показа этого подтверждения.</p>{billingProvided && <div className="request-cart-billing-status"><b>Реквизиты добавлены</b><p>Менеджер проверит их и подготовит счёт только после подтверждения условий поставки.</p></div>}<div><b>Статус заявки</b><ol><li>Получена и доступна в локальном журнале.</li><li>Ожидает проверки наличия, совместимости и документов.</li><li>Отправка КП будет подключена после утверждения тестового контура.</li></ol></div><strong>Email, MAX и CRM сейчас отключены — заявка не ушла во внешние системы.</strong><footer><Link href="/test/requests">Открыть тестовый журнал</Link><button type="button" onClick={onEdit}>Изменить запрос</button><button ref={closeRef} type="button" onClick={onClose}>Вернуться к товарам</button></footer></section>;
 }
 
 function formatMoney(value: number): string { return `${new Intl.NumberFormat("ru-RU").format(value)} ₽`; }

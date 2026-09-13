@@ -14,16 +14,11 @@ test("release smoke accepts only a bare loopback origin", () => {
 });
 
 test("release matrix covers the accepted customer path and every staff workspace", () => {
-  assert.deepEqual(PUBLIC_RELEASE_ROUTES, [
-    "/",
-    "/catalog",
-    "/catalog/task/drilling",
-    "/catalog/category/borfrezy?view=cards",
-    "/catalog/category/stanki-sverlilnye?view=table",
-    "/product/magnitnyy-sverlilnyy-stanok-lenz-steyr-35",
-    "/search?q=STEYR-35",
-    "/compare",
-  ]);
+  assert.ok(PUBLIC_RELEASE_ROUTES.length >= 37);
+  assert.equal(new Set(PUBLIC_RELEASE_ROUTES).size, PUBLIC_RELEASE_ROUTES.length);
+  for (const route of ["/", "/catalog", "/catalog/task/drilling", "/catalog/category/borfrezy", "/catalog/category/stanki-sverlilnye", "/product/magnitnyy-sverlilnyy-stanok-lenz-steyr-35", "/search?q=STEYR-35", "/compare"]) {
+    assert.ok(PUBLIC_RELEASE_ROUTES.includes(route), `${route} is absent from the release matrix`);
+  }
   assert.deepEqual(PROTECTED_RELEASE_ROUTES, ["/test/requests", "/test/delivery", "/test/settings/quote"]);
 });
 

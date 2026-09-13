@@ -355,7 +355,6 @@ function scoreFeedProduct(product: FeedProduct, categorySlug: string): number {
 function getRankedCategoryProducts(slug: string): FeedProduct[] {
   return (productsByCategory.get(slug) ?? [])
     .map((product, sourceOrder) => ({ product, sourceOrder, score: scoreFeedProduct(product, slug) }))
-    .filter(({ product }) => Boolean(getFeedProductImage(product)))
     .sort((a, b) => b.score - a.score || a.sourceOrder - b.sourceOrder)
     .map(({ product }) => product);
 }

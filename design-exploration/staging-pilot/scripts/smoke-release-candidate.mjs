@@ -1,16 +1,33 @@
 import process from "node:process";
 import { pathToFileURL } from "node:url";
+import feedSnapshot from "../../../7tool-source/src/lib/products.json" with { type:"json" };
 
-export const PUBLIC_RELEASE_ROUTES = [
+const CORE_PUBLIC_ROUTES = [
   "/",
   "/catalog",
-  "/catalog/task/drilling",
-  "/catalog/category/borfrezy?view=cards",
-  "/catalog/category/stanki-sverlilnye?view=table",
   "/product/magnitnyy-sverlilnyy-stanok-lenz-steyr-35",
   "/search?q=STEYR-35",
   "/compare",
 ];
+
+const TASK_RELEASE_ROUTES = ["drilling", "edge", "cutting", "welding", "tooling", "workplace"]
+  .map((task) => `/catalog/task/${task}`);
+const CATEGORY_RELEASE_ROUTES = feedSnapshot.categories
+  .filter((category) => category.published)
+  .map((category) => `/catalog/category/${category.slug}`);
+const EDGE_PRODUCT_ROUTES = [
+  feedSnapshot.products.find((product) => !(product.images ?? []).some(Boolean)),
+  feedSnapshot.products.find((product) => product.variants.some((variant) => !String(variant.sku ?? "").trim())),
+]
+  .filter(Boolean)
+  .map((product) => `/product/${product.slug}`);
+
+export const PUBLIC_RELEASE_ROUTES = Array.from(new Set([
+  ...CORE_PUBLIC_ROUTES,
+  ...TASK_RELEASE_ROUTES,
+  ...CATEGORY_RELEASE_ROUTES,
+  ...EDGE_PRODUCT_ROUTES,
+]));
 
 export const PROTECTED_RELEASE_ROUTES = [
   "/test/requests",
