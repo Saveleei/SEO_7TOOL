@@ -35,11 +35,23 @@ Improve the product buy-box hierarchy so buyers immediately understand that othe
 - Production build: passed.
 - Release smoke: 46 checks passed on loopback port 3187.
 - Browser acceptance: desktop 1280 px and mobile 390 × 844 px; no horizontal overflow; both all-size entry points are visible, expansion exposes search and 36 + 13 progressive choices, manager heading resolves to 19 px on desktop / 18 px mobile, direct contact values to 12 px, both official marks render at 31 px.
-- Forms were not submitted. No deployment, feed publication, credential, DNS, or live-service changes were performed.
+- Server release copy: 149 tests passed, full ESLint passed, and production build passed.
+- Candidate and final active-process smoke: 46/46 checks passed on ports 3199 and 3000; no customer, quote, or delivery write action was invoked.
+- Active PM2 cwd was verified as `/var/www/7tool-release-20260914-product-hierarchy-5dc1d22/design-exploration/staging-pilot`; the temporary candidate was removed and the PM2 list was saved.
+- External HTTPS gate remains `401` without Basic Auth. Production `https://7tool.ru/` remains `200` and its process was not restarted or reconfigured.
+- Post-release capacity: 3.0 GB free on `/var/www`.
+- Forms were not submitted. No feed publication, credential, DNS, production process, or external-delivery change was performed.
 
 ## Local preview
 
 - `http://127.0.0.1:3187/product/sverla-koronchatye-lzhs?variant=A9021#variants`
+
+## Test release
+
+- URL: `https://test.7tool.ru/product/sverla-koronchatye-lzhs?variant=A9021#variants`
+- Active release: `/var/www/7tool-release-20260914-product-hierarchy-5dc1d22`
+- Preserved rollback: `/var/www/7tool-release-20260914-product-recommendations-11d11a2`
+- The deployed commit is descended from `66fad2f`, so the earlier quote-item media/link fixes are included.
 
 ## Commit
 
