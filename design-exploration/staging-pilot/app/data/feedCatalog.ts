@@ -82,6 +82,8 @@ export type FeedProductVariantModel = {
   sku: string;
   title: string;
   price: string;
+  image?: string;
+  href: string;
   specs: FeedProductSpec[];
   matchesSelection: boolean;
   available: boolean;
@@ -383,6 +385,7 @@ export function getFeedProductPriceLabel(product: FeedProduct): string {
 }
 
 export function toFeedProductCardModel(product: FeedProduct, activeFilters: FeedVariantFilter[] = [], preferAvailable = false): FeedProductCardModel {
+  const productImage = getFeedProductImage(product);
   const hasVariantSelection = activeFilters.length > 0 || preferAvailable;
   const selectedVariants = product.variants
     .map((variant, sourceOrder) => ({
@@ -406,6 +409,8 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
       sku: variant.sku,
       title: variant.name ?? variant.sku,
       price: formatFeedPrice(variant.price) ?? "Цена по запросу",
+      image: variant.images?.find(Boolean) ?? productImage,
+      href: `/product/${product.slug}?variant=${encodeURIComponent(variant.id)}#variants`,
       specs: getFeedVariantSpecs(product, variant),
       matchesSelection,
       available: isConfirmedAvailableVariant(variant),
@@ -418,7 +423,7 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
     title: product.title,
     brand: product.brand,
     sku: product.sku,
-    image: getFeedProductImage(product),
+    image: productImage,
     price: getFeedProductPriceLabel(product),
     variantCount: product.variants.length,
     selectedVariantCount: selectedVariants.length,

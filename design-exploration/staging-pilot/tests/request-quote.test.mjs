@@ -19,12 +19,18 @@ test("quote totals only include exact prices and respect quantities", () => {
 test("restored quote draft accepts only bounded product context", () => {
   const restored = sanitizeRequestItems([
     { id:"variant:A9409", title:"LENZ STEYR-35", article:"Артикул STEYR-35", price:"47 999 ₽", quantity:5000, image:"javascript:alert(1)", href:"https://outside.example" },
+    { id:"variant:A12935", title:"Сверло LZTS-021", article:"Артикул LZTS-021", price:"2 882 ₽", quantity:1, image:"https://s3.export.k2tool.ru/pim/images/product/preview/cutter.png", href:"/product/sverla-koronchatye-lzts?variant=A12935#variants" },
+    { id:"variant:unsafe", title:"Опасная ссылка", article:"Артикул X", image:"http://outside.example/pixel.gif", href:"//outside.example/product/foo" },
     { title:"missing required fields" },
   ]);
-  assert.equal(restored.length, 1);
+  assert.equal(restored.length, 3);
   assert.equal(restored[0].quantity, 999);
   assert.equal(restored[0].image, undefined);
   assert.equal(restored[0].href, undefined);
+  assert.equal(restored[1].image, "https://s3.export.k2tool.ru/pim/images/product/preview/cutter.png");
+  assert.equal(restored[1].href, "/product/sverla-koronchatye-lzts?variant=A12935#variants");
+  assert.equal(restored[2].image, undefined);
+  assert.equal(restored[2].href, undefined);
 });
 
 test("local draft numbers are recognisable and date-scoped", () => {
@@ -43,6 +49,8 @@ test("quote drawer keeps the shortest B2B path and only submits to the local API
   assert.match(component, /crypto\.randomUUID\(\)/u);
   assert.match(component, /className="request-cart-honeypot"[^>]*name="website"[^>]*tabIndex=\{-1\}[^>]*aria-hidden="true"/u);
   assert.match(component, /ManagerContactCard compact placement="quote_drawer"/u);
+  assert.match(component, /<a href=\{item\.href\} aria-label=\{`Открыть товар:/u);
+  assert.match(component, /<a href=\{item\.href\} tabIndex=\{-1\} aria-hidden="true">\{media\}<\/a>/u);
   assert.match(component, /page_type:"quote_request"/u);
   assert.doesNotMatch(component, /fetch\("https?:|mailto:/u);
   assert.match(styles, /\.request-cart-drawer \{[^}]*width:min\(720px,100%\)/us);
