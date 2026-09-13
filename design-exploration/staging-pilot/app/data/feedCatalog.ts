@@ -2,7 +2,7 @@ import feedSnapshotJson from "../../../../7tool-source/src/lib/products.json" wi
 import { getCategoryCardArchetype } from "./categoryCardArchetypes.mjs";
 import { getCategoryExpertProfile, getCategoryFacetKeywords } from "./categoryExpertProfiles.mjs";
 import { getCategorySelectionRule } from "./categorySelection.mjs";
-import { selectCompatibleAccessories, selectProductAlternatives } from "./productRecommendations.mjs";
+import { selectComparableAlternatives, selectProductCompatibility } from "./productRecommendations.mjs";
 
 export type FeedParameter = {
   name: string;
@@ -38,22 +38,29 @@ export type FeedProduct = {
   description?: string;
 };
 
-export type FeedAccessoryRecommendation = {
+export type FeedCompatibilityRecommendation = {
   product: FeedProduct;
   variant: FeedVariant;
-  diameter: number;
-  spindle: string;
-  workingLength: string;
+  relationLabel: string;
+  evidence: string[];
+  caveat: string;
+  diameter?: number;
+  spindle?: string;
+  workingLength?: string;
+  maximumDiameter?: number;
 };
 
 export type FeedProductAlternative = {
   product: FeedProduct;
   variant: FeedVariant;
-  diameter: number;
-  spindle: string;
-  reverse: string;
-  mass: string;
   reason: string;
+  evidence: string[];
+  differences: string[];
+  score?: number;
+  diameter?: number;
+  spindle?: string;
+  reverse?: string;
+  mass?: string;
 };
 
 export type FeedCategory = {
@@ -181,6 +188,8 @@ const productsByCategory = new Map<string, FeedProduct[]>();
 const productsBySlug = new Map<string, FeedProduct>();
 const variantsById = new Map<string, { product: FeedProduct; variant: FeedVariant }>();
 const categoryFacetCache = new Map<string, CachedFeedFacet[]>();
+const compatibilityCache = new Map<string, FeedCompatibilityRecommendation[]>();
+const alternativeCache = new Map<string, FeedProductAlternative[]>();
 
 const primaryTitlePatterns: Partial<Record<string, RegExp>> = {
   "stanki-sverlilnye": /(станок|машин[аы]? сверлил)/i,
@@ -333,12 +342,27 @@ export function getFeedProductVariantById(id: string): { product: FeedProduct; v
   return variantsById.get(id);
 }
 
-export function getFeedAccessoryRecommendations(product: FeedProduct, limit = 3): FeedAccessoryRecommendation[] {
-  return selectCompatibleAccessories(Array.from(productsBySlug.values()), product, limit) as FeedAccessoryRecommendation[];
+export function getFeedProductCompatibility(product: FeedProduct, variant: FeedVariant, limit = 3): FeedCompatibilityRecommendation[] {
+  const key = `${product.id}:${variant.id}:${limit}`;
+  const cached = compatibilityCache.get(key);
+  if (cached) return cached;
+  const candidates = product.category === "stanki-sverlilnye"
+    ? productsByCategory.get("koronchatye-sverla") ?? []
+    : product.category === "koronchatye-sverla"
+      ? productsByCategory.get("stanki-sverlilnye") ?? []
+      : [];
+  const recommendations = selectProductCompatibility(candidates, product, variant, limit) as FeedCompatibilityRecommendation[];
+  compatibilityCache.set(key, recommendations);
+  return recommendations;
 }
 
-export function getFeedProductAlternatives(product: FeedProduct, limit = 3): FeedProductAlternative[] {
-  return selectProductAlternatives(Array.from(productsBySlug.values()), product, limit) as FeedProductAlternative[];
+export function getFeedProductAlternatives(product: FeedProduct, variant: FeedVariant, limit = 3): FeedProductAlternative[] {
+  const key = `${product.id}:${variant.id}:${limit}`;
+  const cached = alternativeCache.get(key);
+  if (cached) return cached;
+  const recommendations = selectComparableAlternatives(productsByCategory.get(product.category) ?? [], product, variant, limit) as FeedProductAlternative[];
+  alternativeCache.set(key, recommendations);
+  return recommendations;
 }
 
 export function getFeedProductImage(product: FeedProduct): string | undefined {

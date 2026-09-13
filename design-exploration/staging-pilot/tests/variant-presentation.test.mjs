@@ -57,10 +57,10 @@ test("full size list is loaded on demand in natural order", async () => {
 });
 
 test("compatible accessory cards lead with working size and keep article as reference", async () => {
-  const page = await readFile(new URL("../app/product/[slug]/page.tsx", import.meta.url), "utf8");
-  assert.match(page, /className="feed-accessory-size">\{choice\.label\}/u);
-  assert.match(page, /<small>Артикул \{variant\.sku/u);
-  assert.doesNotMatch(page, /<h3><Link[^>]*>\{variant\.name/u);
+  const recommendations = await readFile(new URL("../app/ui/ProductRecommendationSystem.tsx", import.meta.url), "utf8");
+  assert.match(recommendations, /className="feed-recommendation-choice">\{choice\.label\}/u);
+  assert.match(recommendations, /variant\.sku \? `Артикул \$\{variant\.sku\}`/u);
+  assert.doesNotMatch(recommendations, /<h4><a[^>]*>\{variant\.name/u);
 });
 
 test("every feed category has a buyer-first variant presentation rule", () => {

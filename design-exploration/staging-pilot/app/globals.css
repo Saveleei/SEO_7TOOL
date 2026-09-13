@@ -132,6 +132,98 @@ img { display:block; max-width:100%; }
   .route-demo { grid-template-columns:1fr; }
 }
 
+/* Product recommendation system: evidence first, no random cross-sell. */
+.feed-recommendation-system { scroll-margin-top:58px; background:#f1f3ef; }
+.feed-recommendation-heading { margin-bottom:24px; }
+.feed-recommendation-heading h2 { max-width:760px; }
+.feed-recommendation-stage { overflow:hidden; margin-top:12px; border:1px solid #d4d9d1; border-radius:10px; background:#fff; box-shadow:0 10px 34px rgba(25,31,26,.035); }
+.feed-recommendation-stage>header { min-height:78px; display:grid; grid-template-columns:42px minmax(0,1fr) auto; align-items:center; gap:14px; padding:14px 18px; border-bottom:1px solid #e1e4de; }
+.feed-recommendation-stage>header>span { width:38px; height:38px; display:grid; place-items:center; border-radius:6px; background:#202522; color:#fff; font:800 13px/1 Inter,"Segoe UI",Arial,sans-serif; }
+.feed-recommendation-stage>header p { margin:0 0 3px; color:#9f3e12; font-size:11px; font-weight:850; letter-spacing:.04em; text-transform:uppercase; }
+.feed-recommendation-stage>header h3 { margin:0; color:#171a18; font-size:22px; line-height:1.2; }
+.feed-recommendation-stage>header small { color:#626860; font-size:12px; font-weight:700; }
+.feed-recommendation-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1px; background:#dde1da; }
+.feed-recommendation-card { min-width:0; display:grid; grid-template-rows:164px 1fr; background:#fff; }
+.feed-recommendation-media { display:grid; place-items:center; overflow:hidden; padding:10px; background:#f6f7f4; }
+.feed-recommendation-media img { width:88%; height:145px; object-fit:contain; mix-blend-mode:multiply; transition:transform .18s ease; }
+.feed-recommendation-media:hover img { transform:scale(1.025); }
+.feed-recommendation-media>span { color:#767c75; font-size:13px; }
+.feed-recommendation-body { min-width:0; display:flex; flex-direction:column; padding:17px; }
+.feed-recommendation-reason { width:max-content; max-width:100%; padding:4px 7px; border-radius:4px; background:#eaf4ed; color:#1f6845; font-size:11px; font-weight:850; line-height:1.35; }
+.feed-recommendation-card--alternative .feed-recommendation-reason { background:#f8ede7; color:#9a3c12; }
+.feed-recommendation-body h4 { margin:9px 0 5px; color:#181b19; font-size:17px; line-height:1.3; }
+.feed-recommendation-body h4 a:hover { color:#9f3e12; }
+.feed-recommendation-choice { margin:0; color:#171a18; font-size:19px; font-weight:850; line-height:1.25; }
+.feed-recommendation-context { margin:5px 0 0; color:#60655f; font-size:13px; line-height:1.45; }
+.feed-recommendation-body ul { display:grid; gap:6px; margin:14px 0 0; padding:12px 0; border-top:1px solid #e5e8e2; border-bottom:1px solid #e5e8e2; list-style:none; }
+.feed-recommendation-body li { position:relative; padding-left:17px; color:#343934; font-size:13px; line-height:1.45; }
+.feed-recommendation-body li::before { content:"✓"; position:absolute; left:0; top:0; color:#1f754b; font-weight:900; }
+.feed-recommendation-difference,.feed-recommendation-caveat { margin:10px 0 0; color:#555b54; font-size:12px; line-height:1.5; }
+.feed-recommendation-difference { padding:8px 9px; border-radius:4px; background:#f7f1ec; color:#6c4938; }
+.feed-recommendation-body>small { display:block; margin-top:auto; padding-top:11px; color:#72776f; font-size:11px; line-height:1.4; }
+.feed-recommendation-commercial { min-height:54px; display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:8px; }
+.feed-recommendation-commercial>b { color:#171a18; font-size:18px; line-height:1.2; }
+.feed-recommendation-commercial .feed-availability-block { max-width:150px; text-align:right; }
+.feed-recommendation-body>button,.feed-recommendation-link { width:100%; min-height:45px; display:flex; align-items:center; justify-content:center; margin-top:4px; padding:0 12px; border:1px solid #202522; border-radius:5px; background:#202522; color:#fff; font-size:14px; font-weight:850; text-align:center; cursor:pointer; }
+.feed-recommendation-link { background:#fff; color:#202522; }
+.feed-recommendation-body>button:hover { background:#303632; }
+.feed-recommendation-link:hover { border-color:#9f3e12; color:#9f3e12; }
+.feed-recommendation-empty { min-height:112px; display:flex; align-items:center; justify-content:space-between; gap:24px; padding:20px; background:#fbfcfa; }
+.feed-recommendation-empty b { display:block; font-size:15px; }
+.feed-recommendation-empty p { max-width:760px; margin:6px 0 0; color:#5b615a; font-size:14px; line-height:1.55; }
+.feed-recommendation-empty .contact-dialog-trigger { min-width:205px; min-height:45px; padding:0 16px; border:0; border-radius:5px; background:#202522; color:#fff; font-size:13px; font-weight:800; white-space:nowrap; cursor:pointer; }
+.feed-recommendation-stage--kit>header>span { background:#9f3e12; }
+.feed-recommendation-kit { display:grid; grid-template-columns:minmax(220px,.72fr) minmax(360px,1.15fr) minmax(260px,.8fr); align-items:stretch; }
+.feed-recommendation-kit>* { min-width:0; padding:20px; }
+.feed-recommendation-kit-copy { display:flex; flex-direction:column; justify-content:center; background:#242926; color:#fff; }
+.feed-recommendation-kit-copy>span { color:#efaa87; font-size:11px; font-weight:800; text-transform:uppercase; }
+.feed-recommendation-kit-copy>b { margin-top:9px; font-size:21px; line-height:1.25; }
+.feed-recommendation-kit-copy>p { margin:7px 0 0; color:#d3d7d2; font-size:13px; line-height:1.5; }
+.feed-recommendation-kit>ol { display:grid; gap:0; margin:0; list-style:none; }
+.feed-recommendation-kit>ol li { display:grid; grid-template-columns:minmax(105px,.45fr) minmax(0,1fr); gap:14px; padding:10px 0; border-bottom:1px solid #e3e6e0; }
+.feed-recommendation-kit>ol li:last-child { border-bottom:0; }
+.feed-recommendation-kit>ol b { font-size:13px; line-height:1.4; }
+.feed-recommendation-kit>ol span { color:#565c55; font-size:13px; line-height:1.5; }
+.feed-recommendation-kit-action { display:flex; flex-direction:column; justify-content:center; border-left:1px solid #e1e4de; background:#f7f8f5; }
+.feed-recommendation-kit-action>b { font-size:16px; line-height:1.35; }
+.feed-recommendation-kit-action>p { margin:7px 0 13px; color:#555b54; font-size:13px; line-height:1.5; }
+.feed-recommendation-kit-action .contact-dialog-trigger { width:100%; min-height:45px; border:0; border-radius:5px; background:#9f3e12; color:#fff; font-size:13px; font-weight:850; cursor:pointer; }
+
+@media (max-width:980px) {
+  .feed-recommendation-grid { grid-template-columns:1fr; }
+  .feed-recommendation-card { grid-template-columns:180px minmax(0,1fr); grid-template-rows:auto; }
+  .feed-recommendation-media { min-height:100%; }
+  .feed-recommendation-kit { grid-template-columns:1fr 1.4fr; }
+  .feed-recommendation-kit-action { grid-column:1/-1; border-top:1px solid #e1e4de; border-left:0; }
+}
+
+@media (max-width:700px) {
+  .feed-recommendation-heading h2 { font-size:30px; }
+  .feed-recommendation-stage { margin-top:10px; }
+  .feed-recommendation-stage>header { grid-template-columns:34px minmax(0,1fr); gap:10px; padding:13px; }
+  .feed-recommendation-stage>header>span { width:32px; height:32px; font-size:11px; }
+  .feed-recommendation-stage>header h3 { font-size:18px; }
+  .feed-recommendation-stage>header small { display:none; }
+  .feed-recommendation-card { grid-template-columns:112px minmax(0,1fr); }
+  .feed-recommendation-media { align-self:start; min-height:145px; padding:7px; }
+  .feed-recommendation-media img { width:100%; height:125px; }
+  .feed-recommendation-body { padding:13px; }
+  .feed-recommendation-body h4 { font-size:15px; }
+  .feed-recommendation-choice { font-size:17px; }
+  .feed-recommendation-context { font-size:12px; }
+  .feed-recommendation-body ul,.feed-recommendation-difference,.feed-recommendation-caveat,.feed-recommendation-body>small { grid-column:1/-1; }
+  .feed-recommendation-body li { font-size:12px; }
+  .feed-recommendation-commercial { align-items:flex-start; flex-direction:column; gap:5px; }
+  .feed-recommendation-commercial .feed-availability-block { max-width:none; text-align:left; }
+  .feed-recommendation-body>button,.feed-recommendation-link { min-height:46px; font-size:13px; }
+  .feed-recommendation-empty { align-items:stretch; flex-direction:column; gap:14px; padding:16px; }
+  .feed-recommendation-empty .contact-dialog-trigger { width:100%; min-width:0; }
+  .feed-recommendation-kit { grid-template-columns:1fr; }
+  .feed-recommendation-kit>* { padding:16px; }
+  .feed-recommendation-kit>ol li { grid-template-columns:1fr; gap:4px; }
+  .feed-recommendation-kit-action { grid-column:auto; }
+}
+
 /* Conversion-ready B2B quote request. */
 .request-cart-layer { position:fixed; z-index:200; inset:0; display:grid; justify-items:end; }
 .request-cart-backdrop { position:absolute; inset:0; width:100%; height:100%; border:0; background:rgba(8,10,9,.62); backdrop-filter:blur(3px); }

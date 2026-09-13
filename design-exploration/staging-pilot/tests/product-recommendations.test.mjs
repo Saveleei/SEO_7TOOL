@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { getParameterNumber, getParameterValue, selectCompatibleAccessories, selectProductAlternatives } from "../app/data/productRecommendations.mjs";
+import { getParameterNumber, getParameterValue, selectComparableAlternatives, selectCompatibleAccessories, selectProductAlternatives, selectProductCompatibility } from "../app/data/productRecommendations.mjs";
 
 const snapshot = JSON.parse(await readFile(new URL("../../../7tool-source/src/lib/products.json", import.meta.url), "utf8"));
 const machine = snapshot.products.find((product) => product.slug === "magnitnyy-sverlilnyy-stanok-lenz-steyr-35");
@@ -27,6 +27,35 @@ test("alternatives have explicit, non-duplicated decision reasons", () => {
   assert.ok(alternatives.every((item) => /магнит|электромагнит/iu.test(item.product.title)));
 });
 
+test("annular cutter recommendations find machines from the selected size and carry evidence", () => {
+  const cutter = snapshot.products.find((product) => product.slug === "sverla-koronchatye-lzhs");
+  const selectedVariant = cutter.variants.find((variant) => variant.sku === "LZHS-013");
+  const compatibility = selectProductCompatibility(snapshot.products, cutter, selectedVariant, 3);
+  assert.equal(compatibility.length, 3);
+  assert.ok(compatibility.every((item) => item.product.category === "stanki-sverlilnye"));
+  assert.ok(compatibility.every((item) => /магнит|электромагнит/iu.test(item.product.title)));
+  assert.ok(compatibility.every((item) => item.evidence.some((fact) => fact.includes("Ø13 мм"))));
+  assert.ok(compatibility.every((item) => item.evidence.some((fact) => /Weldon 19/u.test(fact))));
+  assert.ok(compatibility.every((item) => item.caveat.includes("рабочую длину 30 мм")));
+});
+
+test("generic alternatives preserve the critical selected size and explain matches", () => {
+  const cutter = snapshot.products.find((product) => product.slug === "sverla-koronchatye-lzhs");
+  const selectedVariant = cutter.variants.find((variant) => variant.sku === "LZHS-013");
+  const alternatives = selectComparableAlternatives(snapshot.products, cutter, selectedVariant, 3);
+  assert.equal(alternatives.length, 3);
+  assert.equal(new Set(alternatives.map((item) => item.product.id)).size, alternatives.length);
+  assert.ok(alternatives.every((item) => item.product.id !== cutter.id));
+  assert.ok(alternatives.every((item) => item.evidence.length >= 2));
+  assert.ok(alternatives.every((item) => item.evidence.some((fact) => fact === "Диаметр режущей части: 13 мм")));
+  assert.ok(alternatives.every((item) => item.reason.includes("параметр") || item.reason.includes("Ниже цена")));
+});
+
+test("categories without an explicit cross-category rule do not receive invented compatibility", () => {
+  const compressor = snapshot.products.find((product) => product.slug === "remennoy-odnostupenchatyy-kompressor-fubag-vcf-100-cm3");
+  assert.deepEqual(selectProductCompatibility(snapshot.products, compressor, compressor.variants[0], 3), []);
+});
+
 test("parameter helpers preserve feed units and parse decimal commas", () => {
   const variant = machine.variants[0];
   assert.equal(getParameterValue(variant, "масса"), "10,5 кг");
@@ -37,10 +66,19 @@ test("parameter helpers preserve feed units and parse decimal commas", () => {
 test("product page uses exact variants, honest supply states and local callback dialogs", async () => {
   const page = await readFile(new URL("../app/product/[slug]/page.tsx", import.meta.url), "utf8");
   const purchase = await readFile(new URL("../app/ui/FeedProductPurchase.tsx", import.meta.url), "utf8");
-  assert.match(page, /getFeedAccessoryRecommendations\(product, 3\)/u);
+  const recommendations = await readFile(new URL("../app/ui/ProductRecommendationSystem.tsx", import.meta.url), "utf8");
+  assert.match(page, /<ProductRecommendationSystem product=\{product\} variant=\{primaryVariant\}/u);
   assert.match(page, /В фиде нет состава поставки и файлов документов/u);
   assert.match(page, /id:`variant:\$\{primaryVariant\.id\}`/u);
   assert.doesNotMatch(page, /Система охлаждения|Страховочный ремень|1 100 Вт/u);
+  assert.match(recommendations, /Подходит к выбранному исполнению/u);
+  assert.match(recommendations, /Что нужно проверить для работы/u);
+  assert.match(recommendations, /Альтернативы для сравнения/u);
+  assert.match(recommendations, /Если данных недостаточно, сайт не подставляет случайный товар/u);
+  assert.match(recommendations, /\?variant=\$\{encodeURIComponent\(variant\.id\)\}#variants/u);
+  assert.match(recommendations, /choice\.label/u);
+  assert.match(recommendations, /Артикул \$\{variant\.sku\}/u);
+  assert.doesNotMatch(recommendations, /mailto:/u);
   assert.match(purchase, /id:`variant:\$\{selected\.id\}`/u);
   assert.match(purchase, /ContactRequestDialog/u);
   assert.doesNotMatch(purchase, /mailto:/u);
