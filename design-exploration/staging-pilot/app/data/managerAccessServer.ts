@@ -4,7 +4,7 @@ import path from "node:path";
 import { isQuoteTestModeEnabled } from "./quoteRequestStore.ts";
 import {
   canManager,
-  isLoopbackHostname,
+  isTestManagerHostname,
   MANAGER_SESSION_COOKIE,
   managerRoleLabel,
   requestHostname,
@@ -22,7 +22,7 @@ type AuthResult = { ok: true; actor: ManagerActor } | { ok: false; response: Res
 export async function resolveManagerActor(headers: Headers, options: ResolveOptions = {}): Promise<ManagerActor | null> {
   const platformActor = resolvePlatformManagerActor(headers);
   if (platformActor) return platformActor;
-  if (!isQuoteTestModeEnabled() || !isLoopbackHostname(requestHostname(headers))) return null;
+  if (!isQuoteTestModeEnabled() || !isTestManagerHostname(requestHostname(headers))) return null;
   const token = cookieValue(headers.get("cookie"), MANAGER_SESSION_COOKIE);
   if (!token) return null;
   const secret = await readLocalSecret(options.dataDir);

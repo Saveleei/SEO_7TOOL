@@ -71,8 +71,18 @@ export function safeManagerReturnTo(value: string | null | undefined): string {
 }
 
 export function isLoopbackHostname(value: string): boolean {
-  const hostname = value.trim().toLowerCase().replace(/^\[/u, "").replace(/\]$/u, "");
+  const hostname = normalizeHostname(value);
   return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+}
+
+export function isTestManagerHostname(value: string, env: NodeJS.ProcessEnv = process.env): boolean {
+  const hostname = normalizeHostname(value);
+  if (isLoopbackHostname(hostname)) return true;
+  return new Set(String(env.MANAGER_AUTH_TEST_HOSTS || "")
+    .split(",")
+    .map(normalizeHostname)
+    .filter(Boolean))
+    .has(hostname);
 }
 
 export function requestHostname(headers: Headers): string {
@@ -109,4 +119,8 @@ function platformFullName(headers: Headers): string {
 
 function clean(value: string | null | undefined, maxLength: number): string {
   return String(value || "").replace(/[\u0000-\u001f\u007f]/gu, " ").replace(/\s+/gu, " ").trim().slice(0, maxLength);
+}
+
+function normalizeHostname(value: string): string {
+  return value.trim().toLowerCase().replace(/^\[/u, "").replace(/\]$/u, "").replace(/\.$/u, "");
 }

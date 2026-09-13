@@ -5,7 +5,7 @@ import path from "node:path";
 import test from "node:test";
 import { DELETE as signOut, POST as signIn } from "../app/api/manager-auth/session/route.ts";
 import { POST as approvalAction } from "../app/api/quote-requests/[id]/quote-approval/route.ts";
-import { capabilitiesForRole, canManager, MANAGER_CAPABILITIES, resolvePlatformManagerActor, safeManagerReturnTo } from "../app/data/managerAccess.ts";
+import { capabilitiesForRole, canManager, isTestManagerHostname, MANAGER_CAPABILITIES, resolvePlatformManagerActor, safeManagerReturnTo } from "../app/data/managerAccess.ts";
 import { resolveManagerActor } from "../app/data/managerAccessServer.ts";
 import { getQuoteApprovalState } from "../app/data/quoteApprovalStore.ts";
 import { saveQuoteDraft } from "../app/data/quoteDraftStore.ts";
@@ -70,6 +70,14 @@ test("local admin sign-in is loopback-only and uses an HttpOnly signed session",
     if (previousDataDir === undefined) delete process.env.QUOTE_TEST_DATA_DIR; else process.env.QUOTE_TEST_DATA_DIR = previousDataDir;
     await rm(dataDir, { recursive:true, force:true });
   }
+});
+
+test("test manager hostname is deny-by-default and requires an exact explicit allowlist", () => {
+  assert.equal(isTestManagerHostname("127.0.0.1", {}), true);
+  assert.equal(isTestManagerHostname("test.7tool.ru", {}), false);
+  assert.equal(isTestManagerHostname("test.7tool.ru", { MANAGER_AUTH_TEST_HOSTS:"test.7tool.ru" }), true);
+  assert.equal(isTestManagerHostname("TEST.7TOOL.RU.", { MANAGER_AUTH_TEST_HOSTS:"test.7tool.ru" }), true);
+  assert.equal(isTestManagerHostname("attacker.test.7tool.ru", { MANAGER_AUTH_TEST_HOSTS:"test.7tool.ru" }), false);
 });
 
 test("administrator can submit, approve and prepare one quote without trusting browser actor fields", async () => {
