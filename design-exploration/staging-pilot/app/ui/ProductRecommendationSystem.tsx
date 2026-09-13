@@ -1,16 +1,18 @@
 import Image from "next/image";
 import {
   formatFeedPrice,
-  getFeedProductAlternatives,
   getFeedProductCompatibility,
   getFeedProductImage,
   getFeedProductPriceLabel,
+  getFeedVariantSpecs,
   type FeedProduct,
+  type FeedProductAlternative,
   type FeedVariant,
 } from "../data/feedCatalog";
 import { getVariantChoicePresentation } from "../data/variantPresentation";
 import { ContactRequestDialog } from "./ContactRequestDialog";
 import { FeedAvailability } from "./FeedAvailability";
+import { ProductComparisonDialog, type ProductComparisonOption, type ProductComparisonRow } from "./ProductComparisonDialog";
 import { AddRequestButton } from "./RequestCart";
 
 type ProductRecommendationSystemProps = {
@@ -18,14 +20,16 @@ type ProductRecommendationSystemProps = {
   variant: FeedVariant;
   selectedProductContext: string;
   criteria: Array<{ title: string; copy: string }>;
+  alternatives: FeedProductAlternative[];
 };
 
-export function ProductRecommendationSystem({ product, variant, selectedProductContext, criteria }: ProductRecommendationSystemProps) {
+export function ProductRecommendationSystem({ product, variant, selectedProductContext, criteria, alternatives }: ProductRecommendationSystemProps) {
   const compatibility = getFeedProductCompatibility(product, variant, 3);
-  const alternatives = getFeedProductAlternatives(product, variant, 3);
   const selectedChoice = getVariantChoicePresentation(product, variant);
+  const comparisonOptions = buildComparisonOptions(product, variant, alternatives);
+  const comparisonRows = buildComparisonRows(product, variant, alternatives);
 
-  return <section className="section section-muted feed-recommendation-system" id="recommendations"><div className="container">
+  return <><ProductComparisonDialog currentProductId={product.id} currentVariantId={variant.id} options={comparisonOptions} rows={comparisonRows} /><section className="section section-muted feed-recommendation-system" id="recommendations"><div className="container">
     <div className="section-heading feed-recommendation-heading"><div><p className="eyebrow">Короткий путь к закупке</p><h2>Комплект и замены без возврата в категорию</h2></div><p>Каждая позиция ниже связана с выбранным исполнением по фактическим параметрам фида. Если данных недостаточно, сайт не подставляет случайный товар.</p></div>
 
     <section className="feed-recommendation-stage" aria-labelledby="compatible-title">
@@ -46,7 +50,7 @@ export function ProductRecommendationSystem({ product, variant, selectedProductC
         ? <div className="feed-recommendation-grid">{alternatives.map((recommendation) => <RecommendationCard key={`${recommendation.product.id}-${recommendation.variant.id}`} mode="alternative" recommendation={recommendation} />)}</div>
         : <div className="feed-recommendation-empty"><div><b>Нет моделей с достаточным числом сопоставимых параметров</b><p>Это безопаснее случайной выдачи похожих названий. Инженер предложит замену после уточнения обязательных характеристик.</p></div><ContactRequestDialog categoryTitle={`${selectedProductContext}: подобрать альтернативу`} buttonLabel="Подобрать альтернативу" /></div>}
     </section>
-  </div></section>;
+  </div></section></>;
 }
 
 type RecommendationCardProps = {
@@ -78,4 +82,55 @@ function RecommendationCard({ mode, recommendation }: RecommendationCardProps) {
 
 function isConfirmedAvailable(variant: FeedVariant): boolean {
   return variant.available && typeof variant.quantity === "number" && variant.quantity > 0;
+}
+
+function buildComparisonOptions(product: FeedProduct, variant: FeedVariant, alternatives: FeedProductAlternative[]): ProductComparisonOption[] {
+  const choice = getVariantChoicePresentation(product, variant);
+  return [
+    {
+      id:variant.id,
+      productId:product.id,
+      title:product.title,
+      brand:product.brand,
+      choiceLabel:choice.label,
+      choiceContext:choice.context,
+      article:variant.sku ? `Артикул ${variant.sku}` : "Артикул не указан в фиде",
+      price:formatFeedPrice(variant.price) ?? getFeedProductPriceLabel(product),
+      available:isConfirmedAvailable(variant),
+      image:variant.images?.find(Boolean) ?? getFeedProductImage(product),
+      href:`/product/${product.slug}?variant=${encodeURIComponent(variant.id)}#variants`,
+      reason:"Текущее выбранное исполнение",
+      current:true,
+    },
+    ...alternatives.map((alternative) => {
+      const alternativeChoice = getVariantChoicePresentation(alternative.product, alternative.variant);
+      return {
+        id:alternative.variant.id,
+        productId:alternative.product.id,
+        title:alternative.product.title,
+        brand:alternative.product.brand,
+        choiceLabel:alternativeChoice.label,
+        choiceContext:alternativeChoice.context,
+        article:alternative.variant.sku ? `Артикул ${alternative.variant.sku}` : "Артикул не указан в фиде",
+        price:formatFeedPrice(alternative.variant.price) ?? getFeedProductPriceLabel(alternative.product),
+        available:isConfirmedAvailable(alternative.variant),
+        image:alternative.variant.images?.find(Boolean) ?? getFeedProductImage(alternative.product),
+        href:`/product/${alternative.product.slug}?variant=${encodeURIComponent(alternative.variant.id)}#variants`,
+        reason:alternative.reason,
+      };
+    }),
+  ];
+}
+
+function buildComparisonRows(product: FeedProduct, variant: FeedVariant, alternatives: FeedProductAlternative[]): ProductComparisonRow[] {
+  const sourceSpecs = getFeedVariantSpecs(product, variant).slice(0, 5);
+  const candidateSpecs = alternatives.map((alternative) => getFeedVariantSpecs(alternative.product, alternative.variant));
+  return sourceSpecs.map((sourceSpec) => ({
+    label:sourceSpec.label,
+    values:[sourceSpec.value, ...candidateSpecs.map((specs) => specs.find((spec) => normalizeSpecLabel(spec.label) === normalizeSpecLabel(sourceSpec.label))?.value ?? "")],
+  }));
+}
+
+function normalizeSpecLabel(value: string): string {
+  return value.toLocaleLowerCase("ru-RU").replace(/ё/gu, "е").replace(/[^a-zа-я0-9]+/giu, " ").trim();
 }

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { ContactRequestDialog } from "./ContactRequestDialog";
+import { PRODUCT_COMPARISON_EVENT } from "./ProductComparisonDialog";
 import { useRequestCart } from "./RequestCart";
 
 type PurchaseVariant = {
@@ -21,7 +22,7 @@ type PurchaseVariant = {
 const INITIAL_VARIANTS = 12;
 const VARIANT_PAGE_SIZE = 24;
 
-export function FeedProductPurchase({ productId, productTitle, variants, totalVariantCount = variants.length, variantsEndpoint, selectedVariantId }: { productId: string; productTitle: string; variants: PurchaseVariant[]; totalVariantCount?: number; variantsEndpoint?: string; selectedVariantId?: string }) {
+export function FeedProductPurchase({ productId, productTitle, variants, totalVariantCount = variants.length, variantsEndpoint, selectedVariantId, hasComparableAlternatives = false }: { productId: string; productTitle: string; variants: PurchaseVariant[]; totalVariantCount?: number; variantsEndpoint?: string; selectedVariantId?: string; hasComparableAlternatives?: boolean }) {
   const [availableVariants, setAvailableVariants] = useState(variants);
   const [quantity, setQuantity] = useState(1);
   const [variantsOpen, setVariantsOpen] = useState(false);
@@ -105,7 +106,7 @@ export function FeedProductPurchase({ productId, productTitle, variants, totalVa
 
     <div className="feed-conversion-secondary-actions">
       <ContactRequestDialog categoryTitle={`${productTitle}, артикул ${selected.sku}`} buttonLabel="Проверить применимость" />
-      <a href="#alternatives" onClick={() => track("view_alternatives", "product_buybox")}>Сравнить похожие модели</a>
+      {hasComparableAlternatives ? <button className="feed-product-compare-trigger" type="button" aria-haspopup="dialog" onClick={() => { track("open_comparison", "product_buybox"); window.dispatchEvent(new CustomEvent(PRODUCT_COMPARISON_EVENT)); }}>Сравнить похожие модели</button> : <ContactRequestDialog categoryTitle={`${productTitle}, ${selected.choiceLabel}: подобрать аналог`} buttonLabel="Подобрать аналог" />}
     </div>
 
     <dl className="feed-conversion-key-specs">{selected.keySpecs.map((spec) => <div key={spec.label}><dt>{spec.label}</dt><dd>{spec.value}</dd></div>)}</dl>

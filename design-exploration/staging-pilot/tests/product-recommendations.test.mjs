@@ -109,6 +109,27 @@ test("product analytics carries context without contact data", async () => {
   assert.doesNotMatch(contactAnalytics, /detail\.(phone|email|name)\s*=/u);
 });
 
+test("buy-box comparison opens an accessible feed-grounded decision dialog", async () => {
+  const [page, purchase, recommendations, comparison] = await Promise.all([
+    readFile(new URL("../app/product/[slug]/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/ui/FeedProductPurchase.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/ui/ProductRecommendationSystem.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/ui/ProductComparisonDialog.tsx", import.meta.url), "utf8"),
+  ]);
+  assert.match(page, /hasComparableAlternatives=\{alternatives\.length > 0\}/u);
+  assert.match(purchase, /aria-haspopup="dialog"/u);
+  assert.match(purchase, /new CustomEvent\(PRODUCT_COMPARISON_EVENT\)/u);
+  assert.match(purchase, /buttonLabel="Подобрать аналог"/u);
+  assert.match(recommendations, /<ProductComparisonDialog/u);
+  assert.match(comparison, /role="dialog" aria-modal="true"/u);
+  assert.match(comparison, /Похожие модели по выбранному исполнению/u);
+  assert.match(comparison, /Оставить текущую модель/u);
+  assert.match(comparison, /Добавить в КП/u);
+  assert.match(comparison, /comparison_add_to_quote/u);
+  assert.match(comparison, /target_product_id:option\.productId, target_variant_id:option\.id/u);
+  assert.doesNotMatch(comparison, /phone:|email:|name:/u);
+});
+
 test("legacy STEYR route and all primary search links converge on the feed product", async () => {
   const legacy = await readFile(new URL("../app/product/lenz-steyr-35/page.tsx", import.meta.url), "utf8");
   const headerSearch = await readFile(new URL("../app/ui/HeaderSearch.tsx", import.meta.url), "utf8");

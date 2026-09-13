@@ -51,7 +51,7 @@ export const CATEGORY_VARIANT_PRESENTATION_RULES: Readonly<Record<string, Catego
   "shlifovalnoe-i-zatochnoe-oborudovanie": { kind:"priority", selectorLabel:"Параметры исполнения", primary:[/тип шлифования/iu, /тип затачиваемого инструмента/iu, /тип цанги/iu, /частота вращения/iu], context:[/мощность/iu, /масса/iu, /длина/iu] },
   "sozh-i-sots": { kind:"pack", selectorLabel:"Размер", context:[/^вид$/iu, /форма выпуска/iu, /состав/iu] },
   "stanki-lazernoy-rezki": { kind:"laser", selectorLabel:"Параметры исполнения", context:[/наличие защитной кабины/iu, /наличие сменного стола/iu, /макс.*скорость/iu] },
-  "stanki-sverlilnye": { kind:"priority", selectorLabel:"Параметры исполнения", primary:[/макс.*диаметр отверстия/iu, /макс.*диаметр корончатого/iu, /шпиндель/iu], context:[/шпиндель/iu, /реверс/iu, /напряжение/iu] },
+  "stanki-sverlilnye": { kind:"priority", selectorLabel:"Параметры исполнения", primary:[/макс.*диаметр корончатого сверла/iu, /^макс.*диаметр отверстия$/iu, /шпиндель/iu], context:[/шпиндель/iu, /реверс/iu, /напряжение/iu] },
   "stanochnaya-osnastka": { kind:"priority", selectorLabel:"Параметры исполнения", primary:[/^тип$/iu, /посадка/iu, /размер|диаметр/iu], context:[/масса/iu] },
   "svarochnye-roboty": { kind:"priority", selectorLabel:"Параметры исполнения", primary:[/макс.*охват/iu, /количество осей/iu, /доп.*возможности/iu], context:[/количество осей/iu, /грузоподъем/iu, /точность/iu] },
   "svarochnye-vrashchateli-i-pozitsionery": { kind:"capacity", selectorLabel:"Параметры исполнения", context:[/диаметр планшайбы/iu, /мин.*диаметр обечайки/iu, /макс.*диаметр обечайки/iu] },
@@ -247,6 +247,16 @@ function buildCategoryChoice(rule: CategoryPresentationRule, variant: FeedVarian
 
   const primary = findParameterFromPatterns(variant, rule.primary ?? []);
   if (!primary) return undefined;
+  if (/макс.*диаметр корончатого сверла/iu.test(normalize(primary.name))) {
+    const spiral = findParameter(variant, /^макс.*диаметр отверстия$/iu);
+    const equipmentContext = contextFromPatterns(variant, rule.context, [primary.name, spiral?.name]);
+    return finalizeChoice({
+      label:`Корончатое сверление до Ø${formatMeasure(measureFromParameter(primary, "мм"))}`,
+      context:[spiral ? `Спиральное сверление до Ø${formatMeasure(measureFromParameter(spiral, "мм"))}` : "", equipmentContext].filter(Boolean).join(" · "),
+      selectorLabel:rule.selectorLabel,
+      sizeLed:false,
+    });
+  }
   return finalizeChoice({
     label:formatDecisionParameter(primary),
     context:contextFromPatterns(variant, rule.context, [primary.name]),

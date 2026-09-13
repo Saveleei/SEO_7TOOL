@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { GET as getProductVariants } from "../app/api/catalog-product-variants/route.ts";
+import { getFeedVariantSpecs } from "../app/data/feedCatalog.ts";
 import { CATEGORY_VARIANT_PRESENTATION_RULES, getProductVariantChoices, getVariantChoicePresentation, sortVariantsForChoice } from "../app/data/variantPresentation.ts";
 
 const snapshot = JSON.parse(await readFile(new URL("../../../7tool-source/src/lib/products.json", import.meta.url), "utf8"));
@@ -112,6 +113,21 @@ test("category matrix leads with the actual industrial decision parameter", () =
   assert.equal(getVariantChoicePresentation(loadGrab.product, loadGrab.variant).label, "500 кг");
 });
 
+test("magnetic drill cards lead with annular capacity and name twist-drill capacity explicitly", () => {
+  const drill = snapshot.products.find((product) => product.slug === "magnitnyy-sverlilnyy-stanok-lenz-steyr-35");
+  assert.ok(drill);
+  const variant = drill.variants.find((entry) => entry.sku === "STEYR-35");
+  assert.ok(variant);
+  const choice = getVariantChoicePresentation(drill, variant);
+  assert.equal(choice.label, "Корончатое сверление до Ø35 мм");
+  assert.match(choice.context, /Спиральное сверление до Ø13 мм/u);
+  const specs = getFeedVariantSpecs(drill, variant);
+  assert.deepEqual(specs.slice(0, 2), [
+    { label:"Макс. Ø корончатого сверления", value:"35 мм" },
+    { label:"Макс. Ø спирального сверления", value:"13 мм" },
+  ]);
+});
+
 test("every variant deep link preserves the exact selection and returns to the selector", () => {
   for (const product of snapshot.products) {
     for (const choice of getProductVariantChoices(product)) {
@@ -130,6 +146,9 @@ test("selected execution drives every server-rendered product area", async () =>
   assert.match(page, /selectedProductContext/u);
   assert.match(page, /expertProfile\.criteria/u);
   assert.doesNotMatch(page, /Сообщите материал, толщину и глубину отверстия/u);
+  assert.match(page, /Спиральное сверление — до Ø\$\{holeDiameter\}/u);
+  assert.match(page, /основной рабочий диапазон магнитного станка/u);
+  assert.doesNotMatch(page, /Максимальный диаметр отверстия — \$\{holeDiameter\}/u);
 });
 
 function findVariant(category, predicate) {

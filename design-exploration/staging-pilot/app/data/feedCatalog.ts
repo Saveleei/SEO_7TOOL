@@ -686,7 +686,7 @@ function getFacetHelp(keyword: string): string {
 function getFeedProductSpecs(product: FeedProduct): FeedProductSpec[] {
   const parameters = product.variants.flatMap((variant) => variant.params ?? []);
   const names = Array.from(new Set(parameters.map((parameter) => parameter.name).filter((name) => name && !lowValueParameterPattern.test(name))));
-  const priorities = [...getCategoryFacetKeywords(product.category), ...product.paramAxes];
+  const priorities = getProductSpecPriorities(product);
   const orderedNames: string[] = [];
 
   for (const priority of priorities) {
@@ -697,22 +697,52 @@ function getFeedProductSpecs(product: FeedProduct): FeedProductSpec[] {
     if (!orderedNames.includes(name)) orderedNames.push(name);
   }
 
-  return orderedNames.slice(0, 4).map((name) => ({ label:name, value:summarizeParameterValues(parameters, name) }));
+  return orderedNames.slice(0, 4).map((name) => ({ label:getFeedParameterLabel(product, name), value:summarizeParameterValues(parameters, name) }));
 }
 
 export function getFeedVariantSpecs(product: FeedProduct, variant: FeedVariant): FeedProductSpec[] {
   const parameters = variant.params ?? [];
-  const priorities = [...getCategoryFacetKeywords(product.category), ...product.paramAxes];
+  const priorities = getProductSpecPriorities(product);
   const selected: FeedProductSpec[] = [];
+  const selectedNames = new Set<string>();
 
   for (const priority of priorities) {
     const parameter = parameters.find((candidate) => normalizeText(candidate.name).includes(normalizeText(priority)));
-    if (!parameter || selected.some((spec) => spec.label === parameter.name)) continue;
-    selected.push({ label:parameter.name, value:formatParameterValue(parameter) });
+    const parameterKey = parameter ? normalizeText(parameter.name) : "";
+    if (!parameter || selectedNames.has(parameterKey)) continue;
+    selectedNames.add(parameterKey);
+    selected.push({ label:getFeedParameterLabel(product, parameter.name), value:formatParameterValue(parameter) });
     if (selected.length === 6) break;
   }
 
   return selected;
+}
+
+function getProductSpecPriorities(product: FeedProduct): string[] {
+  const categoryPriorities = getCategoryFacetKeywords(product.category);
+  if (!isMagneticDrillProduct(product)) return [...categoryPriorities, ...product.paramAxes];
+  return [
+    "макс. диаметр корончатого сверла",
+    "макс. диаметр отверстия",
+    "шпиндель",
+    "рабочий ход",
+    "реверс",
+    "масса",
+    ...categoryPriorities.filter((priority) => !normalizeText(priority).includes("макс. диаметр")),
+    ...product.paramAxes,
+  ];
+}
+
+export function getFeedParameterLabel(product: FeedProduct, label: string): string {
+  if (!isMagneticDrillProduct(product)) return label;
+  const normalized = normalizeText(label);
+  if (normalized.includes("макс. диаметр корончатого сверла")) return "Макс. Ø корончатого сверления";
+  if (normalized === "макс. диаметр отверстия") return "Макс. Ø спирального сверления";
+  return label;
+}
+
+function isMagneticDrillProduct(product: FeedProduct): boolean {
+  return product.category === "stanki-sverlilnye" && /магнит|электромагнит/iu.test(product.title);
 }
 
 export function getFeedVariantTechnicalSpecs(product: FeedProduct, variant: FeedVariant): FeedProductSpec[] {
@@ -721,9 +751,10 @@ export function getFeedVariantTechnicalSpecs(product: FeedProduct, variant: Feed
 
   for (const parameter of variant.params ?? []) {
     if (!parameter.name || !parameter.value || lowValueParameterPattern.test(parameter.name)) continue;
-    const key = normalizeText(parameter.name);
+    const displayLabel = getFeedParameterLabel(product, parameter.name);
+    const key = normalizeText(displayLabel);
     if (!key || selected.has(key)) continue;
-    selected.set(key, { label:parameter.name, value:formatParameterValue(parameter) });
+    selected.set(key, { label:displayLabel, value:formatParameterValue(parameter) });
   }
 
   return Array.from(selected.values()).slice(0, 16);
