@@ -43,4 +43,4 @@ Improve the product buy-box hierarchy so buyers immediately understand that othe
 
 ## Commit
 
-- `03d6dde` — `feat: clarify product size choices and contacts`
+- `6ccbe05` — `feat: clarify product size choices and contacts`
