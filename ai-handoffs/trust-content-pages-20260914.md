@@ -28,9 +28,10 @@ Add a factual public information layer around the storefront: company, contacts,
 
 ## Status
 
-Implementation complete and kept local pending acceptance.
+Implementation complete and kept local pending acceptance. The first visual pass was reviewed again on desktop and mobile after user feedback that the information pages felt too sparse.
 
 - Implementation commit: `917b944` (`feat: add public procurement information pages`).
+- Visual/conversion refinement commit: `cd8374b` (`feat: strengthen storefront trust pages`).
 
 ## Implemented
 
@@ -41,14 +42,19 @@ Implementation complete and kept local pending acceptance.
 - Connected the payment page to the active quote-template VAT setting and the delivery page to the active cutoff/today-enabled shipping settings.
 - Explained order, payment, dispatch and warranty as verification workflows; no unsupported warehouse, carrier, service-centre or project claims were added.
 - Extended the release smoke matrix with all six public routes and added regression tests for route coverage, canonical contacts and forbidden unsupported claims.
+- Replaced the repeated generic hero aside with page-specific buying context: a feed-backed assortment panel on company, the named manager on contacts, the procurement route on ordering, the commercial document structure on payment, the delivery calculation on delivery and the document package on warranty.
+- Converted the company page from repeated empty cards into a compact service rail and a visual feed-backed map of all six production directions.
+- Kept the homepage direct category mosaic as the primary catalog entry, but replaced the second full catalog-like task grid with six compact task routes. This removes duplicated subcategory navigation while retaining the no-SKU path.
+- Reduced vertical dead space in assurance, payment, delivery, warranty and ordering sections without weakening readable type or factual caveats.
 
 ## Verification
 
-- Focused public-information tests: 3 passed, 0 failed.
+- Focused homepage/public-information tests: 8 passed, 0 failed.
 - Full test suite: 177 passed, 0 failed.
 - Full ESLint run: passed.
 - Production build: passed.
 - Release-candidate smoke against `http://127.0.0.1:3206`: 54 checks passed, including all six new public routes and protected staff redirects.
+- Browser QA: desktop full-page review plus 390 px mobile review of the homepage and representative public pages. All seven reviewed routes have `scrollWidth === clientWidth`; no horizontal overflow was found.
 - No form was submitted and no external message was sent.
 
 ## Known limitation
@@ -57,6 +63,7 @@ Implementation complete and kept local pending acceptance.
 
 ## Local acceptance URLs
 
+- `http://127.0.0.1:3206/`
 - `http://127.0.0.1:3206/company`
 - `http://127.0.0.1:3206/contacts`
 - `http://127.0.0.1:3206/ordering`
