@@ -33,6 +33,7 @@ export const PROTECTED_RELEASE_ROUTES = [
   "/test/requests",
   "/test/catalog-quality",
   "/test/delivery",
+  "/test/settings/shipping",
   "/test/settings/quote",
 ];
 

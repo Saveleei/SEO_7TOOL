@@ -1,5 +1,5 @@
 import { formatFeedPrice, getFeedProductImage, getFeedVariantSpecs, type FeedParameter, type FeedProduct, type FeedVariant } from "./feedCatalog.ts";
-import { getVariantShippingPromise, hasConfirmedStock } from "./shippingPromise.mjs";
+import { getVariantShippingPromise } from "./shippingPromise.mjs";
 
 export type VariantChoicePresentation = {
   label: string;
@@ -114,13 +114,14 @@ export function getProductVariantChoices(product: FeedProduct): ProductVariantCh
   const variants = sortVariantsForChoice(product, product.variants.filter((variant) => variant.name || variant.sku));
   const choices = variants.map((variant) => {
     const choice = getVariantChoicePresentation(product, variant);
+    const shippingPromise = getVariantShippingPromise(variant);
     return {
       id:variant.id,
       sku:variant.sku,
       title:variant.name || product.title,
       price:formatFeedPrice(variant.price) ?? "Цена по запросу",
-      available:hasConfirmedStock(variant),
-      shippingPromise:getVariantShippingPromise(variant),
+      available:shippingPromise.available,
+      shippingPromise,
       keySpecs:getFeedVariantSpecs(product, variant).slice(0, 4),
       choiceLabel:choice.label,
       choiceContext:choice.context,

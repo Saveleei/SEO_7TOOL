@@ -12,6 +12,7 @@ import { parseSupplierFeed } from "./lib/supplier-feed-parser.mjs";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const JSON_PATH = process.env.CATALOG_JSON_PATH ?? path.join(ROOT, "src", "lib", "products.json");
+const SNAPSHOT_META_PATH = process.env.CATALOG_META_PATH ?? path.join(path.dirname(JSON_PATH), "catalog-snapshot-meta.json");
 const DB_PATH = process.env.SQLITE_PATH ?? path.join(ROOT, "data.db");
 const FEED_URL = process.env.FEED_URL?.trim();
 const LOCAL_FEED = process.argv[2] ?? process.env.FEED_FILE ?? path.join(ROOT, "..", "dealer-2.xml");
@@ -726,13 +727,22 @@ async function main() {
     }
 
     upsertDatabase(catalog);
+    const completedAt = new Date().toISOString();
     const tmpPath = `${JSON_PATH}.${process.pid}.tmp`;
     fs.writeFileSync(tmpPath, JSON.stringify(catalog), "utf8");
     fs.renameSync(tmpPath, JSON_PATH);
 
+    // The storefront may consume this JSON snapshot without access to the
+    // operational SQLite database. Publish its timestamp only after the
+    // catalog rename succeeds so a failed refresh can never make old stock
+    // look fresh.
+    const snapshotMetaPath = `${SNAPSHOT_META_PATH}.${process.pid}.tmp`;
+    fs.writeFileSync(snapshotMetaPath, `${JSON.stringify({ completedAt, sourceId:FEED_SOURCE_ID, status:"complete" }, null, 2)}\n`, "utf8");
+    fs.renameSync(snapshotMetaPath, SNAPSHOT_META_PATH);
+
     const state = {
       ok: true,
-      completedAt: new Date().toISOString(),
+      completedAt,
       feedOffers: offers.length,
       publishedFeedOffers: publishedOffers.length,
       representedFeedOffers: publishedOffers.length - missing.length,

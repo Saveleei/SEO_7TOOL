@@ -15,13 +15,16 @@ for (const product of feedSnapshot.products) categoryProducts.set(product.catego
 
 const productIndex: Array<SearchIndexItem<FeedProduct>> = feedSnapshot.products
   .filter((product) => publishedCategories.has(product.category))
-  .map((product) => makeSearchIndexItem({
-    title:product.title,
-    identifiers:[product.sku, ...product.variants.map((variant) => variant.sku)].filter(Boolean),
-    available:product.stock > 0,
-    searchText:[product.title, product.brand, product.sku, publishedCategories.get(product.category)?.title, ...product.variants.flatMap((variant) => [variant.name, variant.sku, ...variant.params.flatMap((parameter) => [parameter.name, parameter.value])])].filter(Boolean).join(" "),
-    data:product,
-  }));
+  .map((product) => {
+    const available = getProductShippingPromise(product.variants).available;
+    return makeSearchIndexItem({
+      title:product.title,
+      identifiers:[product.sku, ...product.variants.map((variant) => variant.sku)].filter(Boolean),
+      available,
+      searchText:[product.title, product.brand, product.sku, publishedCategories.get(product.category)?.title, ...product.variants.flatMap((variant) => [variant.name, variant.sku, ...variant.params.flatMap((parameter) => [parameter.name, parameter.value])])].filter(Boolean).join(" "),
+      data:product,
+    });
+  });
 
 const taskAliases: Record<string, string> = {
   drilling:"сверлить отверстие нарезать резьбу монтаж магнитный станок сверло метчик",

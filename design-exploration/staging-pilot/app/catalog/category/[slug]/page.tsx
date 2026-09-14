@@ -18,6 +18,7 @@ import { buildCategoryQueryContext, findCategorySelectionOption, getCategorySele
 import { getCategoryExpertProfile, selectCategoryFacets } from "../../../data/categoryExpertProfiles.mjs";
 import { getFeedCategory, getFeedCategoryPage, getFeedCategoryRecoverySuggestions, getGuidedFacetOptions, getPromotedFacetOptions, prefersDenseFeedTable, type FeedCategoryQuery, type FeedCategorySort, type FeedVariantFilter, toFeedProductCardModel } from "../../../data/feedCatalog";
 import { getProductionSubcategory } from "../../../data/productionCategoryGroups";
+import { getShippingRuntimeDiagnostic } from "../../../data/shippingRuntimeSettings.mjs";
 
 type SearchValue = string | string[] | undefined;
 type SearchParams = Record<string, SearchValue>;
@@ -55,7 +56,9 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const sort = sortOptions.some((option) => option.value === requestedSort) ? requestedSort as FeedCategorySort : "relevance";
   const requestedPage = Number.parseInt(firstValue(rawSearchParams.page) ?? "1", 10);
   const requestedView = firstValue(rawSearchParams.view);
-  const inStockOnly = firstValue(rawSearchParams.availability) === "in-stock";
+  const shippingDiagnostic = getShippingRuntimeDiagnostic();
+  const availabilityFilterEnabled = shippingDiagnostic.fresh && shippingDiagnostic.settings.todayShippingEnabled;
+  const inStockOnly = availabilityFilterEnabled && firstValue(rawSearchParams.availability) === "in-stock";
   const filters = Object.fromEntries(Object.entries(rawSearchParams)
     .filter(([key]) => key.startsWith("f_"))
     .map(([key, value]) => [key.slice(2), valuesOf(value).filter(Boolean)]));
@@ -143,7 +146,9 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
       {promotedFacets.length > 0 && <nav className={`feed-promoted-filters${slug === "borfrezy" ? " feed-promoted-filters--burr" : ""}${slug === "stanki-sverlilnye" ? " feed-promoted-filters--equipment" : ""}`} aria-label="Быстрые фильтры">
         <div className="feed-priority-choice"><span>Показывать сначала</span><div>
           <PromotedFilterLink className={sort === "relevance" ? "active" : undefined} current={sort === "relevance"} href={categoryUrl(slug, rawSearchParams, { setKey:"sort", setValue:"relevance" })}>Подходящие</PromotedFilterLink>
-          <PromotedFilterLink className={inStockOnly ? "active" : undefined} current={inStockOnly} href={categoryUrl(slug, rawSearchParams, { toggleKey:"availability", toggleValue:"in-stock" })}>В наличии<small>данные поставщика</small></PromotedFilterLink>
+          {availabilityFilterEnabled
+            ? <PromotedFilterLink className={inStockOnly ? "active" : undefined} current={inStockOnly} href={categoryUrl(slug, rawSearchParams, { toggleKey:"availability", toggleValue:"in-stock" })}>В наличии<small>свежие данные</small></PromotedFilterLink>
+            : <span className="feed-promoted-unavailable">Наличие уточняем<small>через менеджера</small></span>}
         </div></div>
         {promotedFacets.map((facet) => {
           const visibleOptions = getPromotedFacetOptions(facet, facet.numeric ? 5 : 6, filters[facet.key]);
@@ -195,7 +200,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
             {requestedView && <input type="hidden" name="view" value={requestedView} />}
             {Object.entries(numericMinimums).map(([key, value]) => <input type="hidden" name={`min_${key}`} value={value} key={`minimum-${key}`} />)}
             {Object.entries(numericMaximums).map(([key, value]) => <input type="hidden" name={`max_${key}`} value={value} key={`maximum-${key}`} />)}
-            <div className="feed-filter-priority"><span>Быстрый выбор</span><label><input type="checkbox" name="availability" value="in-stock" defaultChecked={inStockOnly} /><b>В наличии</b><em>по данным поставщика</em></label><label><span>Порядок выдачи</span><select name="sort" defaultValue={sort}>{sortOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label><small>Остаток и срок отгрузки подтвердим перед оплатой.</small></div>
+            <div className="feed-filter-priority"><span>Быстрый выбор</span>{availabilityFilterEnabled ? <label><input type="checkbox" name="availability" value="in-stock" defaultChecked={inStockOnly} /><b>В наличии</b><em>свежие данные</em></label> : <label className="feed-filter-availability-disabled"><input type="checkbox" disabled /><b>Наличие уточняем</b><em>менеджер проверит актуальный остаток</em></label>}<label><span>Порядок выдачи</span><select name="sort" defaultValue={sort}>{sortOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label><small>Остаток и срок отгрузки подтвердим перед оплатой.</small></div>
             <label className="feed-filter-search"><span>Поиск в категории</span><input type="search" name="q" defaultValue={search} placeholder="Название, бренд или модель" /></label>
             {orderedFacets.map((facet) => <fieldset className={[facet.keyword === "форма" ? "feed-shape-filter" : "", facet.numeric ? "feed-numeric-filter" : ""].filter(Boolean).join(" ") || undefined} key={facet.key}><legend>{facet.label}</legend><small>{facet.keyword === "форма" ? <>Стандартные формы A–N и комбинированные исполнения. <a href="#burr-selector">Не знаете форму? Подобрать по задаче</a></> : facet.numeric && facet.options.length > 1 ? <>Диапазон фида: <b>{facet.options[0].label}–{facet.options[facet.options.length - 1].label}</b>. {facet.help}</> : facet.help}</small><div>{facet.options.map((option) => <label key={option.value}><input type="checkbox" name={`f_${facet.key}`} value={option.value} defaultChecked={filters[facet.key]?.includes(option.value)} /><span className={facet.keyword === "форма" ? "feed-shape-option" : undefined}>{facet.keyword === "форма" && <BurrShapeMark shape={option.value} />}{option.label}</span><em>{option.count}</em></label>)}</div></fieldset>)}
             <div className="feed-filter-actions"><button className="button button-orange" type="submit">Показать товары</button><Link href={`/catalog/category/${slug}#products`}>Сбросить</Link></div>

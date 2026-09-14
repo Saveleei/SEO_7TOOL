@@ -16,6 +16,8 @@ module.exports = {
         SHIPPING_TIME_ZONE: "Europe/Moscow",
         SHIPPING_CUTOFF_HOUR: "18",
         SHIPPING_WORKING_DAYS: "1,2,3,4,5",
+        SHIPPING_TODAY_ENABLED: "1",
+        SHIPPING_FEED_MAX_AGE_MINUTES: "180",
       },
     },
   ],

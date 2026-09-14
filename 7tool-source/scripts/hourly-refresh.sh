@@ -14,6 +14,7 @@ node scripts/refresh-feed.mts
 npm run data:check
 npm run ads:feed
 cp src/lib/products.json /var/www/7tool-shared/products.json
+cp "${CATALOG_META_PATH:-src/lib/catalog-snapshot-meta.json}" /var/www/7tool-shared/catalog-snapshot-meta.json
 
 # Цены и остатки сайт читает из SQLite через /api/live, поэтому они видны сразу.
 # Пересборка нужна только когда появились новые публичные URL: добавлен
@@ -23,6 +24,7 @@ if [ -f "$STATE_PATH" ] && grep -Eq '"structureChanged"[[:space:]]*:[[:space:]]*
   node scripts/generate-product-seo.mjs --if-configured --best-effort --limit "${SEO_AI_HOURLY_LIMIT:-24}"
   node scripts/generate-programmatic-seo.mjs
   cp src/lib/products.json /var/www/7tool-shared/products.json
+  cp "${CATALOG_META_PATH:-src/lib/catalog-snapshot-meta.json}" /var/www/7tool-shared/catalog-snapshot-meta.json
   # Только новые публичные URL требуют новой статической сборки. Цены и
   # остатки уже обновлены транзакционно в SQLite и видны через /api/live.
   npm run build

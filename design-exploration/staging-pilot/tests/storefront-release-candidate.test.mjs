@@ -19,7 +19,7 @@ test("release matrix covers the accepted customer path and every staff workspace
   for (const route of ["/", "/catalog", "/catalog/task/drilling", "/catalog/category/borfrezy", "/catalog/category/stanki-sverlilnye", "/product/magnitnyy-sverlilnyy-stanok-lenz-steyr-35", "/search?q=STEYR-35", "/compare"]) {
     assert.ok(PUBLIC_RELEASE_ROUTES.includes(route), `${route} is absent from the release matrix`);
   }
-  assert.deepEqual(PROTECTED_RELEASE_ROUTES, ["/test/requests", "/test/catalog-quality", "/test/delivery", "/test/settings/quote"]);
+  assert.deepEqual(PROTECTED_RELEASE_ROUTES, ["/test/requests", "/test/catalog-quality", "/test/delivery", "/test/settings/shipping", "/test/settings/quote"]);
 });
 
 test("smoke performs no customer, quote or delivery write action", async () => {

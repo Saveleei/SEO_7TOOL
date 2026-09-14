@@ -3,7 +3,7 @@ import { getCategoryCardArchetype } from "./categoryCardArchetypes.mjs";
 import { getCategoryExpertProfile, getCategoryFacetKeywords } from "./categoryExpertProfiles.mjs";
 import { getCategorySelectionRule } from "./categorySelection.mjs";
 import { selectComparableAlternatives, selectProductCompatibility } from "./productRecommendations.mjs";
-import { getProductShippingPromise, getVariantShippingPromise, hasConfirmedStock } from "./shippingPromise.mjs";
+import { getProductShippingPromise, getVariantShippingPromise } from "./shippingPromise.mjs";
 
 export type FeedParameter = {
   name: string;
@@ -409,18 +409,21 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
     .sort((first, second) => Number(second.matchesSelection) - Number(first.matchesSelection) || first.sourceOrder - second.sourceOrder);
   const variants = selectedVariants
     .slice(0, 12)
-    .map(({ variant, matchesSelection }) => ({
-      id: variant.id,
-      sku: variant.sku,
-      title: variant.name ?? variant.sku,
-      price: formatFeedPrice(variant.price) ?? "Цена по запросу",
-      image: variant.images?.find(Boolean) ?? productImage,
-      href: `/product/${product.slug}?variant=${encodeURIComponent(variant.id)}#variants`,
-      specs: getFeedVariantSpecs(product, variant),
-      matchesSelection,
-      available: hasConfirmedStock(variant),
-      shippingPromise:getVariantShippingPromise(variant),
-    }));
+    .map(({ variant, matchesSelection }) => {
+      const shippingPromise = getVariantShippingPromise(variant);
+      return {
+        id:variant.id,
+        sku:variant.sku,
+        title:variant.name ?? variant.sku,
+        price:formatFeedPrice(variant.price) ?? "Цена по запросу",
+        image:variant.images?.find(Boolean) ?? productImage,
+        href:`/product/${product.slug}?variant=${encodeURIComponent(variant.id)}#variants`,
+        specs:getFeedVariantSpecs(product, variant),
+        matchesSelection,
+        available:shippingPromise.available,
+        shippingPromise,
+      };
+    });
 
   return {
     id: product.id,
@@ -545,7 +548,7 @@ function analyzeCategoryFacets(products: FeedProduct[], keywords: string[]) {
 }
 
 function isConfirmedAvailableVariant(variant: FeedVariant): boolean {
-  return hasConfirmedStock(variant);
+  return getVariantShippingPromise(variant).available;
 }
 
 function toFacetOptions(counts: Map<string, number>, sortMode: "count" | "value" | "numeric" = "count"): FeedFacetOption[] {
