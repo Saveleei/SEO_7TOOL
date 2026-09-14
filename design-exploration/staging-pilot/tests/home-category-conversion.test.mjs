@@ -36,9 +36,10 @@ test("homepage first viewport explains the assortment and separates search from 
   assert.match(page, /categoryGroups\.map/u);
   assert.match(page, /group\.representativeImage/u);
   assert.match(page, /Основные направления каталога/u);
-  assert.match(page, /href="#quick-order"/u);
+  assert.match(page, /href="#production-categories"/u);
   assert.match(page, /HomepageProductGrid/u);
   assert.match(page, /Ключевые позиции каталога/u);
+  assert.ok(page.indexOf('id="production-categories"') < page.indexOf('aria-labelledby="homepage-products-title"'), "task navigation should precede the product shortlist");
   assert.doesNotMatch(page, /<HeroSearch/u);
   assert.match(page, /data-contact-placement="homepage_hero"/u);
   assert.match(page, /siteContact\.phoneHref/u);
@@ -69,6 +70,9 @@ test("catalog and task pages lead with category identity instead of repeated tas
   assert.match(taskPage, /subcategory\.count/u);
   assert.match(grid, /production-category-card--featured/u);
   assert.doesNotMatch(grid, /subcategory\.count/u);
+  assert.match(grid, /group\.subcategories\.slice\(0, 3\)/u);
+  assert.match(grid, /production-category-more/u);
+  assert.match(grid, /Все категории направления/u);
 });
 
 test("homepage product shortlist keeps exact product and quote actions", async () => {

@@ -27,7 +27,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
               <p className="hero-lead">Сверление, резка, обработка кромки, сварочная автоматизация и оснащение производства. Подберём исполнение и подтвердим цену, совместимость и срок поставки.</p>
               <div className="hero-primary-actions">
                 <Link className="button button-dark" href="/catalog">Открыть каталог</Link>
-                <a className="button button-quiet" href="#quick-order">Подобрать по задаче</a>
+                <a className="button button-quiet" href="#production-categories">Выбрать по задаче</a>
               </div>
               <nav className="hero-category-shortcuts" aria-label="Популярные категории">
                 <span>Часто ищут:</span>
@@ -72,6 +72,17 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
           </div>
         </section>
 
+        <section className="section production-task-section" id="production-categories">
+          <div className="container">
+            <div className="section-heading">
+              <div><p className="eyebrow">Короткий путь без артикула</p><h2>Выберите производственную задачу</h2></div>
+              <p>Сначала выберите операцию, затем подходящий тип оборудования. Основные категории видны сразу, остальные можно раскрыть внутри карточки.</p>
+            </div>
+            <div className="home-catalog-overview"><div><b>{categoryGroups.length}</b><span>производственных задач</span></div><div><b>{categoryCount}</b><span>категории с товарами</span></div><p>Не уверены в разделе? Выберите ближайшую операцию — внутри можно уточнить параметры или передать задачу инженеру.</p><Link href="/catalog">Посмотреть весь каталог →</Link></div>
+            <ProductionCategoryGrid groups={categoryGroups} />
+          </div>
+        </section>
+
         <section className="section homepage-products-section" aria-labelledby="homepage-products-title">
           <div className="container">
             <div className="section-heading">
@@ -80,17 +91,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
             </div>
             <HomepageProductGrid products={homepageProducts} />
             <div className="homepage-products-footer"><Link className="button button-quiet" href="/catalog">Посмотреть все категории</Link><a href="#quick-order">Не нашли нужное? Передать задачу инженеру →</a></div>
-          </div>
-        </section>
-
-        <section className="section" id="production-categories">
-          <div className="container">
-            <div className="section-heading">
-              <div><p className="eyebrow">Каталог без знания артикула</p><h2>Выберите производственную задачу</h2></div>
-              <p>Каждое направление сразу раскрывает реальные категории с товарами. Можно перейти в нужный тип оборудования, не открывая промежуточные меню.</p>
-            </div>
-            <div className="home-catalog-overview"><div><b>{categoryGroups.length}</b><span>производственных задач</span></div><div><b>{categoryCount}</b><span>категории с товарами</span></div><p>Не уверены в разделе? Выберите ближайшую операцию — внутри можно уточнить параметры или передать задачу инженеру.</p><Link href="/catalog">Посмотреть весь каталог →</Link></div>
-            <ProductionCategoryGrid groups={categoryGroups} />
           </div>
         </section>
 
