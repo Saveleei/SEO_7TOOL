@@ -130,6 +130,8 @@ test("every staff API is server-protected while customer quote submission stays 
     "../app/api/quote-settings/stamp/[assetId]/route.ts",
     "../app/api/trust-content/route.ts",
     "../app/api/trust-content/assets/route.ts",
+    "../app/api/homepage-content/route.ts",
+    "../app/api/homepage-content/assets/route.ts",
   ];
   for (const relativePath of protectedRoutes) {
     const source = await readFile(new URL(relativePath, import.meta.url), "utf8");

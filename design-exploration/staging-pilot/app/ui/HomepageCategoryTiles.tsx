@@ -2,7 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ProductionSubcategory } from "../data/productionCategoryGroups";
 
-export function HomepageCategoryTiles({ categories }: { categories: ProductionSubcategory[] }) {
+type HomepageCategoryTile = ProductionSubcategory & { imageAlt?: string; imageFit?: "contain" | "cover"; imagePosition?: "center" | "top" | "bottom" | "left" | "right" };
+
+export function HomepageCategoryTiles({ categories }: { categories: HomepageCategoryTile[] }) {
   return <nav className="homepage-category-tiles" aria-label="Основные разделы каталога">
     {categories.map((category, index) => <Link
       className={`homepage-category-tile homepage-category-tile--${index + 1}`}
@@ -15,10 +17,10 @@ export function HomepageCategoryTiles({ categories }: { categories: ProductionSu
         <b>{category.label}</b>
         <span>Перейти в раздел <i aria-hidden="true">↗</i></span>
       </span>
-      <span className="homepage-category-tile-media" aria-hidden="true">
+      <span className="homepage-category-tile-media" data-fit={category.imageFit || "contain"} data-position={category.imagePosition || "center"}>
         {category.image
-          ? <Image src={category.image} alt="" fill sizes="(max-width: 760px) 42vw, (max-width: 1050px) 34vw, 420px" unoptimized />
-          : <span>7T</span>}
+          ? <Image src={category.image} alt={category.imageAlt || category.label} fill sizes="(max-width: 760px) 42vw, (max-width: 1050px) 34vw, 420px" unoptimized />
+          : <span aria-hidden="true">7T</span>}
       </span>
     </Link>)}
   </nav>;

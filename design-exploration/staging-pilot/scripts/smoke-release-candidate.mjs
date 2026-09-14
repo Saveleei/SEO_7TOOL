@@ -41,6 +41,7 @@ export const PROTECTED_RELEASE_ROUTES = [
   "/test/delivery",
   "/test/settings/shipping",
   "/test/settings/quote",
+  "/test/settings/homepage",
   "/test/settings/trust",
 ];
 

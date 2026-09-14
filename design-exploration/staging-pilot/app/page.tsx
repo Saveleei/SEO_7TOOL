@@ -7,15 +7,26 @@ import { HomepageTaskPaths } from "./ui/HomepageTaskPaths";
 import { ProcurementWorkbench } from "./ui/ProcurementWorkbench";
 import { TrustSection } from "./ui/TrustSection";
 import { siteContact } from "./data/contactConfig";
+import { getHomepageContentSettings } from "./data/homepageContentStore";
+import { homepageAssetUrl } from "./data/homepageContentModel";
 import { getHomepageKeyCategories, getProductionCategoryGroups, pilotFeedCategorySlugs } from "./data/productionCategoryGroups";
 import { getTrustContentSettings } from "./data/trustContentStore";
 
 export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const rawSearchParams = await searchParams;
-  const trustContent = await getTrustContentSettings();
+  const [trustContent, homepageContent] = await Promise.all([getTrustContentSettings(), getHomepageContentSettings()]);
   const initialTask = typeof rawSearchParams.task === "string" ? rawSearchParams.task : undefined;
   const categoryGroups = getProductionCategoryGroups(pilotFeedCategorySlugs);
-  const homepageKeyCategories = getHomepageKeyCategories();
+  const groupBySlug = new Map(categoryGroups.map((group) => [group.slug, group]));
+  const assortmentGroups = homepageContent.assortmentItems.flatMap((item) => {
+    const group = groupBySlug.get(item.id);
+    return group ? [{ ...group, title:item.title, homepageImage:item.imageAssetId ? homepageAssetUrl(item.imageAssetId) : group.representativeImage ?? group.image, homepageImageAlt:item.imageAlt, homepageImageFit:item.imageFit, homepageImagePosition:item.imagePosition }] : [];
+  });
+  const keyCategoryBySlug = new Map(getHomepageKeyCategories().map((category) => [category.slug, category]));
+  const homepageKeyCategories = homepageContent.categoryItems.flatMap((item) => {
+    const category = keyCategoryBySlug.get(item.id);
+    return category ? [{ ...category, label:item.title, image:item.imageAssetId ? homepageAssetUrl(item.imageAssetId) : category.image, imageAlt:item.imageAlt, imageFit:item.imageFit, imagePosition:item.imagePosition }] : [];
+  });
   const categoryCount = new Set(categoryGroups.flatMap((group) => group.subcategories.map((subcategory) => subcategory.slug))).size;
   return (
     <div className="site-shell">
@@ -24,9 +35,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
         <section className="hero" id="top">
           <div className="container hero-grid">
             <div className="hero-copy">
-              <p className="eyebrow">Сверление · резка · обработка кромки · сварка</p>
-              <h1>Промышленное оборудование и оснастка для металлообработки</h1>
-              <p className="hero-lead">Сверление, резка, обработка кромки, сварочная автоматизация и оснащение производства. Подберём исполнение и подтвердим цену, совместимость и срок поставки.</p>
+              <p className="eyebrow">{homepageContent.hero.eyebrow}</p>
+              <h1>{homepageContent.hero.title}</h1>
+              <p className="hero-lead">{homepageContent.hero.intro}</p>
               <div className="hero-primary-actions">
                 <Link className="button button-dark" href="/catalog">Открыть каталог</Link>
                 <a className="button button-quiet" href="#production-categories">Выбрать по задаче</a>
@@ -45,13 +56,13 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
               </div>
             </div>
             <aside className="hero-assortment-card" aria-labelledby="hero-assortment-title">
-              <p className="eyebrow">Карта ассортимента</p>
-              <h2 id="hero-assortment-title">Что поставляет 7TOOL</h2>
-              <p>Выберите направление — внутри показаны категории, параметры и доступные исполнения.</p>
+              <p className="eyebrow">{homepageContent.assortment.eyebrow}</p>
+              <h2 id="hero-assortment-title">{homepageContent.assortment.title}</h2>
+              <p>{homepageContent.assortment.intro}</p>
               <nav className="hero-assortment-map" aria-label="Основные направления каталога">
-                {categoryGroups.map((group) => {
+                {assortmentGroups.map((group) => {
                   return <Link href={group.href} key={group.slug}>
-                    <span className="hero-assortment-image"><Image src={group.representativeImage ?? group.image} alt={`Пример товара: ${group.title}`} width={180} height={110} unoptimized={Boolean(group.representativeImage)} /></span>
+                    <span className="hero-assortment-image" data-fit={group.homepageImageFit} data-position={group.homepageImagePosition}><Image src={group.homepageImage} alt={group.homepageImageAlt} width={180} height={110} unoptimized /></span>
                     <b>{group.title}</b>
                     <small>{formatCategoryCount(group.subcategories.length)}</small>
                   </Link>;
@@ -78,9 +89,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
           <div className="container">
             <div className="homepage-key-categories-heading">
               <div>
-                <p className="eyebrow">Быстрый вход в каталог</p>
-                <h2 id="homepage-key-categories-title">Основные разделы каталога</h2>
-                <p>Выберите тип оборудования или оснастки — внутри доступны характеристики, исполнения и подбор по параметрам.</p>
+                <p className="eyebrow">{homepageContent.categories.eyebrow}</p>
+                <h2 id="homepage-key-categories-title">{homepageContent.categories.title}</h2>
+                <p>{homepageContent.categories.intro}</p>
               </div>
               <Link className="button button-quiet" href="/catalog">Смотреть весь каталог</Link>
             </div>
@@ -95,8 +106,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
         <section className="section production-task-section" id="production-categories">
           <div className="container">
             <div className="section-heading">
-              <div><p className="eyebrow">Если не знаете раздел</p><h2>Начните с производственной задачи</h2></div>
-              <p>Выберите ближайшую операцию. На следующем шаге увидите подходящие категории и сможете уточнить параметры без знания артикула.</p>
+              <div><p className="eyebrow">{homepageContent.tasks.eyebrow}</p><h2>{homepageContent.tasks.title}</h2></div>
+              <p>{homepageContent.tasks.intro}</p>
             </div>
             <HomepageTaskPaths groups={categoryGroups} />
             <div className="homepage-task-foot"><span>{categoryGroups.length} направлений · {formatCategoryCount(categoryCount)}</span><Link href="/catalog">Смотреть структуру всего каталога →</Link></div>

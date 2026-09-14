@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { getFeedCategory, getPublishedFeedCategorySlugs } from "../app/data/feedCatalog.ts";
+import { DEFAULT_HOMEPAGE_CONTENT_SETTINGS } from "../app/data/homepageContentModel.ts";
 import { getHomepageKeyCategories, getProductionCategoryGroups, homepageKeyCategorySlugs } from "../app/data/productionCategoryGroups.ts";
 
 test("homepage production tasks expose every published category with feed-backed counts", () => {
@@ -30,18 +31,18 @@ test("homepage production tasks expose every published category with feed-backed
 
 test("homepage first viewport explains the assortment and separates search from task selection", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
-  assert.match(page, /Промышленное оборудование и оснастка для металлообработки/u);
-  assert.match(page, /Сверление, резка, обработка кромки/u);
+  assert.match(DEFAULT_HOMEPAGE_CONTENT_SETTINGS.hero.title, /Промышленное оборудование и оснастка для металлообработки/u);
+  assert.match(DEFAULT_HOMEPAGE_CONTENT_SETTINGS.hero.intro, /Сверление, резка, обработка кромки/u);
   assert.match(page, /Открыть каталог/u);
-  assert.match(page, /Что поставляет 7TOOL/u);
-  assert.match(page, /categoryGroups\.map/u);
-  assert.match(page, /group\.representativeImage/u);
+  assert.match(DEFAULT_HOMEPAGE_CONTENT_SETTINGS.assortment.title, /Что поставляет 7TOOL/u);
+  assert.match(page, /assortmentGroups\.map/u);
+  assert.match(page, /group\.homepageImage/u);
   assert.match(page, /Основные направления каталога/u);
   assert.match(page, /href="#production-categories"/u);
   assert.match(page, /HomepageCategoryTiles/u);
   assert.match(page, /HomepageTaskPaths/u);
   assert.doesNotMatch(page, /<ProductionCategoryGrid/u);
-  assert.match(page, /Основные разделы каталога/u);
+  assert.match(DEFAULT_HOMEPAGE_CONTENT_SETTINGS.categories.title, /Основные разделы каталога/u);
   assert.ok(page.indexOf('aria-labelledby="homepage-key-categories-title"') < page.indexOf('id="production-categories"'), "direct category entry should precede task navigation");
   assert.doesNotMatch(page, /<HeroSearch/u);
   assert.match(page, /data-contact-placement="homepage_hero"/u);
