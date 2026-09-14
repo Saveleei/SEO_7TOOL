@@ -1,4 +1,4 @@
-import { getFeedCategory, getFeedCategoryProducts, getFeedProductImage, getPublishedFeedCategorySlugs } from "./feedCatalog.ts";
+import { getFeedCategory, getFeedCategoryProducts, getFeedProductBySlug, getFeedProductImage, getPublishedFeedCategorySlugs, type FeedProduct } from "./feedCatalog.ts";
 
 export type ProductionSubcategory = {
   slug: string;
@@ -17,11 +17,13 @@ export type ProductionCategoryGroup = {
   href: string;
   featured?: boolean;
   productCount?: number;
+  representativeProductSlug?: string;
+  representativeImage?: string;
   subcategories: ProductionSubcategory[];
 };
 
 const definitions: ProductionCategoryGroup[] = [
-  { id:"01", slug:"drilling", title:"Сверление и резьба", accent:"От отверстия к готовому комплекту", image:"/category/stanki-sverlilnye.webp", href:"/catalog/task/drilling", featured:true, subcategories:[
+  { id:"01", slug:"drilling", title:"Сверление и резьба", accent:"От отверстия к готовому комплекту", image:"/category/stanki-sverlilnye.webp", href:"/catalog/task/drilling", featured:true, representativeProductSlug:"magnitnyy-sverlilnyy-stanok-lenz-steyr-35", subcategories:[
     { slug:"stanki-sverlilnye", label:"Сверлильные станки", href:"/catalog/category/stanki-sverlilnye" },
     { slug:"koronchatye-sverla", label:"Корончатые свёрла", href:"/catalog/category/koronchatye-sverla" },
     { slug:"sverla-i-zenkovki", label:"Свёрла и зенковки", href:"/catalog/category/sverla-i-zenkovki" },
@@ -29,12 +31,12 @@ const definitions: ProductionCategoryGroup[] = [
     { slug:"metchiki", label:"Метчики", href:"/catalog/category/metchiki" },
     { slug:"almaznoe-burenie", label:"Алмазное бурение", href:"/catalog/category/almaznoe-burenie" },
   ]},
-  { id:"02", slug:"edge", title:"Обработка кромки", accent:"По заготовке и геометрии фаски", image:"/category/kromkorezy-po-listu.webp", href:"/catalog/task/edge", featured:true, subcategories:[
+  { id:"02", slug:"edge", title:"Обработка кромки", accent:"По заготовке и геометрии фаски", image:"/category/kromkorezy-po-listu.webp", href:"/catalog/task/edge", featured:true, representativeProductSlug:"ruchnaya-mashina-dlya-snyatiya-faski-s-trub-tvr-270", subcategories:[
     { slug:"kromkorezy-po-listu", label:"Кромкорезы по листу", href:"/catalog/category/kromkorezy-po-listu" },
     { slug:"kromkorezy-dlya-trub", label:"Кромкорезы для труб", href:"/catalog/category/kromkorezy-dlya-trub" },
     { slug:"borfrezy", label:"Борфрезы", href:"/catalog/category/borfrezy" },
   ]},
-  { id:"03", slug:"cutting", title:"Резка металла", accent:"По материалу, профилю и резу", image:"/category/truborezy.webp", href:"/catalog/task/cutting", featured:true, subcategories:[
+  { id:"03", slug:"cutting", title:"Резка металла", accent:"По материалу, профилю и резу", image:"/category/truborezy.webp", href:"/catalog/task/cutting", featured:true, representativeProductSlug:"elektricheskiy-truborez-dlya-stalnyh-i-plastikovyh-trub-liden-roar-250", subcategories:[
     { slug:"truborezy", label:"Труборезы", href:"/catalog/category/truborezy" },
     { slug:"karetki-termicheskoy-rezki", label:"Каретки термической резки", href:"/catalog/category/karetki-termicheskoy-rezki" },
     { slug:"stanki-lazernoy-rezki", label:"Лазерные станки", href:"/catalog/category/stanki-lazernoy-rezki" },
@@ -42,19 +44,19 @@ const definitions: ProductionCategoryGroup[] = [
     { slug:"disko-otreznye-stanki", label:"Диско-отрезные станки", href:"/catalog/category/disko-otreznye-stanki" },
     { slug:"pilnye-diski", label:"Пильные диски", href:"/catalog/category/pilnye-diski" },
   ]},
-  { id:"04", slug:"welding", title:"Сварка и автоматизация", accent:"По процессу, изделию и шву", image:"/category/karetki-svarochnye.webp", href:"/catalog/task/welding", featured:true, subcategories:[
+  { id:"04", slug:"welding", title:"Сварка и автоматизация", accent:"По процессу, изделию и шву", image:"/category/karetki-svarochnye.webp", href:"/catalog/task/welding", featured:true, representativeProductSlug:"svarochnyy-traktor-rail-bull-2", subcategories:[
     { slug:"karetki-svarochnye", label:"Сварочные каретки", href:"/catalog/category/karetki-svarochnye" },
     { slug:"svarochnye-roboty", label:"Сварочные роботы", href:"/catalog/category/svarochnye-roboty" },
     { slug:"svarochnye-vrashchateli-i-pozitsionery", label:"Вращатели и позиционеры", href:"/catalog/category/svarochnye-vrashchateli-i-pozitsionery" },
   ]},
-  { id:"05", slug:"tooling", title:"Оснастка и расходные материалы", accent:"По станку, операции и совместимости", image:"/category/koronchatye-sverla.webp", href:"/catalog/task/tooling", subcategories:[
+  { id:"05", slug:"tooling", title:"Оснастка и расходные материалы", accent:"По станку, операции и совместимости", image:"/category/koronchatye-sverla.webp", href:"/catalog/task/tooling", representativeProductSlug:"sverla-koronchatye-lzhs", subcategories:[
     { slug:"stanochnaya-osnastka", label:"Станочная оснастка", href:"/catalog/category/stanochnaya-osnastka" },
     { slug:"koronchatye-sverla", label:"Корончатые свёрла", href:"/catalog/category/koronchatye-sverla" },
     { slug:"sverla-i-zenkovki", label:"Свёрла и зенковки", href:"/catalog/category/sverla-i-zenkovki" },
     { slug:"metchiki", label:"Метчики", href:"/catalog/category/metchiki" },
     { slug:"sozh-i-sots", label:"СОЖ", href:"/catalog/category/sozh-i-sots" },
   ]},
-  { id:"06", slug:"workplace", title:"Оснащение производства", accent:"Для участка и перемещения изделий", image:"/category/karetki-svarochnye.webp", href:"/catalog/task/workplace", subcategories:[
+  { id:"06", slug:"workplace", title:"Оснащение производства", accent:"Для участка и перемещения изделий", image:"/category/karetki-svarochnye.webp", href:"/catalog/task/workplace", representativeProductSlug:"porshnevoy-bezmaslyanyy-2-v-1-kompressor-dc990ad-10l", subcategories:[
     { slug:"kompressory", label:"Компрессоры", href:"/catalog/category/kompressory" },
     { slug:"zahvaty-dlya-gruzov", label:"Захваты для грузов", href:"/catalog/category/zahvaty-dlya-gruzov" },
     { slug:"magnitnaya-osnastka", label:"Магнитная оснастка", href:"/catalog/category/magnitnaya-osnastka" },
@@ -80,9 +82,17 @@ export function getProductionCategoryGroups(activeCategorySlugs: string[]): Prod
           image:representativeProduct ? getFeedProductImage(representativeProduct) : undefined,
         };
       });
-      return { ...group, subcategories, productCount:subcategories.reduce((total, subcategory) => total + (subcategory.count ?? 0), 0) };
+      const representativeProduct = group.representativeProductSlug ? getFeedProductBySlug(group.representativeProductSlug) : undefined;
+      return { ...group, subcategories, productCount:subcategories.reduce((total, subcategory) => total + (subcategory.count ?? 0), 0), representativeImage:representativeProduct ? getFeedProductImage(representativeProduct) : undefined };
     })
     .filter((group) => group.subcategories.length > 0);
+}
+
+export function getHomepageFeaturedProducts(): FeedProduct[] {
+  return definitions.flatMap((group) => {
+    const product = group.representativeProductSlug ? getFeedProductBySlug(group.representativeProductSlug) : undefined;
+    return product ? [product] : [];
+  });
 }
 
 export function getProductionCategoryGroup(slug: string): ProductionCategoryGroup | undefined {

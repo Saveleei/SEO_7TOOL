@@ -1,17 +1,19 @@
 import Link from "next/link";
 import Image from "next/image";
-import { HeroSearch } from "./ui/HeroSearch";
 import { PilotFooter } from "./ui/PilotFooter";
 import { PilotHeader } from "./ui/PilotHeader";
+import { HomepageProductGrid } from "./ui/HomepageProductGrid";
 import { ProcurementWorkbench } from "./ui/ProcurementWorkbench";
 import { ProductionCategoryGrid } from "./ui/ProductionCategoryGrid";
 import { siteContact } from "./data/contactConfig";
-import { getProductionCategoryGroups, pilotFeedCategorySlugs } from "./data/productionCategoryGroups";
+import { toFeedProductCardModel } from "./data/feedCatalog";
+import { getHomepageFeaturedProducts, getProductionCategoryGroups, pilotFeedCategorySlugs } from "./data/productionCategoryGroups";
 
 export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const rawSearchParams = await searchParams;
   const initialTask = typeof rawSearchParams.task === "string" ? rawSearchParams.task : undefined;
   const categoryGroups = getProductionCategoryGroups(pilotFeedCategorySlugs);
+  const homepageProducts = getHomepageFeaturedProducts().map((product) => toFeedProductCardModel(product));
   const categoryCount = new Set(categoryGroups.flatMap((group) => group.subcategories.map((subcategory) => subcategory.slug))).size;
   return (
     <div className="site-shell">
@@ -22,11 +24,13 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
             <div className="hero-copy">
               <p className="eyebrow">Сверление · резка · обработка кромки · сварка</p>
               <h1>Промышленное оборудование и оснастка для металлообработки</h1>
-              <p className="hero-lead">Магнитные и ленточнопильные станки, кромкорезы, корончатые свёрла, борфрезы, компрессоры, сварочная автоматизация и производственная оснастка. Подберём исполнение и подтвердим цену, совместимость и срок до оплаты.</p>
-              <div className="hero-search-heading"><b>Знаете, что искать?</b><span>Введите товар, модель или опишите операцию</span></div>
-              <HeroSearch />
+              <p className="hero-lead">Сверление, резка, обработка кромки, сварочная автоматизация и оснащение производства. Подберём исполнение и подтвердим цену, совместимость и срок поставки.</p>
+              <div className="hero-primary-actions">
+                <Link className="button button-dark" href="/catalog">Открыть каталог</Link>
+                <a className="button button-quiet" href="#quick-order">Подобрать по задаче</a>
+              </div>
               <nav className="hero-category-shortcuts" aria-label="Популярные категории">
-                <span>Быстрый переход:</span>
+                <span>Часто ищут:</span>
                 <Link href="/catalog/category/stanki-sverlilnye">Магнитные станки</Link>
                 <Link href="/catalog/category/kromkorezy-dlya-trub">Кромкорезы для труб</Link>
                 <Link href="/catalog/category/borfrezy">Борфрезы</Link>
@@ -44,19 +48,17 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
               <p>Выберите направление — внутри показаны категории, параметры и доступные исполнения.</p>
               <nav className="hero-assortment-map" aria-label="Основные направления каталога">
                 {categoryGroups.map((group) => {
-                  const feedImage = group.subcategories[0]?.image;
                   return <Link href={group.href} key={group.slug}>
-                    <span className="hero-assortment-image"><Image src={feedImage ?? group.image} alt={`Пример товара: ${group.title}`} width={180} height={110} unoptimized={Boolean(feedImage)} /></span>
+                    <span className="hero-assortment-image"><Image src={group.representativeImage ?? group.image} alt={`Пример товара: ${group.title}`} width={180} height={110} unoptimized={Boolean(group.representativeImage)} /></span>
                     <b>{group.title}</b>
                     <small>{formatCategoryCount(group.subcategories.length)}</small>
                   </Link>;
                 })}
               </nav>
-              <div className="hero-assortment-actions">
-                <a className="button button-dark" href="#production-categories">Открыть все направления</a>
-                <a className="button button-quiet" href="#quick-order">Не знаете модель? Подобрать по задаче</a>
+              <div className="hero-assortment-foot">
+                <span>{categoryGroups.length} направлений · {formatCategoryCount(categoryCount)}</span>
+                <Link href="/catalog">Весь каталог →</Link>
               </div>
-              <small className="hero-assortment-note">Артикул не обязателен: инженер уточнит задачу и предложит подходящие варианты.</small>
             </aside>
           </div>
         </section>
@@ -67,6 +69,17 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
             <div><strong>Инженер</strong><span>проверит совместимость комплекта</span></div>
             <div><strong>Документы</strong><span>по конкретному артикулу</span></div>
             <div><strong>По РФ</strong><span>условия доставки фиксируются в КП</span></div>
+          </div>
+        </section>
+
+        <section className="section homepage-products-section" aria-labelledby="homepage-products-title">
+          <div className="container">
+            <div className="section-heading">
+              <div><p className="eyebrow">Прямой путь к товару</p><h2 id="homepage-products-title">Ключевые позиции каталога</h2></div>
+              <p>По одному реальному товару из каждого направления. Цена и статус показаны из текущих данных; точное исполнение и срок подтверждаются до оплаты.</p>
+            </div>
+            <HomepageProductGrid products={homepageProducts} />
+            <div className="homepage-products-footer"><Link className="button button-quiet" href="/catalog">Посмотреть все категории</Link><a href="#quick-order">Не нашли нужное? Передать задачу инженеру →</a></div>
           </div>
         </section>
 

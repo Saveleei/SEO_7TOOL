@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { getFeedCategory, getPublishedFeedCategorySlugs } from "../app/data/feedCatalog.ts";
-import { getProductionCategoryGroups } from "../app/data/productionCategoryGroups.ts";
+import { getHomepageFeaturedProducts, getProductionCategoryGroups } from "../app/data/productionCategoryGroups.ts";
 
 test("homepage production tasks expose every published category with feed-backed counts", () => {
   const published = getPublishedFeedCategorySlugs();
@@ -18,19 +18,28 @@ test("homepage production tasks expose every published category with feed-backed
       assert.match(subcategory.href, new RegExp(`^/catalog/category/${subcategory.slug}$`, "u"));
     }
   }
+  const featured = getHomepageFeaturedProducts();
+  assert.equal(featured.length, groups.length);
+  assert.equal(new Set(featured.map((product) => product.id)).size, featured.length);
+  for (const product of featured) {
+    assert.ok(product.images.some(Boolean) || product.variants.some((variant) => variant.images?.some(Boolean)), `${product.slug}: homepage product has no image`);
+    assert.ok(product.variants.length > 0, `${product.slug}: homepage product has no execution`);
+  }
 });
 
 test("homepage first viewport explains the assortment and separates search from task selection", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
   assert.match(page, /Промышленное оборудование и оснастка для металлообработки/u);
-  assert.match(page, /Магнитные и ленточнопильные станки/u);
-  assert.match(page, /Знаете, что искать\?/u);
+  assert.match(page, /Сверление, резка, обработка кромки/u);
+  assert.match(page, /Открыть каталог/u);
   assert.match(page, /Что поставляет 7TOOL/u);
   assert.match(page, /categoryGroups\.map/u);
-  assert.match(page, /group\.subcategories\[0\]\?\.image/u);
+  assert.match(page, /group\.representativeImage/u);
   assert.match(page, /Основные направления каталога/u);
-  assert.match(page, /Не знаете модель\? Подобрать по задаче/u);
-  assert.match(page, /href="#production-categories"/u);
+  assert.match(page, /href="#quick-order"/u);
+  assert.match(page, /HomepageProductGrid/u);
+  assert.match(page, /Ключевые позиции каталога/u);
+  assert.doesNotMatch(page, /<HeroSearch/u);
   assert.match(page, /data-contact-placement="homepage_hero"/u);
   assert.match(page, /siteContact\.phoneHref/u);
   assert.match(page, /mailto:\$\{siteContact\.email\}/u);
@@ -59,5 +68,15 @@ test("catalog and task pages lead with category identity instead of repeated tas
   assert.match(taskPage, /subcategory\.image \?\? group\.image/u);
   assert.match(taskPage, /subcategory\.count/u);
   assert.match(grid, /production-category-card--featured/u);
-  assert.match(grid, /subcategory\.count/u);
+  assert.doesNotMatch(grid, /subcategory\.count/u);
+});
+
+test("homepage product shortlist keeps exact product and quote actions", async () => {
+  const grid = await readFile(new URL("../app/ui/HomepageProductGrid.tsx", import.meta.url), "utf8");
+  assert.match(grid, /\/product\/\$\{product\.slug\}/u);
+  assert.match(grid, /variant:\$\{directVariant\.id\}/u);
+  assert.match(grid, /FeedAvailability/u);
+  assert.match(grid, /Добавить в КП/u);
+  assert.match(grid, /product\.cardArchetype\.multipleAction/u);
+  assert.doesNotMatch(grid, /В наличии по данным поставщика/u);
 });

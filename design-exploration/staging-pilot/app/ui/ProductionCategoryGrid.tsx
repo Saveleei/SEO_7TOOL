@@ -7,7 +7,7 @@ export function ProductionCategoryGrid({ groups }: { groups: ProductionCategoryG
     <div className="production-category-grid">
       {groups.map((group) => <article className={`production-category-card${group.featured ? " production-category-card--featured" : ""}`} key={group.id}>
         <Link className="production-category-media" href={group.href} aria-label={`Открыть направление «${group.title}»`}><span>{group.id}</span><Image src={group.image} alt="" width={360} height={220} /></Link>
-        <div className="production-category-copy"><span>{group.accent}</span><h3><Link href={group.href}>{group.title}</Link></h3><p>{group.subcategories.length} {pluralizeSections(group.subcategories.length)} · {(group.productCount ?? 0).toLocaleString("ru-RU")} товарных групп</p><nav aria-label={`Подкатегории: ${group.title}`}>{group.subcategories.map((subcategory) => <Link href={subcategory.href} key={subcategory.slug}><span>{subcategory.label}</span><small>{(subcategory.count ?? 0).toLocaleString("ru-RU")}</small><b aria-hidden="true">→</b></Link>)}</nav><Link className="production-category-action" href={group.href}>Открыть направление →</Link></div>
+        <div className="production-category-copy"><span>{group.accent}</span><h3><Link href={group.href}>{group.title}</Link></h3><p>{group.subcategories.length} {pluralizeSections(group.subcategories.length)} с товарами</p><nav aria-label={`Подкатегории: ${group.title}`}>{group.subcategories.map((subcategory) => <Link href={subcategory.href} key={subcategory.slug}><span>{subcategory.label}</span><b aria-hidden="true">→</b></Link>)}</nav><Link className="production-category-action" href={group.href}>Открыть направление →</Link></div>
       </article>)}
     </div>
   </div>;
