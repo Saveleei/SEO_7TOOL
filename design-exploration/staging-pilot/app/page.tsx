@@ -20,9 +20,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
         <section className="hero" id="top">
           <div className="container hero-grid">
             <div className="hero-copy">
-              <p className="eyebrow">Промышленное оборудование · оснастка · расходные материалы</p>
-              <h1>Найдите оборудование по модели или производственной задаче</h1>
-              <p className="hero-lead">Каталог 7TOOL помогает дойти от операции и параметров до конкретного исполнения. Цена, совместимость и срок поставки подтверждаются до оплаты.</p>
+              <p className="eyebrow">Сверление · резка · обработка кромки · сварка</p>
+              <h1>Промышленное оборудование и оснастка для металлообработки</h1>
+              <p className="hero-lead">Магнитные и ленточнопильные станки, кромкорезы, корончатые свёрла, борфрезы, компрессоры, сварочная автоматизация и производственная оснастка. Подберём исполнение и подтвердим цену, совместимость и срок до оплаты.</p>
               <div className="hero-search-heading"><b>Знаете, что искать?</b><span>Введите товар, модель или опишите операцию</span></div>
               <HeroSearch />
               <nav className="hero-category-shortcuts" aria-label="Популярные категории">
@@ -38,20 +38,25 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
                 <a href={`mailto:${siteContact.email}?subject=Запрос%20с%20сайта%207TOOL`}><small>Отправить запрос</small><b>{siteContact.email}</b></a>
               </div>
             </div>
-            <aside className="hero-decision-card" aria-labelledby="hero-decision-title">
-              <p className="eyebrow">Если точная модель неизвестна</p>
-              <h2 id="hero-decision-title">Начните с задачи производства</h2>
-              <p>Артикул не нужен. Выберите операцию ниже или передайте инженеру известные исходные данные.</p>
-              <ol>
-                <li><span>01</span><div><b>Что нужно сделать</b><small>сверлить, снять фаску, нарезать резьбу, резать или автоматизировать сварку</small></div></li>
-                <li><span>02</span><div><b>С чем работаете</b><small>материал, тип заготовки и основные размеры</small></div></li>
-                <li><span>03</span><div><b>Какие есть ограничения</b><small>место работы, питание, режим и требуемая производительность</small></div></li>
-              </ol>
-              <div className="hero-decision-actions">
-                <a className="button button-dark" href="#production-categories">Выбрать производственную задачу</a>
-                <a className="button button-quiet" href="#quick-order">Описать задачу инженеру</a>
+            <aside className="hero-assortment-card" aria-labelledby="hero-assortment-title">
+              <p className="eyebrow">Карта ассортимента</p>
+              <h2 id="hero-assortment-title">Что поставляет 7TOOL</h2>
+              <p>Выберите направление — внутри показаны категории, параметры и доступные исполнения.</p>
+              <nav className="hero-assortment-map" aria-label="Основные направления каталога">
+                {categoryGroups.map((group) => {
+                  const feedImage = group.subcategories[0]?.image;
+                  return <Link href={group.href} key={group.slug}>
+                    <span className="hero-assortment-image"><Image src={feedImage ?? group.image} alt={`Пример товара: ${group.title}`} width={180} height={110} unoptimized={Boolean(feedImage)} /></span>
+                    <b>{group.title}</b>
+                    <small>{formatCategoryCount(group.subcategories.length)}</small>
+                  </Link>;
+                })}
+              </nav>
+              <div className="hero-assortment-actions">
+                <a className="button button-dark" href="#production-categories">Открыть все направления</a>
+                <a className="button button-quiet" href="#quick-order">Не знаете модель? Подобрать по задаче</a>
               </div>
-              <small className="hero-decision-note">В ответе: подходящие варианты, цена с НДС и срок после проверки.</small>
+              <small className="hero-assortment-note">Артикул не обязателен: инженер уточнит задачу и предложит подходящие варианты.</small>
             </aside>
           </div>
         </section>
@@ -93,4 +98,11 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
       <PilotFooter />
     </div>
   );
+}
+
+function formatCategoryCount(count: number): string {
+  const mod100 = count % 100;
+  const mod10 = count % 10;
+  const noun = mod100 >= 11 && mod100 <= 14 ? "категорий" : mod10 === 1 ? "категория" : mod10 >= 2 && mod10 <= 4 ? "категории" : "категорий";
+  return `${count} ${noun}`;
 }

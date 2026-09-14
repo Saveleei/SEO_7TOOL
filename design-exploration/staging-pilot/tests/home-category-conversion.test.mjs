@@ -20,10 +20,16 @@ test("homepage production tasks expose every published category with feed-backed
   }
 });
 
-test("homepage first viewport separates known-item search from task selection", async () => {
+test("homepage first viewport explains the assortment and separates search from task selection", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /Промышленное оборудование и оснастка для металлообработки/u);
+  assert.match(page, /Магнитные и ленточнопильные станки/u);
   assert.match(page, /Знаете, что искать\?/u);
-  assert.match(page, /Начните с задачи производства/u);
+  assert.match(page, /Что поставляет 7TOOL/u);
+  assert.match(page, /categoryGroups\.map/u);
+  assert.match(page, /group\.subcategories\[0\]\?\.image/u);
+  assert.match(page, /Основные направления каталога/u);
+  assert.match(page, /Не знаете модель\? Подобрать по задаче/u);
   assert.match(page, /href="#production-categories"/u);
   assert.match(page, /data-contact-placement="homepage_hero"/u);
   assert.match(page, /siteContact\.phoneHref/u);
@@ -55,4 +61,3 @@ test("catalog and task pages lead with category identity instead of repeated tas
   assert.match(grid, /production-category-card--featured/u);
   assert.match(grid, /subcategory\.count/u);
 });
-
