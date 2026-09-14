@@ -46,7 +46,7 @@ test("positive feed availability uses a dedicated readable green status", async 
   assert.match(card, /<FeedAvailability/u);
   assert.match(table, /<FeedAvailability/u);
   assert.match(availability, /feed-availability--positive/u);
-  assert.match(availability, /Остаток и срок подтвердим перед оплатой/u);
+  assert.match(availability, /shippingPromise\.detail/u);
   assert.match(styles, /\.feed-availability--positive \{[^}]*color:#087044!important[^}]*font-weight:650!important/us);
   assert.match(styles, /\.feed-availability-block>small \{[^}]*font-size:9px/us);
 });

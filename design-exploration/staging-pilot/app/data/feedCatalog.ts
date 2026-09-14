@@ -3,6 +3,7 @@ import { getCategoryCardArchetype } from "./categoryCardArchetypes.mjs";
 import { getCategoryExpertProfile, getCategoryFacetKeywords } from "./categoryExpertProfiles.mjs";
 import { getCategorySelectionRule } from "./categorySelection.mjs";
 import { selectComparableAlternatives, selectProductCompatibility } from "./productRecommendations.mjs";
+import { getProductShippingPromise, getVariantShippingPromise, hasConfirmedStock } from "./shippingPromise.mjs";
 
 export type FeedParameter = {
   name: string;
@@ -77,6 +78,8 @@ export type FeedProductSpec = {
   value: string;
 };
 
+export type FeedShippingPromise = ReturnType<typeof getVariantShippingPromise>;
+
 export type FeedProductVariantModel = {
   id: string;
   sku: string;
@@ -87,6 +90,7 @@ export type FeedProductVariantModel = {
   specs: FeedProductSpec[];
   matchesSelection: boolean;
   available: boolean;
+  shippingPromise: FeedShippingPromise;
 };
 
 export type FeedProductCardModel = {
@@ -101,6 +105,7 @@ export type FeedProductCardModel = {
   variantCount: number;
   selectedVariantCount: number;
   availableVariantCount: number;
+  shippingPromise: FeedShippingPromise;
   specs: FeedProductSpec[];
   variants: FeedProductVariantModel[];
   matchReasons: string[];
@@ -413,7 +418,8 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
       href: `/product/${product.slug}?variant=${encodeURIComponent(variant.id)}#variants`,
       specs: getFeedVariantSpecs(product, variant),
       matchesSelection,
-      available: isConfirmedAvailableVariant(variant),
+      available: hasConfirmedStock(variant),
+      shippingPromise:getVariantShippingPromise(variant),
     }));
 
   return {
@@ -428,6 +434,7 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
     variantCount: product.variants.length,
     selectedVariantCount: selectedVariants.length,
     availableVariantCount: product.variants.filter(isConfirmedAvailableVariant).length,
+    shippingPromise:getProductShippingPromise(product.variants),
     specs: getFeedProductSpecs(product),
     variants,
     matchReasons:activeFilters.flatMap((filter) => Number.isFinite(filter.minimum)
@@ -538,7 +545,7 @@ function analyzeCategoryFacets(products: FeedProduct[], keywords: string[]) {
 }
 
 function isConfirmedAvailableVariant(variant: FeedVariant): boolean {
-  return variant.available && typeof variant.quantity === "number" && variant.quantity > 0;
+  return hasConfirmedStock(variant);
 }
 
 function toFacetOptions(counts: Map<string, number>, sortMode: "count" | "value" | "numeric" = "count"): FeedFacetOption[] {

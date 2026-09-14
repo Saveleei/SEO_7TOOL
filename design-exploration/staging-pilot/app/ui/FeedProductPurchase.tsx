@@ -5,6 +5,7 @@ import { ContactRequestDialog } from "./ContactRequestDialog";
 import { PRODUCT_COMPARISON_EVENT } from "./ProductComparisonDialog";
 import { useRequestCart } from "./RequestCart";
 import { getProductPageArchetype } from "../data/productPageArchetypes";
+import type { FeedShippingPromise } from "../data/feedCatalog";
 
 type PurchaseVariant = {
   id: string;
@@ -12,6 +13,7 @@ type PurchaseVariant = {
   title: string;
   price: string;
   available: boolean;
+  shippingPromise: FeedShippingPromise;
   keySpecs: Array<{ label: string; value: string }>;
   choiceLabel: string;
   choiceContext: string;
@@ -56,7 +58,7 @@ export function FeedProductPurchase({ productId, productTitle, categorySlug, var
 
   function addSelected() {
     if (!selected) return;
-    addItem({ id:`variant:${selected.id}`, title:selected.title || productTitle, article:selected.sku ? `Артикул ${selected.sku}` : "Артикул не указан в фиде", price:selected.price, quantity, image:selected.image, href:selected.href });
+    addItem({ id:`variant:${selected.id}`, title:selected.title || productTitle, article:selected.sku ? `Артикул ${selected.sku}` : "Артикул не указан в фиде", price:selected.price, quantity, image:selected.image, href:selected.href, shippingLabel:selected.shippingPromise.label, shippingDetail:selected.shippingPromise.detail });
     track("add_to_quote", "product_buybox");
   }
 
@@ -98,9 +100,9 @@ export function FeedProductPurchase({ productId, productTitle, categorySlug, var
         <div className="feed-selected-variant"><span>Выбрано</span><b>{selected.choiceLabel}</b><small>{selected.choiceContext ? `${selected.choiceContext} · ` : ""}{selected.sku ? `артикул ${selected.sku}` : "артикул не указан в фиде"}</small></div>
         <small className="feed-variant-help">Выбор обновляет всю карточку: фото, характеристики, цену, наличие и позицию в КП. Артикул служит для точной фиксации.</small></div>}
 
-    <div className={selected.available ? "feed-conversion-stock feed-conversion-stock--positive" : "feed-conversion-stock"}>
-      <span>{selected.available ? "В наличии по данным поставщика" : "Поставка под заказ или статус уточняется"}</span>
-      <b>{selected.available ? "Остаток и дату отгрузки подтвердим перед оплатой" : "Менеджер вернёт подтверждённый срок в КП"}</b>
+    <div className={selected.shippingPromise.available ? "feed-conversion-stock feed-conversion-stock--positive" : "feed-conversion-stock"}>
+      <span>{selected.shippingPromise.label}</span>
+      <b>{selected.shippingPromise.detail}</b>
     </div>
 
     <div className="feed-conversion-price"><b>{selected.price}</b><span>{selected.sku ? `с НДС · цена относится к артикулу ${selected.sku}` : "с НДС · цена относится к выбранному исполнению"}</span></div>
@@ -143,8 +145,19 @@ function isPurchaseVariant(value: unknown): value is PurchaseVariant {
     && typeof variant.title === "string"
     && typeof variant.price === "string"
     && typeof variant.available === "boolean"
+    && isShippingPromise(variant.shippingPromise)
     && Array.isArray(variant.keySpecs)
     && typeof variant.choiceLabel === "string"
     && typeof variant.choiceContext === "string"
     && (variant.selectorLabel === "Размер" || variant.selectorLabel === "Параметры исполнения");
+}
+
+function isShippingPromise(value: unknown): value is FeedShippingPromise {
+  if (!value || typeof value !== "object") return false;
+  const promise = value as Partial<FeedShippingPromise>;
+  return typeof promise.available === "boolean"
+    && (promise.state === "today" || promise.state === "next-working-day" || promise.state === "unconfirmed")
+    && typeof promise.label === "string"
+    && typeof promise.shipmentLabel === "string"
+    && typeof promise.detail === "string";
 }

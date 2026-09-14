@@ -34,6 +34,8 @@ export function sanitizeRequestItems(value) {
       quantity:normalizeQuantity(item.quantity),
       image:sanitizeImageSource(item.image),
       href:sanitizeProductHref(item.href),
+      shippingLabel:sanitizeShippingText(item.shippingLabel),
+      shippingDetail:sanitizeShippingText(item.shippingDetail),
     }];
   }).slice(0, 50);
 }
@@ -65,6 +67,10 @@ function sanitizeImageSource(value) {
   } catch {
     return undefined;
   }
+}
+
+function sanitizeShippingText(value) {
+  return typeof value === "string" && value.length <= 160 ? value : undefined;
 }
 
 export function createDraftNumber(now = new Date()) {

@@ -14,6 +14,8 @@ export type RequestItem = {
   quantity?: number;
   image?: string;
   href?: string;
+  shippingLabel?: string;
+  shippingDetail?: string;
 };
 
 type RequestCartValue = {
@@ -75,7 +77,29 @@ export function RequestCartProvider({ children }: { children: ReactNode }) {
 
   function open() {
     setIsOpen(true);
+    void refreshShippingPromises();
     trackQuote("open_quote", { placement:"quote_trigger", item_count:items.length });
+  }
+
+  async function refreshShippingPromises() {
+    const variantIds = Array.from(new Set(items.flatMap((item) => item.id.startsWith("variant:") ? [item.id.slice("variant:".length)] : [])));
+    if (variantIds.length === 0) return;
+    const trackedIds = new Set(variantIds.map((id) => `variant:${id}`));
+    setItems((current) => current.map((item) => trackedIds.has(item.id) ? { ...item, shippingLabel:"Проверяем отгрузку…", shippingDetail:"Обновляем статус по серверному времени" } : item));
+    try {
+      const query = new URLSearchParams();
+      variantIds.forEach((id) => query.append("variant", id));
+      const response = await fetch(`/api/shipping-promises?${query.toString()}`, { headers:{ Accept:"application/json" }, cache:"no-store" });
+      const payload = await response.json() as { ok?: boolean; promises?: Record<string, unknown> };
+      if (!response.ok || !payload.ok || !payload.promises) throw new Error("shipping_promises_unavailable");
+      setItems((current) => current.map((item) => {
+        if (!item.id.startsWith("variant:")) return item;
+        const promise = payload.promises?.[item.id.slice("variant:".length)];
+        return isCartShippingPromise(promise) ? { ...item, shippingLabel:promise.label, shippingDetail:promise.detail } : { ...item, shippingLabel:"Наличие и срок уточняем", shippingDetail:"Менеджер подтвердит остаток и ближайшую дату отгрузки" };
+      }));
+    } catch {
+      setItems((current) => current.map((item) => trackedIds.has(item.id) ? { ...item, shippingLabel:"Наличие и срок уточняем", shippingDetail:"Менеджер подтвердит остаток и ближайшую дату отгрузки" } : item));
+    }
   }
 
   const close = useCallback(() => setIsOpen(false), []);
@@ -236,7 +260,7 @@ function RequestCartItem({ item, onChange, onRemove }: { item: RequestItem; onCh
   const quantity = item.quantity ?? 1;
   const unitPrice = parseQuotePrice(item.price);
   const media = item.image ? <Image src={item.image} alt="" width={84} height={84} unoptimized /> : <span aria-hidden="true">7T</span>;
-  return <article><div className="request-cart-item-media">{item.href ? <a href={item.href} tabIndex={-1} aria-hidden="true">{media}</a> : media}</div><div className="request-cart-item-copy"><b>{item.href ? <a href={item.href} aria-label={`Открыть товар: ${item.title}`}>{item.title}</a> : item.title}</b><span>{item.article}</span>{item.price && <small>{item.price} · с НДС</small>}</div><div className="request-cart-item-actions"><span>Количество</span><div className="request-cart-quantity"><button type="button" aria-label={`Уменьшить количество ${item.title}`} onClick={() => onChange(item, Math.max(1, quantity - 1))}>−</button><input aria-label={`Количество ${item.title}`} type="number" min="1" max="999" value={quantity} onChange={(event) => onChange(item, Number(event.target.value) || 1)} /><button type="button" aria-label={`Увеличить количество ${item.title}`} onClick={() => onChange(item, quantity + 1)}>+</button></div>{unitPrice !== null && <b>{formatMoney(unitPrice * quantity)}</b>}</div><button className="request-cart-remove" type="button" onClick={() => onRemove(item.id)} aria-label={`Удалить ${item.title}`}>Удалить</button></article>;
+  return <article><div className="request-cart-item-media">{item.href ? <a href={item.href} tabIndex={-1} aria-hidden="true">{media}</a> : media}</div><div className="request-cart-item-copy"><b>{item.href ? <a href={item.href} aria-label={`Открыть товар: ${item.title}`}>{item.title}</a> : item.title}</b><span>{item.article}</span>{item.price && <small>{item.price} · с НДС</small>}{item.shippingLabel && <span className={item.shippingLabel.startsWith("В наличии") ? "request-cart-shipping request-cart-shipping--available" : "request-cart-shipping"}>{item.shippingLabel}</span>}{item.shippingDetail && <small className="request-cart-shipping-detail">{item.shippingDetail}</small>}</div><div className="request-cart-item-actions"><span>Количество</span><div className="request-cart-quantity"><button type="button" aria-label={`Уменьшить количество ${item.title}`} onClick={() => onChange(item, Math.max(1, quantity - 1))}>−</button><input aria-label={`Количество ${item.title}`} type="number" min="1" max="999" value={quantity} onChange={(event) => onChange(item, Number(event.target.value) || 1)} /><button type="button" aria-label={`Увеличить количество ${item.title}`} onClick={() => onChange(item, quantity + 1)}>+</button></div>{unitPrice !== null && <b>{formatMoney(unitPrice * quantity)}</b>}</div><button className="request-cart-remove" type="button" onClick={() => onRemove(item.id)} aria-label={`Удалить ${item.title}`}>Удалить</button></article>;
 }
 
 function QuoteSuccess({ draftNumber, itemCount, totalQuantity, billingProvided, onEdit, onClose, closeRef }: { draftNumber: string; itemCount: number; totalQuantity: number; billingProvided: boolean; onEdit: () => void; onClose: () => void; closeRef: RefObject<HTMLButtonElement | null> }) {
@@ -245,3 +269,8 @@ function QuoteSuccess({ draftNumber, itemCount, totalQuantity, billingProvided, 
 
 function formatMoney(value: number): string { return `${new Intl.NumberFormat("ru-RU").format(value)} ₽`; }
 function trackQuote(event: string, detail: Record<string, string | number>) { window.dispatchEvent(new CustomEvent("7tool:prototype-event", { detail:{ event, page_type:"quote_request", ...detail } })); }
+function isCartShippingPromise(value: unknown): value is { label: string; detail: string } {
+  if (!value || typeof value !== "object") return false;
+  const promise = value as { label?: unknown; detail?: unknown };
+  return typeof promise.label === "string" && promise.label.length <= 160 && typeof promise.detail === "string" && promise.detail.length <= 160;
+}

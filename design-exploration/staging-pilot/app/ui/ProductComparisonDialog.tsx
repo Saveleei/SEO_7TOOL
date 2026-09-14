@@ -19,6 +19,8 @@ export type ProductComparisonOption = {
   article: string;
   price: string;
   available: boolean;
+  shippingLabel: string;
+  shippingDetail: string;
   image?: string;
   href: string;
   reason: string;
@@ -75,7 +77,7 @@ export function ProductComparisonDialog({ currentProductId, currentVariantId, op
   }
 
   function addAlternative(option: ProductComparisonOption) {
-    addItem({ id:`variant:${option.id}`, title:option.title, article:option.article, price:option.price, image:option.image, href:option.href });
+    addItem({ id:`variant:${option.id}`, title:option.title, article:option.article, price:option.price, image:option.image, href:option.href, shippingLabel:option.shippingLabel, shippingDetail:option.shippingDetail });
     trackComparison("comparison_add_to_quote", { target_product_id:option.productId, target_variant_id:option.id });
   }
 
@@ -91,7 +93,7 @@ export function ProductComparisonDialog({ currentProductId, currentVariantId, op
           <thead><tr><th scope="col">Критерий</th>{options.map((option) => <th className={option.current ? "is-current" : undefined} scope="col" key={option.id}><div className="product-comparison-product">{option.image ? <Image src={option.image} alt="" width={104} height={78} unoptimized /> : <span className="product-comparison-image-fallback">Фото уточняется</span>}<small>{option.current ? "Ваш выбор" : option.reason}</small><b>{option.title}</b><strong>{option.choiceLabel}</strong>{option.choiceContext && <em>{option.choiceContext}</em>}<span>{option.article}</span></div></th>)}</tr></thead>
           <tbody>
             {rows.map((row) => <tr key={row.label}><th scope="row">{row.label}</th>{row.values.map((value, index) => <td className={options[index]?.current ? "is-current" : undefined} key={`${row.label}-${options[index]?.id}`}>{value || <span className="product-comparison-unknown">Нет данных в фиде</span>}</td>)}</tr>)}
-            <tr className="product-comparison-commercial-row"><th scope="row">Цена и наличие</th>{options.map((option) => <td className={option.current ? "is-current" : undefined} key={`commercial-${option.id}`}><b>{option.price}</b><span className={option.available ? "is-available" : undefined}>{option.available ? "В наличии по данным поставщика" : "Срок и наличие уточняются"}</span></td>)}</tr>
+            <tr className="product-comparison-commercial-row"><th scope="row">Цена и отгрузка</th>{options.map((option) => <td className={option.current ? "is-current" : undefined} key={`commercial-${option.id}`}><b>{option.price}</b><span className={option.available ? "is-available" : undefined}>{option.shippingLabel}</span><small>{option.shippingDetail}</small></td>)}</tr>
             <tr className="product-comparison-actions-row"><th scope="row">Действие</th>{options.map((option) => {
               const added = items.some((item) => item.id === `variant:${option.id}`);
               return <td className={option.current ? "is-current" : undefined} key={`action-${option.id}`}>{option.current ? <button type="button" className="product-comparison-keep" onClick={() => setOpen(false)}>{keepAction}</button> : <><button type="button" className={added ? "is-added" : undefined} onClick={() => addAlternative(option)}>{added ? "Добавлено в КП" : "Добавить в КП"}</button><Link href={option.href} onClick={() => trackComparison("comparison_open_product", { target_product_id:option.productId, target_variant_id:option.id })}>Открыть карточку</Link></>}</td>;

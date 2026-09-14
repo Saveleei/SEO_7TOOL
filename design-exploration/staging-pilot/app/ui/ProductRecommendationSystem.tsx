@@ -10,6 +10,7 @@ import {
   type FeedVariant,
 } from "../data/feedCatalog";
 import { getVariantChoicePresentation } from "../data/variantPresentation";
+import { getVariantShippingPromise } from "../data/shippingPromise.mjs";
 import type { ProductPageArchetype } from "../data/productPageArchetypes";
 import { ContactRequestDialog } from "./ContactRequestDialog";
 import { FeedAvailability } from "./FeedAvailability";
@@ -75,19 +76,17 @@ function RecommendationCard({ mode, recommendation }: RecommendationCardProps) {
   const price = formatFeedPrice(variant.price) ?? getFeedProductPriceLabel(product);
   const href = `/product/${product.slug}?variant=${encodeURIComponent(variant.id)}#variants`;
   const label = mode === "compatibility" ? recommendation.relationLabel : recommendation.reason;
+  const shippingPromise = getVariantShippingPromise(variant);
 
   return <article className={`feed-recommendation-card feed-recommendation-card--${mode}`}>
     <a className="feed-recommendation-media" href={href}>{image ? <Image src={image} alt={`${product.title}, ${choice.label}`} width={220} height={170} unoptimized /> : <span>Фото уточняется</span>}</a>
-    <div className="feed-recommendation-body"><span className="feed-recommendation-reason">{label}</span><h4><a href={href}>{product.title}</a></h4><p className="feed-recommendation-choice">{choice.label}</p>{choice.context && <p className="feed-recommendation-context">{choice.context}</p>}<ul>{recommendation.evidence.map((fact) => <li key={fact}>{fact}</li>)}</ul>{recommendation.differences && recommendation.differences.length > 0 && <p className="feed-recommendation-difference"><b>Отличается:</b> {recommendation.differences.join(" · ")}</p>}{recommendation.caveat && <p className="feed-recommendation-caveat">{recommendation.caveat}</p>}<small>{variant.sku ? `Артикул ${variant.sku}` : "Артикул не указан в фиде"}</small><div className="feed-recommendation-commercial"><b>{price}</b><FeedAvailability available={isConfirmedAvailable(variant)} exact /></div>{mode === "compatibility" ? <AddRequestButton item={{ id:`variant:${variant.id}`, title:variant.name || product.title, article:variant.sku ? `Артикул ${variant.sku}` : "Артикул не указан в фиде", price, image, href }}>Добавить в КП</AddRequestButton> : <a className="feed-recommendation-link" href={href}>Сравнить характеристики →</a>}</div>
+    <div className="feed-recommendation-body"><span className="feed-recommendation-reason">{label}</span><h4><a href={href}>{product.title}</a></h4><p className="feed-recommendation-choice">{choice.label}</p>{choice.context && <p className="feed-recommendation-context">{choice.context}</p>}<ul>{recommendation.evidence.map((fact) => <li key={fact}>{fact}</li>)}</ul>{recommendation.differences && recommendation.differences.length > 0 && <p className="feed-recommendation-difference"><b>Отличается:</b> {recommendation.differences.join(" · ")}</p>}{recommendation.caveat && <p className="feed-recommendation-caveat">{recommendation.caveat}</p>}<small>{variant.sku ? `Артикул ${variant.sku}` : "Артикул не указан в фиде"}</small><div className="feed-recommendation-commercial"><b>{price}</b><FeedAvailability shippingPromise={shippingPromise} exact /></div>{mode === "compatibility" ? <AddRequestButton item={{ id:`variant:${variant.id}`, title:variant.name || product.title, article:variant.sku ? `Артикул ${variant.sku}` : "Артикул не указан в фиде", price, image, href, shippingLabel:shippingPromise.label, shippingDetail:shippingPromise.detail }}>Добавить в КП</AddRequestButton> : <a className="feed-recommendation-link" href={href}>Сравнить характеристики →</a>}</div>
   </article>;
-}
-
-function isConfirmedAvailable(variant: FeedVariant): boolean {
-  return variant.available && typeof variant.quantity === "number" && variant.quantity > 0;
 }
 
 function buildComparisonOptions(product: FeedProduct, variant: FeedVariant, alternatives: FeedProductAlternative[]): ProductComparisonOption[] {
   const choice = getVariantChoicePresentation(product, variant);
+  const shippingPromise = getVariantShippingPromise(variant);
   return [
     {
       id:variant.id,
@@ -98,7 +97,9 @@ function buildComparisonOptions(product: FeedProduct, variant: FeedVariant, alte
       choiceContext:choice.context,
       article:variant.sku ? `Артикул ${variant.sku}` : "Артикул не указан в фиде",
       price:formatFeedPrice(variant.price) ?? getFeedProductPriceLabel(product),
-      available:isConfirmedAvailable(variant),
+      available:shippingPromise.available,
+      shippingLabel:shippingPromise.label,
+      shippingDetail:shippingPromise.detail,
       image:variant.images?.find(Boolean) ?? getFeedProductImage(product),
       href:`/product/${product.slug}?variant=${encodeURIComponent(variant.id)}#variants`,
       reason:"Текущее выбранное исполнение",
@@ -106,6 +107,7 @@ function buildComparisonOptions(product: FeedProduct, variant: FeedVariant, alte
     },
     ...alternatives.map((alternative) => {
       const alternativeChoice = getVariantChoicePresentation(alternative.product, alternative.variant);
+      const alternativeShipping = getVariantShippingPromise(alternative.variant);
       return {
         id:alternative.variant.id,
         productId:alternative.product.id,
@@ -115,7 +117,9 @@ function buildComparisonOptions(product: FeedProduct, variant: FeedVariant, alte
         choiceContext:alternativeChoice.context,
         article:alternative.variant.sku ? `Артикул ${alternative.variant.sku}` : "Артикул не указан в фиде",
         price:formatFeedPrice(alternative.variant.price) ?? getFeedProductPriceLabel(alternative.product),
-        available:isConfirmedAvailable(alternative.variant),
+        available:alternativeShipping.available,
+        shippingLabel:alternativeShipping.label,
+        shippingDetail:alternativeShipping.detail,
         image:alternative.variant.images?.find(Boolean) ?? getFeedProductImage(alternative.product),
         href:`/product/${alternative.product.slug}?variant=${encodeURIComponent(alternative.variant.id)}#variants`,
         reason:alternative.reason,

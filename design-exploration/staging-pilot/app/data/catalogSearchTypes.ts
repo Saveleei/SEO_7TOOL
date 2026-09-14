@@ -7,6 +7,8 @@ export type CatalogRequestItem = {
   price?: string;
   image?: string;
   href: string;
+  shippingLabel?: string;
+  shippingDetail?: string;
 };
 
 export type CatalogSearchHit = {
@@ -19,6 +21,7 @@ export type CatalogSearchHit = {
   image?: string;
   price?: string;
   availability?: string;
+  availabilityDetail?: string;
   specs?: string[];
   requestItem?: CatalogRequestItem;
 };

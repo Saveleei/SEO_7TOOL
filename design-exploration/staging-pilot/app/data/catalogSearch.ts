@@ -3,6 +3,7 @@ import { formatFeedPrice, getFeedProductImage, toFeedProductCardModel, type Feed
 import { getProductionCategoryGroups, pilotFeedCategorySlugs } from "./productionCategoryGroups";
 import { normalizeCatalogQuery, rankCatalogItems } from "./catalogSearchEngine.mjs";
 import type { CatalogSearchHit, CatalogSearchResponse } from "./catalogSearchTypes";
+import { getProductShippingPromise, getVariantShippingPromise } from "./shippingPromise.mjs";
 
 type FeedSnapshot = { categories: Array<{ slug: string; title: string; count: number; published: boolean }>; products: FeedProduct[] };
 type SearchIndexItem<T> = { title: string; searchText: string; normalizedTitle: string; normalizedSearchText: string; identifiers?: string[]; normalizedIdentifiers?: string[]; available?: boolean; data: T };
@@ -84,6 +85,7 @@ function toProductHit(product: FeedProduct, normalizedQuery: string): CatalogSea
   const card = toFeedProductCardModel(product);
   const href = `/product/${product.slug}${exactVariant ? `?variant=${encodeURIComponent(exactVariant.id)}` : ""}`;
   const title = exactVariant?.name || product.title;
+  const shippingPromise = exactVariant ? getVariantShippingPromise(exactVariant) : getProductShippingPromise(product.variants);
   return {
     id:`product:${product.id}:${exactVariant?.id ?? "group"}`,
     kind:"product",
@@ -93,13 +95,15 @@ function toProductHit(product: FeedProduct, normalizedQuery: string): CatalogSea
     href,
     image:getFeedProductImage(product),
     price:exactVariant ? formatFeedPrice(exactVariant.price) ?? "Цена по запросу" : card.price,
-    availability:getAvailability(product, exactVariant),
+    availability:shippingPromise.label,
+    availabilityDetail:shippingPromise.detail,
     specs:(exactVariant ? exactVariant.params.filter((parameter) => !/^(бренд|производитель|страна|артикул|штрихкод|серия)$/i.test(parameter.name)).slice(0, 3).map((parameter) => `${parameter.name}: ${parameter.value}${parameter.unit ? ` ${parameter.unit}` : ""}`) : card.specs.slice(0, 3).map((spec) => `${spec.label}: ${spec.value}`)),
     requestItem:chosenVariant ? toRequestItem(product, chosenVariant, href) : undefined,
   };
 }
 
 function toRequestItem(product: FeedProduct, variant: FeedVariant, href: string) {
+  const shippingPromise = getVariantShippingPromise(variant);
   return {
     id:`variant:${variant.id}`,
     title:variant.name || product.title,
@@ -107,12 +111,9 @@ function toRequestItem(product: FeedProduct, variant: FeedVariant, href: string)
     price:formatFeedPrice(variant.price),
     image:getFeedProductImage(product),
     href,
+    shippingLabel:shippingPromise.label,
+    shippingDetail:shippingPromise.detail,
   };
-}
-
-function getAvailability(product: FeedProduct, variant?: FeedVariant): string {
-  if (variant) return variant.available && (variant.quantity ?? 0) > 0 ? "В наличии по данным поставщика" : "Наличие уточняем";
-  return product.stock > 0 ? "Есть исполнения в наличии" : "Наличие уточняем";
 }
 
 function interpretQuery(normalized: string): string {
