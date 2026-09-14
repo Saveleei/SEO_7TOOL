@@ -44,6 +44,7 @@ Implementation complete; kept local pending user acceptance and a separate deplo
 - Direct-product-path follow-up: `ec83578` (`feat: shorten homepage path to products`).
 - Task-priority follow-up: `777583c` (`feat: prioritize task discovery on homepage`).
 - Header-navigation follow-up: `031b13b` (`feat: add task-led header catalog menu`).
+- Key-category visual follow-up: `a6f0208` (`feat: feature key catalog sections on homepage`).
 
 ## Implemented
 
@@ -58,10 +59,10 @@ Implementation complete; kept local pending user acceptance and a separate deplo
 - Replaced the abstract hero backdrop and process-heavy card with a feed-backed 2×3 assortment map covering all six production directions. Each tile uses a real representative product image and links to its task catalog.
 - Rewrote the hero heading and lead so the buyer immediately sees the metalworking specialization and representative range before interacting with search or selection.
 - Removed the duplicate hero search field while preserving the prominent header search, reducing the first viewport to two explicit actions: open the catalog or select by task.
-- Added a curated feed-backed shortlist with one real product per production direction, exact product links, key decision specifications, current safe price/availability presentation and a direct quote action only for exact single-variant products.
-- Kept multi-variant groups honest: their primary action opens the complete execution selector rather than adding an ambiguous SKU to the quote request.
+- Replaced the interim product shortlist with a large visual `Основные разделы каталога` mosaic based on the user-selected industrial-commerce reference pattern.
+- The mosaic exposes six deliberately prioritized, feed-backed categories with real product imagery, current counts and whole-card category links; it contains no SKU noise, unsupported popularity label, promotion or stock claim.
 - Removed inflated supplier-row counts from homepage category cards; the interface now states only stable category structure and leaves live assortment detail to the category pages.
-- Moved production-task discovery above the featured-product shortlist, because homepage visitors can orient by operation without knowing a model or article.
+- Placed the direct category mosaic immediately after the trust strip, followed by production-task discovery for buyers who do not yet know the appropriate equipment type.
 - Changed the hero task CTA to the task-navigation section and kept the detailed engineer request as a later fallback.
 - Limited each task card to three primary subcategories and added native, accessible disclosure for the remaining feed-backed categories, preserving the complete assortment without making the homepage unnecessarily long.
 - Replaced the header catalog link with a task-led mega menu: six feed-backed production directions, three priority categories per direction, complete-direction links and an engineer handoff fallback.
@@ -70,13 +71,13 @@ Implementation complete; kept local pending user acceptance and a separate deplo
 
 ## Verification
 
-- Latest focused homepage/header tests: 11 passed, 0 failed.
+- Latest focused homepage/category tests: 5 passed, 0 failed.
 - Full test suite: 174 passed, 0 failed.
 - Full ESLint run: passed.
 - Production build: passed.
 - Release-candidate smoke against `http://127.0.0.1:3205`: 48 checks passed; all public routes returned 200 and protected manager routes preserved authentication redirects.
 - Direct route check: homepage, catalog, drilling task, burr category and compressor category returned 200.
-- Visual browser check: desktop and 390×844 mobile; the compact hero, assortment map, product shortlist and open catalog menu remained readable. The menu did not clip, the mobile list remained scrollable above the action bar, and Escape closed it successfully.
+- Previous visual browser check: desktop and 390×844 mobile; the compact hero, assortment map and open catalog menu remained readable. The new category mosaic was validated by responsive source rules and route smoke in this pass; no additional browser inspection was requested.
 - No form was submitted and no email, MAX or CRM event was sent.
 
 ## Local acceptance URLs
@@ -89,3 +90,9 @@ Implementation complete; kept local pending user acceptance and a separate deplo
 ## Release note
 
 This branch has not been deployed. `test.7tool.ru` remains on the previously verified release until the new homepage/category concept is accepted and deployment is explicitly approved.
+
+## K2Tool pattern review
+
+- Useful for 7TOOL: a visual category mosaic, concise procurement steps, separate payment/delivery/guarantee/contact pages, downloadable requisites, proof through completed projects and service capabilities when those facts can be documented.
+- Do not copy without evidence: stock coverage, warehouse geography, service-centre status, project volumes, years in business, discounts or same-day logistics.
+- Recommended next content release: contacts and requisites; payment; delivery; warranty/returns; order process; a factual company page. Add service and project cases only after the owner supplies verifiable material.
