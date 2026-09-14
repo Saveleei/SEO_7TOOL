@@ -73,6 +73,17 @@ test("burr promoted filters wrap instead of hiding options", async () => {
   assert.match(styles, /\.feed-promoted-filters--burr>div:nth-child\(4\) \{[^}]*grid-column:1\/3/us);
 });
 
+test("category quick filters expose a live result path and stay compact on mobile", async () => {
+  const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
+  const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  const resultSummary = page.indexOf("category-live-summary");
+  const optionalSelector = page.indexOf("<BurrSelectionAssistant");
+  assert.ok(resultSummary > 0 && resultSummary < optionalSelector);
+  assert.match(page, /href="#feed-results-list">\{result\.total > 0 \? "Перейти к товарам/u);
+  assert.match(page, /className="feed-results" id="feed-results-list"/u);
+  assert.match(styles, /\.feed-promoted-filters>div:not\(\.feed-priority-choice\)>div \{[^}]*flex-wrap:nowrap[^}]*overflow-x:auto/us);
+});
+
 test("variant articles link to the exact execution and availability copy cannot collapse inline", async () => {
   const card = await readFile(new URL("../app/ui/FeedProductCard.tsx", import.meta.url), "utf8");
   const table = await readFile(new URL("../app/ui/FeedProductTable.tsx", import.meta.url), "utf8");

@@ -5,11 +5,14 @@ import { PilotHeader } from "./ui/PilotHeader";
 import { HomepageCategoryTiles } from "./ui/HomepageCategoryTiles";
 import { HomepageTaskPaths } from "./ui/HomepageTaskPaths";
 import { ProcurementWorkbench } from "./ui/ProcurementWorkbench";
+import { TrustSection } from "./ui/TrustSection";
 import { siteContact } from "./data/contactConfig";
 import { getHomepageKeyCategories, getProductionCategoryGroups, pilotFeedCategorySlugs } from "./data/productionCategoryGroups";
+import { getTrustContentSettings } from "./data/trustContentStore";
 
 export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const rawSearchParams = await searchParams;
+  const trustContent = await getTrustContentSettings();
   const initialTask = typeof rawSearchParams.task === "string" ? rawSearchParams.task : undefined;
   const categoryGroups = getProductionCategoryGroups(pilotFeedCategorySlugs);
   const homepageKeyCategories = getHomepageKeyCategories();
@@ -100,11 +103,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
           </div>
         </section>
 
-        <section className="section assurance-section"><div className="container"><div className="section-heading"><div><p className="eyebrow">Не обещания, а проверяемые этапы</p><h2>Что снижает риск закупки</h2></div><p>Инженер, документы и подтверждённые условия поставки находятся рядом с товаром — всё необходимое для решения собрано в одном месте.</p></div><div className="assurance-grid">
-          <article><Image src="/site/why-engineer.webp" alt="Инженер проверяет параметры оборудования" width={420} height={240} /><div><span>01 · Инженер</span><h3>Проверка применимости</h3><p>Сопоставляем операцию, материал, режим работы и совместимую оснастку.</p></div></article>
-          <article><Image src="/site/why-documents.webp" alt="Документы к поставке оборудования" width={420} height={240} /><div><span>02 · Документы</span><h3>Паспорт и сертификаты</h3><p>Собираем пакет документов по конкретному артикулу до оплаты.</p></div></article>
-          <article><Image src="/site/why-stock.webp" alt="Проверка наличия промышленного оборудования" width={420} height={240} /><div><span>03 · Поставка</span><h3>Цена, наличие и срок</h3><p>Фиксируем подтверждённые условия в КП, а не показываем сомнительные остатки.</p></div></article>
-        </div></div></section>
+        <TrustSection content={trustContent} />
 
         <section className="section procurement-section">
           <div className="container procurement-grid">

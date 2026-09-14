@@ -166,6 +166,11 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
         <OpenFullFiltersLink toggleId={`feed-filters-${slug}`} />
       </nav>}
 
+      <aside className={`category-live-summary${result.total === 0 ? " category-live-summary--empty" : ""}`} aria-label="Результат отбора">
+        <div><span>{activeFilterCount > 0 ? `Условий выбрано: ${activeFilterCount}` : "Можно сразу сравнивать"}</span><b>{result.total > 0 ? `${result.total.toLocaleString("ru-RU")} ${pluralizeProductGroups(result.total)} в текущей выдаче` : "Точных совпадений не найдено"}</b><p>{result.total > 0 ? "В карточках уже показаны основные характеристики, цена и путь к точному исполнению." : "Ниже можно ослабить одно условие или передать параметры инженеру без повторного ввода."}</p></div>
+        <a href="#feed-results-list">{result.total > 0 ? "Перейти к товарам ↓" : "Посмотреть следующий шаг ↓"}</a>
+      </aside>
+
       {slug === "borfrezy" && shapeFacet && <BurrSelectionAssistant
         shapeFacetKey={shapeFacet.key}
         shapeOptions={shapeFacet.options}
@@ -211,7 +216,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
           </form>
         </aside>
 
-        <div className="feed-results">
+        <div className="feed-results" id="feed-results-list">
           <div className="feed-results-toolbar"><p><b>{result.total.toLocaleString("ru-RU")}</b> {pluralizeProductGroups(result.total)}{result.total > 0 && <span> · показаны {start}–{end}</span>}</p><div className="feed-toolbar-controls">
             {canUseTable && <nav className="feed-view-switch" aria-label="Вид списка"><a className={view === "table" ? "active" : undefined} href={categoryUrl(slug, rawSearchParams, { setKey:"view", setValue:"table" })}>Таблица</a><a className={view === "cards" ? "active" : undefined} href={categoryUrl(slug, rawSearchParams, { setKey:"view", setValue:"cards" })}>Карточки</a></nav>}
             <form method="get" action={`/catalog/category/${slug}#products`}>
