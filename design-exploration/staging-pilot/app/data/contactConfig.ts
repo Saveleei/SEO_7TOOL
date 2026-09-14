@@ -9,5 +9,13 @@ export const siteContact = {
   photo: "/people/manager.jpg",
 } as const;
 
+export const siteCompany = {
+  brandName: "7TOOL",
+  legalName: "ООО «7TOOL»",
+  address: "Москва, Рябиновая улица, 63, стр. 4",
+  hours: "Пн–Пт 9:00–19:00 МСК",
+  website: "7tool.ru",
+} as const;
+
 export const telegramUrl = siteContact.telegramUrl;
 export const maxUrl = siteContact.maxUrl;

@@ -5,6 +5,12 @@ import feedSnapshot from "../../../7tool-source/src/lib/products.json" with { ty
 const CORE_PUBLIC_ROUTES = [
   "/",
   "/catalog",
+  "/company",
+  "/contacts",
+  "/ordering",
+  "/payment",
+  "/delivery",
+  "/warranty",
   "/product/magnitnyy-sverlilnyy-stanok-lenz-steyr-35",
   "/search?q=STEYR-35",
   "/compare",

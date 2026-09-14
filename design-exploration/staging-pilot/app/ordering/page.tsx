@@ -1,0 +1,13 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { PublicInfoContact, PublicInfoPage } from "../ui/PublicInfoPage";
+
+export const metadata: Metadata = { title:"Как заказать — 7TOOL", description:"Путь от выбора промышленного оборудования до согласованного счёта и отгрузки." };
+
+export default function OrderingPage() {
+  return <PublicInfoPage currentPath="/ordering" eyebrow="Короткий путь к закупке" title="Как оформить заказ" intro="Можно начать с точного товара, списка позиций или обычного описания производственной задачи." asideTitle="Артикул не обязателен" asideText="Если нужной модели нет в витрине, менеджер проверит возможность поставки или предложит аналог по параметрам.">
+    <section className="section public-info-section"><div className="container"><div className="public-info-heading public-info-heading--split"><div><p className="eyebrow">Пять этапов</p><h2>От задачи до отгрузки</h2></div><Link className="button button-dark" href="/catalog">Открыть каталог</Link></div><ol className="public-order-timeline"><li><span>01</span><div><h3>Выберите товар или опишите задачу</h3><p>Для подбора достаточно операции, материала, размеров и режима работы.</p></div></li><li><span>02</span><div><h3>Соберите единый запрос КП</h3><p>Точные исполнения и количество сохраняются без повторного ввода.</p></div></li><li><span>03</span><div><h3>Получите проверку менеджера</h3><p>Цена, наличие, совместимость, комплектация, документы и логистика проверяются вручную.</p></div></li><li><span>04</span><div><h3>Согласуйте КП и счёт</h3><p>В документе фиксируются НДС, срок действия и подтверждённые условия поставки.</p></div></li><li><span>05</span><div><h3>Оплата и отгрузка</h3><p>Действуют реквизиты, срок и способ передачи, указанные в согласованных документах.</p></div></li></ol></div></section>
+    <section className="section section-muted public-info-section"><div className="container public-order-entry"><div><p className="eyebrow">Выберите старт</p><h2>Как вам удобнее начать</h2></div><div><Link href="/catalog"><b>Знаю тип оборудования</b><span>Перейти в каталог →</span></Link><Link href="/#production-categories"><b>Знаю производственную задачу</b><span>Выбрать операцию →</span></Link><a href="mailto:info@7tool.ru?subject=Запрос%20на%20подбор"><b>Есть ТЗ или список</b><span>Отправить на info@7tool.ru →</span></a></div></div></section>
+    <PublicInfoContact title="Начать с разговора с менеджером" text="Сообщите, что требуется получить на производстве. Менеджер задаст только недостающие вопросы и подготовит следующий шаг." placement="ordering_page" />
+  </PublicInfoPage>;
+}
