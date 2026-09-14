@@ -64,4 +64,4 @@ The checked-in snapshot deliberately has `status: unknown` and no completion tim
 
 ## Commit
 
-Pending.
+- Implementation: `8b5e943` (`feat: guard shipping promises with feed freshness`)
