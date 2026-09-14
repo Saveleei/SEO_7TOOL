@@ -39,6 +39,8 @@ Turn the current storefront homepage and category entry points into one coherent
 
 Implementation complete; kept local pending user acceptance and a separate deployment approval.
 
+- Implementation commit: `a84bf03` (`feat: unify homepage and category discovery`).
+
 ## Implemented
 
 - Rebuilt the homepage first viewport around two low-friction B2B paths: search for a known product/model and selection by production task.
