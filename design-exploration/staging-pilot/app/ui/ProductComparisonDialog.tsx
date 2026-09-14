@@ -30,7 +30,7 @@ export type ProductComparisonRow = {
   values: string[];
 };
 
-export function ProductComparisonDialog({ currentProductId, currentVariantId, options, rows }: { currentProductId: string; currentVariantId: string; options: ProductComparisonOption[]; rows: ProductComparisonRow[] }) {
+export function ProductComparisonDialog({ currentProductId, currentVariantId, options, rows, heading = "Похожие модели по выбранному исполнению", description = "Текущий товар остаётся первым. Аналоги отобраны по совпадающим рабочим параметрам; пустые значения не дополнены предположениями.", keepAction = "Оставить текущее исполнение" }: { currentProductId: string; currentVariantId: string; options: ProductComparisonOption[]; rows: ProductComparisonRow[]; heading?: string; description?: string; keepAction?: string }) {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -84,7 +84,7 @@ export function ProductComparisonDialog({ currentProductId, currentVariantId, op
   return <div className="product-comparison-layer" role="dialog" aria-modal="true" aria-labelledby="product-comparison-title" aria-describedby="product-comparison-description" onKeyDown={trapFocus}>
     <button className="product-comparison-backdrop" type="button" aria-label="Закрыть сравнение" onClick={() => setOpen(false)} />
     <section ref={panelRef} className="product-comparison-panel">
-      <header><div><span>Сравнение без возврата в категорию</span><h2 id="product-comparison-title">Похожие модели по выбранному исполнению</h2><p id="product-comparison-description">Текущий товар остаётся первым. Аналоги отобраны по совпадающим рабочим параметрам; пустые значения не дополнены предположениями.</p></div><button ref={closeRef} type="button" aria-label="Закрыть сравнение" onClick={() => setOpen(false)}>×</button></header>
+      <header><div><span>Сравнение без возврата в категорию</span><h2 id="product-comparison-title">{heading}</h2><p id="product-comparison-description">{description}</p></div><button ref={closeRef} type="button" aria-label="Закрыть сравнение" onClick={() => setOpen(false)}>×</button></header>
 
       <div className="product-comparison-scroll" tabIndex={0} aria-label="Таблица сравнения; на узком экране прокручивается по горизонтали">
         <table>
@@ -94,7 +94,7 @@ export function ProductComparisonDialog({ currentProductId, currentVariantId, op
             <tr className="product-comparison-commercial-row"><th scope="row">Цена и наличие</th>{options.map((option) => <td className={option.current ? "is-current" : undefined} key={`commercial-${option.id}`}><b>{option.price}</b><span className={option.available ? "is-available" : undefined}>{option.available ? "В наличии по данным поставщика" : "Срок и наличие уточняются"}</span></td>)}</tr>
             <tr className="product-comparison-actions-row"><th scope="row">Действие</th>{options.map((option) => {
               const added = items.some((item) => item.id === `variant:${option.id}`);
-              return <td className={option.current ? "is-current" : undefined} key={`action-${option.id}`}>{option.current ? <button type="button" className="product-comparison-keep" onClick={() => setOpen(false)}>Оставить текущую модель</button> : <><button type="button" className={added ? "is-added" : undefined} onClick={() => addAlternative(option)}>{added ? "Добавлено в КП" : "Добавить в КП"}</button><Link href={option.href} onClick={() => trackComparison("comparison_open_product", { target_product_id:option.productId, target_variant_id:option.id })}>Открыть карточку</Link></>}</td>;
+              return <td className={option.current ? "is-current" : undefined} key={`action-${option.id}`}>{option.current ? <button type="button" className="product-comparison-keep" onClick={() => setOpen(false)}>{keepAction}</button> : <><button type="button" className={added ? "is-added" : undefined} onClick={() => addAlternative(option)}>{added ? "Добавлено в КП" : "Добавить в КП"}</button><Link href={option.href} onClick={() => trackComparison("comparison_open_product", { target_product_id:option.productId, target_variant_id:option.id })}>Открыть карточку</Link></>}</td>;
             })}</tr>
           </tbody>
         </table>

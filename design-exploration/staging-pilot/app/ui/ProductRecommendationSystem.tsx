@@ -10,6 +10,7 @@ import {
   type FeedVariant,
 } from "../data/feedCatalog";
 import { getVariantChoicePresentation } from "../data/variantPresentation";
+import type { ProductPageArchetype } from "../data/productPageArchetypes";
 import { ContactRequestDialog } from "./ContactRequestDialog";
 import { FeedAvailability } from "./FeedAvailability";
 import { ProductComparisonDialog, type ProductComparisonOption, type ProductComparisonRow } from "./ProductComparisonDialog";
@@ -21,31 +22,32 @@ type ProductRecommendationSystemProps = {
   selectedProductContext: string;
   criteria: Array<{ title: string; copy: string }>;
   alternatives: FeedProductAlternative[];
+  pageArchetype: ProductPageArchetype;
 };
 
-export function ProductRecommendationSystem({ product, variant, selectedProductContext, criteria, alternatives }: ProductRecommendationSystemProps) {
+export function ProductRecommendationSystem({ product, variant, selectedProductContext, criteria, alternatives, pageArchetype }: ProductRecommendationSystemProps) {
   const compatibility = getFeedProductCompatibility(product, variant, 3);
   const selectedChoice = getVariantChoicePresentation(product, variant);
   const comparisonOptions = buildComparisonOptions(product, variant, alternatives);
   const comparisonRows = buildComparisonRows(product, variant, alternatives);
 
-  return <><ProductComparisonDialog currentProductId={product.id} currentVariantId={variant.id} options={comparisonOptions} rows={comparisonRows} /><section className="section section-muted feed-recommendation-system" id="recommendations"><div className="container">
-    <div className="section-heading feed-recommendation-heading"><div><p className="eyebrow">Короткий путь к закупке</p><h2>Комплект и замены без возврата в категорию</h2></div><p>Каждая позиция ниже связана с выбранным исполнением по фактическим параметрам фида. Если данных недостаточно, сайт не подставляет случайный товар.</p></div>
+  return <><ProductComparisonDialog currentProductId={product.id} currentVariantId={variant.id} options={comparisonOptions} rows={comparisonRows} heading={pageArchetype.comparisonTitle} description={pageArchetype.comparisonDescription} keepAction={pageArchetype.comparisonKeepAction} /><section className="section section-muted feed-recommendation-system" id="recommendations"><div className="container">
+    <div className="section-heading feed-recommendation-heading"><div><p className="eyebrow">Короткий путь к закупке</p><h2>{pageArchetype.recommendationTitle}</h2></div><p>{pageArchetype.recommendationIntro}</p></div>
 
     <section className="feed-recommendation-stage" aria-labelledby="compatible-title">
-      <header><span>01</span><div><p>Совместимость</p><h3 id="compatible-title">Подходит к выбранному исполнению</h3></div><small>Только проверяемые совпадения</small></header>
+      <header><span>01</span><div><p>Совместимость</p><h3 id="compatible-title">{pageArchetype.compatibilityTitle}</h3></div><small>Только проверяемые совпадения</small></header>
       {compatibility.length > 0
         ? <div className="feed-recommendation-grid">{compatibility.map((recommendation) => <RecommendationCard key={`${recommendation.product.id}-${recommendation.variant.id}`} mode="compatibility" recommendation={recommendation} />)}</div>
         : <div className="feed-recommendation-empty"><div><b>В фиде нет достаточных данных для автоматической связи</b><p>Не показываем товары из соседней категории наугад. Менеджер проверит посадку, диапазон и рабочие условия по выбранному исполнению.</p></div><ContactRequestDialog categoryTitle={`${selectedProductContext}: проверить совместимость`} buttonLabel="Проверить совместимость" /></div>}
     </section>
 
     <section className="feed-recommendation-stage feed-recommendation-stage--kit" aria-labelledby="kit-title">
-      <header><span>02</span><div><p>Полный комплект</p><h3 id="kit-title">Что нужно проверить для работы</h3></div><small>Без автоматического навязывания</small></header>
+      <header><span>02</span><div><p>Полный комплект</p><h3 id="kit-title">{pageArchetype.kitTitle}</h3></div><small>Без автоматического навязывания</small></header>
       <div className="feed-recommendation-kit"><div className="feed-recommendation-kit-copy"><span>Уже передадим инженеру</span><b>{selectedChoice.label}</b><p>{product.title}{variant.sku ? ` · артикул ${variant.sku}` : ""}</p></div><ol>{criteria.slice(0, 3).map((criterion) => <li key={criterion.title}><b>{criterion.title}</b><span>{criterion.copy}</span></li>)}</ol><div className="feed-recommendation-kit-action"><b>Собрать комплект под вашу задачу</b><p>Переходники, расходные материалы и оснастку добавим только после проверки применимости. В форме уже сохранено выбранное исполнение.</p><ContactRequestDialog categoryTitle={`${selectedProductContext}: полный комплект`} buttonLabel="Подобрать полный комплект" /></div></div>
     </section>
 
     <section className="feed-recommendation-stage" aria-labelledby="alternatives-title">
-      <header><span>03</span><div><p>Осознанная замена</p><h3 id="alternatives-title">Альтернативы для сравнения</h3></div><small>С объяснением различий</small></header>
+      <header><span>03</span><div><p>Осознанная замена</p><h3 id="alternatives-title">{pageArchetype.alternativesTitle}</h3></div><small>С объяснением различий</small></header>
       {alternatives.length > 0
         ? <div className="feed-recommendation-grid">{alternatives.map((recommendation) => <RecommendationCard key={`${recommendation.product.id}-${recommendation.variant.id}`} mode="alternative" recommendation={recommendation} />)}</div>
         : <div className="feed-recommendation-empty"><div><b>Нет моделей с достаточным числом сопоставимых параметров</b><p>Это безопаснее случайной выдачи похожих названий. Инженер предложит замену после уточнения обязательных характеристик.</p></div><ContactRequestDialog categoryTitle={`${selectedProductContext}: подобрать альтернативу`} buttonLabel="Подобрать альтернативу" /></div>}
