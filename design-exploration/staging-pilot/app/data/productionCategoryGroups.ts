@@ -1,4 +1,4 @@
-import { getFeedCategory, getFeedCategoryProducts, getFeedProductBySlug, getFeedProductImage, getPublishedFeedCategorySlugs, type FeedProduct } from "./feedCatalog.ts";
+import { getFeedCategory, getFeedCategoryProducts, getFeedProductBySlug, getFeedProductImage, getPublishedFeedCategorySlugs } from "./feedCatalog.ts";
 
 export type ProductionSubcategory = {
   slug: string;
@@ -69,6 +69,15 @@ const definitions: ProductionCategoryGroup[] = [
 // Пилот читает опубликованные категории из локального снимка нормализованного фида.
 export const pilotFeedCategorySlugs = getPublishedFeedCategorySlugs();
 
+export const homepageKeyCategorySlugs = [
+  "stanki-sverlilnye",
+  "koronchatye-sverla",
+  "kromkorezy-dlya-trub",
+  "kromkorezy-po-listu",
+  "borfrezy",
+  "rezbonareznye-manipulyatory",
+] as const;
+
 export function getProductionCategoryGroups(activeCategorySlugs: string[]): ProductionCategoryGroup[] {
   const active = new Set(activeCategorySlugs);
   return definitions
@@ -88,10 +97,15 @@ export function getProductionCategoryGroups(activeCategorySlugs: string[]): Prod
     .filter((group) => group.subcategories.length > 0);
 }
 
-export function getHomepageFeaturedProducts(): FeedProduct[] {
-  return definitions.flatMap((group) => {
-    const product = group.representativeProductSlug ? getFeedProductBySlug(group.representativeProductSlug) : undefined;
-    return product ? [product] : [];
+export function getHomepageKeyCategories(): ProductionSubcategory[] {
+  const categories = new Map(
+    getProductionCategoryGroups(pilotFeedCategorySlugs)
+      .flatMap((group) => group.subcategories)
+      .map((subcategory) => [subcategory.slug, subcategory]),
+  );
+  return homepageKeyCategorySlugs.flatMap((slug) => {
+    const category = categories.get(slug);
+    return category ? [category] : [];
   });
 }
 

@@ -2,18 +2,17 @@ import Link from "next/link";
 import Image from "next/image";
 import { PilotFooter } from "./ui/PilotFooter";
 import { PilotHeader } from "./ui/PilotHeader";
-import { HomepageProductGrid } from "./ui/HomepageProductGrid";
+import { HomepageCategoryTiles } from "./ui/HomepageCategoryTiles";
 import { ProcurementWorkbench } from "./ui/ProcurementWorkbench";
 import { ProductionCategoryGrid } from "./ui/ProductionCategoryGrid";
 import { siteContact } from "./data/contactConfig";
-import { toFeedProductCardModel } from "./data/feedCatalog";
-import { getHomepageFeaturedProducts, getProductionCategoryGroups, pilotFeedCategorySlugs } from "./data/productionCategoryGroups";
+import { getHomepageKeyCategories, getProductionCategoryGroups, pilotFeedCategorySlugs } from "./data/productionCategoryGroups";
 
 export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const rawSearchParams = await searchParams;
   const initialTask = typeof rawSearchParams.task === "string" ? rawSearchParams.task : undefined;
   const categoryGroups = getProductionCategoryGroups(pilotFeedCategorySlugs);
-  const homepageProducts = getHomepageFeaturedProducts().map((product) => toFeedProductCardModel(product));
+  const homepageKeyCategories = getHomepageKeyCategories();
   const categoryCount = new Set(categoryGroups.flatMap((group) => group.subcategories.map((subcategory) => subcategory.slug))).size;
   return (
     <div className="site-shell">
@@ -72,6 +71,24 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
           </div>
         </section>
 
+        <section className="section homepage-key-categories-section" aria-labelledby="homepage-key-categories-title">
+          <div className="container">
+            <div className="homepage-key-categories-heading">
+              <div>
+                <p className="eyebrow">Быстрый вход в каталог</p>
+                <h2 id="homepage-key-categories-title">Основные разделы каталога</h2>
+                <p>Выберите тип оборудования или оснастки — внутри доступны характеристики, исполнения и подбор по параметрам.</p>
+              </div>
+              <Link className="button button-quiet" href="/catalog">Смотреть весь каталог</Link>
+            </div>
+            <HomepageCategoryTiles categories={homepageKeyCategories} />
+            <div className="homepage-key-categories-foot">
+              <span>Не знаете, какой раздел подходит вашей задаче?</span>
+              <a href="#production-categories">Выбрать по производственной задаче →</a>
+            </div>
+          </div>
+        </section>
+
         <section className="section production-task-section" id="production-categories">
           <div className="container">
             <div className="section-heading">
@@ -80,17 +97,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
             </div>
             <div className="home-catalog-overview"><div><b>{categoryGroups.length}</b><span>производственных задач</span></div><div><b>{categoryCount}</b><span>категории с товарами</span></div><p>Не уверены в разделе? Выберите ближайшую операцию — внутри можно уточнить параметры или передать задачу инженеру.</p><Link href="/catalog">Посмотреть весь каталог →</Link></div>
             <ProductionCategoryGrid groups={categoryGroups} />
-          </div>
-        </section>
-
-        <section className="section homepage-products-section" aria-labelledby="homepage-products-title">
-          <div className="container">
-            <div className="section-heading">
-              <div><p className="eyebrow">Прямой путь к товару</p><h2 id="homepage-products-title">Ключевые позиции каталога</h2></div>
-              <p>По одному реальному товару из каждого направления. Цена и статус показаны из текущих данных; точное исполнение и срок подтверждаются до оплаты.</p>
-            </div>
-            <HomepageProductGrid products={homepageProducts} />
-            <div className="homepage-products-footer"><Link className="button button-quiet" href="/catalog">Посмотреть все категории</Link><a href="#quick-order">Не нашли нужное? Передать задачу инженеру →</a></div>
           </div>
         </section>
 

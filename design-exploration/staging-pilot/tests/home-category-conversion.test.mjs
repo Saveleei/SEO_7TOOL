@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { getFeedCategory, getPublishedFeedCategorySlugs } from "../app/data/feedCatalog.ts";
-import { getHomepageFeaturedProducts, getProductionCategoryGroups } from "../app/data/productionCategoryGroups.ts";
+import { getHomepageKeyCategories, getProductionCategoryGroups, homepageKeyCategorySlugs } from "../app/data/productionCategoryGroups.ts";
 
 test("homepage production tasks expose every published category with feed-backed counts", () => {
   const published = getPublishedFeedCategorySlugs();
@@ -18,12 +18,13 @@ test("homepage production tasks expose every published category with feed-backed
       assert.match(subcategory.href, new RegExp(`^/catalog/category/${subcategory.slug}$`, "u"));
     }
   }
-  const featured = getHomepageFeaturedProducts();
-  assert.equal(featured.length, groups.length);
-  assert.equal(new Set(featured.map((product) => product.id)).size, featured.length);
-  for (const product of featured) {
-    assert.ok(product.images.some(Boolean) || product.variants.some((variant) => variant.images?.some(Boolean)), `${product.slug}: homepage product has no image`);
-    assert.ok(product.variants.length > 0, `${product.slug}: homepage product has no execution`);
+  const keyCategories = getHomepageKeyCategories();
+  assert.deepEqual(keyCategories.map((category) => category.slug), [...homepageKeyCategorySlugs]);
+  assert.equal(new Set(keyCategories.map((category) => category.slug)).size, keyCategories.length);
+  for (const category of keyCategories) {
+    assert.ok(category.image, `${category.slug}: homepage category has no image`);
+    assert.ok((category.count ?? 0) > 0, `${category.slug}: homepage category has no products`);
+    assert.equal(category.href, `/catalog/category/${category.slug}`);
   }
 });
 
@@ -37,9 +38,9 @@ test("homepage first viewport explains the assortment and separates search from 
   assert.match(page, /group\.representativeImage/u);
   assert.match(page, /Основные направления каталога/u);
   assert.match(page, /href="#production-categories"/u);
-  assert.match(page, /HomepageProductGrid/u);
-  assert.match(page, /Ключевые позиции каталога/u);
-  assert.ok(page.indexOf('id="production-categories"') < page.indexOf('aria-labelledby="homepage-products-title"'), "task navigation should precede the product shortlist");
+  assert.match(page, /HomepageCategoryTiles/u);
+  assert.match(page, /Основные разделы каталога/u);
+  assert.ok(page.indexOf('aria-labelledby="homepage-key-categories-title"') < page.indexOf('id="production-categories"'), "direct category entry should precede task navigation");
   assert.doesNotMatch(page, /<HeroSearch/u);
   assert.match(page, /data-contact-placement="homepage_hero"/u);
   assert.match(page, /siteContact\.phoneHref/u);
@@ -75,12 +76,11 @@ test("catalog and task pages lead with category identity instead of repeated tas
   assert.match(grid, /Все категории направления/u);
 });
 
-test("homepage product shortlist keeps exact product and quote actions", async () => {
-  const grid = await readFile(new URL("../app/ui/HomepageProductGrid.tsx", import.meta.url), "utf8");
-  assert.match(grid, /\/product\/\$\{product\.slug\}/u);
-  assert.match(grid, /variant:\$\{directVariant\.id\}/u);
-  assert.match(grid, /FeedAvailability/u);
-  assert.match(grid, /Добавить в КП/u);
-  assert.match(grid, /product\.cardArchetype\.multipleAction/u);
-  assert.doesNotMatch(grid, /В наличии по данным поставщика/u);
+test("homepage catalog tiles lead to real categories without SKU noise", async () => {
+  const grid = await readFile(new URL("../app/ui/HomepageCategoryTiles.tsx", import.meta.url), "utf8");
+  assert.match(grid, /href=\{category\.href\}/u);
+  assert.match(grid, /Основные разделы каталога/u);
+  assert.match(grid, /formatProductCount/u);
+  assert.match(grid, /category\.image/u);
+  assert.doesNotMatch(grid, /Артикул|sku|Добавить в КП/u);
 });
