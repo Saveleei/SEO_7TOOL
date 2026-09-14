@@ -42,6 +42,7 @@ Implementation complete; kept local pending user acceptance and a separate deplo
 - Implementation commit: `a84bf03` (`feat: unify homepage and category discovery`).
 - Assortment-clarity follow-up: `49e5001` (`feat: show assortment map in homepage hero`).
 - Direct-product-path follow-up: `ec83578` (`feat: shorten homepage path to products`).
+- Task-priority follow-up: `777583c` (`feat: prioritize task discovery on homepage`).
 
 ## Implemented
 
@@ -59,6 +60,9 @@ Implementation complete; kept local pending user acceptance and a separate deplo
 - Added a curated feed-backed shortlist with one real product per production direction, exact product links, key decision specifications, current safe price/availability presentation and a direct quote action only for exact single-variant products.
 - Kept multi-variant groups honest: their primary action opens the complete execution selector rather than adding an ambiguous SKU to the quote request.
 - Removed inflated supplier-row counts from homepage category cards; the interface now states only stable category structure and leaves live assortment detail to the category pages.
+- Moved production-task discovery above the featured-product shortlist, because homepage visitors can orient by operation without knowing a model or article.
+- Changed the hero task CTA to the task-navigation section and kept the detailed engineer request as a later fallback.
+- Limited each task card to three primary subcategories and added native, accessible disclosure for the remaining feed-backed categories, preserving the complete assortment without making the homepage unnecessarily long.
 
 ## Verification
 
