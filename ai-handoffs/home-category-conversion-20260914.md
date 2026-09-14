@@ -41,6 +41,7 @@ Implementation complete; kept local pending user acceptance and a separate deplo
 
 - Implementation commit: `a84bf03` (`feat: unify homepage and category discovery`).
 - Assortment-clarity follow-up: `49e5001` (`feat: show assortment map in homepage hero`).
+- Direct-product-path follow-up: `ec83578` (`feat: shorten homepage path to products`).
 
 ## Implemented
 
@@ -54,16 +55,20 @@ Implementation complete; kept local pending user acceptance and a separate deplo
 - Added regression coverage for published-category completeness, the two homepage discovery paths, real contacts, stale-link removal and category-navigation placement.
 - Replaced the abstract hero backdrop and process-heavy card with a feed-backed 2×3 assortment map covering all six production directions. Each tile uses a real representative product image and links to its task catalog.
 - Rewrote the hero heading and lead so the buyer immediately sees the metalworking specialization and representative range before interacting with search or selection.
+- Removed the duplicate hero search field while preserving the prominent header search, reducing the first viewport to two explicit actions: open the catalog or select by task.
+- Added a curated feed-backed shortlist with one real product per production direction, exact product links, key decision specifications, current safe price/availability presentation and a direct quote action only for exact single-variant products.
+- Kept multi-variant groups honest: their primary action opens the complete execution selector rather than adding an ambiguous SKU to the quote request.
+- Removed inflated supplier-row counts from homepage category cards; the interface now states only stable category structure and leaves live assortment detail to the category pages.
 
 ## Verification
 
-- Focused homepage/category tests: 14 passed.
-- Full test suite: 172 passed, 0 failed.
+- Latest focused homepage/category tests: 5 passed, 0 failed.
+- Full test suite: 173 passed, 0 failed.
 - Full ESLint run: passed.
 - Production build: passed.
 - Release-candidate smoke against `http://127.0.0.1:3205`: 48 checks passed; all public routes returned 200 and protected manager routes preserved authentication redirects.
 - Direct route check: homepage, catalog, drilling task, burr category and compressor category returned 200.
-- Visual browser check: 1440×1000 desktop and 390×844 mobile; the assortment map remained readable, product images loaded, controls did not overlap and the mobile card used a 2-column layout.
+- Visual browser check: 1440×1000 desktop and 390×844 mobile; the compact hero, assortment map and new product shortlist remained readable, product images loaded, controls did not overlap and mobile product cards preserved specifications, price and the primary action.
 - No form was submitted and no email, MAX or CRM event was sent.
 
 ## Local acceptance URLs
