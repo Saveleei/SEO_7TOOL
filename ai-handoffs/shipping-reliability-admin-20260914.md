@@ -9,7 +9,8 @@
 
 ## Safety boundaries
 
-- No production or test deployment in this task without a new explicit approval.
+- The user explicitly approved deployment to `test.7tool.ru` after the local implementation was verified. Only the isolated test PM2 process was changed.
+- Production, DNS, Nginx, credentials, cron and feed publication were not changed.
 - No external form submission, email, MAX or CRM delivery.
 - Existing catalog and quote data remain intact.
 
@@ -54,6 +55,22 @@
 - `git diff --check`: passed (only repository line-ending notices).
 - No external customer form, email, MAX or CRM send was performed.
 
+## Test deployment
+
+- User approval: explicit `Выкладывай на test.7tool.ru` on 2026-09-14.
+- Deployed commit: `8fc60a3` (includes implementation `8b5e943` and the local verification handoff).
+- Active release: `/var/www/7tool-release-20260914-shipping-reliability-8fc60a3`.
+- Preserved rollback: `/var/www/7tool-release-20260914-shipping-cutoff-c47283a`.
+- The source product snapshot SHA-256 matches the previously active test release; no catalog data was silently replaced.
+- Initial server verification exposed an incomplete deployment archive: `7tool-source/scripts` had been omitted, so the source-ordering regression reported 167/168. The missing tracked scripts from the same commit were added before activation; the repeated server suite passed **168/168**, followed by full ESLint and a successful production build.
+- Candidate smoke on port 3199: **48/48 passed**. Safe unknown-freshness copy and disabled misleading stock filtering were asserted directly against rendered HTML.
+- Post-switch smoke on port 3000: **48/48 passed** with the same safe-copy assertions.
+- `7tool-storefront-test` is online from the new release with 0 restarts. The temporary port-3199 candidate was stopped and its two upload archives were removed.
+- No new error-log entry references the active release.
+- External HTTPS gate remains the expected `401` Basic Auth challenge; `https://7tool.ru/` remains `200`.
+- Automated external visual navigation was blocked by the browser's stale Basic Auth credentials (`ERR_INVALID_AUTH_CREDENTIALS`). The same built artifact had already passed local desktop/mobile browser acceptance, and the deployed artifact passed loopback HTML/API checks and the complete smoke matrix.
+- Available server disk after cleanup: **2.8 GB**.
+
 ## Local preview
 
 - Safe fail-closed release candidate: `http://127.0.0.1:3197/`
@@ -65,3 +82,4 @@ The checked-in snapshot deliberately has `status: unknown` and no completion tim
 ## Commit
 
 - Implementation: `8b5e943` (`feat: guard shipping promises with feed freshness`)
+- Local verification handoff: `8fc60a3` (`docs: record shipping reliability verification`)
