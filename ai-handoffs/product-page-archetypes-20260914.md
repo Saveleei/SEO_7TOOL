@@ -62,4 +62,4 @@ Turn the existing product page into feed-backed buying experiences appropriate t
 
 ## Commit
 
-- `b88f991` — `feat: tailor product pages to buying scenarios`
+- `a2dd8dc` — `feat: tailor product pages to buying scenarios`
