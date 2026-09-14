@@ -40,6 +40,7 @@ Turn the current storefront homepage and category entry points into one coherent
 Implementation complete; kept local pending user acceptance and a separate deployment approval.
 
 - Implementation commit: `a84bf03` (`feat: unify homepage and category discovery`).
+- Assortment-clarity follow-up: `49e5001` (`feat: show assortment map in homepage hero`).
 
 ## Implemented
 
@@ -51,6 +52,8 @@ Implementation complete; kept local pending user acceptance and a separate deplo
 - Added sibling category navigation above the listing so a buyer can move between related subcategories without returning to the parent category.
 - Added responsive layouts for the new homepage, catalog, task and category-navigation components, including horizontally scrollable related-category controls on narrow screens.
 - Added regression coverage for published-category completeness, the two homepage discovery paths, real contacts, stale-link removal and category-navigation placement.
+- Replaced the abstract hero backdrop and process-heavy card with a feed-backed 2×3 assortment map covering all six production directions. Each tile uses a real representative product image and links to its task catalog.
+- Rewrote the hero heading and lead so the buyer immediately sees the metalworking specialization and representative range before interacting with search or selection.
 
 ## Verification
 
@@ -58,16 +61,17 @@ Implementation complete; kept local pending user acceptance and a separate deplo
 - Full test suite: 172 passed, 0 failed.
 - Full ESLint run: passed.
 - Production build: passed.
-- Release-candidate smoke against `http://127.0.0.1:3204`: 48 checks passed; all public routes returned 200 and protected manager routes preserved authentication redirects.
+- Release-candidate smoke against `http://127.0.0.1:3205`: 48 checks passed; all public routes returned 200 and protected manager routes preserved authentication redirects.
 - Direct route check: homepage, catalog, drilling task, burr category and compressor category returned 200.
+- Visual browser check: 1440×1000 desktop and 390×844 mobile; the assortment map remained readable, product images loaded, controls did not overlap and the mobile card used a 2-column layout.
 - No form was submitted and no email, MAX or CRM event was sent.
 
 ## Local acceptance URLs
 
-- `http://127.0.0.1:3204/`
-- `http://127.0.0.1:3204/catalog`
-- `http://127.0.0.1:3204/catalog/task/drilling`
-- `http://127.0.0.1:3204/catalog/category/borfrezy`
+- `http://127.0.0.1:3205/`
+- `http://127.0.0.1:3205/catalog`
+- `http://127.0.0.1:3205/catalog/task/drilling`
+- `http://127.0.0.1:3205/catalog/category/borfrezy`
 
 ## Release note
 
