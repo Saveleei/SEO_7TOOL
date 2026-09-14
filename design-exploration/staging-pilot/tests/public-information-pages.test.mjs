@@ -15,6 +15,12 @@ test("public information routes provide one factual procurement layer", async ()
   assert.match(sources.find(([route]) => route === "payment")[1], /getQuoteTemplateSettings/u);
   assert.match(sources.find(([route]) => route === "delivery")[1], /getShippingSettings/u);
   assert.match(sources.find(([route]) => route === "contacts")[1], /Банковские реквизиты передаются в выставленном счёте/u);
+  assert.match(sources.find(([route]) => route === "company")[1], /public-hero-catalog/u);
+  assert.match(sources.find(([route]) => route === "contacts")[1], /placement="contacts_hero"/u);
+  assert.match(sources.find(([route]) => route === "ordering")[1], /public-flow-preview/u);
+  assert.match(sources.find(([route]) => route === "payment")[1], /public-document-preview/u);
+  assert.match(sources.find(([route]) => route === "delivery")[1], /public-delivery-preview/u);
+  assert.match(sources.find(([route]) => route === "warranty")[1], /public-document-stack/u);
 });
 
 test("shared public navigation exposes every information route", async () => {

@@ -3,8 +3,8 @@ import Image from "next/image";
 import { PilotFooter } from "./ui/PilotFooter";
 import { PilotHeader } from "./ui/PilotHeader";
 import { HomepageCategoryTiles } from "./ui/HomepageCategoryTiles";
+import { HomepageTaskPaths } from "./ui/HomepageTaskPaths";
 import { ProcurementWorkbench } from "./ui/ProcurementWorkbench";
-import { ProductionCategoryGrid } from "./ui/ProductionCategoryGrid";
 import { siteContact } from "./data/contactConfig";
 import { getHomepageKeyCategories, getProductionCategoryGroups, pilotFeedCategorySlugs } from "./data/productionCategoryGroups";
 
@@ -92,11 +92,11 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
         <section className="section production-task-section" id="production-categories">
           <div className="container">
             <div className="section-heading">
-              <div><p className="eyebrow">Короткий путь без артикула</p><h2>Выберите производственную задачу</h2></div>
-              <p>Сначала выберите операцию, затем подходящий тип оборудования. Основные категории видны сразу, остальные можно раскрыть внутри карточки.</p>
+              <div><p className="eyebrow">Если не знаете раздел</p><h2>Начните с производственной задачи</h2></div>
+              <p>Выберите ближайшую операцию. На следующем шаге увидите подходящие категории и сможете уточнить параметры без знания артикула.</p>
             </div>
-            <div className="home-catalog-overview"><div><b>{categoryGroups.length}</b><span>производственных задач</span></div><div><b>{categoryCount}</b><span>категории с товарами</span></div><p>Не уверены в разделе? Выберите ближайшую операцию — внутри можно уточнить параметры или передать задачу инженеру.</p><Link href="/catalog">Посмотреть весь каталог →</Link></div>
-            <ProductionCategoryGrid groups={categoryGroups} />
+            <HomepageTaskPaths groups={categoryGroups} />
+            <div className="homepage-task-foot"><span>{categoryGroups.length} направлений · {formatCategoryCount(categoryCount)}</span><Link href="/catalog">Смотреть структуру всего каталога →</Link></div>
           </div>
         </section>
 

@@ -14,13 +14,14 @@ const informationLinks = [
   { href:"/contacts", label:"Контакты" },
 ] as const;
 
-export function PublicInfoPage({ currentPath, eyebrow, title, intro, asideTitle, asideText, children }: {
+export function PublicInfoPage({ currentPath, eyebrow, title, intro, asideTitle, asideText, heroVisual, children }: {
   currentPath: string;
   eyebrow: string;
   title: string;
   intro: string;
   asideTitle: string;
   asideText: string;
+  heroVisual?: ReactNode;
   children: ReactNode;
 }) {
   return <div className="site-shell">
@@ -30,7 +31,7 @@ export function PublicInfoPage({ currentPath, eyebrow, title, intro, asideTitle,
       <section className="public-info-hero">
         <div className="container">
           <div><p className="eyebrow">{eyebrow}</p><h1>{title}</h1><p>{intro}</p></div>
-          <aside><span>Перед закупкой</span><b>{asideTitle}</b><p>{asideText}</p><Link href="/ordering">Посмотреть порядок работы →</Link></aside>
+          <div className="public-info-hero-visual">{heroVisual ?? <aside><span>Перед закупкой</span><b>{asideTitle}</b><p>{asideText}</p><Link href="/ordering">Посмотреть порядок работы →</Link></aside>}</div>
         </div>
       </section>
       <nav className="public-info-navigation" aria-label="Информация для покупателей">

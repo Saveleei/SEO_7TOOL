@@ -39,6 +39,8 @@ test("homepage first viewport explains the assortment and separates search from 
   assert.match(page, /Основные направления каталога/u);
   assert.match(page, /href="#production-categories"/u);
   assert.match(page, /HomepageCategoryTiles/u);
+  assert.match(page, /HomepageTaskPaths/u);
+  assert.doesNotMatch(page, /<ProductionCategoryGrid/u);
   assert.match(page, /Основные разделы каталога/u);
   assert.ok(page.indexOf('aria-labelledby="homepage-key-categories-title"') < page.indexOf('id="production-categories"'), "direct category entry should precede task navigation");
   assert.doesNotMatch(page, /<HeroSearch/u);
@@ -77,10 +79,17 @@ test("catalog and task pages lead with category identity instead of repeated tas
 });
 
 test("homepage catalog tiles lead to real categories without SKU noise", async () => {
-  const grid = await readFile(new URL("../app/ui/HomepageCategoryTiles.tsx", import.meta.url), "utf8");
+  const [grid, tasks] = await Promise.all([
+    readFile(new URL("../app/ui/HomepageCategoryTiles.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/ui/HomepageTaskPaths.tsx", import.meta.url), "utf8"),
+  ]);
   assert.match(grid, /href=\{category\.href\}/u);
   assert.match(grid, /Основные разделы каталога/u);
   assert.match(grid, /formatProductCount/u);
   assert.match(grid, /category\.image/u);
   assert.doesNotMatch(grid, /Артикул|sku|Добавить в КП/u);
+  assert.match(tasks, /group\.representativeImage/u);
+  assert.match(tasks, /group\.subcategories\.slice\(0, 2\)/u);
+  assert.match(tasks, /Подобрать по задаче/u);
+  assert.doesNotMatch(tasks, /details|Артикул|Добавить в КП/u);
 });
