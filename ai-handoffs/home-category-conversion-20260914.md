@@ -43,6 +43,7 @@ Implementation complete; kept local pending user acceptance and a separate deplo
 - Assortment-clarity follow-up: `49e5001` (`feat: show assortment map in homepage hero`).
 - Direct-product-path follow-up: `ec83578` (`feat: shorten homepage path to products`).
 - Task-priority follow-up: `777583c` (`feat: prioritize task discovery on homepage`).
+- Header-navigation follow-up: `031b13b` (`feat: add task-led header catalog menu`).
 
 ## Implemented
 
@@ -63,16 +64,19 @@ Implementation complete; kept local pending user acceptance and a separate deplo
 - Moved production-task discovery above the featured-product shortlist, because homepage visitors can orient by operation without knowing a model or article.
 - Changed the hero task CTA to the task-navigation section and kept the detailed engineer request as a later fallback.
 - Limited each task card to three primary subcategories and added native, accessible disclosure for the remaining feed-backed categories, preserving the complete assortment without making the homepage unnecessarily long.
+- Replaced the header catalog link with a task-led mega menu: six feed-backed production directions, three priority categories per direction, complete-direction links and an engineer handoff fallback.
+- Added click-outside and Escape dismissal, focus restoration, responsive 3×2 desktop and scrollable mobile layouts, and retained the prominent header search.
+- Shortened the contact control to `Связаться`, changed the task shortcut to the production-task section and converted the header quote action to a calm graphite `КП` state with an orange item counter.
 
 ## Verification
 
-- Latest focused homepage/category tests: 5 passed, 0 failed.
-- Full test suite: 173 passed, 0 failed.
+- Latest focused homepage/header tests: 11 passed, 0 failed.
+- Full test suite: 174 passed, 0 failed.
 - Full ESLint run: passed.
 - Production build: passed.
 - Release-candidate smoke against `http://127.0.0.1:3205`: 48 checks passed; all public routes returned 200 and protected manager routes preserved authentication redirects.
 - Direct route check: homepage, catalog, drilling task, burr category and compressor category returned 200.
-- Visual browser check: 1440×1000 desktop and 390×844 mobile; the compact hero, assortment map and new product shortlist remained readable, product images loaded, controls did not overlap and mobile product cards preserved specifications, price and the primary action.
+- Visual browser check: desktop and 390×844 mobile; the compact hero, assortment map, product shortlist and open catalog menu remained readable. The menu did not clip, the mobile list remained scrollable above the action bar, and Escape closed it successfully.
 - No form was submitted and no email, MAX or CRM event was sent.
 
 ## Local acceptance URLs
