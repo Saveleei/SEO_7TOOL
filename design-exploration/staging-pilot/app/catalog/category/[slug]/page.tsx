@@ -140,6 +140,10 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
       <a href={selectorHref}>Ответить на несколько вопросов →</a>
     </aside></div></section>
 
+    <nav className="category-sibling-navigation" aria-label={`Категории направления «${group.title}»`}>
+      <div className="container"><header><span>В составе задачи</span><b>{group.title}</b><Link href={group.href}>Обзор направления →</Link></header><div>{group.subcategories.map((item) => <Link className={item.slug === slug ? "active" : undefined} aria-current={item.slug === slug ? "page" : undefined} href={item.href} key={item.slug}><span>{item.label}</span><small>{(item.count ?? 0).toLocaleString("ru-RU")}</small></Link>)}</div></div>
+    </nav>
+
     <section className="section feed-category-listing" id="products"><div className="container">
       <div className="section-heading feed-category-heading"><div><p className="eyebrow">Фактический ассортимент</p><h2>{profile.listingTitle}</h2></div><p>Главные параметры вынесены наверх. Полный набор фильтров остаётся слева.</p></div>
 

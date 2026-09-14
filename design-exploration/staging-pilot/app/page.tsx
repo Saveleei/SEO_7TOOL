@@ -4,13 +4,15 @@ import { HeroSearch } from "./ui/HeroSearch";
 import { PilotFooter } from "./ui/PilotFooter";
 import { PilotHeader } from "./ui/PilotHeader";
 import { ProcurementWorkbench } from "./ui/ProcurementWorkbench";
-import { AddRequestButton } from "./ui/RequestCart";
 import { ProductionCategoryGrid } from "./ui/ProductionCategoryGrid";
+import { siteContact } from "./data/contactConfig";
 import { getProductionCategoryGroups, pilotFeedCategorySlugs } from "./data/productionCategoryGroups";
 
 export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const rawSearchParams = await searchParams;
   const initialTask = typeof rawSearchParams.task === "string" ? rawSearchParams.task : undefined;
+  const categoryGroups = getProductionCategoryGroups(pilotFeedCategorySlugs);
+  const categoryCount = new Set(categoryGroups.flatMap((group) => group.subcategories.map((subcategory) => subcategory.slug))).size;
   return (
     <div className="site-shell">
       <PilotHeader />
@@ -18,23 +20,39 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
         <section className="hero" id="top">
           <div className="container hero-grid">
             <div className="hero-copy">
-              <p className="eyebrow">Инженерный интернет-каталог 7TOOL</p>
-              <h1>Подбор промышленного оборудования для обработки металла</h1>
-              <p className="hero-lead">Опишите задачу или укажите известную модель. Проверим подходящее оборудование, совместимость оснастки, цену и реальный срок поставки.</p>
-              <div className="hero-scope" aria-label="Ассортимент 7TOOL"><span>Оборудование</span><span>Оснастка</span><span>Расходники</span><span>Сервис</span></div>
+              <p className="eyebrow">Промышленное оборудование · оснастка · расходные материалы</p>
+              <h1>Найдите оборудование по модели или производственной задаче</h1>
+              <p className="hero-lead">Каталог 7TOOL помогает дойти от операции и параметров до конкретного исполнения. Цена, совместимость и срок поставки подтверждаются до оплаты.</p>
+              <div className="hero-search-heading"><b>Знаете, что искать?</b><span>Введите товар, модель или опишите операцию</span></div>
               <HeroSearch />
-              <div className="intent-grid" aria-label="Способы начать подбор">
-                <a href="#quick-order"><span>01</span><b>Описать задачу</b><small>Подбор без знания артикула</small></a>
-                <Link href="/catalog"><span>02</span><b>Открыть каталог</b><small>Сравнить доступные модели</small></Link>
-                <a href="tel:+79626112419"><span>03</span><b>Проверить с инженером</b><small>+7 (962) 611-24-19</small></a>
+              <nav className="hero-category-shortcuts" aria-label="Популярные категории">
+                <span>Быстрый переход:</span>
+                <Link href="/catalog/category/stanki-sverlilnye">Магнитные станки</Link>
+                <Link href="/catalog/category/kromkorezy-dlya-trub">Кромкорезы для труб</Link>
+                <Link href="/catalog/category/borfrezy">Борфрезы</Link>
+                <Link href="/catalog/category/kompressory">Компрессоры</Link>
+              </nav>
+              <div className="hero-direct-contacts" data-contact-placement="homepage_hero">
+                <span>Нужно быстро уточнить возможность поставки?</span>
+                <a href={siteContact.phoneHref}><small>Позвонить</small><b>{siteContact.phone}</b></a>
+                <a href={`mailto:${siteContact.email}?subject=Запрос%20с%20сайта%207TOOL`}><small>Отправить запрос</small><b>{siteContact.email}</b></a>
               </div>
             </div>
-            <div className="hero-procurement-card" aria-label="Быстрый запрос для отдела снабжения">
-              <span className="eyebrow">Для инженера и снабжения</span><h2>Есть задача или спецификация?</h2><p>Необязательно знать наш артикул. Пришлите условия работы, модель для замены либо готовый файл — вернём подходящие варианты с ценой и подтверждённым сроком.</p>
-              <a className="button button-orange" href="#quick-order">Описать задачу</a>
-              <a className="hero-procurement-email" href="mailto:info@7tool.ru?subject=Спецификация%20на%20подбор"><span>Отправить обычным письмом</span><b>info@7tool.ru</b></a>
-              <ul><li>Можно начать с обычного описания</li><li>Подберём аналог отсутствующей модели</li><li>Не обещаем наличие до подтверждения</li></ul>
-            </div>
+            <aside className="hero-decision-card" aria-labelledby="hero-decision-title">
+              <p className="eyebrow">Если точная модель неизвестна</p>
+              <h2 id="hero-decision-title">Начните с задачи производства</h2>
+              <p>Артикул не нужен. Выберите операцию ниже или передайте инженеру известные исходные данные.</p>
+              <ol>
+                <li><span>01</span><div><b>Что нужно сделать</b><small>сверлить, снять фаску, нарезать резьбу, резать или автоматизировать сварку</small></div></li>
+                <li><span>02</span><div><b>С чем работаете</b><small>материал, тип заготовки и основные размеры</small></div></li>
+                <li><span>03</span><div><b>Какие есть ограничения</b><small>место работы, питание, режим и требуемая производительность</small></div></li>
+              </ol>
+              <div className="hero-decision-actions">
+                <a className="button button-dark" href="#production-categories">Выбрать производственную задачу</a>
+                <a className="button button-quiet" href="#quick-order">Описать задачу инженеру</a>
+              </div>
+              <small className="hero-decision-note">В ответе: подходящие варианты, цена с НДС и срок после проверки.</small>
+            </aside>
           </div>
         </section>
 
@@ -47,20 +65,16 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
           </div>
         </section>
 
-        <section className="section">
+        <section className="section" id="production-categories">
           <div className="container">
             <div className="section-heading">
-              <div><p className="eyebrow">Короткий путь к нужному разделу</p><h2>Категории по производственной задаче</h2></div>
-              <p>Сначала выберите производственную операцию. Под ней сразу показаны относящиеся к задаче типы оборудования, оснастки и расходных материалов.</p>
+              <div><p className="eyebrow">Каталог без знания артикула</p><h2>Выберите производственную задачу</h2></div>
+              <p>Каждое направление сразу раскрывает реальные категории с товарами. Можно перейти в нужный тип оборудования, не открывая промежуточные меню.</p>
             </div>
-            <ProductionCategoryGrid groups={getProductionCategoryGroups(pilotFeedCategorySlugs)} />
+            <div className="home-catalog-overview"><div><b>{categoryGroups.length}</b><span>производственных задач</span></div><div><b>{categoryCount}</b><span>категории с товарами</span></div><p>Не уверены в разделе? Выберите ближайшую операцию — внутри можно уточнить параметры или передать задачу инженеру.</p><Link href="/catalog">Посмотреть весь каталог →</Link></div>
+            <ProductionCategoryGrid groups={categoryGroups} />
           </div>
         </section>
-
-        <section className="section section-muted featured-products"><div className="container"><div className="section-heading"><div><p className="eyebrow">Сразу к товару</p><h2>Популярные позиции пилотного каталога</h2></div><p>Карточка сразу показывает решающие характеристики и добавляет позицию в единый запрос КП.</p></div><div className="featured-product-grid">
-          <article><Image src="/products/lenz-steyr-35.jpg" alt="Магнитный сверлильный станок LENZ STEYR-35" width={360} height={280} /><div><small>LENZ · STEYR-35</small><h3>Магнитный сверлильный станок STEYR-35</h3><p>Ø35 мм · Weldon 19 · 10,5 кг</p><span>Наличие и срок уточняем</span><b>47 999 ₽</b><div><AddRequestButton item={{ id:"STEYR-35", title:"Магнитный сверлильный станок LENZ STEYR-35", article:"Артикул STEYR-35", price:"47 999 ₽" }}>В запрос</AddRequestButton><Link href="/product/magnitnyy-sverlilnyy-stanok-lenz-steyr-35">Подробнее</Link></div></div></article>
-          <article><Image src="/products/annular-drills.png" alt="Корончатые свёрла Weldon 19" width={360} height={280} /><div><small>Оснастка · Weldon 19</small><h3>Корончатые свёрла для магнитных станков</h3><p>HSS · Ø18–35 мм · рабочая длина 30 мм</p><span>Подбор по станку и операции</span><b>от 2 980 ₽</b><div><AddRequestButton item={{ id:"annular-set", title:"Комплект корончатых свёрл Weldon 19", article:"Ø18/25/35 мм", price:"от 2 980 ₽" }}>В запрос</AddRequestButton><Link href="/catalog/sverlenie">Подобрать</Link></div></div></article>
-        </div></div></section>
 
         <section className="section assurance-section"><div className="container"><div className="section-heading"><div><p className="eyebrow">Не обещания, а проверяемые этапы</p><h2>Что снижает риск закупки</h2></div><p>Инженер, документы и подтверждённые условия поставки находятся рядом с товаром — всё необходимое для решения собрано в одном месте.</p></div><div className="assurance-grid">
           <article><Image src="/site/why-engineer.webp" alt="Инженер проверяет параметры оборудования" width={420} height={240} /><div><span>01 · Инженер</span><h3>Проверка применимости</h3><p>Сопоставляем операцию, материал, режим работы и совместимую оснастку.</p></div></article>

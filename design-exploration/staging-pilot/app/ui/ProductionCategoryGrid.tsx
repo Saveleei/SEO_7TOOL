@@ -3,18 +3,21 @@ import Link from "next/link";
 import type { ProductionCategoryGroup } from "../data/productionCategoryGroups";
 
 export function ProductionCategoryGrid({ groups }: { groups: ProductionCategoryGroup[] }) {
-  const featured = groups.filter((group) => group.featured);
-  const supporting = groups.filter((group) => !group.featured);
-
   return <div className="production-categories">
     <div className="production-category-grid">
-      {featured.map((group) => <article className="production-category-card" key={group.id}>
+      {groups.map((group) => <article className={`production-category-card${group.featured ? " production-category-card--featured" : ""}`} key={group.id}>
         <Link className="production-category-media" href={group.href} aria-label={`Открыть направление «${group.title}»`}><span>{group.id}</span><Image src={group.image} alt="" width={360} height={220} /></Link>
-        <div className="production-category-copy"><span>{group.accent}</span><h3><Link href={group.href}>{group.title}</Link></h3><nav aria-label={`Подкатегории: ${group.title}`}>{group.subcategories.map((subcategory) => <Link href={subcategory.href} key={subcategory.slug}>{subcategory.label}<span aria-hidden="true">→</span></Link>)}</nav><Link className="production-category-action" href={group.href}>Все подкатегории →</Link></div>
+        <div className="production-category-copy"><span>{group.accent}</span><h3><Link href={group.href}>{group.title}</Link></h3><p>{group.subcategories.length} {pluralizeSections(group.subcategories.length)} · {(group.productCount ?? 0).toLocaleString("ru-RU")} товарных групп</p><nav aria-label={`Подкатегории: ${group.title}`}>{group.subcategories.map((subcategory) => <Link href={subcategory.href} key={subcategory.slug}><span>{subcategory.label}</span><small>{(subcategory.count ?? 0).toLocaleString("ru-RU")}</small><b aria-hidden="true">→</b></Link>)}</nav><Link className="production-category-action" href={group.href}>Открыть направление →</Link></div>
       </article>)}
     </div>
-    {supporting.map((group) => <article className="production-category-wide" key={group.id}>
-      <Image src={group.image} alt="" width={210} height={145} /><div><span>{group.accent}</span><h3><Link href={group.href}>{group.title}</Link></h3><nav aria-label={`Подкатегории: ${group.title}`}>{group.subcategories.map((subcategory) => <Link href={subcategory.href} key={subcategory.slug}>{subcategory.label}</Link>)}</nav></div><Link href={group.href}>Все подкатегории →</Link>
-    </article>)}
   </div>;
+}
+
+function pluralizeSections(count: number): string {
+  const mod100 = count % 100;
+  const mod10 = count % 10;
+  if (mod100 >= 11 && mod100 <= 14) return "разделов";
+  if (mod10 === 1) return "раздел";
+  if (mod10 >= 2 && mod10 <= 4) return "раздела";
+  return "разделов";
 }

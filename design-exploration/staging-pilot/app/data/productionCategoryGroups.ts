@@ -1,9 +1,11 @@
-import { getPublishedFeedCategorySlugs } from "./feedCatalog";
+import { getFeedCategory, getFeedCategoryProducts, getFeedProductImage, getPublishedFeedCategorySlugs } from "./feedCatalog.ts";
 
 export type ProductionSubcategory = {
   slug: string;
   label: string;
   href: string;
+  count?: number;
+  image?: string;
 };
 
 export type ProductionCategoryGroup = {
@@ -14,6 +16,7 @@ export type ProductionCategoryGroup = {
   image: string;
   href: string;
   featured?: boolean;
+  productCount?: number;
   subcategories: ProductionSubcategory[];
 };
 
@@ -67,7 +70,18 @@ export const pilotFeedCategorySlugs = getPublishedFeedCategorySlugs();
 export function getProductionCategoryGroups(activeCategorySlugs: string[]): ProductionCategoryGroup[] {
   const active = new Set(activeCategorySlugs);
   return definitions
-    .map((group) => ({ ...group, subcategories: group.subcategories.filter((subcategory) => active.has(subcategory.slug)) }))
+    .map((group) => {
+      const subcategories = group.subcategories.filter((subcategory) => active.has(subcategory.slug)).map((subcategory) => {
+        const category = getFeedCategory(subcategory.slug);
+        const representativeProduct = getFeedCategoryProducts(subcategory.slug, 1)[0];
+        return {
+          ...subcategory,
+          count:category?.count ?? 0,
+          image:representativeProduct ? getFeedProductImage(representativeProduct) : undefined,
+        };
+      });
+      return { ...group, subcategories, productCount:subcategories.reduce((total, subcategory) => total + (subcategory.count ?? 0), 0) };
+    })
     .filter((group) => group.subcategories.length > 0);
 }
 
