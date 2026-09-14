@@ -58,6 +58,23 @@ test("desktop and mobile navigation expose one reusable four-channel contact men
   assert.match(layout, /<ContactAnalytics \/>/u);
 });
 
+test("header catalog follows task intent and stays keyboard-dismissable", async () => {
+  const header = await readFile(new URL("../app/ui/PilotHeader.tsx", import.meta.url), "utf8");
+  const catalogMenu = await readFile(new URL("../app/ui/HeaderCatalogMenu.tsx", import.meta.url), "utf8");
+  const contacts = await readFile(new URL("../app/ui/HeaderContactMenu.tsx", import.meta.url), "utf8");
+  const cart = await readFile(new URL("../app/ui/RequestCart.tsx", import.meta.url), "utf8");
+  assert.match(header, /HeaderCatalogMenu groups=\{categoryGroups\}/u);
+  assert.match(header, /href="\/#production-categories"/u);
+  assert.match(catalogMenu, /group\.subcategories\.slice\(0, 3\)/u);
+  assert.match(catalogMenu, /Все категории направления/u);
+  assert.match(catalogMenu, /document\.addEventListener\("pointerdown"/u);
+  assert.match(catalogMenu, /event\.key !== "Escape"/u);
+  assert.match(catalogMenu, /href="\/#quick-order"/u);
+  assert.match(contacts, /<span>Связаться<\/span>/u);
+  assert.match(cart, /<span>КП<\/span>/u);
+  assert.doesNotMatch(catalogMenu, /артикул|sku/iu);
+});
+
 test("product manager card uses official messenger marks and readable contact hierarchy", async () => {
   const card = await readFile(new URL("../app/ui/ManagerContactCard.tsx", import.meta.url), "utf8");
   const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");

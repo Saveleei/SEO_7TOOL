@@ -116,7 +116,7 @@ export function useRequestCart(): RequestCartValue {
 export function RequestCartButton({ compact = false }: { compact?: boolean }) {
   const { items, open } = useRequestCart();
   const { totalQuantity } = summarizeRequest(items);
-  return <button className={compact ? "request-cart-trigger request-cart-trigger--compact" : "request-cart-trigger"} type="button" onClick={open} aria-label={`Открыть запрос КП, позиций: ${items.length}, единиц: ${totalQuantity}`}><span>{compact ? "КП" : "Запрос КП"}</span>{items.length > 0 && <b>{items.length}</b>}</button>;
+  return <button className={compact ? "request-cart-trigger request-cart-trigger--compact" : "request-cart-trigger"} type="button" onClick={open} aria-label={`Открыть запрос КП, позиций: ${items.length}, единиц: ${totalQuantity}`}><span>КП</span>{items.length > 0 && <b>{items.length}</b>}</button>;
 }
 
 export function AddRequestButton({ item, className, children }: { item: RequestItem; className?: string; children?: ReactNode }) {

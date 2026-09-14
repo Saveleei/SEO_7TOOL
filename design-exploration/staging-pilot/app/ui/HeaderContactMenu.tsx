@@ -3,7 +3,7 @@ import { siteContact } from "../data/contactConfig";
 export function HeaderContactMenu({ compact = false, placement }: { compact?: boolean; placement: string }) {
   return <details className={`header-contact-menu${compact ? " header-contact-menu--compact" : ""}`} data-contact-placement={placement}>
     <summary aria-label={`Связаться с 7TOOL, телефон ${siteContact.phone}`}>
-      <span>{compact ? "Связаться" : "Телефон и мессенджеры"}</span>
+      <span>Связаться</span>
       <b>{compact ? "Менеджер" : siteContact.phone}</b>
     </summary>
     <div className="header-contact-panel">
