@@ -12,6 +12,7 @@ export const MAX_QUOTE_ATTACHMENT_BYTES = 10 * 1024 * 1024;
 
 export function validateQuoteRequest(input) {
   const fieldErrors = {};
+  const requestType = cleanText(input.requestType, 20) === "selection" ? "selection" : "quote";
   const email = cleanText(input.email, 254);
   const phone = cleanText(input.phone, 40);
   const phoneDigits = phone.replace(/\D/g, "");
@@ -24,7 +25,7 @@ export function validateQuoteRequest(input) {
   const consent = toBoolean(input.consent);
   const items = sanitizeQuoteItems(input.items);
 
-  if (!EMAIL_PATTERN.test(email) || /[\r\n]/u.test(email)) fieldErrors.email = "Укажите корректный email для КП.";
+  if ((requestType === "quote" || email) && (!EMAIL_PATTERN.test(email) || /[\r\n]/u.test(email))) fieldErrors.email = requestType === "selection" ? "Проверьте email или оставьте поле пустым." : "Укажите корректный email для КП.";
   if (phoneDigits.length < 10 || phoneDigits.length > 15) fieldErrors.phone = "Укажите телефон с кодом города или мобильного оператора.";
   if (!consent) fieldErrors.consent = "Нужно согласие на обработку персональных данных.";
   if (!idempotencyKey || !UUID_PATTERN.test(idempotencyKey)) fieldErrors.request = "Обновите страницу и повторите отправку.";
@@ -37,6 +38,7 @@ export function validateQuoteRequest(input) {
   return {
     ok:true,
     value:{
+      requestType,
       email,
       phone,
       company,

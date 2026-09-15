@@ -29,11 +29,11 @@ test("document navigation leaves special, external and intentional browser actio
   ]) assert.equal(resolveDocumentNavigation(options), null);
 });
 
-test("fallback is explicitly enabled only by the isolated test process", async () => {
+test("fallback is reliable by default and can be explicitly disabled", async () => {
   const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
   const clientNavigation = await readFile(new URL("../app/data/clientNavigation.ts", import.meta.url), "utf8");
   const processConfig = await readFile(new URL("../ecosystem.test.config.cjs", import.meta.url), "utf8");
-  assert.match(layout, /process\.env\.FORCE_DOCUMENT_NAVIGATION === "1"/u);
+  assert.match(layout, /process\.env\.FORCE_DOCUMENT_NAVIGATION !== "0"/u);
   assert.match(layout, /<DocumentNavigationFallback \/>/u);
   assert.match(layout, /data-document-navigation=\{forceDocumentNavigation \? "true" : undefined\}/u);
   assert.match(clientNavigation, /window\.location\.assign\(href\)/u);

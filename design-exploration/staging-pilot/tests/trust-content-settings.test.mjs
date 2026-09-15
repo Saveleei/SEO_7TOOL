@@ -7,6 +7,7 @@ import { DELETE as resetContent, GET as getContent, PUT as putContent } from "..
 import { GET as getAsset } from "../app/api/trust-content/assets/[assetId]/route.ts";
 import { saveTrustAsset } from "../app/data/trustAssetStore.ts";
 import { DEFAULT_TRUST_CONTENT_SETTINGS, getTrustContentSettings, resetTrustContentSettings, saveTrustContentSettings } from "../app/data/trustContentStore.ts";
+import { TRUST_CARD_PRESENTATION } from "../app/data/trustContentModel.ts";
 import { validateTrustContentSettings } from "../app/data/trustContentValidation.mjs";
 
 const onePixelPng = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64");
@@ -17,6 +18,10 @@ test("trust content validation preserves the three stable card purposes", () => 
   assert.equal(validateTrustContentSettings({ ...valid, sectionTitle:"" }).ok, false);
   assert.equal(validateTrustContentSettings({ ...valid, cards:[...valid.cards].reverse() }).ok, false);
   assert.equal(validateTrustContentSettings({ ...valid, cards:valid.cards.map((card, index) => index === 0 ? { ...card, imageAssetId:"../../secret.png" } : card) }).ok, false);
+});
+
+test("trust links use existing public routes", () => {
+  assert.equal(TRUST_CARD_PRESENTATION.documents.href, "/warranty");
 });
 
 test("trust content persists atomically, checks revisions and restores defaults", async () => {

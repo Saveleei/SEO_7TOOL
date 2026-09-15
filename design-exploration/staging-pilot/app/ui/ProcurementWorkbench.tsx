@@ -1,46 +1,175 @@
 "use client";
 
-import { useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 type Tool = "task" | "analog" | "spec";
+type Direction = { key: string; title: string; summary: string; href: string };
+
+const taskDirections: Array<Direction & { pattern: RegExp }> = [
+  { key:"drilling", title:"Сверление и резьба", summary:"Сверлильные станки, корончатые свёрла, метчики и совместимая оснастка.", href:"/catalog/task/drilling", pattern:/сверл|отверст|резьб|метчик|зенков/iu },
+  { key:"edge", title:"Обработка кромки", summary:"Кромкорезы для листа и труб с подбором по геометрии фаски и размеру заготовки.", href:"/catalog/task/edge", pattern:/кром|фаск|торец|торц/iu },
+  { key:"cutting", title:"Резка металла", summary:"Труборезы, пилы, диски и оборудование термической резки по типу заготовки.", href:"/catalog/task/cutting", pattern:/резк|отрез|раскро|пил/iu },
+  { key:"welding", title:"Сварка и автоматизация", summary:"Сварочные каретки, вращатели, позиционеры и роботизированные решения.", href:"/catalog/task/welding", pattern:/свар|шов|наплав/iu },
+  { key:"tooling", title:"Оснастка и расходные материалы", summary:"Борфрезы, сверлильная и станочная оснастка с проверкой совместимости.", href:"/catalog/task/tooling", pattern:/борфрез|оснаст|расход|инструмент/iu },
+  { key:"workplace", title:"Оснащение производства", summary:"Компрессоры, грузозахватное и вспомогательное оборудование для участка.", href:"/catalog/task/workplace", pattern:/компресс|воздух|груз|захват|участ/iu },
+];
+
+const fallbackDirection: Direction = { key:"catalog", title:"Инженерный подбор по задаче", summary:"Описание сохранит контекст. Инженер уточнит материал, размеры и режим работы, затем предложит подходящие разделы.", href:"/catalog" };
 
 export function ProcurementWorkbench({ initialTask }: { initialTask?: string }) {
+  const initialValue = initialTask?.trim().slice(0, 500) || "";
   const [tool, setTool] = useState<Tool>("task");
-  const [task, setTask] = useState(initialTask?.trim().slice(0, 500) || "Нужно сверлить отверстия Ø35 мм в металлоконструкции на монтаже");
-  const [analog, setAnalog] = useState("FE Powertools ECO.50S+");
-  const [checked, setChecked] = useState(false);
+  const [task, setTask] = useState(initialValue);
+  const [analog, setAnalog] = useState("");
+  const [checked, setChecked] = useState(Boolean(initialValue));
+  const [contactOpen, setContactOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [requestNumber, setRequestNumber] = useState("");
+  const [formError, setFormError] = useState("");
+  const idempotencyKeyRef = useRef("");
+  const phoneInputRef = useRef<HTMLInputElement>(null);
+  const direction = useMemo(() => resolveTaskDirection(task), [task]);
+
+  useEffect(() => {
+    if (contactOpen && !requestNumber) phoneInputRef.current?.focus();
+  }, [contactOpen, requestNumber]);
+
+  function resetJourney() {
+    setChecked(false);
+    setContactOpen(false);
+    setRequestNumber("");
+    setFormError("");
+    idempotencyKeyRef.current = "";
+  }
+
+  function chooseTool(next: Tool) {
+    setTool(next);
+    resetJourney();
+  }
+
+  function openContact() {
+    setContactOpen(true);
+    setFormError("");
+    trackWorkbench("open_selection_contact", tool);
+  }
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (submitting) return;
+    const context = requestContext(tool, task, analog, direction);
+    const formData = new FormData(event.currentTarget);
+    if (!idempotencyKeyRef.current) idempotencyKeyRef.current = crypto.randomUUID();
+    const query = new URLSearchParams(window.location.search);
+    formData.set("request_type", "selection");
+    formData.set("email", "");
+    formData.set("city", "");
+    formData.set("comment", context.comment);
+    formData.set("idempotency_key", idempotencyKeyRef.current);
+    formData.set("alternatives", "on");
+    formData.set("check_availability", "on");
+    formData.set("check_set", "on");
+    formData.set("check_docs", "on");
+    formData.set("items", JSON.stringify([{ id:context.id, title:context.title, article:context.article, quantity:1, href:context.href }]));
+    formData.set("source", JSON.stringify({
+      pagePath:window.location.pathname,
+      utmSource:query.get("utm_source") ?? "",
+      utmMedium:query.get("utm_medium") ?? "",
+      utmCampaign:query.get("utm_campaign") ?? "",
+    }));
+    setSubmitting(true);
+    setFormError("");
+    trackWorkbench("submit_selection_request", tool);
+    try {
+      const response = await fetch("/api/quote-requests", { method:"POST", body:formData, headers:{ "X-Requested-With":"7tool-selection-request" } });
+      const result = await response.json() as { ok?: boolean; requestNumber?: string; message?: string };
+      if (!response.ok || !result.ok || !result.requestNumber) throw new Error(result.message || "Не удалось сохранить задачу.");
+      setRequestNumber(result.requestNumber);
+      trackWorkbench("selection_request_success", tool);
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : "Не удалось сохранить задачу. Попробуйте ещё раз.");
+      trackWorkbench("selection_request_error", tool);
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <div className="procurement-workbench" id="quick-order">
-      <div className="workbench-tabs" role="tablist" aria-label="Инструменты снабжения">
-        <button type="button" className={tool === "task" ? "active" : ""} onClick={() => { setTool("task"); setChecked(false); }}>Описать задачу</button>
-        <button type="button" className={tool === "analog" ? "active" : ""} onClick={() => { setTool("analog"); setChecked(false); }}>Подобрать аналог</button>
-        <button type="button" className={tool === "spec" ? "active" : ""} onClick={() => { setTool("spec"); setChecked(false); }}>Отправить файл</button>
+      <div className="workbench-tabs" role="tablist" aria-label="Способ передать задачу">
+        <button id="workbench-task-tab" role="tab" aria-selected={tool === "task"} aria-controls="workbench-task-panel" type="button" className={tool === "task" ? "active" : ""} onClick={() => chooseTool("task")}>Описать задачу</button>
+        <button id="workbench-analog-tab" role="tab" aria-selected={tool === "analog"} aria-controls="workbench-analog-panel" type="button" className={tool === "analog" ? "active" : ""} onClick={() => chooseTool("analog")}>Подобрать аналог</button>
+        <button id="workbench-spec-tab" role="tab" aria-selected={tool === "spec"} aria-controls="workbench-spec-panel" type="button" className={tool === "spec" ? "active" : ""} onClick={() => chooseTool("spec")}>Передать ТЗ</button>
       </div>
 
-      {tool === "task" && <div className="workbench-panel">
-        <span className="workbench-kicker">Инженерный подбор без знания артикула</span>
-        <h3>Опишите, что нужно сделать</h3>
-        <textarea value={task} onChange={(event) => { setTask(event.target.value); setChecked(false); }} rows={5} aria-label="Описание производственной задачи" />
-        <button className="workbench-primary" type="button" onClick={() => setChecked(true)}>Подобрать класс оборудования</button>
-        {checked && <div className="task-result" role="status"><b>Запрос понятен для предварительного подбора</b><span>Операция: сверление · диаметр: 35 мм · условия: монтаж</span><small>Инженер уточнит материал, глубину и доступную высоту, затем подтвердит модель, цену и срок.</small></div>}
+      {tool === "task" && <div className="workbench-panel" id="workbench-task-panel" role="tabpanel" aria-labelledby="workbench-task-tab">
+        <span className="workbench-kicker">Шаг 1 · артикул знать не нужно</span>
+        <h3>Что нужно сделать на производстве?</h3>
+        <p className="workbench-intro">Укажите операцию, материал, размер и условия работы — достаточно того, что уже известно.</p>
+        <textarea value={task} onChange={(event) => { setTask(event.target.value.slice(0, 500)); resetJourney(); }} rows={5} maxLength={500} placeholder="Например: сверлить отверстия Ø35 мм в металлоконструкции на монтаже" aria-label="Описание производственной задачи" />
+        <button className="workbench-primary" type="button" disabled={task.trim().length < 5} onClick={() => { setChecked(true); setContactOpen(false); trackWorkbench("show_task_direction", tool); }}>Показать подходящее направление</button>
+        {checked && <WorkBenchResult direction={direction} onContact={openContact} />}
       </div>}
 
-      {tool === "analog" && <div className="workbench-panel">
-        <span className="workbench-kicker">Монетизация отсутствующего и конкурентного спроса</span>
-        <h3>Введите модель, которую нужно заменить</h3>
-        <input value={analog} onChange={(event) => { setAnalog(event.target.value); setChecked(false); }} aria-label="Модель для подбора аналога" />
-        <button className="workbench-primary" type="button" onClick={() => setChecked(true)}>Найти аналоги</button>
-        {checked && <div className="analog-result" role="status"><p>Для «{analog || "указанной модели"}» сначала сверим рабочие параметры.</p><div><span>Диаметр и глубина</span><span>Шпиндель и функции</span><span>Условия эксплуатации</span></div><a href="mailto:info@7tool.ru?subject=Подбор%20аналога">Передать запрос инженеру →</a></div>}
+      {tool === "analog" && <div className="workbench-panel" id="workbench-analog-panel" role="tabpanel" aria-labelledby="workbench-analog-tab">
+        <span className="workbench-kicker">Шаг 1 · исходная модель</span>
+        <h3>Какую модель нужно заменить?</h3>
+        <p className="workbench-intro">Напишите производителя и модель. Инженер сравнит не название, а рабочие параметры и комплектацию.</p>
+        <input value={analog} onChange={(event) => { setAnalog(event.target.value.slice(0, 180)); resetJourney(); }} maxLength={180} placeholder="Например: FE Powertools ECO.50S+" aria-label="Модель для подбора аналога" />
+        <button className="workbench-primary" type="button" disabled={analog.trim().length < 3} onClick={() => { setChecked(true); setContactOpen(false); trackWorkbench("show_analog_path", tool); }}>Проверить модель и варианты</button>
+        {checked && <div className="workbench-result">
+          <span>Заявка ещё не отправлена</span>
+          <h4>Сначала найдём модель, затем сравним параметры</h4>
+          <p>Проверим диаметр и глубину, посадку инструмента, функции, комплектацию и условия эксплуатации.</p>
+          <div className="workbench-result-actions"><a href={`/search?q=${encodeURIComponent(analog.trim())}`}>Проверить в каталоге</a><button type="button" onClick={openContact}>Передать инженеру</button></div>
+          <small>Чтобы менеджер увидел запрос и мог ответить, на следующем шаге нужен телефон.</small>
+        </div>}
       </div>}
 
-      {tool === "spec" && <div className="workbench-panel">
-        <span className="workbench-kicker">Для отдела снабжения и проектных закупок</span>
-        <h3>Передайте файл удобным способом</h3>
-        <div className="dropzone"><b>XLSX · PDF · DOCX</b><span>Загрузка будет подключена после утверждения прототипа</span></div>
-        <a className="workbench-primary" href="mailto:info@7tool.ru?subject=Спецификация%20на%20подбор">Отправить на info@7tool.ru</a>
-        <small className="workbench-note">В ответе: разбор задачи, подходящие варианты, цена с НДС и подтверждённый срок.</small>
+      {tool === "spec" && <div className="workbench-panel" id="workbench-spec-panel" role="tabpanel" aria-labelledby="workbench-spec-tab">
+        <span className="workbench-kicker">ТЗ и спецификации</span>
+        <h3>Зарегистрируйте запрос, затем приложите файл</h3>
+        <p className="workbench-intro">Сначала оставьте телефон и получите номер заявки. Файл можно отправить на почту с этим номером в теме — так он не потеряется.</p>
+        <div className="workbench-spec-actions"><button className="workbench-primary" type="button" onClick={openContact}>Получить номер заявки</button><a href="mailto:info@7tool.ru?subject=Спецификация%20на%20подбор%207TOOL">Открыть почту для файла</a></div>
+        <small className="workbench-note">Ссылка откроет вашу почтовую программу. Отправку письма подтверждаете вы.</small>
+      </div>}
+
+      {contactOpen && !requestNumber && <form className="workbench-contact-form" onSubmit={submit}>
+        <input className="request-cart-honeypot" name="website" type="text" tabIndex={-1} autoComplete="off" aria-hidden="true" />
+        <header><span>Шаг 2 · передать менеджеру</span><h4>Куда перезвонить по задаче?</h4><p>После отправки запрос получит номер и появится в журнале 7TOOL. Описание выше повторно вводить не нужно.</p></header>
+        <label>Телефон для связи <span>*</span><input ref={phoneInputRef} name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+7 999 000-00-00" required /></label>
+        <label>Имя или компания<input name="company" type="text" autoComplete="organization" maxLength={160} placeholder="Необязательно" /></label>
+        <label className="workbench-contact-consent"><input name="consent" type="checkbox" defaultChecked required /> Я согласен на обработку персональных данных</label>
+        {formError && <div className="workbench-contact-error" role="alert">{formError}</div>}
+        <div className="workbench-contact-submit"><button type="submit" disabled={submitting}>{submitting ? "Сохраняем задачу…" : "Отправить задачу менеджеру"}</button><small>Тестовый стенд: заявка сохранится в журнале, внешние email/MAX/CRM пока отключены.</small></div>
+      </form>}
+
+      {requestNumber && <div className="workbench-success" role="status">
+        <span>Задача сохранена</span><h4>Заявка № {requestNumber}</h4><p>Она уже доступна менеджеру в тестовом журнале вместе с описанием задачи и контактным телефоном.</p><strong>На тестовом стенде внешнее уведомление менеджеру не отправляется.</strong><div><a href={`/test/requests/${encodeURIComponent(requestNumber)}`}>Проверить заявку в журнале</a><button type="button" onClick={resetJourney}>Создать ещё одну</button></div>
       </div>}
     </div>
   );
+}
+
+function WorkBenchResult({ direction, onContact }: { direction: Direction; onContact: () => void }) {
+  return <div className="workbench-result">
+    <span>Предварительное направление · заявка ещё не отправлена</span>
+    <h4>{direction.title}</h4>
+    <p>{direction.summary}</p>
+    <div className="workbench-result-actions"><a href={direction.href}>Посмотреть подходящие разделы</a><button type="button" onClick={onContact}>Передать задачу инженеру</button></div>
+    <small>Точный подбор начнётся после того, как вы оставите телефон на следующем шаге.</small>
+  </div>;
+}
+
+function resolveTaskDirection(task: string): Direction {
+  return taskDirections.find((candidate) => candidate.pattern.test(task)) ?? fallbackDirection;
+}
+
+function requestContext(tool: Tool, task: string, analog: string, direction: Direction) {
+  if (tool === "analog") return { id:"selection:analog", title:`Подбор аналога: ${analog.trim() || "модель не указана"}`, article:"Исходная модель клиента", href:`/search?q=${encodeURIComponent(analog.trim())}`, comment:`Подбор аналога. Исходная модель: ${analog.trim() || "не указана"}. Требуется сверить рабочие параметры, комплектацию, наличие и срок.` };
+  if (tool === "spec") return { id:"selection:specification", title:"Разбор технического задания или спецификации", article:"Без артикула — файл будет передан отдельно", href:"/catalog", comment:"Клиент просит зарегистрировать разбор ТЗ или спецификации и связаться по телефону. Файл будет передан отдельно с номером заявки." };
+  return { id:`selection:task:${direction.key}`, title:`Подбор по задаче: ${direction.title}`, article:"Без артикула — инженерный подбор", href:direction.href, comment:`Производственная задача: ${task.trim()}. Предварительное направление: ${direction.title}. Требуется уточнить параметры, наличие, совместимость, документы и срок.` };
+}
+
+function trackWorkbench(event: string, tool: Tool) {
+  window.dispatchEvent(new CustomEvent("7tool:prototype-event", { detail:{ event, page_type:"homepage", placement:"procurement_workbench", request_type:tool } }));
 }

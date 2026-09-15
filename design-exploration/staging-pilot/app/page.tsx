@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { PilotFooter } from "./ui/PilotFooter";
 import { PilotHeader } from "./ui/PilotHeader";
 import { HomepageCategoryTiles } from "./ui/HomepageCategoryTiles";
@@ -17,11 +16,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
   const [trustContent, homepageContent] = await Promise.all([getTrustContentSettings(), getHomepageContentSettings()]);
   const initialTask = typeof rawSearchParams.task === "string" ? rawSearchParams.task : undefined;
   const categoryGroups = getProductionCategoryGroups(pilotFeedCategorySlugs);
-  const groupBySlug = new Map(categoryGroups.map((group) => [group.slug, group]));
-  const assortmentGroups = homepageContent.assortmentItems.flatMap((item) => {
-    const group = groupBySlug.get(item.id);
-    return group ? [{ ...group, title:item.title, homepageImage:item.imageAssetId ? homepageAssetUrl(item.imageAssetId) : group.representativeImage ?? group.image, homepageImageAlt:item.imageAlt, homepageImageFit:item.imageFit, homepageImagePosition:item.imagePosition }] : [];
-  });
   const keyCategoryBySlug = new Map(getHomepageKeyCategories().map((category) => [category.slug, category]));
   const homepageKeyCategories = homepageContent.categoryItems.flatMap((item) => {
     const category = keyCategoryBySlug.get(item.id);
@@ -55,22 +49,16 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
                 <a href={`mailto:${siteContact.email}?subject=Запрос%20с%20сайта%207TOOL`}><small>Отправить запрос</small><b>{siteContact.email}</b></a>
               </div>
             </div>
-            <aside className="hero-assortment-card" aria-labelledby="hero-assortment-title">
-              <p className="eyebrow">{homepageContent.assortment.eyebrow}</p>
-              <h2 id="hero-assortment-title">{homepageContent.assortment.title}</h2>
-              <p>{homepageContent.assortment.intro}</p>
-              <nav className="hero-assortment-map" aria-label="Основные направления каталога">
-                {assortmentGroups.map((group) => {
-                  return <Link href={group.href} key={group.slug}>
-                    <span className="hero-assortment-image" data-fit={group.homepageImageFit} data-position={group.homepageImagePosition}><Image src={group.homepageImage} alt={group.homepageImageAlt} width={180} height={110} unoptimized /></span>
-                    <b>{group.title}</b>
-                    <small>{formatCategoryCount(group.subcategories.length)}</small>
-                  </Link>;
-                })}
-              </nav>
-              <div className="hero-assortment-foot">
-                <span>{categoryGroups.length} направлений · {formatCategoryCount(categoryCount)}</span>
+            <aside className="hero-catalog-card" aria-labelledby="hero-catalog-title">
+              <div className="hero-catalog-card__heading">
+                <div><p className="eyebrow">{homepageContent.categories.eyebrow}</p><h2 id="hero-catalog-title">{homepageContent.categories.title}</h2></div>
                 <Link href="/catalog">Весь каталог →</Link>
+              </div>
+              <p>{homepageContent.categories.intro}</p>
+              <HomepageCategoryTiles categories={homepageKeyCategories} compact />
+              <div className="hero-catalog-card__foot">
+                <span>На главной — 6 основных разделов</span>
+                <span>Всего {formatCategoryCount(categoryCount)}</span>
               </div>
             </aside>
           </div>
@@ -82,24 +70,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
             <div><strong>Инженер</strong><span>проверит совместимость комплекта</span></div>
             <div><strong>Документы</strong><span>по конкретному артикулу</span></div>
             <div><strong>По РФ</strong><span>условия доставки фиксируются в КП</span></div>
-          </div>
-        </section>
-
-        <section className="section homepage-key-categories-section" aria-labelledby="homepage-key-categories-title">
-          <div className="container">
-            <div className="homepage-key-categories-heading">
-              <div>
-                <p className="eyebrow">{homepageContent.categories.eyebrow}</p>
-                <h2 id="homepage-key-categories-title">{homepageContent.categories.title}</h2>
-                <p>{homepageContent.categories.intro}</p>
-              </div>
-              <Link className="button button-quiet" href="/catalog">Смотреть весь каталог</Link>
-            </div>
-            <HomepageCategoryTiles categories={homepageKeyCategories} />
-            <div className="homepage-key-categories-foot">
-              <span>Не знаете, какой раздел подходит вашей задаче?</span>
-              <a href="#production-categories">Выбрать по производственной задаче →</a>
-            </div>
           </div>
         </section>
 

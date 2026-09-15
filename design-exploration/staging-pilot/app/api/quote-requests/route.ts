@@ -19,6 +19,7 @@ export async function POST(request: Request) {
     const rawItems = parseJson(formData.get("items"), []);
     const rawSource = parseJson(formData.get("source"), {});
     const validation = validateQuoteRequest({
+      requestType:formData.get("request_type"),
       email:formData.get("email"),
       phone:formData.get("phone"),
       company:formData.get("company"),

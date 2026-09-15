@@ -100,18 +100,23 @@ test("homepage settings API is administrator-only, same-origin and has an explic
 });
 
 test("homepage reads editable content and enforces stable media frames", async () => {
-  const [page, tiles, styles, settingsPage] = await Promise.all([
+  const [page, tiles, styles, settingsPage, form] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/ui/HomepageCategoryTiles.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../app/test/settings/homepage/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/ui/HomepageContentSettingsForm.tsx", import.meta.url), "utf8"),
   ]);
   assert.match(page, /getHomepageContentSettings/u);
-  assert.match(page, /homepageContent\.assortmentItems/u);
+  assert.match(page, /homepageContent\.categoryItems/u);
+  assert.doesNotMatch(page, /homepageContent\.assortmentItems/u);
   assert.match(tiles, /data-fit/u);
+  assert.match(tiles, /homepage-category-tiles--hero/u);
   assert.match(styles, /grid-template-columns:repeat\(3,minmax\(0,1fr\)\); grid-auto-rows:216px/u);
-  assert.match(styles, /\.hero-assortment-map>a \{ height:120px; min-height:120px/u);
+  assert.match(styles, /\.homepage-category-tiles--hero \{ grid-template-columns:repeat\(2,minmax\(0,1fr\)\); grid-auto-rows:122px/u);
   assert.match(styles, /data-fit="cover"/u);
+  assert.match(form, /Разделы каталога в первом экране/u);
+  assert.doesNotMatch(form, />Карта ассортимента</u);
   assert.match(settingsPage, /requireManagerPageAccess\("settings:manage"/u);
 });
 

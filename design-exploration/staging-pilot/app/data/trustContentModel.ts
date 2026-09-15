@@ -19,7 +19,7 @@ export type TrustContentSettings = {
 
 export const TRUST_CARD_PRESENTATION: Record<TrustCardId, { image: string; href: string; linkLabel: string }> = {
   applicability:{ image:"/site/why-engineer.webp", href:"/company", linkLabel:"Как работает подбор" },
-  documents:{ image:"/site/why-documents.webp", href:"/documents", linkLabel:"Какие документы доступны" },
+  documents:{ image:"/site/why-documents.webp", href:"/warranty", linkLabel:"Какие документы доступны" },
   terms:{ image:"/site/why-stock.webp", href:"/delivery", linkLabel:"Как фиксируем условия" },
 };
 

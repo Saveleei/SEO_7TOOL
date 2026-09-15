@@ -27,9 +27,19 @@ const validInput = {
 test("server validation requires usable contacts, consent, items and idempotency", () => {
   const valid = validateQuoteRequest(validInput);
   assert.equal(valid.ok, true);
+  assert.equal(valid.value.requestType, "quote");
   const invalid = validateQuoteRequest({ ...validInput, email:"bad", phone:"123", consent:"", items:[], idempotencyKey:"bad" });
   assert.equal(invalid.ok, false);
   assert.deepEqual(Object.keys(invalid.fieldErrors).sort(), ["consent", "email", "items", "phone", "request"]);
+});
+
+test("selection requests require a phone but do not invent an email address", () => {
+  const selection = validateQuoteRequest({ ...validInput, requestType:"selection", email:"", comment:"Подбор по производственной задаче" });
+  assert.equal(selection.ok, true);
+  assert.equal(selection.value.requestType, "selection");
+  assert.equal(selection.value.email, "");
+  assert.equal(validateQuoteRequest({ ...validInput, email:"" }).ok, false);
+  assert.equal(validateQuoteRequest({ ...validInput, requestType:"selection", email:"bad" }).ok, false);
 });
 
 test("Russian INN checksum is validated instead of accepting digit count only", () => {
@@ -73,6 +83,7 @@ test("a request is durably appended before confirmation and duplicate retries re
     assert.doesNotMatch(storedContent, /"idempotencyKey"/u);
     const summaries = await listQuoteRequestSummaries(10, { dataDir });
     assert.equal(summaries.length, 1);
+    assert.equal(summaries[0].requestType, "quote");
     assert.equal(summaries[0].email, "bu***@example.test");
     assert.equal(summaries[0].phone, "+7 *** ***-0000");
     assert.equal(summaries[0].billingProvided, true);

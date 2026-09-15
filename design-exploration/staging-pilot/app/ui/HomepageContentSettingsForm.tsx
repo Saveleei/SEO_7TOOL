@@ -92,17 +92,12 @@ export function HomepageContentSettingsForm({ initial, references }: { initial: 
         <TextSectionFields value={settings.hero} onChange={(patch) => updateSection("hero", patch)} introLabel="Пояснение под заголовком" />
       </EditorSection>
 
-      <EditorSection number="02" title="Карта ассортимента" description="Шесть производственных направлений в первом экране. Порядок можно менять, переходы остаются привязаны к каталогу.">
-        <TextSectionFields value={settings.assortment} onChange={(patch) => updateSection("assortment", patch)} />
-        <MediaEditorList collection="assortmentItems" items={settings.assortmentItems} references={referenceById} uploading={uploading} imageUrl={imageUrl} onUpdate={updateItem} onMove={moveItem} onUpload={uploadPhoto} />
-      </EditorSection>
-
-      <EditorSection number="03" title="Основные разделы каталога" description="Крупные карточки сразу после первого экрана. Все карточки получают одинаковую геометрию, независимо от исходного размера фотографии.">
+      <EditorSection number="02" title="Разделы каталога в первом экране" description="Шесть конкретных товарных разделов вместо абстрактной карты ассортимента. Порядок и фотографии можно менять, ссылки и количество товаров остаются привязаны к каталогу.">
         <TextSectionFields value={settings.categories} onChange={(patch) => updateSection("categories", patch)} />
         <MediaEditorList collection="categoryItems" items={settings.categoryItems} references={referenceById} uploading={uploading} imageUrl={imageUrl} onUpdate={updateItem} onMove={moveItem} onUpload={uploadPhoto} />
       </EditorSection>
 
-      <EditorSection number="04" title="Подбор по производственной задаче" description="Текст над автоматически сформированной картой задач. Состав категорий берётся из фида.">
+      <EditorSection number="03" title="Подбор по производственной задаче" description="Текст над автоматически сформированной картой задач. Состав категорий берётся из фида.">
         <TextSectionFields value={settings.tasks} onChange={(patch) => updateSection("tasks", patch)} />
       </EditorSection>
     </div>
@@ -110,7 +105,6 @@ export function HomepageContentSettingsForm({ initial, references }: { initial: 
     <aside className="homepage-settings-preview">
       <div className="homepage-settings-preview-head"><span>Живой предпросмотр</span><a href="/" target="_blank" rel="noreferrer">Открыть главную ↗</a></div>
       <div className="homepage-mini-hero"><small>{settings.hero.eyebrow}</small><h2>{settings.hero.title}</h2><p>{settings.hero.intro}</p></div>
-      <PreviewGrid title={settings.assortment.title} items={settings.assortmentItems} imageUrl={imageUrl} />
       <PreviewGrid title={settings.categories.title} items={settings.categoryItems} imageUrl={imageUrl} large />
       <button className="homepage-settings-save" type="submit" disabled={pending || Boolean(uploading)}>{pending ? "Сохраняем…" : "Сохранить и показать на главной"}</button>
       <button className="homepage-settings-reset" type="button" disabled={pending} onClick={() => void resetDefaults()}>Вернуть стандартное содержимое</button>

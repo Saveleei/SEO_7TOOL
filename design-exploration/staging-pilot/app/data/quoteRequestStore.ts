@@ -8,6 +8,7 @@ type QuoteStatus = "received" | "checking" | "quote_ready" | "sent";
 type StoredAttachment = { relativePath: string; mime: string; size: number };
 type AttachmentInput = { bytes: Buffer; extension: string; mime: string; size: number } | null;
 type ValidatedQuote = {
+  requestType: "quote" | "selection";
   email: string;
   phone: string;
   company: string;
@@ -24,6 +25,7 @@ type ValidatedQuote = {
 
 export type QuoteRequestSummary = {
   id: string;
+  requestType: "quote" | "selection";
   createdAt: string;
   status: QuoteStatus;
   statusLabel: string;
@@ -254,6 +256,7 @@ function toSummary(record: StoredQuote, events: StoredEvent[], options: StoreOpt
   const assigneeName = QUOTE_ASSIGNEES.find((manager: { id: string; name: string }) => manager.id === workflow.assignee)?.name ?? null;
   return {
     id:record.id,
+    requestType:record.requestType === "selection" ? "selection" : "quote",
     createdAt:record.createdAt,
     status:workflow.status,
     statusLabel:getStatusLabel(workflow.status),
@@ -294,6 +297,7 @@ function withoutEventHash(event: StoredEvent): QuoteRequestEvent {
 }
 
 function maskEmail(email: string): string {
+  if (!email) return "Не указан";
   const [local = "", domain = ""] = email.split("@");
   return `${local.slice(0, 2)}***@${domain}`;
 }
@@ -305,6 +309,7 @@ function maskPhone(phone: string): string {
 
 function toStoredInput(input: ValidatedQuote): Omit<ValidatedQuote, "idempotencyKey"> {
   return {
+    requestType:input.requestType,
     email:input.email,
     phone:input.phone,
     company:input.company,
