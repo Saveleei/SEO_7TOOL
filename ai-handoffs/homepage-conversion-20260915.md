@@ -47,4 +47,4 @@ Complete locally; not deployed.
 
 ## Commit
 
-`ddcc0bb` (`feat: repair homepage conversion journey`).
+Implementation commit: `a01c1c5` (`feat: repair homepage conversion journey`).
