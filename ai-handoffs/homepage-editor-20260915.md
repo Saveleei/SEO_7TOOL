@@ -58,6 +58,21 @@ No file was uploaded through the browser, no public form was submitted and no ex
 
 The current VPS/test architecture stores homepage JSON and uploaded images under the existing local `work/quote-requests` data root. Before a future stateless hosting migration, move these settings and assets to durable database/object storage with backups.
 
+## Test deployment — 2026-09-15
+
+- Explicit user approval received to publish only to `test.7tool.ru` and verify request submission.
+- Deployed commit: `a0c662b` (implementation `609c355` plus this handoff's pre-deployment record).
+- Active release: `/var/www/7tool-release-20260915-homepage-editor-a0c662b`.
+- Preserved rollback: `/var/www/7tool-release-20260914-shipping-reliability-8fc60a3`.
+- Persistent test data remains `/var/www/7tool-test-shared/quote-requests`.
+- The server lockfile matched the existing dependency installation, so the release reused the exact compatible dependency tree without consuming another large copy.
+- Server verification passed: 187/187 tests, full ESLint, production build and 58/58 loopback release-smoke checks.
+- `7tool-storefront-test` is online from the new release with zero restarts after activation. `7tool-prod` was not restarted or reconfigured.
+- External HTTPS still returns the expected `401` Basic Auth gate without credentials. Automated visual access was blocked by stale Basic Auth credentials in the in-app browser; the deployed artifact itself passed server loopback HTML/API and the complete smoke matrix.
+- Synthetic request `7T-20260915-AD64D6` was accepted and durably saved in the protected test journal with an exact `STEYR-35` product context. The journal and detail page both expose the saved record. Repeating the same idempotency key returned the same request number with `duplicate:true`; the journal remained at one record.
+- External email, MAX and CRM delivery remains disabled by `QUOTE_TEST_MODE=1`; no customer or third-party message was sent.
+- Post-release disk capacity: approximately 2.5 GB free; no old release or persistent data was deleted.
+
 ## Status
 
-Complete. Not deployed.
+Complete and deployed only to the isolated test domain. Production, DNS, Nginx, credentials, feeds and external delivery were not changed.
