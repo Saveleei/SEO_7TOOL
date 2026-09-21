@@ -71,6 +71,17 @@ export function safeManagerReturnTo(value: string | null | undefined): string {
   }
 }
 
+export function safePreviewReturnTo(value: string | null | undefined): string {
+  if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("\\") || /[\r\n]/u.test(value)) return "/";
+  try {
+    const parsed = new URL(value, "http://local.test");
+    if (parsed.origin !== "http://local.test" || parsed.pathname === "/test/access") return "/";
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return "/";
+  }
+}
+
 export function isLoopbackHostname(value: string): boolean {
   const hostname = normalizeHostname(value);
   return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";

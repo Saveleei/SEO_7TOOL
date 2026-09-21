@@ -1,12 +1,14 @@
 import assert from "node:assert/strict";
+import { pbkdf2Sync } from "node:crypto";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { DELETE as signOut, POST as signIn } from "../app/api/manager-auth/session/route.ts";
+import { GET as checkSession } from "../app/api/manager-auth/check/route.ts";
 import { POST as approvalAction } from "../app/api/quote-requests/[id]/quote-approval/route.ts";
-import { capabilitiesForRole, canManager, isTestManagerHostname, MANAGER_CAPABILITIES, resolvePlatformManagerActor, safeManagerReturnTo } from "../app/data/managerAccess.ts";
-import { resolveManagerActor } from "../app/data/managerAccessServer.ts";
+import { capabilitiesForRole, canManager, isTestManagerHostname, MANAGER_CAPABILITIES, resolvePlatformManagerActor, safeManagerReturnTo, safePreviewReturnTo } from "../app/data/managerAccess.ts";
+import { localAdminCredentialsConfigured, resolveManagerActor, verifyLocalAdminCredentials } from "../app/data/managerAccessServer.ts";
 import { getQuoteApprovalState } from "../app/data/quoteApprovalStore.ts";
 import { saveQuoteDraft } from "../app/data/quoteDraftStore.ts";
 import { QUOTE_APPROVAL_CHECKS } from "../app/data/quoteApprovalValidation.mjs";
@@ -38,16 +40,23 @@ test("platform identity requires an explicit server allowlist and keeps return p
   assert.equal(safeManagerReturnTo("/test/requests/7T-1?tab=quote"), "/test/requests/7T-1?tab=quote");
   assert.equal(safeManagerReturnTo("https://attacker.example/test/requests"), "/test/requests");
   assert.equal(safeManagerReturnTo("//attacker.example"), "/test/requests");
+  assert.equal(safePreviewReturnTo("/catalog/category/borfrezy?view=table#products"), "/catalog/category/borfrezy?view=table#products");
+  assert.equal(safePreviewReturnTo("https://attacker.example/catalog"), "/");
+  assert.equal(safePreviewReturnTo("/test/access?returnTo=%2Fcatalog"), "/");
 });
 
 test("local admin sign-in is loopback-only and uses an HttpOnly signed session", async () => {
   const dataDir = await mkdtemp(path.join(os.tmpdir(), "7tool-manager-session-"));
   const previousMode = process.env.QUOTE_TEST_MODE;
   const previousDataDir = process.env.QUOTE_TEST_DATA_DIR;
+  const previousUsername = process.env.MANAGER_AUTH_LOCAL_USERNAME;
+  const previousPasswordHash = process.env.MANAGER_AUTH_LOCAL_PASSWORD_HASH;
+  const previousAdmins = process.env.MANAGER_AUTH_ADMIN_EMAILS;
   try {
     process.env.QUOTE_TEST_MODE = "1";
     process.env.QUOTE_TEST_DATA_DIR = dataDir;
-    const response = await signIn(new Request("http://127.0.0.1:3999/api/manager-auth/session", { method:"POST", headers:{ origin:"http://127.0.0.1:3999" } }));
+    configureTestCredentials();
+    const response = await signIn(signInRequest("http://127.0.0.1:3999", TEST_PASSWORD));
     assert.equal(response.status, 200);
     const setCookie = response.headers.get("set-cookie") || "";
     assert.match(setCookie, /7tool_manager_session=/u);
@@ -60,15 +69,50 @@ test("local admin sign-in is loopback-only and uses an HttpOnly signed session",
     assert.equal(await resolveManagerActor(new Headers({ host:"7tool.example", cookie }), { dataDir }), null);
     const tampered = cookie.replace(/.$/u, cookie.endsWith("a") ? "b" : "a");
     assert.equal(await resolveManagerActor(new Headers({ host:"127.0.0.1:3999", cookie:tampered }), { dataDir }), null);
+    const gateAccepted = await checkSession(new Request("http://127.0.0.1:3999/api/manager-auth/check", { headers:{ host:"127.0.0.1:3999", cookie } }));
+    assert.equal(gateAccepted.status, 204);
+    const gateRejected = await checkSession(new Request("http://127.0.0.1:3999/api/manager-auth/check", { headers:{ host:"127.0.0.1:3999" } }));
+    assert.equal(gateRejected.status, 401);
+    process.env.MANAGER_AUTH_ADMIN_EMAILS = "spoofed@example.test";
+    const spoofedPlatform = await checkSession(new Request("http://127.0.0.1:3999/api/manager-auth/check", { headers:{ host:"127.0.0.1:3999", "oai-authenticated-user-id":"spoofed", "oai-authenticated-user-email":"spoofed@example.test" } }));
+    assert.equal(spoofedPlatform.status, 401);
     const cleared = await signOut(new Request("http://127.0.0.1:3999/api/manager-auth/session", { method:"DELETE", headers:{ origin:"http://127.0.0.1:3999" } }));
     assert.equal(cleared.status, 200);
     assert.match(cleared.headers.get("set-cookie") || "", /Max-Age=0/u);
-    const remote = await signIn(new Request("https://example.test/api/manager-auth/session", { method:"POST", headers:{ origin:"https://example.test" } }));
+    const remote = await signIn(signInRequest("https://example.test", TEST_PASSWORD));
     assert.equal(remote.status, 404);
   } finally {
     if (previousMode === undefined) delete process.env.QUOTE_TEST_MODE; else process.env.QUOTE_TEST_MODE = previousMode;
     if (previousDataDir === undefined) delete process.env.QUOTE_TEST_DATA_DIR; else process.env.QUOTE_TEST_DATA_DIR = previousDataDir;
+    restoreEnv("MANAGER_AUTH_LOCAL_USERNAME", previousUsername);
+    restoreEnv("MANAGER_AUTH_LOCAL_PASSWORD_HASH", previousPasswordHash);
+    restoreEnv("MANAGER_AUTH_ADMIN_EMAILS", previousAdmins);
     await rm(dataDir, { recursive:true, force:true });
+  }
+});
+
+test("test login denies missing configuration and invalid credentials without issuing a cookie", async () => {
+  const previousMode = process.env.QUOTE_TEST_MODE;
+  const previousUsername = process.env.MANAGER_AUTH_LOCAL_USERNAME;
+  const previousPasswordHash = process.env.MANAGER_AUTH_LOCAL_PASSWORD_HASH;
+  try {
+    process.env.QUOTE_TEST_MODE = "1";
+    delete process.env.MANAGER_AUTH_LOCAL_USERNAME;
+    delete process.env.MANAGER_AUTH_LOCAL_PASSWORD_HASH;
+    assert.equal(localAdminCredentialsConfigured(), false);
+    const missing = await signIn(signInRequest("http://127.0.0.1:3998", TEST_PASSWORD));
+    assert.equal(missing.status, 503);
+    configureTestCredentials();
+    assert.equal(localAdminCredentialsConfigured(), true);
+    assert.equal(verifyLocalAdminCredentials(TEST_USERNAME, TEST_PASSWORD), true);
+    assert.equal(verifyLocalAdminCredentials(TEST_USERNAME, "wrong-password"), false);
+    const rejected = await signIn(signInRequest("http://127.0.0.1:3998", "wrong-password"));
+    assert.equal(rejected.status, 401);
+    assert.equal(rejected.headers.get("set-cookie"), null);
+  } finally {
+    restoreEnv("QUOTE_TEST_MODE", previousMode);
+    restoreEnv("MANAGER_AUTH_LOCAL_USERNAME", previousUsername);
+    restoreEnv("MANAGER_AUTH_LOCAL_PASSWORD_HASH", previousPasswordHash);
   }
 });
 
@@ -166,4 +210,27 @@ function readyQuote() {
 
 function uuid(suffix) {
   return `123e4567-e89b-42d3-a456-426614174${suffix}`;
+}
+
+const TEST_USERNAME = "test-admin";
+const TEST_PASSWORD = "correct horse battery staple";
+
+function configureTestCredentials() {
+  const salt = Buffer.from("7tool-test-login-salt", "utf8");
+  const digest = pbkdf2Sync(TEST_PASSWORD, salt, 100_000, 32, "sha256");
+  process.env.MANAGER_AUTH_LOCAL_USERNAME = TEST_USERNAME;
+  process.env.MANAGER_AUTH_LOCAL_PASSWORD_HASH = `pbkdf2-sha256$100000$${salt.toString("base64url")}$${digest.toString("base64url")}`;
+}
+
+function signInRequest(origin, password, username = TEST_USERNAME) {
+  return new Request(`${origin}/api/manager-auth/session`, {
+    method:"POST",
+    headers:{ origin, "content-type":"application/json" },
+    body:JSON.stringify({ username, password }),
+  });
+}
+
+function restoreEnv(name, value) {
+  if (value === undefined) delete process.env[name];
+  else process.env[name] = value;
 }

@@ -2958,8 +2958,12 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
 .manager-access-permissions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:24px 0; }
 .manager-access-permissions span { min-height:52px; display:flex; align-items:center; padding:11px 12px 11px 34px; border:1px solid #dce1da; border-radius:6px; background:#f8f9f6; color:#343a35; font-size:11px; font-weight:750; line-height:1.35; position:relative; }
 .manager-access-permissions span::before { content:"✓"; position:absolute; left:12px; color:#087044; font-size:13px; font-weight:900; }
-.manager-access-card>button { width:100%; min-height:50px; border:1px solid #252a26; border-radius:6px; background:#252a26; color:#fff; font-size:13px; font-weight:900; cursor:pointer; }
-.manager-access-card>button:disabled { cursor:wait; opacity:.62; }
+.manager-access-form { display:grid; gap:14px; margin-top:24px; }
+.manager-access-form label { display:grid; gap:7px; color:#343a35; font-size:12px; font-weight:800; }
+.manager-access-form input { width:100%; min-height:48px; padding:11px 13px; border:1px solid #c9d0c7; border-radius:6px; background:#fff; color:#202520; font:inherit; font-size:15px; outline:none; }
+.manager-access-form input:focus { border-color:#252a26; box-shadow:0 0 0 3px rgba(37,42,38,.12); }
+.manager-access-form button { width:100%; min-height:50px; margin-top:2px; border:1px solid #252a26; border-radius:6px; background:#252a26; color:#fff; font-size:13px; font-weight:900; cursor:pointer; }
+.manager-access-form button:disabled { cursor:wait; opacity:.62; }
 .manager-access-card>small { display:block; margin-top:13px; color:#737a74; font-size:10px; line-height:1.55; }
 .manager-access-feedback p { margin:12px 0 0; padding:10px 11px; border-radius:5px; background:#fff0eb; color:#97330e; font-size:11px; }
 .quote-builder-open { position:relative; display:grid; gap:3px; margin:14px; padding:14px 42px 14px 14px; border-radius:6px; background:#ecf1ea; color:#252a26; }

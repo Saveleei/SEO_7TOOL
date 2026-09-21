@@ -1,4 +1,4 @@
-import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { createHmac, pbkdf2Sync, randomBytes, timingSafeEqual } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { isQuoteTestModeEnabled } from "./quoteRequestStore.ts";
@@ -15,6 +15,7 @@ import {
 
 const SESSION_TTL_SECONDS = 8 * 60 * 60;
 const SECRET_FILE_NAME = "manager-session.key";
+const PASSWORD_HASH_PATTERN = /^pbkdf2-sha256\$(\d{6,7})\$([A-Za-z0-9_-]{16,128})\$([A-Za-z0-9_-]{32,128})$/u;
 
 type ResolveOptions = { dataDir?: string; now?: number };
 type AuthResult = { ok: true; actor: ManagerActor } | { ok: false; response: Response };
@@ -22,6 +23,10 @@ type AuthResult = { ok: true; actor: ManagerActor } | { ok: false; response: Res
 export async function resolveManagerActor(headers: Headers, options: ResolveOptions = {}): Promise<ManagerActor | null> {
   const platformActor = resolvePlatformManagerActor(headers);
   if (platformActor) return platformActor;
+  return resolveLocalManagerActor(headers, options);
+}
+
+export async function resolveLocalManagerActor(headers: Headers, options: ResolveOptions = {}): Promise<ManagerActor | null> {
   if (!isQuoteTestModeEnabled() || !isTestManagerHostname(requestHostname(headers))) return null;
   const token = cookieValue(headers.get("cookie"), MANAGER_SESSION_COOKIE);
   if (!token) return null;
@@ -44,6 +49,20 @@ export async function createLocalAdminSession(options: ResolveOptions = {}): Pro
   const encoded = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
   const signature = sign(encoded, secret);
   return { token:`${encoded}.${signature}`, actor:localAdminActor(), maxAge:SESSION_TTL_SECONDS };
+}
+
+export function localAdminCredentialsConfigured(env: NodeJS.ProcessEnv = process.env): boolean {
+  return Boolean(cleanCredential(env.MANAGER_AUTH_LOCAL_USERNAME, 120) && parsePasswordHash(env.MANAGER_AUTH_LOCAL_PASSWORD_HASH));
+}
+
+export function verifyLocalAdminCredentials(username: unknown, password: unknown, env: NodeJS.ProcessEnv = process.env): boolean {
+  const expectedUsername = cleanCredential(env.MANAGER_AUTH_LOCAL_USERNAME, 120);
+  const suppliedUsername = cleanCredential(username, 120);
+  const suppliedPassword = typeof password === "string" && password.length <= 512 ? password : "";
+  const parsed = parsePasswordHash(env.MANAGER_AUTH_LOCAL_PASSWORD_HASH);
+  if (!expectedUsername || !suppliedUsername || !suppliedPassword || !parsed) return false;
+  const derived = pbkdf2Sync(suppliedPassword, parsed.salt, parsed.iterations, parsed.digest.length, "sha256");
+  return safeTextEqual(suppliedUsername, expectedUsername) && timingSafeEqual(derived, parsed.digest);
 }
 
 export function localSessionCookie(token: string, requestUrl: URL, maxAge = SESSION_TTL_SECONDS): string {
@@ -110,6 +129,31 @@ function localSecretPath(dataDir?: string): string {
 
 function sign(payload: string, secret: Buffer): string {
   return createHmac("sha256", secret).update(payload).digest("base64url");
+}
+
+function parsePasswordHash(value: string | undefined): { iterations: number; salt: Buffer; digest: Buffer } | null {
+  const match = String(value || "").match(PASSWORD_HASH_PATTERN);
+  if (!match) return null;
+  const iterations = Number(match[1]);
+  if (!Number.isInteger(iterations) || iterations < 100_000 || iterations > 1_000_000) return null;
+  try {
+    const salt = Buffer.from(match[2], "base64url");
+    const digest = Buffer.from(match[3], "base64url");
+    if (salt.length < 12 || salt.length > 64 || digest.length < 24 || digest.length > 64) return null;
+    return { iterations, salt, digest };
+  } catch {
+    return null;
+  }
+}
+
+function cleanCredential(value: unknown, maxLength: number): string {
+  return typeof value === "string" ? value.replace(/[\u0000-\u001f\u007f]/gu, "").trim().slice(0, maxLength) : "";
+}
+
+function safeTextEqual(left: string, right: string): boolean {
+  const leftBuffer = Buffer.from(left, "utf8");
+  const rightBuffer = Buffer.from(right, "utf8");
+  return leftBuffer.length === rightBuffer.length && timingSafeEqual(leftBuffer, rightBuffer);
 }
 
 function cookieValue(header: string | null, name: string): string {
