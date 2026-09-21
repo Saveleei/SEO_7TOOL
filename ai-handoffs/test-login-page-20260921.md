@@ -10,7 +10,7 @@
 
 ## Результат
 
-- Commit SHA: pending
+- Commit SHA: `e04a3f4` (content commit before this handoff-only amend)
 - Реализована HTML-форма логина/пароля вместо браузерного Basic Auth.
 - Пароль проверяется только на сервере по `PBKDF2-SHA256`-хэшу; plaintext не хранится в коде или конфигурации репозитория.
 - Сохранены same-origin/CSRF-проверка, rate limit, подписанная HttpOnly/SameSite=Strict сессия на 8 часов и штатный logout.
