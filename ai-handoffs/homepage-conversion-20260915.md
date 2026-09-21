@@ -21,7 +21,7 @@ Repair homepage navigation and readability, replace the ambiguous assortment-map
 
 ## Status
 
-Complete locally; not deployed.
+Complete and deployed only to the isolated `test.7tool.ru` storefront.
 
 ## Result
 
@@ -73,3 +73,20 @@ Implementation commit: `a01c1c5` (`feat: repair homepage conversion journey`).
 ### Commit
 
 Follow-up implementation commit: `28a2215` (`feat: attach specifications to selection requests`).
+
+## Test deployment — 2026-09-21
+
+- Explicit user approval received to publish only to `test.7tool.ru`.
+- Deployed branch head: `78b0087`; specification-upload implementation: `28a2215`.
+- Active release: `/var/www/7tool-release-20260921-spec-upload-78b0087`.
+- Preserved rollback release: `/var/www/7tool-release-20260915-homepage-editor-a0c662b`.
+- Persistent data remains `/var/www/7tool-test-shared/quote-requests`; pre-release backup: `/var/www/7tool-test-shared/backups/quote-requests-before-78b0087-20260921.tar.gz`.
+- The dependency lock matched the active test release exactly, so the existing immutable `node_modules` tree was reused.
+- The first candidate archive intentionally contained only the storefront, which exposed the missing sibling feed snapshot during server tests. The candidate was not activated. The exact catalog snapshot and metadata were copied from the active release after SHA-256 equality with the checked-in files was confirmed; the repeated server suite then passed 195/195.
+- Server verification: 195/195 tests, full ESLint and production build passed. The protected attachment route is present in the build.
+- Candidate smoke on port 3199 and post-switch smoke on port 3000 both passed 58/58 checks. The matrix performs no customer/quote/delivery write actions.
+- `7tool-storefront-test` runs from the new release with zero restarts. The temporary candidate process and upload archive were removed; the PM2 process list was saved.
+- External HTTPS gate returns the expected `401` Basic Auth challenge; `https://7tool.ru/` remains `200`.
+- In-app visual access was blocked by stale Basic Auth credentials (`ERR_INVALID_AUTH_CREDENTIALS`); the deployed artifact passed the complete loopback public/staff route matrix instead.
+- External email, MAX and CRM delivery remains disabled. No customer request or external message was sent.
+- Post-release disk capacity: approximately 2.1 GB free. Production, DNS, Nginx, credentials, feeds and migrations were not changed.
