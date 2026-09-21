@@ -72,4 +72,4 @@ Implementation commit: `a01c1c5` (`feat: repair homepage conversion journey`).
 
 ### Commit
 
-Follow-up implementation commit: pending.
+Follow-up implementation commit: `28a2215` (`feat: attach specifications to selection requests`).
