@@ -27,6 +27,10 @@ test("smoke performs no customer, quote or delivery write action", async () => {
   const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
   assert.equal(packageJson.scripts["smoke:release"], "node scripts/smoke-release-candidate.mjs");
   assert.match(script, /\/api\/manager-auth\/session/u);
+  assert.match(script, /SMOKE_MANAGER_USERNAME/u);
+  assert.match(script, /SMOKE_MANAGER_PASSWORD/u);
+  assert.match(script, /JSON\.stringify\(\{ username:managerUsername, password:managerPassword \}\)/u);
+  assert.doesNotMatch(script, /SMOKE_MANAGER_PASSWORD\s*\|\|\s*["'][^"']+["']/u);
   assert.doesNotMatch(script, /\/api\/quote-requests|\/quote-approval|\/quote-draft/u);
   assert.equal((script.match(/method:\s*"POST"/gu) || []).length, 1);
   assert.doesNotMatch(script, /sendMail|smtp|telegram\.org|api\.max|crm\./iu);

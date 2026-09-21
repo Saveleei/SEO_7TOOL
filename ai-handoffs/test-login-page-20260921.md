@@ -22,5 +22,6 @@
 - Полный ESLint: passed.
 - `vinext build`: passed; маршрут `/api/manager-auth/check` присутствует в сборке.
 - Browser QA: desktop и 390×844; неверный пароль показывает понятную ошибку без cookie; правильный пароль открывает сессию; logout работает; возврат в `/catalog/category/borfrezy?view=table#products` сохранён.
+- Release-smoke принимает логин и пароль только через временные `SMOKE_MANAGER_*` переменные и выполняет реальный credential flow без внешних отправок.
 - Внешние заявки и сообщения не отправлялись.
 - Переключение `test.7tool.ru`: не выполнено; требуется отдельное применение release + nginx-конфигурации. Production/DNS/секреты не менялись.

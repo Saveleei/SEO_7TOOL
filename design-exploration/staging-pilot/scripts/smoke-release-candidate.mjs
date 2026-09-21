@@ -60,6 +60,9 @@ export function assertLoopbackBaseUrl(value) {
 export async function runReleaseSmoke(options = {}) {
   const baseUrl = assertLoopbackBaseUrl(options.baseUrl || process.env.SMOKE_BASE_URL || "http://127.0.0.1:3180");
   const fetchImpl = options.fetchImpl || fetch;
+  const managerUsername = String(options.managerUsername || process.env.SMOKE_MANAGER_USERNAME || "");
+  const managerPassword = String(options.managerPassword || process.env.SMOKE_MANAGER_PASSWORD || "");
+  if (!managerUsername || !managerPassword) throw new Error("SMOKE_MANAGER_USERNAME and SMOKE_MANAGER_PASSWORD are required.");
   const results = [];
 
   for (const route of PUBLIC_RELEASE_ROUTES) {
@@ -78,7 +81,8 @@ export async function runReleaseSmoke(options = {}) {
 
   const login = await request(fetchImpl, baseUrl, "/api/manager-auth/session", {
     method:"POST",
-    headers:{ Origin:baseUrl.origin },
+    headers:{ Origin:baseUrl.origin, "content-type":"application/json" },
+    body:JSON.stringify({ username:managerUsername, password:managerPassword }),
     redirect:"manual",
   });
   requireStatus(login, 200, "/api/manager-auth/session");
