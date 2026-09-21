@@ -2192,6 +2192,8 @@ body:has(.feed-compare-tray) .request-cart-dock { bottom:96px; }
 .feed-product-match span { padding:4px 6px; border-radius:3px; background:#edf6f0; color:#285540; font-size:9px; font-weight:700; line-height:1.3; }
 .feed-product-specs--fallback { align-content:center; gap:7px; background:#fafbf9; }
 .feed-product-specs--fallback>span { color:#735f3d; font-size:9px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
+.feed-product-specs--project { background:#f5f7f5; }
+.feed-product-specs--project>span { color:#315d49; }
 .feed-product-spec-confirmed { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:baseline; gap:12px; margin:0; padding:6px 0 8px; border-bottom:1px solid #e4e7e1; }
 .feed-product-spec-confirmed b { color:var(--muted); font-size:9px; line-height:1.35; }
 .feed-product-spec-confirmed strong { font-size:11px; line-height:1.35; text-align:right; }
@@ -3884,6 +3886,22 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
 .category-sibling-navigation>.container>div>a.active { position:relative; background:#f5f7f3; color:#172019; }
 .category-sibling-navigation>.container>div>a.active::after { content:""; position:absolute; right:9px; bottom:0; left:9px; height:3px; background:#a43e14; }
 .category-sibling-navigation>.container>div>a.active small { background:#26302a; color:#fff; }
+.category-assortment-shortcuts { padding:15px 0 16px; border-bottom:1px solid #d9ddd6; background:#f4f6f2; }
+.category-assortment-shortcuts header { display:flex; align-items:end; justify-content:space-between; gap:18px; margin-bottom:10px; }
+.category-assortment-shortcuts header span,.category-assortment-shortcuts header b { display:block; }
+.category-assortment-shortcuts header span { color:#757c75; font-size:8px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
+.category-assortment-shortcuts header b { margin-top:2px; font-size:15px; }
+.category-assortment-shortcuts header>a { min-height:34px; display:flex; align-items:center; padding:0 12px; border:1px solid #cbd0c8; border-radius:5px; background:#fff; color:#3d443f; font-size:10px; font-weight:800; }
+.category-assortment-shortcuts header>a.active { border-color:#26302a; background:#26302a; color:#fff; }
+.category-assortment-shortcuts>.container>div { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+.category-assortment-shortcuts>.container>div>a { min-width:0; min-height:72px; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 14px; border:1px solid #d3d7d0; border-radius:7px; background:#fff; color:#252b27; }
+.category-assortment-shortcuts>.container>div>a:hover,.category-assortment-shortcuts>.container>div>a.active { border-color:#40574a; box-shadow:0 8px 22px rgba(26,36,30,.06); }
+.category-assortment-shortcuts>.container>div>a.active { background:#edf3ee; }
+.category-assortment-shortcuts>.container>div>a span,.category-assortment-shortcuts>.container>div>a b,.category-assortment-shortcuts>.container>div>a small { min-width:0; display:block; }
+.category-assortment-shortcuts>.container>div>a b { font-size:12px; line-height:1.25; }
+.category-assortment-shortcuts>.container>div>a small { margin-top:4px; color:#687069; font-size:9px; line-height:1.35; }
+.category-assortment-shortcuts>.container>div>a em { min-width:30px; min-height:30px; display:grid; flex:0 0 auto; place-items:center; border-radius:50%; background:#eef0ec; color:#515a53; font-size:9px; font-style:normal; font-weight:850; }
+.category-assortment-shortcuts>.container>div>a.active em { background:#315d49; color:#fff; }
 
 @media (max-width:1050px) {
   .homepage-category-tiles { grid-template-columns:repeat(4,minmax(0,1fr)); grid-auto-rows:180px; }
@@ -3944,6 +3962,11 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
   .category-sibling-navigation header { padding:10px 14px; border-right:0; border-bottom:1px solid #dde1da; }
   .category-sibling-navigation>.container>div { padding-left:6px; }
   .category-sibling-navigation>.container>div>a { min-width:142px; min-height:52px; }
+  .category-assortment-shortcuts { padding:13px 0; }
+  .category-assortment-shortcuts header { align-items:flex-start; flex-direction:column; gap:8px; }
+  .category-assortment-shortcuts header>a { width:100%; justify-content:center; }
+  .category-assortment-shortcuts>.container>div { grid-template-columns:1fr; }
+  .category-assortment-shortcuts>.container>div>a { min-height:66px; }
 }
 
 /* Header conversion navigation: task-led catalog, dominant search and calm quote state. */

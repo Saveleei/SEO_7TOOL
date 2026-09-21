@@ -100,6 +100,8 @@ test("an exact filtered execution is actionable without another reveal", async (
   assert.match(card, /feed-product-specs--fallback/u);
   assert.match(card, /product\.specs\.length >= 2/u);
   assert.match(card, /Один параметр подтверждён в фиде/u);
+  assert.match(card, /Комплектация определяется по задаче/u);
+  assert.match(card, /Для расчёта проекта нужны/u);
   assert.match(table, /feed-mobile-series--direct/u);
   assert.match(requestCart, /added \? "Добавлено · ещё \+1"/u);
   assert.match(requestCart, /aria-live="polite"/u);

@@ -127,6 +127,10 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     ? [...result.facets].sort((first, second) => facetOrder(first.keyword, first.key) - facetOrder(second.keyword, second.key))
     : result.facets;
   const selectionCriteria = profile.criteria;
+  const assortmentShortcuts = (profile.assortmentShortcuts ?? []).map((shortcut: { label: string; query: string; copy: string }) => ({
+    ...shortcut,
+    count:getFeedCategoryPage(slug, { search:shortcut.query, pageSize:6 }).total,
+  })).filter((shortcut: { count: number }) => shortcut.count > 0);
 
   return <div className="site-shell"><PilotHeader /><main className="inner-page">
     <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Каталог", href:"/catalog" }, { label:group.title, href:group.href }, { label:subcategory.label }]} /></div>
@@ -145,6 +149,8 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     <nav className="category-sibling-navigation" aria-label={`Категории направления «${group.title}»`}>
       <div className="container"><header><span>В составе задачи</span><b>{group.title}</b><Link href={group.href}>Обзор направления →</Link></header><div>{group.subcategories.map((item) => <Link className={item.slug === slug ? "active" : undefined} aria-current={item.slug === slug ? "page" : undefined} href={item.href} key={item.slug}><span>{item.label}</span><small>{(item.count ?? 0).toLocaleString("ru-RU")}</small></Link>)}</div></div>
     </nav>
+
+    {assortmentShortcuts.length > 0 && <nav className="category-assortment-shortcuts" aria-label="Разделы текущей категории"><div className="container"><header><div><span>Что вам нужно</span><b>Сначала выберите тип товара</b></div><Link className={!search ? "active" : undefined} aria-current={!search ? "page" : undefined} href={`/catalog/category/${slug}#products`}>Весь ассортимент</Link></header><div>{assortmentShortcuts.map((shortcut: { label: string; query: string; copy: string; count: number }) => <Link className={search === shortcut.query ? "active" : undefined} aria-current={search === shortcut.query ? "page" : undefined} href={`/catalog/category/${slug}?q=${encodeURIComponent(shortcut.query)}#products`} key={shortcut.query}><span><b>{shortcut.label}</b><small>{shortcut.copy}</small></span><em>{shortcut.count.toLocaleString("ru-RU")}</em></Link>)}</div></div></nav>}
 
     <section className="section feed-category-listing" id="products"><div className="container">
       <div className="section-heading feed-category-heading"><div><p className="eyebrow">Фактический ассортимент</p><h2>{profile.listingTitle}</h2></div><p>Главные параметры вынесены наверх. Полный набор фильтров остаётся слева.</p></div>

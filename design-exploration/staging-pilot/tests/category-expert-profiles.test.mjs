@@ -77,6 +77,29 @@ test("project and heterogeneous categories use an engineer-first selection mode"
   assert.match(selector, /facets\.length > 0 \? "Подобрать за минуту" : "Передать задачу"/u);
 });
 
+test("cut-off saw diameter combines both supplier parameter names", () => {
+  const page = getFeedCategoryPage("disko-otreznye-stanki", { pageSize:48 });
+  const facets = selectCategoryAssistantFacets("disko-otreznye-stanki", page.facets.filter((facet) => facet.keyword));
+  const diameter = facets[0];
+  assert.equal(diameter.keyword, "диаметр");
+  assert.ok(diameter.options.some((option) => option.value === "275"));
+  assert.ok(diameter.options.some((option) => option.value === "355"));
+  assert.ok(getFeedCategoryPage("disko-otreznye-stanki", { filters:{ [diameter.key]:["275"] }, pageSize:48 }).total > 0);
+  assert.ok(getFeedCategoryPage("disko-otreznye-stanki", { filters:{ [diameter.key]:["355"] }, pageSize:48 }).total > 0);
+});
+
+test("mixed diamond drilling assortment exposes complete feed-backed entry points", async () => {
+  const profile = categoryExpertProfiles["almaznoe-burenie"];
+  const total = getFeedCategoryPage("almaznoe-burenie", { pageSize:48 }).total;
+  const counts = profile.assortmentShortcuts.map((shortcut) => getFeedCategoryPage("almaznoe-burenie", { search:shortcut.query, pageSize:48 }).total);
+  assert.deepEqual(profile.assortmentShortcuts.map((shortcut) => shortcut.label), ["Установки алмазного бурения", "Ручные дрели", "Алмазные коронки"]);
+  assert.ok(counts.every((count) => count > 0));
+  assert.equal(counts.reduce((sum, count) => sum + count, 0), total);
+  const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /category-assortment-shortcuts/u);
+  assert.match(page, /shortcut\.count\.toLocaleString\("ru-RU"\)/u);
+});
+
 test("generic guided selection replaces only its own filters and keeps commercial context", () => {
   const url = buildCategorySelectionUrl({
     pathname:"/catalog/category/kompressory",

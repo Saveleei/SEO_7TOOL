@@ -26,7 +26,7 @@ export const categorySelectionRules = Object.freeze({
   "svarochnye-vrashchateli-i-pozitsionery": Object.freeze({ "грузоподъемность (позиционеры)":minimum, "макс. диаметр обечайки":minimum, "тип настройки роликов":exact }),
   "zahvaty-dlya-gruzov": Object.freeze({ "грузоподъемность":minimum, "толщина стали":minimum, "включение/выключение":exact }),
   "sozh-i-sots": Object.freeze({ "вид":exact, "форма выпуска":exact, "объем":exact }),
-  "disko-otreznye-stanki": Object.freeze({ "диаметр диска":exact, "тип":exact, "угол реза":exact }),
+  "disko-otreznye-stanki": Object.freeze({ "диаметр":exact, "тип":exact, "угол реза":exact }),
   "kompressory": Object.freeze({ "производительность":minimum, "объем ресивера":minimum, "мощность":exact }),
   "sverla-i-zenkovki": Object.freeze({ "диаметр режущей":exact, "мин. диаметр зенкования":exact, "диаметр хвостовика":exact, "материал":exact }),
   "stanki-lazernoy-rezki": Object.freeze({ "мощность, вт":minimum, "длина рабочего стола":minimum, "наличие защитной кабины":exact }),

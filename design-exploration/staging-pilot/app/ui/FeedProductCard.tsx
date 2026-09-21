@@ -18,6 +18,7 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
   const [variantsOpen, setVariantsOpen] = useState(false);
   const directVariant = product.selectedVariantCount === 1 ? product.variants[0] : undefined;
   const archetype = product.cardArchetype;
+  const projectConfiguration = archetype.id === "project-system";
   const visibleVariantLabel = pluralizeCardVariants(product.selectedVariantCount, archetype.variantForms);
   return <article className={`feed-product-card feed-product-card--${archetype.id} ${selected ? "feed-product-card--selected" : ""}`}>
     <Link className="feed-product-media" href={`/product/${product.slug}`} aria-label={`Открыть ${product.title}`}>
@@ -34,7 +35,7 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
         {product.matchReasons.length > 0 && <div className="feed-product-match" aria-label="Почему товар подходит"><b>Подходит по выбранным параметрам</b>{product.matchReasons.map((reason) => <span key={reason}>{reason}</span>)}</div>}
       </div>
 
-      {product.specs.length >= 2 ? <dl className="feed-product-specs" aria-label="Основные характеристики">{product.specs.map((spec) => <div key={spec.label}><dt>{spec.label}</dt><dd>{spec.value}</dd></div>)}</dl> : <div className="feed-product-specs feed-product-specs--fallback"><span>{product.specs.length === 1 ? "Один параметр подтверждён в фиде" : "Данных в фиде недостаточно"}</span>{product.specs[0] && <p className="feed-product-spec-confirmed"><b>{product.specs[0].label}</b><strong>{product.specs[0].value}</strong></p>}<b>Для точного подбора уточним</b><ul>{product.decisionPrompts.map((prompt) => <li key={prompt}>{prompt}</li>)}</ul></div>}
+      {product.specs.length >= 2 ? <dl className="feed-product-specs" aria-label="Основные характеристики">{product.specs.map((spec) => <div key={spec.label}><dt>{spec.label}</dt><dd>{spec.value}</dd></div>)}</dl> : <div className={`feed-product-specs feed-product-specs--fallback ${projectConfiguration ? "feed-product-specs--project" : ""}`}><span>{projectConfiguration ? "Комплектация определяется по задаче" : product.specs.length === 1 ? "Один параметр подтверждён в фиде" : "Данных в фиде недостаточно"}</span>{product.specs[0] && <p className="feed-product-spec-confirmed"><b>{product.specs[0].label}</b><strong>{product.specs[0].value}</strong></p>}<b>{projectConfiguration ? "Для расчёта проекта нужны" : "Для точного подбора уточним"}</b><ul>{product.decisionPrompts.map((prompt) => <li key={prompt}>{prompt}</li>)}</ul></div>}
 
       <div className="feed-product-commercial">
         <label className="feed-compare-check"><input type="checkbox" aria-label={`Сравнить ${product.title}`} checked={selected} onChange={onCompare} /> Сравнить</label>
