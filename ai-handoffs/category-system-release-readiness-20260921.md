@@ -25,4 +25,9 @@
 - Project CTA согласован с содержанием: «Инженерный подбор / Передать задачу» вместо обещания «за минуту».
 - Полный `node --test tests/*.test.mjs`: 201/201 passed; полный ESLint passed; production build passed.
 - Browser QA: desktop `kromkorezy-po-listu` (brand + width quick filters, 3 полезных вопроса), `truborezy` (20–2438,4 mm range containment), mobile 390×844 `stanki-lazernoy-rezki` (engineer-first form without clipping) и `sverla-i-zenkovki` (diameter/material/shank).
+- Карточки серий больше не показывают случайные первые два числовых значения из фида: для трёх и более сопоставимых значений выводится естественный диапазон и количество вариантов (`12–60 мм · 49 вариантов`). Составные значения и уже готовые диапазоны не преобразуются.
+- Карточка с единственной характеристикой теперь отделяет подтверждённый параметр от недостающих критериев подбора; нулевые данные по-прежнему честно обозначаются как недостаточные.
+- Подписи и значения характеристик переносятся без обрезания. Browser QA: desktop/mobile `koronchatye-sverla` и mobile 390×844 `truborezy?q=H8S`; горизонтального переполнения карточек нет.
+- Регрессии после этапа карточек: узкие тесты 7/7, полный ESLint passed, полный `node --test tests/*.test.mjs` 202/202 passed, production build passed.
+- Commit этапа карточек: `e322315` (`feat: clarify category card specifications`).
 - Публикация на `test.7tool.ru` в этом commit не выполнялась.
