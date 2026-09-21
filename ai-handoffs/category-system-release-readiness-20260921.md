@@ -30,4 +30,8 @@
 - Подписи и значения характеристик переносятся без обрезания. Browser QA: desktop/mobile `koronchatye-sverla` и mobile 390×844 `truborezy?q=H8S`; горизонтального переполнения карточек нет.
 - Регрессии после этапа карточек: узкие тесты 7/7, полный ESLint passed, полный `node --test tests/*.test.mjs` 202/202 passed, production build passed.
 - Commit этапа карточек: `e322315` (`feat: clarify category card specifications`).
+- Табличный вид шести «плотных» категорий теперь выбирает три фактически заполненных решающих характеристики из карточек текущей выдачи, а не первые три формальных facet-label. Это устраняет ложные `—` из-за разницы названий и редких полей.
+- Browser QA таблиц: desktop `koronchatye-sverla` — 0 пустых технических ячеек на первой странице; mobile 390×844 `pilnye-diski` — колонки «Диаметр диска / Посадочное отверстие / Число зубьев», 0 пустых значений и нет горизонтального переполнения.
+- Регрессии после этапа таблиц: узкие тесты 8/8, полный ESLint passed, полный `node --test tests/*.test.mjs` 203/203 passed, production build passed.
+- Commit этапа таблиц: `8a6b091` (`feat: choose populated category table columns`).
 - Публикация на `test.7tool.ru` в этом commit не выполнялась.
