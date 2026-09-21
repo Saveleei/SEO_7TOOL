@@ -7,7 +7,7 @@ import {
   categorySelectionRules,
   getCategorySelectionRule,
 } from "../app/data/categorySelection.mjs";
-import { selectCategoryFacets } from "../app/data/categoryExpertProfiles.mjs";
+import { selectCategoryAssistantFacets } from "../app/data/categoryExpertProfiles.mjs";
 import {
   getFeedCategoryPage,
   getGuidedFacetOptions,
@@ -21,14 +21,14 @@ test("every generic selector facet has an explicit category match rule", () => {
   let audited = 0;
   for (const slug of getPublishedFeedCategorySlugs().filter((value) => value !== "borfrezy" && value !== "stanki-sverlilnye")) {
     const page = getFeedCategoryPage(slug, { pageSize:1 });
-    const facets = selectCategoryFacets(slug, page.facets.filter((facet) => facet.keyword), 3);
+    const facets = selectCategoryAssistantFacets(slug, page.facets.filter((facet) => facet.keyword));
     for (const facet of facets) {
       audited += 1;
       assert.ok(Object.hasOwn(categorySelectionRules[slug] ?? {}, facet.keyword), `${slug}/${facet.keyword}`);
       assert.match(getCategorySelectionRule(slug, facet.keyword).mode, /^(exact|minimum|range)$/u);
     }
   }
-  assert.ok(audited >= 55);
+  assert.ok(audited >= 50);
 });
 
 test("capacity, exact fit and pipe containment produce distinct query constraints", () => {

@@ -7,7 +7,7 @@ import {
   getGuidedFacetOptions,
   getPublishedFeedCategorySlugs,
 } from "../app/data/feedCatalog.ts";
-import { selectCategoryFacets } from "../app/data/categoryExpertProfiles.mjs";
+import { selectCategoryAssistantFacets } from "../app/data/categoryExpertProfiles.mjs";
 import {
   buildCategoryQueryContext,
   buildCategorySelectionUrl,
@@ -99,7 +99,7 @@ function buildScenarioAudit() {
   for (const slug of getPublishedFeedCategorySlugs()) {
     const page = getFeedCategoryPage(slug, { pageSize:48 });
     const technicalFacets = page.facets.filter((facet) => facet.keyword);
-    const selectedFacets = selectCategoryFacets(slug, technicalFacets, 3);
+    const selectedFacets = selectCategoryAssistantFacets(slug, technicalFacets);
     if (selectedFacets.length === 0) {
       scenarios.push({ slug, label:"manual engineer handoff", resultCount:page.total });
       continue;

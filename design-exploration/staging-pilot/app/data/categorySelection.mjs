@@ -3,14 +3,18 @@ const minimum = "minimum";
 
 export const categorySelectionRules = Object.freeze({
   "koronchatye-sverla": Object.freeze({ "диаметр режущей":exact, "рабочая длина":minimum, "материал":exact }),
-  "kromkorezy-po-listu": Object.freeze({ "макс. ширина фаски":minimum, "угол фаски":exact, "возможности":exact }),
+  "kromkorezy-po-listu": Object.freeze({ "макс. ширина фаски":minimum, "угол фаски":exact, "возможности":exact, "тип":exact }),
   "kromkorezy-dlya-trub": Object.freeze({
     "макс. диаметр тру":Object.freeze({ mode:"range", minimumKeyword:"мин. диаметр тру", question:"Диаметр вашей трубы, мм" }),
     "способ крепления":exact,
     "возможности":exact,
   }),
-  "rezbonareznye-manipulyatory": Object.freeze({ "макс. резьба":minimum, "рабочий радиус":minimum, "охват рабочей зоны":minimum }),
-  "truborezy": Object.freeze({ "макс. диаметр тру":minimum, "макс. толщина стен":minimum, "диапазон труб":exact }),
+  "rezbonareznye-manipulyatory": Object.freeze({ "макс. резьба":minimum, "рабочий радиус":minimum, "охват рабочей зоны":minimum, "частота вращения":exact }),
+  "truborezy": Object.freeze({
+    "макс. диаметр тру":Object.freeze({ mode:"range", minimumKeyword:"мин. диаметр тру", question:"Диаметр вашей трубы, мм" }),
+    "макс. толщина стен":minimum,
+    "диапазон труб":exact,
+  }),
   "karetki-svarochnye": Object.freeze({ "положения сварки":exact, "движение каретки":exact, "особенности":exact }),
   "pilnye-diski": Object.freeze({ "диаметр диска":exact, "посадочное отверстие":exact, "материал":exact }),
   "karetki-termicheskoy-rezki": Object.freeze({ "назначение":exact, "тип резки":exact, "макс. толщина резки":minimum }),
@@ -24,7 +28,7 @@ export const categorySelectionRules = Object.freeze({
   "sozh-i-sots": Object.freeze({ "вид":exact, "форма выпуска":exact, "объем":exact }),
   "disko-otreznye-stanki": Object.freeze({ "диаметр диска":exact, "тип":exact, "угол реза":exact }),
   "kompressory": Object.freeze({ "производительность":minimum, "объем ресивера":minimum, "мощность":exact }),
-  "sverla-i-zenkovki": Object.freeze({ "диаметр режущей":exact, "мин. диаметр зенкования":exact, "диаметр хвостовика":exact }),
+  "sverla-i-zenkovki": Object.freeze({ "диаметр режущей":exact, "мин. диаметр зенкования":exact, "диаметр хвостовика":exact, "материал":exact }),
   "stanki-lazernoy-rezki": Object.freeze({ "мощность, вт":minimum, "длина рабочего стола":minimum, "наличие защитной кабины":exact }),
   "svarochnye-roboty": Object.freeze({ "макс. охват":minimum, "доп. возможности":exact }),
   "stanochnaya-osnastka": Object.freeze({}),

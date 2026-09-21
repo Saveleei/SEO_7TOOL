@@ -103,7 +103,7 @@ export const categoryExpertProfiles = {
     selectorIntro:"Размер резьбы и расстояние до отверстий определяют привод, рабочую головку и вылет руки.",
     selectorResult:"Покажем подходящий диапазон; цанги, смазку и режим для материала проверит инженер.",
     facetKeywords:["макс. резьба", "рабочий радиус", "охват рабочей зоны", "частота вращения", "посадка"],
-    promotedFacetKeywords:["макс. резьба", "рабочий радиус", "brand"],
+    promotedFacetKeywords:["макс. резьба", "охват рабочей зоны", "частота вращения", "brand"],
     criteriaTitle:"Что сообщить для подбора манипулятора",
     criteriaIntro:"Особенно важны крайние размеры резьбы и реальная рабочая зона.",
     criteria:[
@@ -135,6 +135,7 @@ export const categoryExpertProfiles = {
     emptyCopy:"Снимите один фильтр или подберите форму по геометрии участка — точный артикул не нужен.",
   },
   "truborezy": {
+    selectorFacetLimit:2,
     heroIntro:"Подберите промышленный труборез по диапазону диаметров, толщине стенки, материалу и требованиям к резу.",
     listingTitle:"Подберите труборез под диапазон труб",
     selectorTitle:"Подобрать труборез",
@@ -249,6 +250,7 @@ export const categoryExpertProfiles = {
     emptyCopy:"Расширьте рабочее сечение или угол либо передайте карту заготовок — инженер проверит производительность и полотно.",
   },
   "shlifovalnoe-i-zatochnoe-oborudovanie": {
+    selectionMode:"engineer",
     heroIntro:"Сначала выберите операцию: заточка инструмента, шлифование кромки, трубы или поверхности. Затем сравнивайте диапазон и привод.",
     listingTitle:"Подберите оборудование по операции",
     selectorTitle:"Подобрать шлифовальное или заточное оборудование",
@@ -388,7 +390,7 @@ export const categoryExpertProfiles = {
     selectorIntro:"Суммируйте одновременное потребление и заложите запас. Объём ресивера не заменяет производительность.",
     selectorResult:"Покажем модели по расходу и мощности; давление, осушение и режим нагрузки проверит инженер.",
     facetKeywords:["производительность", "объем ресивера", "мощность", "параметры питания", "тип смазки"],
-    promotedFacetKeywords:["производительность", "объем ресивера", "мощность"],
+    promotedFacetKeywords:["производительность", "мощность", "объем ресивера"],
     criteriaTitle:"Данные для расчёта компрессора",
     criteriaIntro:"Лучший исходный документ — список потребителей с расходом, давлением и коэффициентом включения.",
     criteria:[
@@ -407,7 +409,7 @@ export const categoryExpertProfiles = {
     selectorIntro:"Сначала определите операцию и итоговый диаметр, затем материал и совместимость со станком.",
     selectorResult:"Покажем исполнения по размеру; геометрию, покрытие и режим резания подтвердит инженер.",
     facetKeywords:["диаметр режущей", "мин. диаметр зенкования", "диаметр хвостовика", "рабочая длина", "материал", "покрытие"],
-    promotedFacetKeywords:["диаметр режущей", "мин. диаметр зенкования", "диаметр хвостовика"],
+    promotedFacetKeywords:["диаметр режущей", "материал", "диаметр хвостовика", "мин. диаметр зенкования"],
     criteriaTitle:"Что нужно знать об инструменте",
     criteriaIntro:"Обозначьте, требуется сверление, рассверливание, снятие фаски или зенкование под крепёж.",
     criteria:[
@@ -420,6 +422,7 @@ export const categoryExpertProfiles = {
     emptyCopy:"Снимите один размерный фильтр или передайте чертёж отверстия — инженер проверит инструмент и режим.",
   },
   "stanki-lazernoy-rezki": {
+    selectionMode:"engineer",
     heroIntro:"Подберите лазерный станок по материалу и толщине, рабочему полю, мощности источника, автоматизации и производственной программе.",
     listingTitle:"Подберите лазер под детали и программу выпуска",
     selectorTitle:"Подобрать станок лазерной резки",
@@ -439,6 +442,7 @@ export const categoryExpertProfiles = {
     emptyCopy:"Не выбирайте компромисс только по мощности — передайте карту деталей для расчёта подходящего класса станка.",
   },
   "svarochnye-roboty": {
+    selectionMode:"engineer",
     heroIntro:"Подберите сварочного робота по процессу, рабочему радиусу, положению швов, массе горелки и требуемому циклу.",
     listingTitle:"Подберите роботизированное решение под изделие",
     selectorTitle:"Подобрать сварочного робота",
@@ -503,6 +507,12 @@ export function selectCategoryFacets(slug, facets, limit = 3) {
     if (selected.length === limit) break;
   }
   return selected;
+}
+
+export function selectCategoryAssistantFacets(slug, facets) {
+  const profile = getCategoryExpertProfile(slug);
+  if (profile.selectionMode === "engineer") return [];
+  return selectCategoryFacets(slug, facets, profile.selectorFacetLimit ?? 3);
 }
 
 function facetMatches(facet, priority) {

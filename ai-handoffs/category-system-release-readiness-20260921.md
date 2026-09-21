@@ -18,3 +18,11 @@
 - Первый implementation-приоритет по сочетанию объёма и риска: `kromkorezy-po-listu`, `lentochnopilnye-stanki`, `sverla-i-zenkovki`, затем проектные категории `svarochnye-roboty` и `stanki-lazernoy-rezki` с безопасным inquiry-first сценарием.
 - `kromkorezy-po-listu`: быстрый фильтр теперь ставит производителя перед техническим параметром, а форма подбора использует фактически заполненные «макс. ширина фаски → возможности → тип» вместо почти пустого поля угла (угол остаётся в полном фильтре).
 - Узкие регрессионные тесты после первого исправления: 15/15 passed.
+- Добавлен отдельный источник истины для facet-набора формы: серийные категории получают только настроенные вопросы, `truborezy` ограничены двумя рабочими условиями, а project/heterogeneous категории могут безопасно переключаться в `engineer` mode.
+- `truborezy`: один вопрос по диаметру теперь проверяет попадание размера одновременно между минимальной и максимальной границей, второй — достаточную толщину стенки; дублирующий диапазон убран из короткой формы.
+- Переставлены feed-backed вопросы для `rezbonareznye-manipulyatory`, `kompressory` и `sverla-i-zenkovki`; для каждого вопроса задано явное exact/minimum/range правило.
+- `stanki-lazernoy-rezki`, `svarochnye-roboty`, `shlifovalnoe-i-zatochnoe-oborudovanie`: автоматический shortlist заменён на инженерный запрос, полный каталог и фильтры сохранены.
+- Project CTA согласован с содержанием: «Инженерный подбор / Передать задачу» вместо обещания «за минуту».
+- Полный `node --test tests/*.test.mjs`: 201/201 passed; полный ESLint passed; production build passed.
+- Browser QA: desktop `kromkorezy-po-listu` (brand + width quick filters, 3 полезных вопроса), `truborezy` (20–2438,4 mm range containment), mobile 390×844 `stanki-lazernoy-rezki` (engineer-first form without clipping) и `sverla-i-zenkovki` (diameter/material/shank).
+- Публикация на `test.7tool.ru` в этом commit не выполнялась.

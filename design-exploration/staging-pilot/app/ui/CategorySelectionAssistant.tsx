@@ -82,8 +82,8 @@ export function CategorySelectionAssistant({
   return <details ref={detailsRef} className="burr-finder category-finder" id="category-selector">
     <summary>
       <span className="category-finder-symbol" aria-hidden="true"><b>?</b><i>✓</i></span>
-      <span><small>Подбор без артикула</small><b>{selectorTitle}</b><em>{selectorIntro}</em></span>
-      <i>Подобрать за минуту <span aria-hidden="true">↓</span></i>
+      <span><small>{facets.length > 0 ? "Подбор без артикула" : "Инженерный подбор"}</small><b>{selectorTitle}</b><em>{selectorIntro}</em></span>
+      <i>{facets.length > 0 ? "Подобрать за минуту" : "Передать задачу"} <span aria-hidden="true">↓</span></i>
     </summary>
     <div className="burr-finder-body">
       <div className="burr-finder-heading"><div><span>{facets.length > 0 ? "Шаг 1 · параметры" : "Инженерный запрос"}</span><h3>{facets.length > 0 ? "Выберите только то, что уже известно" : "Начните с задачи и оборудования"}</h3><p>{facets.length > 0 ? "Значения взяты из текущего фида. Любой вопрос можно пропустить — подбор не должен останавливаться из-за неизвестного параметра." : "В этой категории пока недостаточно структурированных данных для безопасного автоматического отбора."}</p></div><small>{facets.length > 0 ? "Контакты пока не нужны" : "Артикул не требуется"}</small></div>

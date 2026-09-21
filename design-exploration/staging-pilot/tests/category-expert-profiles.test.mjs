@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { buildCategorySelectionContext, buildCategorySelectionUrl } from "../app/data/categorySelection.mjs";
-import { categoryExpertProfiles, getCategoryExpertProfileSlugs, selectCategoryFacets } from "../app/data/categoryExpertProfiles.mjs";
+import { categoryExpertProfiles, getCategoryExpertProfileSlugs, selectCategoryAssistantFacets, selectCategoryFacets } from "../app/data/categoryExpertProfiles.mjs";
 import { getFeedCategoryPage } from "../app/data/feedCatalog.ts";
 
 test("every published feed category has a complete expert profile", async () => {
@@ -19,6 +19,7 @@ test("every published feed category has a complete expert profile", async () => 
     assert.ok(profile.promotedFacetKeywords.length >= 3, `${slug}: promoted facets`);
     assert.ok(profile.criteria.length >= 5, `${slug}: criteria`);
     assert.ok(profile.emptyCopy.length >= 70, `${slug}: empty state`);
+    assert.ok(profile.selectionMode === undefined || profile.selectionMode === "engineer", `${slug}: selection mode`);
   }
 });
 
@@ -42,6 +43,38 @@ test("sheet beveler quick filters prioritize manufacturer while guided selection
   assert.deepEqual(promoted.map((facet) => facet.key), ["brand", "spec1"]);
   assert.deepEqual(guided.map((facet) => facet.keyword), ["макс. ширина фаски", "возможности", "тип"]);
   assert.ok(guided.every((facet) => facet.options.length > 0));
+});
+
+test("serial categories ask the most useful feed-backed questions first", () => {
+  const cases = {
+    "rezbonareznye-manipulyatory":["макс. резьба", "охват рабочей зоны", "частота вращения"],
+    truborezy:["макс. диаметр тру", "макс. толщина стен"],
+    kompressory:["производительность", "мощность", "объем ресивера"],
+    "sverla-i-zenkovki":["диаметр режущей", "материал", "диаметр хвостовика"],
+  };
+
+  for (const [slug, expected] of Object.entries(cases)) {
+    const page = getFeedCategoryPage(slug, { pageSize:48 });
+    const guided = selectCategoryAssistantFacets(slug, page.facets.filter((facet) => facet.keyword));
+    assert.deepEqual(guided.map((facet) => facet.keyword), expected, slug);
+  }
+});
+
+test("project and heterogeneous categories use an engineer-first selection mode", async () => {
+  for (const slug of ["stanki-lazernoy-rezki", "svarochnye-roboty", "shlifovalnoe-i-zatochnoe-oborudovanie"]) {
+    assert.equal(categoryExpertProfiles[slug].selectionMode, "engineer", slug);
+    const page = getFeedCategoryPage(slug, { pageSize:48 });
+    assert.deepEqual(selectCategoryAssistantFacets(slug, page.facets.filter((facet) => facet.keyword)), [], slug);
+  }
+  const [page, selector] = await Promise.all([
+    readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/ui/CategorySelectionAssistant.tsx", import.meta.url), "utf8"),
+  ]);
+  assert.match(page, /profile\.selectionMode === "engineer"/u);
+  assert.match(page, /selectCategoryAssistantFacets\(slug, technicalFacets\)/u);
+  assert.match(page, /Передать задачу инженеру/u);
+  assert.match(selector, /facets\.length > 0 \? "Подбор без артикула" : "Инженерный подбор"/u);
+  assert.match(selector, /facets\.length > 0 \? "Подобрать за минуту" : "Передать задачу"/u);
 });
 
 test("generic guided selection replaces only its own filters and keeps commercial context", () => {

@@ -15,7 +15,7 @@ import { PilotHeader } from "../../../ui/PilotHeader";
 import { SelectionConversionBlock } from "../../../ui/SelectionConversionBlock";
 import { TestRequestForm } from "../../../ui/TestRequestForm";
 import { buildCategoryQueryContext, findCategorySelectionOption, getCategorySelectionRule } from "../../../data/categorySelection.mjs";
-import { getCategoryExpertProfile, selectCategoryFacets } from "../../../data/categoryExpertProfiles.mjs";
+import { getCategoryExpertProfile, selectCategoryAssistantFacets, selectCategoryFacets } from "../../../data/categoryExpertProfiles.mjs";
 import { getFeedCategory, getFeedCategoryPage, getFeedCategoryRecoverySuggestions, getGuidedFacetOptions, getPromotedFacetOptions, prefersDenseFeedTable, type FeedCategoryQuery, type FeedCategorySort, type FeedVariantFilter, toFeedProductCardModel } from "../../../data/feedCatalog";
 import { getProductionSubcategory } from "../../../data/productionCategoryGroups";
 import { getShippingRuntimeDiagnostic } from "../../../data/shippingRuntimeSettings.mjs";
@@ -89,8 +89,9 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const start = result.total > 0 ? (result.page - 1) * result.pageSize + 1 : 0;
   const end = Math.min(result.page * result.pageSize, result.total);
   const technicalFacets = result.facets.filter((facet) => facet.keyword);
+  const engineerFirstSelection = profile.selectionMode === "engineer";
   const promotedFacets = selectCategoryFacets(slug, result.facets, slug === "borfrezy" || slug === "stanki-sverlilnye" ? 3 : 2);
-  const assistantFacets = selectCategoryFacets(slug, technicalFacets, 3).map((facet) => {
+  const assistantFacets = selectCategoryAssistantFacets(slug, technicalFacets).map((facet) => {
     const rule = getCategorySelectionRule(slug, facet.keyword);
     const selectedOption = rule.mode === "exact"
       ? facet.options.find((option) => filters[facet.key]?.includes(option.value))
@@ -137,7 +138,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     </div><aside>
       <b>{profile.selectorTitle}</b>
       <p>{profile.selectorIntro}</p>
-      <a href={selectorHref}>Ответить на несколько вопросов →</a>
+      <a href={selectorHref}>{engineerFirstSelection ? "Передать задачу инженеру →" : "Ответить на несколько вопросов →"}</a>
     </aside></div></section>
 
     <nav className="category-sibling-navigation" aria-label={`Категории направления «${group.title}»`}>
