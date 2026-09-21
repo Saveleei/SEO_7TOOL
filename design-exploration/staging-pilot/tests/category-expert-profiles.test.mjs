@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { buildCategorySelectionContext, buildCategorySelectionUrl } from "../app/data/categorySelection.mjs";
 import { categoryExpertProfiles, getCategoryExpertProfileSlugs, selectCategoryFacets } from "../app/data/categoryExpertProfiles.mjs";
+import { getFeedCategoryPage } from "../app/data/feedCatalog.ts";
 
 test("every published feed category has a complete expert profile", async () => {
   const snapshot = JSON.parse(await readFile(new URL("../../../7tool-source/src/lib/products.json", import.meta.url), "utf8"));
@@ -31,6 +32,16 @@ test("expert facet ranking follows category intent and never invents options", (
   const selected = selectCategoryFacets("pilnye-diski", facets, 3);
   assert.deepEqual(selected.map((facet) => facet.key), ["spec1", "spec3", "spec2"]);
   assert.ok(selected.every((facet) => facets.includes(facet)));
+});
+
+test("sheet beveler quick filters prioritize manufacturer while guided selection uses populated task facets", () => {
+  const page = getFeedCategoryPage("kromkorezy-po-listu", { pageSize:48 });
+  const promoted = selectCategoryFacets("kromkorezy-po-listu", page.facets, 2);
+  const guided = selectCategoryFacets("kromkorezy-po-listu", page.facets.filter((facet) => facet.keyword), 3);
+
+  assert.deepEqual(promoted.map((facet) => facet.key), ["brand", "spec1"]);
+  assert.deepEqual(guided.map((facet) => facet.keyword), ["макс. ширина фаски", "возможности", "тип"]);
+  assert.ok(guided.every((facet) => facet.options.length > 0));
 });
 
 test("generic guided selection replaces only its own filters and keeps commercial context", () => {
