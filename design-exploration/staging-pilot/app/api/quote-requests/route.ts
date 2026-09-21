@@ -1,5 +1,5 @@
 import { isQuoteTestModeEnabled, saveQuoteRequest } from "../../data/quoteRequestStore";
-import { createMemoryRateLimiter, validateQuoteAttachment, validateQuoteRequest } from "../../data/quoteRequestValidation.mjs";
+import { createMemoryRateLimiter, validateQuoteAttachment, validateQuoteRequest, validateSpecificationAttachment } from "../../data/quoteRequestValidation.mjs";
 import { isSameOriginRequest } from "../../data/requestOrigin.ts";
 
 const limiter = createMemoryRateLimiter({ limit:8, windowMs:10 * 60 * 1000 });
@@ -38,8 +38,12 @@ export async function POST(request: Request) {
     });
     if (!validation.ok) return Response.json({ ok:false, message:validation.message, fieldErrors:validation.fieldErrors }, { status:400 });
 
-    const rawAttachment = formData.get("billing_file");
-    const attachmentValidation = await validateQuoteAttachment(rawAttachment && typeof rawAttachment === "object" ? rawAttachment : null);
+    const rawBillingAttachment = formData.get("billing_file");
+    const rawSpecificationAttachment = formData.get("specification_file");
+    const isSpecificationRequest = validation.value.requestType === "selection" && validation.value.items.some((item) => item.id === "selection:specification");
+    const attachmentValidation = isSpecificationRequest
+      ? await validateSpecificationAttachment(rawSpecificationAttachment && typeof rawSpecificationAttachment === "object" ? rawSpecificationAttachment : null)
+      : await validateQuoteAttachment(rawBillingAttachment && typeof rawBillingAttachment === "object" ? rawBillingAttachment : null);
     if (!attachmentValidation.ok) return Response.json({ ok:false, message:attachmentValidation.message }, { status:400 });
 
     const saved = await saveQuoteRequest(validation.value, attachmentValidation.value);

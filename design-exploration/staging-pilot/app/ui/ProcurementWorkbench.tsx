@@ -21,6 +21,8 @@ export function ProcurementWorkbench({ initialTask }: { initialTask?: string }) 
   const [tool, setTool] = useState<Tool>("task");
   const [task, setTask] = useState(initialValue);
   const [analog, setAnalog] = useState("");
+  const [specFile, setSpecFile] = useState<File | null>(null);
+  const [specFileError, setSpecFileError] = useState("");
   const [checked, setChecked] = useState(Boolean(initialValue));
   const [contactOpen, setContactOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -76,6 +78,7 @@ export function ProcurementWorkbench({ initialTask }: { initialTask?: string }) 
       utmMedium:query.get("utm_medium") ?? "",
       utmCampaign:query.get("utm_campaign") ?? "",
     }));
+    if (tool === "spec" && specFile) formData.set("specification_file", specFile, specFile.name);
     setSubmitting(true);
     setFormError("");
     trackWorkbench("submit_selection_request", tool);
@@ -126,11 +129,22 @@ export function ProcurementWorkbench({ initialTask }: { initialTask?: string }) 
       </div>}
 
       {tool === "spec" && <div className="workbench-panel" id="workbench-spec-panel" role="tabpanel" aria-labelledby="workbench-spec-tab">
-        <span className="workbench-kicker">ТЗ и спецификации</span>
-        <h3>Зарегистрируйте запрос, затем приложите файл</h3>
-        <p className="workbench-intro">Сначала оставьте телефон и получите номер заявки. Файл можно отправить на почту с этим номером в теме — так он не потеряется.</p>
-        <div className="workbench-spec-actions"><button className="workbench-primary" type="button" onClick={openContact}>Получить номер заявки</button><a href="mailto:info@7tool.ru?subject=Спецификация%20на%20подбор%207TOOL">Открыть почту для файла</a></div>
-        <small className="workbench-note">Ссылка откроет вашу почтовую программу. Отправку письма подтверждаете вы.</small>
+        <span className="workbench-kicker">Шаг 1 · ТЗ и спецификации</span>
+        <h3>Приложите файл прямо к заявке</h3>
+        <p className="workbench-intro">Файл сохранится вместе с задачей и номером заявки. Переходить в почту и повторно объяснять запрос не потребуется.</p>
+        <label className={`workbench-spec-upload${specFile ? " is-selected" : ""}`}>
+          <span><b>{specFile ? specFile.name : "Выберите техническое задание"}</b><small>{specFile ? formatFileSize(specFile.size) : "PDF, DOCX, XLSX, JPG или PNG · до 10 МБ"}</small></span>
+          <input type="file" accept=".pdf,.docx,.xlsx,.png,.jpg,.jpeg,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,image/png,image/jpeg" onChange={(event) => {
+            const file = event.target.files?.[0] ?? null;
+            setSpecFile(file && file.size <= 10 * 1024 * 1024 ? file : null);
+            setSpecFileError(file && file.size > 10 * 1024 * 1024 ? "Файл больше 10 МБ. Выберите файл меньшего размера." : "");
+            resetJourney();
+            if (file && file.size <= 10 * 1024 * 1024) trackWorkbench("select_specification_file", tool);
+          }} />
+        </label>
+        {specFileError && <div className="workbench-contact-error" role="alert">{specFileError}</div>}
+        <button className="workbench-primary" type="button" disabled={!specFile} onClick={openContact}>Продолжить и указать телефон</button>
+        <small className="workbench-note">Файл не публикуется в каталоге. Скачать его сможет только сотрудник с доступом к заявкам.</small>
       </div>}
 
       {contactOpen && !requestNumber && <form className="workbench-contact-form" onSubmit={submit}>
@@ -144,7 +158,7 @@ export function ProcurementWorkbench({ initialTask }: { initialTask?: string }) 
       </form>}
 
       {requestNumber && <div className="workbench-success" role="status">
-        <span>Задача сохранена</span><h4>Заявка № {requestNumber}</h4><p>Она уже доступна менеджеру в тестовом журнале вместе с описанием задачи и контактным телефоном.</p><strong>На тестовом стенде внешнее уведомление менеджеру не отправляется.</strong><div><a href={`/test/requests/${encodeURIComponent(requestNumber)}`}>Проверить заявку в журнале</a><button type="button" onClick={resetJourney}>Создать ещё одну</button></div>
+        <span>Задача сохранена</span><h4>Заявка № {requestNumber}</h4><p>Она уже доступна менеджеру в тестовом журнале вместе с описанием задачи, контактным телефоном{tool === "spec" ? " и приложенным ТЗ" : ""}.</p><strong>На тестовом стенде внешнее уведомление менеджеру не отправляется.</strong><div><a href={`/test/requests/${encodeURIComponent(requestNumber)}`}>Проверить заявку в журнале</a><button type="button" onClick={resetJourney}>Создать ещё одну</button></div>
       </div>}
     </div>
   );
@@ -166,10 +180,14 @@ function resolveTaskDirection(task: string): Direction {
 
 function requestContext(tool: Tool, task: string, analog: string, direction: Direction) {
   if (tool === "analog") return { id:"selection:analog", title:`Подбор аналога: ${analog.trim() || "модель не указана"}`, article:"Исходная модель клиента", href:`/search?q=${encodeURIComponent(analog.trim())}`, comment:`Подбор аналога. Исходная модель: ${analog.trim() || "не указана"}. Требуется сверить рабочие параметры, комплектацию, наличие и срок.` };
-  if (tool === "spec") return { id:"selection:specification", title:"Разбор технического задания или спецификации", article:"Без артикула — файл будет передан отдельно", href:"/catalog", comment:"Клиент просит зарегистрировать разбор ТЗ или спецификации и связаться по телефону. Файл будет передан отдельно с номером заявки." };
+  if (tool === "spec") return { id:"selection:specification", title:"Разбор технического задания или спецификации", article:"Файл приложен к заявке", href:"/catalog", comment:"Клиент приложил техническое задание или спецификацию и просит связаться по телефону для подбора и подтверждения поставки." };
   return { id:`selection:task:${direction.key}`, title:`Подбор по задаче: ${direction.title}`, article:"Без артикула — инженерный подбор", href:direction.href, comment:`Производственная задача: ${task.trim()}. Предварительное направление: ${direction.title}. Требуется уточнить параметры, наличие, совместимость, документы и срок.` };
 }
 
 function trackWorkbench(event: string, tool: Tool) {
   window.dispatchEvent(new CustomEvent("7tool:prototype-event", { detail:{ event, page_type:"homepage", placement:"procurement_workbench", request_type:tool } }));
+}
+
+function formatFileSize(bytes: number): string {
+  return bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} КБ · файл готов к отправке` : `${(bytes / 1024 / 1024).toFixed(1)} МБ · файл готов к отправке`;
 }

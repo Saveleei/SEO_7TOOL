@@ -48,3 +48,28 @@ Complete locally; not deployed.
 ## Commit
 
 Implementation commit: `a01c1c5` (`feat: repair homepage conversion journey`).
+
+## Specification upload follow-up — 2026-09-21
+
+### Result
+
+- The “Передать ТЗ” tab now accepts PDF, DOCX, XLSX, JPG/JPEG and PNG directly, with a 10 MB limit and signature checks instead of routing the customer through email.
+- A specification is stored with the local request before confirmation and receives the same request number as the contact data. It is kept distinct from billing requisites.
+- The protected manager detail identifies the attachment as a technical specification and exposes an authenticated, no-store download route with a safe filename.
+- The header action “Выбрать по задаче” is a native cross-document anchor and reliably opens `/#production-categories` from `/catalog`.
+- Mobile workbench tabs now fit the viewport without horizontal page overflow or clipped labels.
+
+### Verification
+
+- Focused specification/access/homepage suite: 19/19 passed before the final mobile CSS regression was added.
+- Mobile CSS regression: 3/3 passed.
+- Full `pnpm test`: 195/195 passed.
+- `pnpm run lint`: passed.
+- `pnpm run build`: passed; route `/api/quote-requests/:id/attachment` is present.
+- Browser desktop and 390×844 mobile checks: passed; no document-level horizontal overflow after the mobile correction.
+- Local end-to-end request `7T-20260921-CBEF3D` confirmed upload, durable request creation, protected manager display and download link. Temporary fixture and request records were removed after verification.
+- External email, MAX and CRM delivery remained disabled; no external test lead was sent.
+
+### Commit
+
+Follow-up implementation commit: pending.

@@ -7,6 +7,14 @@ const ALLOWED_ATTACHMENT_TYPES = new Map([
   ["image/png", { extension:"png", signature:(bytes) => bytes.length >= 8 && bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) }],
   ["image/jpeg", { extension:"jpg", signature:(bytes) => bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff }],
 ]);
+const SPECIFICATION_ATTACHMENT_TYPES = new Map([
+  ["pdf", { mime:"application/pdf", signature:(bytes) => bytes.subarray(0, 4).toString("ascii") === "%PDF" }],
+  ["png", { mime:"image/png", signature:(bytes) => bytes.length >= 8 && bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) }],
+  ["jpg", { mime:"image/jpeg", signature:(bytes) => bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff }],
+  ["jpeg", { mime:"image/jpeg", extension:"jpg", signature:(bytes) => bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff }],
+  ["docx", { mime:"application/vnd.openxmlformats-officedocument.wordprocessingml.document", signature:(bytes) => isOfficeZip(bytes, "word/") }],
+  ["xlsx", { mime:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", signature:(bytes) => isOfficeZip(bytes, "xl/") }],
+]);
 
 export const MAX_QUOTE_ATTACHMENT_BYTES = 10 * 1024 * 1024;
 
@@ -66,7 +74,21 @@ export async function validateQuoteAttachment(file) {
   if (!definition) return { ok:false, message:"Карточка организации должна быть в PDF, JPG или PNG." };
   const bytes = Buffer.from(await file.arrayBuffer());
   if (!definition.signature(bytes)) return { ok:false, message:"Содержимое файла не соответствует заявленному формату." };
-  return { ok:true, value:{ bytes, extension:definition.extension, mime:String(file.type).toLocaleLowerCase("en-US"), size:bytes.length } };
+  return { ok:true, value:{ bytes, extension:definition.extension, mime:String(file.type).toLocaleLowerCase("en-US"), size:bytes.length, kind:"billing", originalName:safeUploadName(file.name, definition.extension) } };
+}
+
+export async function validateSpecificationAttachment(file) {
+  if (!file || typeof file.arrayBuffer !== "function" || Number(file.size) === 0) return { ok:false, message:"Приложите файл технического задания." };
+  if (Number(file.size) > MAX_QUOTE_ATTACHMENT_BYTES) return { ok:false, message:"Файл технического задания больше 10 МБ." };
+  const originalExtension = String(file.name || "").split(".").at(-1)?.toLocaleLowerCase("en-US") || "";
+  const definition = SPECIFICATION_ATTACHMENT_TYPES.get(originalExtension);
+  if (!definition) return { ok:false, message:"ТЗ можно приложить в PDF, DOCX, XLSX, JPG или PNG." };
+  const declaredMime = String(file.type || "").toLocaleLowerCase("en-US");
+  if (declaredMime && declaredMime !== definition.mime) return { ok:false, message:"Тип файла не соответствует его расширению." };
+  const bytes = Buffer.from(await file.arrayBuffer());
+  if (!definition.signature(bytes)) return { ok:false, message:"Содержимое файла не соответствует заявленному формату." };
+  const extension = definition.extension || originalExtension;
+  return { ok:true, value:{ bytes, extension, mime:definition.mime, size:bytes.length, kind:"specification", originalName:safeUploadName(file.name, extension) } };
 }
 
 export function isValidRussianInn(value) {
@@ -127,4 +149,22 @@ function toBoolean(value) {
 
 function checksum(digits, coefficients) {
   return coefficients.reduce((sum, coefficient, index) => sum + coefficient * digits[index], 0) % 11 % 10;
+}
+
+function isOfficeZip(bytes, directory) {
+  return bytes.length >= 4
+    && bytes[0] === 0x50
+    && bytes[1] === 0x4b
+    && bytes[2] === 0x03
+    && bytes[3] === 0x04
+    && bytes.includes(Buffer.from(directory, "utf8"));
+}
+
+function safeUploadName(value, fallbackExtension) {
+  const name = String(value || "")
+    .replace(/[\\/]/gu, "-")
+    .replace(/[\u0000-\u001f\u007f]/gu, "")
+    .trim()
+    .slice(0, 120);
+  return name || `document.${fallbackExtension}`;
 }

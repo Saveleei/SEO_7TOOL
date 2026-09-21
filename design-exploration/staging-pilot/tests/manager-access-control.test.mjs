@@ -119,6 +119,7 @@ test("administrator can submit, approve and prepare one quote without trusting b
 test("every staff API is server-protected while customer quote submission stays public", async () => {
   const protectedRoutes = [
     "../app/api/quote-requests/[id]/events/route.ts",
+    "../app/api/quote-requests/[id]/attachment/route.ts",
     "../app/api/quote-requests/[id]/quote-draft/route.ts",
     "../app/api/quote-requests/[id]/quote-approval/route.ts",
     "../app/api/quote-requests/[id]/delivery/route.ts",

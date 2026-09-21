@@ -5,8 +5,8 @@ import { deriveWorkflow, getStatusLabel, QUOTE_ASSIGNEES, validateManagerEvent }
 import type { ManagerRole } from "./managerAccess.ts";
 
 type QuoteStatus = "received" | "checking" | "quote_ready" | "sent";
-type StoredAttachment = { relativePath: string; mime: string; size: number };
-type AttachmentInput = { bytes: Buffer; extension: string; mime: string; size: number } | null;
+type StoredAttachment = { relativePath: string; mime: string; size: number; kind: "billing" | "specification"; originalName: string };
+type AttachmentInput = { bytes: Buffer; extension: string; mime: string; size: number; kind: "billing" | "specification"; originalName: string } | null;
 type ValidatedQuote = {
   requestType: "quote" | "selection";
   email: string;
@@ -120,9 +120,27 @@ export async function getQuoteRequestDetail(requestId: string, options: StoreOpt
     requestedChecks:record.requestedChecks,
     source:record.source,
     items:record.items,
-    attachment:record.attachment,
+    attachment:normalizeAttachment(record),
     events:requestEvents.map(withoutEventHash),
   };
+}
+
+export async function getQuoteRequestAttachment(requestId: string, options: StoreOptions = {}): Promise<{ bytes: Buffer; mime: string; size: number; kind: "billing" | "specification"; originalName: string } | null> {
+  const dataDir = resolveDataDir(options.dataDir);
+  const record = (await readRecords(dataDir)).find((candidate) => candidate.id === requestId.toUpperCase());
+  const attachment = record ? normalizeAttachment(record) : null;
+  if (!attachment || !/^uploads\/[A-Z0-9-]+\.[a-z0-9]+$/u.test(attachment.relativePath)) return null;
+  const root = path.resolve(dataDir);
+  const target = path.resolve(dataDir, attachment.relativePath);
+  if (!target.startsWith(`${root}${path.sep}`)) return null;
+  try {
+    const bytes = await readFile(target);
+    if (bytes.length !== attachment.size) return null;
+    return { bytes, mime:attachment.mime, size:attachment.size, kind:attachment.kind, originalName:attachment.originalName };
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+    throw error;
+  }
 }
 
 export function appendQuoteRequestEvent(input: ManagerEventInput, options: StoreOptions = {}): Promise<{ event: QuoteRequestEvent; duplicate: boolean }> {
@@ -167,7 +185,7 @@ async function saveQuoteRequestSerial(input: ValidatedQuote, attachment: Attachm
   await mkdir(dataDir, { recursive:true });
   const idempotencyHash = createHash("sha256").update(input.idempotencyKey).digest("hex");
   const existing = (await readRecords(dataDir)).find((record) => record.idempotencyHash === idempotencyHash);
-  if (existing) return { id:existing.id, createdAt:existing.createdAt, duplicate:true, billingProvided:Boolean(existing.billingInn || existing.attachment) };
+  if (existing) return { id:existing.id, createdAt:existing.createdAt, duplicate:true, billingProvided:hasBillingDetails(existing) };
 
   const createdAt = new Date().toISOString();
   const id = createRequestNumber(createdAt);
@@ -181,7 +199,7 @@ async function saveQuoteRequestSerial(input: ValidatedQuote, attachment: Attachm
     storedAttachmentPath = path.join(uploadDir, fileName);
     await writeFile(temporaryPath, attachment.bytes, { flag:"wx" });
     await rename(temporaryPath, storedAttachmentPath);
-    storedAttachment = { relativePath:`uploads/${fileName}`, mime:attachment.mime, size:attachment.size };
+    storedAttachment = { relativePath:`uploads/${fileName}`, mime:attachment.mime, size:attachment.size, kind:attachment.kind, originalName:attachment.originalName };
   }
 
   const record: StoredQuote = {
@@ -200,7 +218,7 @@ async function saveQuoteRequestSerial(input: ValidatedQuote, attachment: Attachm
     if (storedAttachmentPath) await rm(storedAttachmentPath, { force:true });
     throw error;
   }
-  return { id, createdAt, duplicate:false, billingProvided:Boolean(input.billingInn || storedAttachment) };
+  return { id, createdAt, duplicate:false, billingProvided:Boolean(input.billingInn || storedAttachment?.kind === "billing") };
 }
 
 async function appendJsonLine(filePath: string, value: unknown) {
@@ -266,7 +284,7 @@ function toSummary(record: StoredQuote, events: StoredEvent[], options: StoreOpt
     phone:maskPhone(record.phone),
     company:record.company,
     city:record.city,
-    billingProvided:Boolean(record.billingInn || record.attachment),
+    billingProvided:hasBillingDetails(record),
     sourcePath:record.source.pagePath,
     assignee:workflow.assignee,
     assigneeName,
@@ -305,6 +323,20 @@ function maskEmail(email: string): string {
 function maskPhone(phone: string): string {
   const digits = phone.replace(/\D/g, "");
   return `+${digits.slice(0, 1)} *** ***-${digits.slice(-4)}`;
+}
+
+function normalizeAttachment(record: StoredQuote): StoredAttachment | null {
+  if (!record.attachment) return null;
+  const extension = record.attachment.relativePath.split(".").at(-1) || "bin";
+  return {
+    ...record.attachment,
+    kind:record.attachment.kind === "specification" ? "specification" : "billing",
+    originalName:record.attachment.originalName || `${record.id}.${extension}`,
+  };
+}
+
+function hasBillingDetails(record: StoredQuote): boolean {
+  return Boolean(record.billingInn || (record.attachment && record.attachment.kind !== "specification"));
 }
 
 function toStoredInput(input: ValidatedQuote): Omit<ValidatedQuote, "idempotencyKey"> {
