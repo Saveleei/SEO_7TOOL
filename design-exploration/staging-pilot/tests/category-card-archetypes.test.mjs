@@ -9,6 +9,7 @@ import {
 } from "../app/data/categoryCardArchetypes.mjs";
 import {
   getFeedCategoryPage,
+  getFeedTableColumns,
   getPublishedFeedCategorySlugs,
   prefersDenseFeedTable,
   toFeedProductCardModel,
@@ -68,6 +69,25 @@ test("multi-variant numeric specs use a natural range instead of arbitrary feed 
   assert.ok(diameter);
   assert.match(diameter.value, /^12–\d+ мм · 49 вариантов$/u);
   assert.doesNotMatch(diameter.value, /\+\d+$/u);
+});
+
+test("dense tables choose decision columns that are actually populated", () => {
+  const cutters = getFeedCategoryPage("koronchatye-sverla", { pageSize:48 }).products.map((product) => toFeedProductCardModel(product));
+  assert.deepEqual(getFeedTableColumns(cutters), ["Диаметр режущей части", "Рабочая длина", "Материал режущей части"]);
+
+  const sawBlades = getFeedCategoryPage("pilnye-diski", { pageSize:48 }).products.map((product) => toFeedProductCardModel(product));
+  const sawBladeColumns = getFeedTableColumns(sawBlades);
+  assert.ok(sawBladeColumns.includes("Число зубьев"));
+  assert.ok(!sawBladeColumns.includes("Кол-во и форма зубьев"));
+
+  for (const slug of ["koronchatye-sverla", "borfrezy", "pilnye-diski", "metchiki", "sozh-i-sots", "sverla-i-zenkovki"]) {
+    const cards = getFeedCategoryPage(slug, { pageSize:48 }).products.map((product) => toFeedProductCardModel(product));
+    const columns = getFeedTableColumns(cards);
+    const cells = cards.length * columns.length;
+    const populated = cards.reduce((count, card) => count + columns.filter((column) => card.specs.some((spec) => spec.label === column)).length, 0);
+    assert.ok(columns.length > 0, `${slug}: at least one comparison column`);
+    assert.ok(populated / cells >= 0.79, `${slug}: table columns should be at least 79% populated`);
+  }
 });
 
 test("an exact filtered execution is actionable without another reveal", async () => {

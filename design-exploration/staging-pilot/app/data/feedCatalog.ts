@@ -450,6 +450,30 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
   };
 }
 
+export function getFeedTableColumns(products: FeedProductCardModel[], limit = 3): string[] {
+  const stats = new Map<string, { count: number; positionTotal: number; firstSeen: number }>();
+  let firstSeen = 0;
+
+  for (const product of products) {
+    product.specs.forEach((spec, position) => {
+      const current = stats.get(spec.label);
+      if (current) {
+        current.count += 1;
+        current.positionTotal += position;
+        return;
+      }
+      stats.set(spec.label, { count:1, positionTotal:position, firstSeen:firstSeen++ });
+    });
+  }
+
+  return Array.from(stats.entries())
+    .sort(([, a], [, b]) => b.count - a.count
+      || a.positionTotal / a.count - b.positionTotal / b.count
+      || a.firstSeen - b.firstSeen)
+    .slice(0, Math.max(0, limit))
+    .map(([label]) => label);
+}
+
 function scoreFeedProduct(product: FeedProduct, categorySlug: string): number {
   const primaryPattern = primaryTitlePatterns[categorySlug];
   const titleScore = primaryPattern?.test(product.title) ? 45 : 0;

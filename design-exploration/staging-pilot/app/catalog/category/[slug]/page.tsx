@@ -16,7 +16,7 @@ import { SelectionConversionBlock } from "../../../ui/SelectionConversionBlock";
 import { TestRequestForm } from "../../../ui/TestRequestForm";
 import { buildCategoryQueryContext, findCategorySelectionOption, getCategorySelectionRule } from "../../../data/categorySelection.mjs";
 import { getCategoryExpertProfile, selectCategoryAssistantFacets, selectCategoryFacets } from "../../../data/categoryExpertProfiles.mjs";
-import { getFeedCategory, getFeedCategoryPage, getFeedCategoryRecoverySuggestions, getGuidedFacetOptions, getPromotedFacetOptions, prefersDenseFeedTable, type FeedCategoryQuery, type FeedCategorySort, type FeedVariantFilter, toFeedProductCardModel } from "../../../data/feedCatalog";
+import { getFeedCategory, getFeedCategoryPage, getFeedCategoryRecoverySuggestions, getFeedTableColumns, getGuidedFacetOptions, getPromotedFacetOptions, prefersDenseFeedTable, type FeedCategoryQuery, type FeedCategorySort, type FeedVariantFilter, toFeedProductCardModel } from "../../../data/feedCatalog";
 import { getProductionSubcategory } from "../../../data/productionCategoryGroups";
 import { getShippingRuntimeDiagnostic } from "../../../data/shippingRuntimeSettings.mjs";
 
@@ -82,6 +82,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     return facetFilters;
   });
   const productCards = result.products.map((product) => toFeedProductCardModel(product, activeVariantFilters, inStockOnly));
+  const tableColumns = getFeedTableColumns(productCards);
   const canUseTable = prefersDenseFeedTable(slug);
   const view = canUseTable && requestedView !== "cards" ? "table" : "cards";
   const activeFilterCount = Object.values(filters).reduce((sum, values) => sum + values.length, 0) + Object.keys(numericMinimums).length + Object.keys(numericMaximums).length + (search ? 1 : 0) + (inStockOnly ? 1 : 0);
@@ -253,7 +254,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
             nextDecisionLabel={nextDecisionFacet?.question ?? nextDecisionFacet?.label}
           />
 
-          {result.products.length > 0 ? view === "table" ? <FeedProductTable products={productCards} columns={result.facets.filter((facet) => facet.keyword).map((facet) => facet.label).slice(0, 3)} /> : <FeedProductList products={productCards} /> : <div className="feed-state feed-state--guided"><span>Нет точных совпадений</span><h2>Не нужно начинать подбор заново</h2><p>{profile.emptyCopy}</p>
+          {result.products.length > 0 ? view === "table" ? <FeedProductTable products={productCards} columns={tableColumns} /> : <FeedProductList products={productCards} /> : <div className="feed-state feed-state--guided"><span>Нет точных совпадений</span><h2>Не нужно начинать подбор заново</h2><p>{profile.emptyCopy}</p>
             {recoverySuggestions.length > 0 && <nav className="feed-recovery-options" aria-label="Как расширить результаты"><b>Сохранить остальные условия и:</b>{recoverySuggestions.map((suggestion) => <Link href={categoryUrl(slug, rawSearchParams, { removeKeys:suggestion.removeKeys })} key={suggestion.removeKeys.join("|")}><span>{suggestion.label}</span><small>{suggestion.resultCount.toLocaleString("ru-RU")} {pluralizeProductGroups(suggestion.resultCount)}</small></Link>)}</nav>}
             <div className="feed-state-actions"><Link className="button" href={`/catalog/category/${slug}#products`}>Сбросить все условия</Link><a className="button button-orange" href={selectorHref}>{slug === "borfrezy" ? "Изменить подбор формы" : "Изменить условия подбора"}</a></div>
             <details className="feed-zero-request"><summary>Не ослаблять требования — передать инженеру</summary><TestRequestForm compact primaryContact="phone" context={activeQueryContext} buttonLabel="Заказать проверку параметров" /></details>
