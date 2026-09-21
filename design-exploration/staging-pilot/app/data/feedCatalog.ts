@@ -775,8 +775,40 @@ export function getFeedVariantTechnicalSpecs(product: FeedProduct, variant: Feed
   return Array.from(selected.values()).slice(0, 16);
 }
 
+const summaryNumberFormatter = new Intl.NumberFormat("ru-RU", { maximumFractionDigits:4 });
+
 function summarizeParameterValues(parameters: FeedParameter[], name: string): string {
-  const values = Array.from(new Set(parameters.filter((parameter) => parameter.name === name).map(formatParameterValue)));
+  const matchingParameters = parameters.filter((parameter) => parameter.name === name);
+  const values = Array.from(new Set(matchingParameters.map(formatParameterValue)));
   if (values.length <= 2) return values.join(" / ");
+
+  const scalarValues = matchingParameters.map((parameter) => ({
+    number: Number.parseFloat(parameter.value.trim().replace(",", ".")),
+    rawValue:parameter.value.trim(),
+    unit:parameter.unit?.trim() ?? "",
+  }));
+  const units = new Set(scalarValues.map((value) => normalizeText(value.unit)));
+  const isComparableNumericSet = units.size === 1
+    && scalarValues.every((value) => /^-?\d+(?:[.,]\d+)?$/u.test(value.rawValue) && Number.isFinite(value.number));
+
+  if (isComparableNumericSet) {
+    const numbers = Array.from(new Set(scalarValues.map((value) => value.number))).sort((a, b) => a - b);
+    if (numbers.length > 2) {
+      const unit = scalarValues[0]?.unit;
+      return `${formatSummaryNumber(numbers[0])}–${formatSummaryNumber(numbers.at(-1)!)}${unit ? ` ${unit}` : ""} · ${pluralizeSummaryValues(numbers.length)}`;
+    }
+  }
+
   return `${values.slice(0, 2).join(" / ")} +${values.length - 2}`;
+}
+
+function formatSummaryNumber(value: number): string {
+  return summaryNumberFormatter.format(value);
+}
+
+function pluralizeSummaryValues(count: number): string {
+  const mod100 = count % 100;
+  const mod10 = count % 10;
+  const form = mod100 >= 11 && mod100 <= 14 ? "вариантов" : mod10 === 1 ? "вариант" : mod10 >= 2 && mod10 <= 4 ? "варианта" : "вариантов";
+  return `${count} ${form}`;
 }

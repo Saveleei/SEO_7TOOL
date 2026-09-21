@@ -60,6 +60,16 @@ test("cards with sparse feed data provide category-specific clarification prompt
   assert.equal(prefersDenseFeedTable("stanochnaya-osnastka"), false);
 });
 
+test("multi-variant numeric specs use a natural range instead of arbitrary feed order", () => {
+  const product = getFeedCategoryPage("koronchatye-sverla", { pageSize:6 }).products.find((item) => item.title.includes("LZTS"));
+  assert.ok(product);
+  const card = toFeedProductCardModel(product);
+  const diameter = card.specs.find((spec) => spec.label === "Диаметр режущей части");
+  assert.ok(diameter);
+  assert.match(diameter.value, /^12–\d+ мм · 49 вариантов$/u);
+  assert.doesNotMatch(diameter.value, /\+\d+$/u);
+});
+
 test("an exact filtered execution is actionable without another reveal", async () => {
   const card = await readFile(new URL("../app/ui/FeedProductCard.tsx", import.meta.url), "utf8");
   const table = await readFile(new URL("../app/ui/FeedProductTable.tsx", import.meta.url), "utf8");
@@ -68,6 +78,8 @@ test("an exact filtered execution is actionable without another reveal", async (
   assert.match(table, /product\.selectedVariantCount === 1 \? product\.variants\[0\]/u);
   assert.match(card, /product\.matchReasons\.length > 0/u);
   assert.match(card, /feed-product-specs--fallback/u);
+  assert.match(card, /product\.specs\.length >= 2/u);
+  assert.match(card, /Один параметр подтверждён в фиде/u);
   assert.match(table, /feed-mobile-series--direct/u);
   assert.match(requestCart, /added \? "Добавлено · ещё \+1"/u);
   assert.match(requestCart, /aria-live="polite"/u);
