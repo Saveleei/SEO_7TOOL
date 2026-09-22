@@ -35,4 +35,4 @@
 
 ## Commit
 
-- Код: заполнить после фиксации.
+- Код: `0e867eb` — `feat: tailor every catalog category`.
