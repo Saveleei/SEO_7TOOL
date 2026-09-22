@@ -33,4 +33,4 @@
 
 ## Commit
 
-Заполнить после фиксации.
+- `b4f4f59` — `feat: tailor drilling subcategory journeys`.
