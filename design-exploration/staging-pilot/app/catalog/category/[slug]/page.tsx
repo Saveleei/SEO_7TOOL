@@ -16,13 +16,14 @@ import { SelectionConversionBlock } from "../../../ui/SelectionConversionBlock";
 import { TestRequestForm } from "../../../ui/TestRequestForm";
 import { buildCategoryQueryContext, findCategorySelectionOption, getCategorySelectionRule } from "../../../data/categorySelection.mjs";
 import { getCategoryExpertProfile, selectCategoryAssistantFacets, selectCategoryFacets } from "../../../data/categoryExpertProfiles.mjs";
-import { getFeedCategory, getFeedCategoryPage, getFeedCategoryRecoverySuggestions, getFeedTableColumns, getGuidedFacetOptions, getPromotedFacetOptions, prefersDenseFeedTable, type FeedCategoryQuery, type FeedCategorySort, type FeedVariantFilter, toFeedProductCardModel } from "../../../data/feedCatalog";
+import { getFeedCategory, getFeedCategoryPage, getFeedCategoryProductType, getFeedCategoryRecoverySuggestions, getFeedTableColumns, getGuidedFacetOptions, getPromotedFacetOptions, prefersDenseFeedTable, type FeedCategoryQuery, type FeedCategorySort, type FeedProductType, type FeedVariantFilter, toFeedProductCardModel } from "../../../data/feedCatalog";
 import { getProductionSubcategory } from "../../../data/productionCategoryGroups";
 import { getShippingRuntimeDiagnostic } from "../../../data/shippingRuntimeSettings.mjs";
 
 type SearchValue = string | string[] | undefined;
 type SearchParams = Record<string, SearchValue>;
 type RouteProps = { params: Promise<{ slug: string }>; searchParams: Promise<SearchParams> };
+type AssortmentShortcut = { label: string; copy: string; query?: string; productType?: FeedProductType };
 
 const sortOptions: Array<{ value: FeedCategorySort; label: string }> = [
   { value:"relevance", label:"Сначала подходящие" },
@@ -52,6 +53,17 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const profile = getCategoryExpertProfile(slug);
   const feedCategory = getFeedCategory(slug);
   const search = firstValue(rawSearchParams.q)?.trim() ?? "";
+  const profileShortcuts = (profile.assortmentShortcuts ?? []) as AssortmentShortcut[];
+  const supportedProductTypes = new Set(profileShortcuts.flatMap((shortcut) => shortcut.productType ? [shortcut.productType] : []));
+  const defaultProductType = supportedProductTypes.has(profile.defaultProductType) ? profile.defaultProductType as FeedProductType : undefined;
+  const requestedProductType = firstValue(rawSearchParams.kind);
+  const productType = requestedProductType === "all"
+    ? undefined
+    : supportedProductTypes.has(requestedProductType as FeedProductType)
+      ? requestedProductType as FeedProductType
+      : defaultProductType;
+  const productTypeChanged = Boolean(productType && productType !== defaultProductType);
+  const browsingAccessories = productType === "accessories";
   const requestedSort = firstValue(rawSearchParams.sort);
   const sort = sortOptions.some((option) => option.value === requestedSort) ? requestedSort as FeedCategorySort : "relevance";
   const requestedPage = Number.parseInt(firstValue(rawSearchParams.page) ?? "1", 10);
@@ -70,7 +82,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     .filter(([key]) => key.startsWith("max_"))
     .map(([key, value]) => [key.slice(4), Number.parseFloat(firstValue(value) ?? "")])
     .filter((entry): entry is [string, number] => Number.isFinite(entry[1]) && entry[1] > 0));
-  const categoryQuery: FeedCategoryQuery = { search, sort, page:Number.isFinite(requestedPage) ? requestedPage : 1, filters, numericMinimums, numericMaximums, availability:inStockOnly ? "in-stock" : undefined };
+  const categoryQuery: FeedCategoryQuery = { search, sort, page:Number.isFinite(requestedPage) ? requestedPage : 1, filters, numericMinimums, numericMaximums, availability:inStockOnly ? "in-stock" : undefined, productType };
   const result = getFeedCategoryPage(slug, categoryQuery);
   const recoverySuggestions = result.total === 0 ? getFeedCategoryRecoverySuggestions(slug, categoryQuery) : [];
   const activeVariantFilters = result.facets.flatMap((facet) => {
@@ -81,17 +93,18 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     if (Number.isFinite(numericMaximums[facet.key])) facetFilters.push({ keyword:facet.keyword, label:facet.label, values:[], maximum:numericMaximums[facet.key] });
     return facetFilters;
   });
-  const productCards = result.products.map((product) => toFeedProductCardModel(product, activeVariantFilters, inStockOnly));
+  const productCards = result.products.map((product) => toFeedProductCardModel(product, activeVariantFilters, inStockOnly, getFeedCategoryProductType(slug, product) === "accessories" ? "fixtures" : undefined));
   const tableColumns = getFeedTableColumns(productCards);
   const canUseTable = prefersDenseFeedTable(slug);
   const view = canUseTable && requestedView !== "cards" ? "table" : "cards";
-  const activeFilterCount = Object.values(filters).reduce((sum, values) => sum + values.length, 0) + Object.keys(numericMinimums).length + Object.keys(numericMaximums).length + (search ? 1 : 0) + (inStockOnly ? 1 : 0);
+  const activeFilterCount = Object.values(filters).reduce((sum, values) => sum + values.length, 0) + Object.keys(numericMinimums).length + Object.keys(numericMaximums).length + (search ? 1 : 0) + (inStockOnly ? 1 : 0) + (productTypeChanged ? 1 : 0);
   const selectorHref = slug === "borfrezy" ? "#burr-selector" : slug === "stanki-sverlilnye" ? "#drill-selector" : "#category-selector";
+  const activeSelectorHref = browsingAccessories ? "#selection-guide" : selectorHref;
   const start = result.total > 0 ? (result.page - 1) * result.pageSize + 1 : 0;
   const end = Math.min(result.page * result.pageSize, result.total);
   const technicalFacets = result.facets.filter((facet) => facet.keyword);
   const engineerFirstSelection = profile.selectionMode === "engineer";
-  const promotedFacets = selectCategoryFacets(slug, result.facets, slug === "borfrezy" || slug === "stanki-sverlilnye" ? 3 : 2);
+  const promotedFacets = selectCategoryFacets(slug, result.facets, slug === "borfrezy" || slug === "stanki-sverlilnye" || slug === "lentochnopilnye-stanki" ? 3 : 2);
   const assistantFacets = selectCategoryAssistantFacets(slug, technicalFacets).map((facet) => {
     const rule = getCategorySelectionRule(slug, facet.keyword);
     const selectedOption = rule.mode === "exact"
@@ -126,11 +139,21 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const orderedFacets = slug === "borfrezy"
     ? [...result.facets].sort((first, second) => facetOrder(first.keyword, first.key) - facetOrder(second.keyword, second.key))
     : result.facets;
-  const selectionCriteria = profile.criteria;
-  const assortmentShortcuts = (profile.assortmentShortcuts ?? []).map((shortcut: { label: string; query: string; copy: string }) => ({
+  const selectionCriteria = browsingAccessories && profile.accessoryCriteria ? profile.accessoryCriteria : profile.criteria;
+  const criteriaTitle = browsingAccessories ? profile.accessoryCriteriaTitle : profile.criteriaTitle;
+  const criteriaIntro = browsingAccessories ? profile.accessoryCriteriaIntro : profile.criteriaIntro;
+  const selectorTitle = browsingAccessories ? profile.accessorySelectorTitle : profile.selectorTitle;
+  const selectorIntro = browsingAccessories ? profile.accessorySelectorIntro : profile.selectorIntro;
+  const listingTitle = browsingAccessories ? profile.accessoryListingTitle : profile.listingTitle;
+  const emptyCopy = browsingAccessories && profile.accessoryEmptyCopy ? profile.accessoryEmptyCopy : profile.emptyCopy;
+  const assortmentShortcuts = profileShortcuts.map((shortcut) => ({
     ...shortcut,
-    count:getFeedCategoryPage(slug, { search:shortcut.query, pageSize:6 }).total,
+    count:getFeedCategoryPage(slug, { search:shortcut.query, productType:shortcut.productType, pageSize:6 }).total,
   })).filter((shortcut: { count: number }) => shortcut.count > 0);
+  const assortmentAllHref = `/catalog/category/${slug}${defaultProductType ? "?kind=all" : ""}#products`;
+  const categoryHeroCount = productType
+    ? getFeedCategoryPage(slug, { productType, pageSize:6 }).total
+    : feedCategory?.count ?? result.total;
 
   return <div className="site-shell"><PilotHeader /><main className="inner-page">
     <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Каталог", href:"/catalog" }, { label:group.title, href:group.href }, { label:subcategory.label }]} /></div>
@@ -139,21 +162,25 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
       <p className="eyebrow">{group.title}</p>
       <h1>{feedCategory?.h1 ?? subcategory.label}</h1>
       <p>{profile.heroIntro}</p>
-      <div className="category-hero-facts"><span><b>{(feedCategory?.count ?? result.total).toLocaleString("ru-RU")}</b> {pluralizeProductGroups(feedCategory?.count ?? result.total)}</span><span>Цена — по данным поставщика</span><span>Наличие и срок — после проверки</span></div>
+      <div className="category-hero-facts"><span><b>{categoryHeroCount.toLocaleString("ru-RU")}</b> {pluralizeProductGroups(categoryHeroCount)}</span><span>Цена — по данным поставщика</span><span>Наличие и срок — после проверки</span></div>
     </div><aside>
-      <b>{profile.selectorTitle}</b>
-      <p>{profile.selectorIntro}</p>
-      <a href={selectorHref}>{engineerFirstSelection ? "Передать задачу инженеру →" : "Ответить на несколько вопросов →"}</a>
+      <b>{selectorTitle}</b>
+      <p>{selectorIntro}</p>
+      <a href={activeSelectorHref}>{browsingAccessories ? "Проверить совместимость →" : engineerFirstSelection ? "Передать задачу инженеру →" : "Ответить на несколько вопросов →"}</a>
     </aside></div></section>
 
     <nav className="category-sibling-navigation" aria-label={`Категории направления «${group.title}»`}>
       <div className="container"><header><span>В составе задачи</span><b>{group.title}</b><Link href={group.href}>Обзор направления →</Link></header><div>{group.subcategories.map((item) => <Link className={item.slug === slug ? "active" : undefined} aria-current={item.slug === slug ? "page" : undefined} href={item.href} key={item.slug}><span>{item.label}</span><small>{(item.count ?? 0).toLocaleString("ru-RU")}</small></Link>)}</div></div>
     </nav>
 
-    {assortmentShortcuts.length > 0 && <nav className="category-assortment-shortcuts" aria-label="Разделы текущей категории"><div className="container"><header><div><span>Что вам нужно</span><b>Сначала выберите тип товара</b></div><Link className={!search ? "active" : undefined} aria-current={!search ? "page" : undefined} href={`/catalog/category/${slug}#products`}>Весь ассортимент</Link></header><div>{assortmentShortcuts.map((shortcut: { label: string; query: string; copy: string; count: number }) => <Link className={search === shortcut.query ? "active" : undefined} aria-current={search === shortcut.query ? "page" : undefined} href={`/catalog/category/${slug}?q=${encodeURIComponent(shortcut.query)}#products`} key={shortcut.query}><span><b>{shortcut.label}</b><small>{shortcut.copy}</small></span><em>{shortcut.count.toLocaleString("ru-RU")}</em></Link>)}</div></div></nav>}
+    {assortmentShortcuts.length > 0 && <nav className="category-assortment-shortcuts" aria-label="Разделы текущей категории"><div className="container"><header><div><span>Что вам нужно</span><b>Сначала выберите тип товара</b></div><Link className={!search && !productType ? "active" : undefined} aria-current={!search && !productType ? "page" : undefined} href={assortmentAllHref}>{defaultProductType ? "Все позиции" : "Весь ассортимент"}</Link></header><div>{assortmentShortcuts.map((shortcut) => {
+      const active = shortcut.query ? search === shortcut.query : shortcut.productType === productType;
+      const shortcutParameter = shortcut.query ? `q=${encodeURIComponent(shortcut.query)}` : `kind=${encodeURIComponent(shortcut.productType ?? "all")}`;
+      return <Link className={active ? "active" : undefined} aria-current={active ? "page" : undefined} href={`/catalog/category/${slug}?${shortcutParameter}#products`} key={shortcut.query ?? shortcut.productType}><span><b>{shortcut.label}</b><small>{shortcut.copy}</small></span><em>{shortcut.count.toLocaleString("ru-RU")}</em></Link>;
+    })}</div></div></nav>}
 
     <section className="section feed-category-listing" id="products"><div className="container">
-      <div className="section-heading feed-category-heading"><div><p className="eyebrow">Фактический ассортимент</p><h2>{profile.listingTitle}</h2></div><p>Главные параметры вынесены наверх. Полный набор фильтров остаётся слева.</p></div>
+      <div className="section-heading feed-category-heading"><div><p className="eyebrow">Фактический ассортимент</p><h2>{listingTitle}</h2></div><p>Главные параметры вынесены наверх. Полный набор фильтров остаётся слева.</p></div>
 
       {promotedFacets.length > 0 && <nav className={`feed-promoted-filters${slug === "borfrezy" ? " feed-promoted-filters--burr" : ""}${slug === "stanki-sverlilnye" ? " feed-promoted-filters--equipment" : ""}`} aria-label="Быстрые фильтры">
         <div className="feed-priority-choice"><span>Показывать сначала</span><div>
@@ -199,7 +226,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
         selectedWork={search === "магнитн" ? "installation" : "unknown"}
       />}
 
-      {slug !== "borfrezy" && slug !== "stanki-sverlilnye" && <CategorySelectionAssistant
+      {!browsingAccessories && slug !== "borfrezy" && slug !== "stanki-sverlilnye" && <CategorySelectionAssistant
         categoryTitle={feedCategory?.h1 ?? subcategory.label}
         selectorTitle={profile.selectorTitle}
         selectorIntro={profile.selectorIntro}
@@ -215,6 +242,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
           <label className="feed-filter-summary" htmlFor={`feed-filters-${slug}`}><span><b>Фильтры</b><small>{activeFilterCount > 0 ? `Выбрано: ${activeFilterCount}` : "По характеристикам товаров"}</small></span><i aria-hidden="true">+</i></label>
           <form method="get" action={`/catalog/category/${slug}#products`}>
             {requestedView && <input type="hidden" name="view" value={requestedView} />}
+            {requestedProductType && <input type="hidden" name="kind" value={requestedProductType} />}
             {Object.entries(numericMinimums).map(([key, value]) => <input type="hidden" name={`min_${key}`} value={value} key={`minimum-${key}`} />)}
             {Object.entries(numericMaximums).map(([key, value]) => <input type="hidden" name={`max_${key}`} value={value} key={`maximum-${key}`} />)}
             <div className="feed-filter-priority"><span>Быстрый выбор</span>{availabilityFilterEnabled ? <label><input type="checkbox" name="availability" value="in-stock" defaultChecked={inStockOnly} /><b>В наличии</b><em>свежие данные</em></label> : <label className="feed-filter-availability-disabled"><input type="checkbox" disabled /><b>Наличие уточняем</b><em>менеджер проверит актуальный остаток</em></label>}<label><span>Порядок выдачи</span><select name="sort" defaultValue={sort}>{sortOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label><small>Остаток и срок отгрузки подтвердим перед оплатой.</small></div>
@@ -229,6 +257,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
             {canUseTable && <nav className="feed-view-switch" aria-label="Вид списка"><a className={view === "table" ? "active" : undefined} href={categoryUrl(slug, rawSearchParams, { setKey:"view", setValue:"table" })}>Таблица</a><a className={view === "cards" ? "active" : undefined} href={categoryUrl(slug, rawSearchParams, { setKey:"view", setValue:"cards" })}>Карточки</a></nav>}
             <form method="get" action={`/catalog/category/${slug}#products`}>
               {requestedView && <input type="hidden" name="view" value={requestedView} />}
+              {requestedProductType && <input type="hidden" name="kind" value={requestedProductType} />}
               {search && <input type="hidden" name="q" value={search} />}
               {inStockOnly && <input type="hidden" name="availability" value="in-stock" />}
               {Object.entries(filters).flatMap(([key, values]) => values.map((value) => <input type="hidden" name={`f_${key}`} value={value} key={`${key}-${value}`} />))}
@@ -239,6 +268,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
           </div></div>
 
           {activeFilterCount > 0 && <nav className="feed-applied-filters" aria-label="Применённые фильтры"><span>Вы выбрали:</span>
+            {productTypeChanged && <PromotedFilterLink href={`/catalog/category/${slug}#products`}>Раздел: оснастка и опции<b aria-hidden="true">×</b></PromotedFilterLink>}
             {search && <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:"q" })}>Поиск: {search}<b aria-hidden="true">×</b></PromotedFilterLink>}
             {inStockOnly && <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:"availability" })}>В наличии<b aria-hidden="true">×</b></PromotedFilterLink>}
             {result.facets.flatMap((facet) => (filters[facet.key] ?? []).map((value) => <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:`f_${facet.key}`, removeValue:value })} key={`${facet.key}-${value}`}>{facet.label}: {value}<b aria-hidden="true">×</b></PromotedFilterLink>))}
@@ -256,13 +286,13 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
           <CategoryResultGuidance
             total={result.total}
             activeFilterCount={activeFilterCount}
-            selectorHref={selectorHref}
+            selectorHref={activeSelectorHref}
             nextDecisionLabel={nextDecisionFacet?.question ?? nextDecisionFacet?.label}
           />
 
-          {result.products.length > 0 ? view === "table" ? <FeedProductTable products={productCards} columns={tableColumns} /> : <FeedProductList products={productCards} /> : <div className="feed-state feed-state--guided"><span>Нет точных совпадений</span><h2>Не нужно начинать подбор заново</h2><p>{profile.emptyCopy}</p>
+          {result.products.length > 0 ? view === "table" ? <FeedProductTable products={productCards} columns={tableColumns} /> : <FeedProductList products={productCards} /> : <div className="feed-state feed-state--guided"><span>Нет точных совпадений</span><h2>Не нужно начинать подбор заново</h2><p>{emptyCopy}</p>
             {recoverySuggestions.length > 0 && <nav className="feed-recovery-options" aria-label="Как расширить результаты"><b>Сохранить остальные условия и:</b>{recoverySuggestions.map((suggestion) => <Link href={categoryUrl(slug, rawSearchParams, { removeKeys:suggestion.removeKeys })} key={suggestion.removeKeys.join("|")}><span>{suggestion.label}</span><small>{suggestion.resultCount.toLocaleString("ru-RU")} {pluralizeProductGroups(suggestion.resultCount)}</small></Link>)}</nav>}
-            <div className="feed-state-actions"><Link className="button" href={`/catalog/category/${slug}#products`}>Сбросить все условия</Link><a className="button button-orange" href={selectorHref}>{slug === "borfrezy" ? "Изменить подбор формы" : "Изменить условия подбора"}</a></div>
+            <div className="feed-state-actions"><Link className="button" href={`/catalog/category/${slug}#products`}>Сбросить все условия</Link><a className="button button-orange" href={activeSelectorHref}>{slug === "borfrezy" ? "Изменить подбор формы" : "Изменить условия подбора"}</a></div>
             <details className="feed-zero-request"><summary>Не ослаблять требования — передать инженеру</summary><TestRequestForm compact primaryContact="phone" context={activeQueryContext} buttonLabel="Заказать проверку параметров" /></details>
           </div>}
 
@@ -272,13 +302,13 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
             {result.page < result.pageCount && <Link className="feed-pagination-direction" href={categoryUrl(slug, rawSearchParams, { page:result.page + 1 })}>Вперёд →</Link>}
           </nav>}
 
-          {result.products.length > 0 && <div className="feed-listing-foot"><p>Не нашли точное сочетание? Это не означает, что поставка невозможна: каталог показывает только текущую витрину.</p><a href={selectorHref}>{slug === "borfrezy" ? "Подобрать без артикула →" : "Уточнить условия подбора →"}</a></div>}
+          {result.products.length > 0 && <div className="feed-listing-foot"><p>Не нашли точное сочетание? Это не означает, что поставка невозможна: каталог показывает только текущую витрину.</p><a href={activeSelectorHref}>{slug === "borfrezy" ? "Подобрать без артикула →" : "Уточнить условия подбора →"}</a></div>}
         </div>
       </div>
     </div></section>
 
-    <section className="section section-muted selection-guide-section"><div className="container subcategory-layout subcategory-layout--selection"><div className="selection-guide">
-      <div className="section-heading"><div><p className="eyebrow">Критерии выбора</p><h2>{profile.criteriaTitle}</h2><p>{profile.criteriaIntro}</p></div></div>
+    <section className="section section-muted selection-guide-section" id="selection-guide"><div className="container subcategory-layout subcategory-layout--selection"><div className="selection-guide">
+      <div className="section-heading"><div><p className="eyebrow">Критерии выбора</p><h2>{criteriaTitle}</h2><p>{criteriaIntro}</p></div></div>
       <ol className="selection-criteria-list">{selectionCriteria.map((parameter,index) => <li key={parameter.title}><span>{String(index+1).padStart(2,"0")}</span><div><b>{parameter.title}</b><p>{parameter.copy}</p></div></li>)}</ol>
       <p className="selection-guide-note"><b>Не обязательно знать артикул.</b> Достаточно описать задачу и известные параметры; инженер проверит совместимость, исполнение и комплектность.</p>
       <SelectionConversionBlock categoryTitle={feedCategory?.h1 ?? subcategory.label} />

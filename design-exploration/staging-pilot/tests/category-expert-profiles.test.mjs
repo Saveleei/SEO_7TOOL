@@ -120,6 +120,28 @@ test("category search treats Russian spellings with е and ё equally", () => {
   assert.deepEqual(withYo.products.map((product) => product.id), withE.products.map((product) => product.id));
 });
 
+test("bandsaw category separates equipment from options without losing supplier positions", async () => {
+  const slug = "lentochnopilnye-stanki";
+  const profile = categoryExpertProfiles[slug];
+  const all = getFeedCategoryPage(slug, { pageSize:48 });
+  const equipment = getFeedCategoryPage(slug, { productType:"equipment", pageSize:48 });
+  const accessories = getFeedCategoryPage(slug, { productType:"accessories", pageSize:48 });
+  const guided = selectCategoryAssistantFacets(slug, equipment.facets.filter((facet) => facet.keyword));
+
+  assert.equal(profile.defaultProductType, "equipment");
+  assert.deepEqual(profile.assortmentShortcuts.map((shortcut) => shortcut.label), ["Ленточнопильные станки", "Оснастка и опции"]);
+  assert.equal(equipment.total + accessories.total, all.total);
+  assert.equal(equipment.total, 201);
+  assert.equal(accessories.total, 100);
+  assert.deepEqual(guided.map((facet) => facet.keyword), ["тип исполнения", "макс. диаметр круглого профиля при резке 90", "макс. ширина заготовки"]);
+  assert.ok(accessories.facets.every((facet) => !facet.keyword));
+
+  const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /profile\.defaultProductType/u);
+  assert.match(page, /name="kind"/u);
+  assert.match(page, /getFeedCategoryProductType\(slug, product\) === "accessories"/u);
+});
+
 test("generic guided selection replaces only its own filters and keeps commercial context", () => {
   const url = buildCategorySelectionUrl({
     pathname:"/catalog/category/kompressory",

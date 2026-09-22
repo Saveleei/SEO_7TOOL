@@ -19,7 +19,7 @@ export const categorySelectionRules = Object.freeze({
   "pilnye-diski": Object.freeze({ "диаметр диска":exact, "посадочное отверстие":exact, "материал":exact }),
   "karetki-termicheskoy-rezki": Object.freeze({ "назначение":exact, "тип резки":exact, "макс. толщина резки":minimum }),
   "metchiki": Object.freeze({ "резьба":exact, "материал":exact, "стандарт":exact }),
-  "lentochnopilnye-stanki": Object.freeze({ "макс. ширина заготовки":minimum, "макс. диаметр круглого профиля при резке 90":minimum, "угол поворота пильной рамы":exact }),
+  "lentochnopilnye-stanki": Object.freeze({ "тип исполнения":exact, "макс. диаметр круглого профиля при резке 90":minimum, "макс. ширина заготовки":minimum, "угол поворота пильной рамы":exact }),
   "shlifovalnoe-i-zatochnoe-oborudovanie": Object.freeze({ "тип затачиваемого инструмента":exact, "диаметр сверла":minimum, "частота вращения":exact }),
   "magnitnaya-osnastka": Object.freeze({ "тип фиксатора":exact, "усилие на отрыв":minimum, "рабочий угол":exact }),
   "almaznoe-burenie": Object.freeze({ "диаметр режущей":exact, "материал":exact, "рабочая длина":minimum }),

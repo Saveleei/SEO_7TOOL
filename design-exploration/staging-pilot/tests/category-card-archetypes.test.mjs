@@ -9,6 +9,7 @@ import {
 } from "../app/data/categoryCardArchetypes.mjs";
 import {
   getFeedCategoryPage,
+  getFeedCategoryProductType,
   getFeedTableColumns,
   getPublishedFeedCategorySlugs,
   prefersDenseFeedTable,
@@ -59,6 +60,14 @@ test("cards with sparse feed data provide category-specific clarification prompt
   assert.equal(card.decisionPrompts.length, 3);
   assert.ok(card.decisionPrompts.every(Boolean));
   assert.equal(prefersDenseFeedTable("stanochnaya-osnastka"), false);
+});
+
+test("bandsaw options use compatibility-first fixture cards", () => {
+  const product = getFeedCategoryPage("lentochnopilnye-stanki", { productType:"accessories", pageSize:6 }).products[0];
+  assert.equal(getFeedCategoryProductType("lentochnopilnye-stanki", product), "accessories");
+  const card = toFeedProductCardModel(product, [], false, "fixtures");
+  assert.equal(card.cardArchetype.id, "fixtures");
+  assert.deepEqual(card.decisionPrompts, ["Модель станка", "Назначение", "Интерфейс"]);
 });
 
 test("multi-variant numeric specs use a natural range instead of arbitrary feed order", () => {

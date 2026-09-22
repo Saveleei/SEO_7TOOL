@@ -90,8 +90,8 @@ export const categoryCardArchetypeIds = Object.freeze({
   "stanochnaya-osnastka":"fixtures",
 });
 
-export function getCategoryCardArchetype(categorySlug) {
-  const id = categoryCardArchetypeIds[categorySlug] ?? "machine";
+export function getCategoryCardArchetype(categorySlug, overrideId) {
+  const id = overrideId ?? categoryCardArchetypeIds[categorySlug] ?? "machine";
   return categoryCardArchetypes[id];
 }
 

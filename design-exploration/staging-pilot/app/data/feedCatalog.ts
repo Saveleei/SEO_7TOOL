@@ -146,6 +146,7 @@ export type FeedFacet = {
 };
 
 export type FeedCategorySort = "relevance" | "price-asc" | "price-desc" | "name";
+export type FeedProductType = "equipment" | "accessories";
 
 export type FeedCategoryQuery = {
   search?: string;
@@ -156,6 +157,7 @@ export type FeedCategoryQuery = {
   numericMinimums?: Record<string, number>;
   numericMaximums?: Record<string, number>;
   availability?: "in-stock";
+  productType?: FeedProductType;
 };
 
 export type FeedCategoryPage = {
@@ -242,6 +244,13 @@ export function getPublishedFeedCatalogSnapshot(): FeedSnapshot {
   };
 }
 
+export function getFeedCategoryProductType(slug: string, product: FeedProduct): FeedProductType | undefined {
+  if (slug !== "lentochnopilnye-stanki") return undefined;
+  const hasWorkingCapacity = product.variants.some((variant) => variant.params?.some((parameter) => /макс\.\s*(?:ширина|высота|диаметр)/iu.test(parameter.name)));
+  const equipmentTitle = /^(?:станок ленточнопильный|ленточнопильный станок|ленточная пила|автоматизированная линия)/iu.test(product.title.trim());
+  return hasWorkingCapacity || equipmentTitle ? "equipment" : "accessories";
+}
+
 export function prefersDenseFeedTable(slug: string): boolean {
   return denseTableCategorySlugs.has(slug);
 }
@@ -259,9 +268,13 @@ export function getFeedCategoryProducts(slug: string, limit = 6): FeedProduct[] 
 export function getFeedCategoryPage(slug: string, query: FeedCategoryQuery = {}): FeedCategoryPage {
   const pageSize = Math.min(48, Math.max(6, query.pageSize ?? 12));
   const allProducts = getRankedCategoryProducts(slug);
-  const facets = getCategoryFacets(slug, allProducts, query.filters ?? {});
+  const supportsProductTypes = allProducts.some((product) => getFeedCategoryProductType(slug, product) !== undefined);
+  const scopedProducts = query.productType && supportsProductTypes
+    ? allProducts.filter((product) => getFeedCategoryProductType(slug, product) === query.productType)
+    : allProducts;
+  const facets = getCategoryFacets(slug, scopedProducts, query.filters ?? {}, query.productType);
   const normalizedSearch = query.search ? normalizeText(query.search) : "";
-  const filteredProducts = allProducts.filter((product) => {
+  const filteredProducts = scopedProducts.filter((product) => {
     if (normalizedSearch && !getProductSearchText(product).includes(normalizedSearch)) return false;
     return productMatchesFacetFilters(product, facets, query.filters ?? {}, query.numericMinimums ?? {}, query.numericMaximums ?? {}, query.availability === "in-stock");
   });
@@ -389,7 +402,7 @@ export function getFeedProductPriceLabel(product: FeedProduct): string {
   return from;
 }
 
-export function toFeedProductCardModel(product: FeedProduct, activeFilters: FeedVariantFilter[] = [], preferAvailable = false): FeedProductCardModel {
+export function toFeedProductCardModel(product: FeedProduct, activeFilters: FeedVariantFilter[] = [], preferAvailable = false, cardArchetypeOverride?: "fixtures"): FeedProductCardModel {
   const productImage = getFeedProductImage(product);
   const hasVariantSelection = activeFilters.length > 0 || preferAvailable;
   const selectedVariants = product.variants
@@ -425,6 +438,11 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
       };
     });
 
+  const expertProfile = getCategoryExpertProfile(product.category);
+  const decisionCriteria = cardArchetypeOverride === "fixtures" && expertProfile.accessoryCriteria
+    ? expertProfile.accessoryCriteria
+    : expertProfile.criteria;
+
   return {
     id: product.id,
     categorySlug: product.category,
@@ -445,8 +463,8 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
       : Number.isFinite(filter.maximum)
         ? [`${filter.label ?? filter.keyword}: не более ${filter.maximum}`]
         : filter.values.map((value) => `${filter.label ?? filter.keyword}: ${value}`)).slice(0, 4),
-    decisionPrompts:getCategoryExpertProfile(product.category).criteria.map((item) => item.title).slice(0, 3),
-    cardArchetype:getCategoryCardArchetype(product.category),
+    decisionPrompts:decisionCriteria.map((item) => item.title).slice(0, 3),
+    cardArchetype:getCategoryCardArchetype(product.category, cardArchetypeOverride),
   };
 }
 
@@ -490,11 +508,12 @@ function getRankedCategoryProducts(slug: string): FeedProduct[] {
     .map(({ product }) => product);
 }
 
-function getCategoryFacets(slug: string, products: FeedProduct[], selectedFilters: Record<string, string[]>): FeedFacet[] {
-  let cachedFacets = categoryFacetCache.get(slug);
+function getCategoryFacets(slug: string, products: FeedProduct[], selectedFilters: Record<string, string[]>, cacheScope?: string): FeedFacet[] {
+  const cacheKey = cacheScope ? `${slug}:${cacheScope}` : slug;
+  let cachedFacets = categoryFacetCache.get(cacheKey);
   if (!cachedFacets) {
     cachedFacets = buildCategoryFacets(slug, products);
-    categoryFacetCache.set(slug, cachedFacets);
+    categoryFacetCache.set(cacheKey, cachedFacets);
   }
   return cachedFacets.map(({ allOptions, optionLimit, ...facet }) => ({
     ...facet,
