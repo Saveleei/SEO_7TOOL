@@ -40,6 +40,7 @@ type AssortmentShortcut = {
   query?: string;
   productType?: FeedProductType;
   segment?: FeedCategorySegment;
+  family?: string;
   subsegments?: Array<{ id: FeedCategorySubsegment; label: string; copy: string; heroTitle?: string; heroIntro?: string; listingTitle?: string; selectionMode?: "guided" | "engineer"; promotedFacetKeywords?: string[]; scopeGuidance?: ScopeGuidance; criteriaTitle?: string; criteriaIntro?: string; criteria?: Array<{ title: string; copy: string }> }>;
 };
 
@@ -92,6 +93,9 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const supportedSubsegments = new Set(segmentShortcut?.subsegments?.map((item) => item.id) ?? []);
   const requestedSubsegment = firstValue(rawSearchParams.drill_type);
   const subsegment = supportedSubsegments.has(requestedSubsegment as FeedCategorySubsegment) ? requestedSubsegment as FeedCategorySubsegment : undefined;
+  const supportedFamilies = new Set(profileShortcuts.flatMap((shortcut) => shortcut.family ? [shortcut.family] : []));
+  const requestedFamily = firstValue(rawSearchParams.family);
+  const family = supportedFamilies.has(requestedFamily ?? "") ? requestedFamily : undefined;
   const requestedSort = firstValue(rawSearchParams.sort);
   const sort = sortOptions.some((option) => option.value === requestedSort) ? requestedSort as FeedCategorySort : "relevance";
   const requestedPage = Number.parseInt(firstValue(rawSearchParams.page) ?? "1", 10);
@@ -110,7 +114,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     .filter(([key]) => key.startsWith("max_"))
     .map(([key, value]) => [key.slice(4), Number.parseFloat(firstValue(value) ?? "")])
     .filter((entry): entry is [string, number] => Number.isFinite(entry[1]) && entry[1] > 0));
-  const categoryQuery: FeedCategoryQuery = { search, sort, page:Number.isFinite(requestedPage) ? requestedPage : 1, filters, numericMinimums, numericMaximums, availability:inStockOnly ? "in-stock" : undefined, productType, segment, subsegment };
+  const categoryQuery: FeedCategoryQuery = { search, sort, page:Number.isFinite(requestedPage) ? requestedPage : 1, filters, numericMinimums, numericMaximums, availability:inStockOnly ? "in-stock" : undefined, productType, segment, subsegment, family };
   const result = getFeedCategoryPage(slug, categoryQuery);
   const recoverySuggestions = result.total === 0 ? getFeedCategoryRecoverySuggestions(slug, categoryQuery) : [];
   const activeVariantFilters = result.facets.flatMap((facet) => {
@@ -125,15 +129,19 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const tableColumns = getFeedTableColumns(productCards);
   const canUseTable = prefersDenseFeedTable(slug);
   const view = canUseTable && requestedView !== "cards" ? "table" : "cards";
-  const activeFilterCount = Object.values(filters).reduce((sum, values) => sum + values.length, 0) + Object.keys(numericMinimums).length + Object.keys(numericMaximums).length + (search ? 1 : 0) + (inStockOnly ? 1 : 0) + (productTypeChanged ? 1 : 0) + (segment ? 1 : 0) + (subsegment ? 1 : 0);
+  const activeFilterCount = Object.values(filters).reduce((sum, values) => sum + values.length, 0) + Object.keys(numericMinimums).length + Object.keys(numericMaximums).length + (search ? 1 : 0) + (inStockOnly ? 1 : 0) + (productTypeChanged ? 1 : 0) + (segment ? 1 : 0) + (subsegment ? 1 : 0) + (family ? 1 : 0);
   const selectorHref = slug === "borfrezy" ? "#burr-selector" : slug === "stanki-sverlilnye" ? "#drill-selector" : "#category-selector";
   const activeSelectorHref = browsingAccessories ? "#selection-guide" : selectorHref;
   const start = result.total > 0 ? (result.page - 1) * result.pageSize + 1 : 0;
   const end = Math.min(result.page * result.pageSize, result.total);
   const technicalFacets = result.facets.filter((facet) => facet.keyword);
-  const activeShortcut = profileShortcuts.find((shortcut) => shortcut.segment === segment || shortcut.productType === productType && productTypeChanged || shortcut.query === search && Boolean(search));
+  const activeShortcut = profileShortcuts.find((shortcut) => Boolean(shortcut.segment) && shortcut.segment === segment
+    || Boolean(shortcut.family) && shortcut.family === family
+    || Boolean(shortcut.productType) && shortcut.productType === productType && productTypeChanged
+    || Boolean(shortcut.query) && shortcut.query === search && Boolean(search));
   const activeSubsegment = activeShortcut?.subsegments?.find((item) => item.id === subsegment);
-  const engineerFirstSelection = activeSubsegment?.selectionMode === "engineer" || activeShortcut?.selectionMode === "engineer" || profile.selectionMode === "engineer";
+  const selectionMode = activeSubsegment?.selectionMode ?? activeShortcut?.selectionMode ?? (profile.selectionMode === "engineer" ? "engineer" : "guided");
+  const engineerFirstSelection = selectionMode === "engineer";
   const promotedFacetPriorities = activeSubsegment?.promotedFacetKeywords ?? activeShortcut?.promotedFacetKeywords;
   const promotedFacets = selectCategoryFacets(slug, result.facets, slug === "borfrezy" || slug === "stanki-sverlilnye" || slug === "lentochnopilnye-stanki" ? 3 : 2, promotedFacetPriorities);
   const assistantFacets = selectCategoryAssistantFacets(slug, technicalFacets).map((facet) => {
@@ -181,15 +189,17 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const emptyCopy = browsingAccessories && profile.accessoryEmptyCopy ? profile.accessoryEmptyCopy : profile.emptyCopy;
   const assortmentShortcuts = profileShortcuts.map((shortcut) => ({
     ...shortcut,
-    count:getFeedCategoryPage(slug, { search:shortcut.query, productType:shortcut.productType ?? defaultProductType, segment:shortcut.segment, pageSize:6 }).total,
+    count:getFeedCategoryPage(slug, { search:shortcut.query, productType:shortcut.productType ?? defaultProductType, segment:shortcut.segment, family:shortcut.family, pageSize:6 }).total,
   })).filter((shortcut: { count: number }) => shortcut.count > 0);
   const subsegmentShortcuts = (activeShortcut?.subsegments ?? []).map((item) => ({
     ...item,
     count:getFeedCategoryPage(slug, { productType, segment, subsegment:item.id, pageSize:6 }).total,
   })).filter((item) => item.count > 0);
   const assortmentAllHref = `/catalog/category/${slug}#products`;
-  const assortmentOverviewActive = !search && productType === defaultProductType && !segment && !subsegment;
-  const categoryHeroCount = subsegment
+  const assortmentOverviewActive = !search && productType === defaultProductType && !segment && !subsegment && !family;
+  const categoryHeroCount = family
+    ? getFeedCategoryPage(slug, { productType, family, pageSize:6 }).total
+    : subsegment
     ? getFeedCategoryPage(slug, { productType, segment, subsegment, pageSize:6 }).total
     : segment
     ? getFeedCategoryPage(slug, { productType, segment, pageSize:6 }).total
@@ -215,15 +225,15 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
       <div className="container"><header><span>В составе задачи</span><b>{group.title}</b><Link href={group.href}>Обзор направления →</Link></header><div>{group.subcategories.map((item) => <Link className={item.slug === slug ? "active" : undefined} aria-current={item.slug === slug ? "page" : undefined} href={item.href} key={item.slug}><span>{item.label}</span><small>{(item.count ?? 0).toLocaleString("ru-RU")}</small></Link>)}</div></div>
     </nav>
 
-    {assortmentShortcuts.length > 0 && <nav className={`category-assortment-shortcuts${supportedSegments.size > 0 ? " category-assortment-shortcuts--segments" : ""}`} aria-label="Разделы текущей категории"><div className="container"><header><div><span>Что вам нужно</span><b>{profile.assortmentPrompt ?? (supportedSegments.size > 0 ? "Сначала выберите тип заготовки" : "Сначала выберите тип товара")}</b></div><Link className={assortmentOverviewActive ? "active" : undefined} aria-current={assortmentOverviewActive ? "page" : undefined} href={assortmentAllHref}>{defaultProductType ? "Все станки" : "Весь ассортимент"}</Link></header><div>{assortmentShortcuts.map((shortcut) => {
-      const active = shortcut.query ? search === shortcut.query : shortcut.productType ? shortcut.productType === productType : shortcut.segment === segment;
-      const shortcutParameter = shortcut.query ? `q=${encodeURIComponent(shortcut.query)}` : shortcut.productType ? `kind=${encodeURIComponent(shortcut.productType)}` : `segment=${encodeURIComponent(shortcut.segment ?? "")}`;
-      return <Link className={active ? "active" : undefined} aria-current={active ? "page" : undefined} href={`/catalog/category/${slug}?${shortcutParameter}#products`} key={shortcut.query ?? shortcut.productType ?? shortcut.segment}><span><b>{shortcut.label}</b><small>{shortcut.copy}</small></span><em>{shortcut.count.toLocaleString("ru-RU")}</em></Link>;
+    {assortmentShortcuts.length > 0 && <nav className={`category-assortment-shortcuts${supportedSegments.size > 0 || supportedFamilies.size > 0 ? " category-assortment-shortcuts--segments" : ""}`} aria-label="Разделы текущей категории"><div className="container"><header><div><span>Что вам нужно</span><b>{profile.assortmentPrompt ?? (supportedSegments.size > 0 ? "Сначала выберите тип заготовки" : "Сначала выберите тип товара")}</b></div><Link className={assortmentOverviewActive ? "active" : undefined} aria-current={assortmentOverviewActive ? "page" : undefined} href={assortmentAllHref}>{defaultProductType ? "Все станки" : "Весь ассортимент"}</Link></header><div>{assortmentShortcuts.map((shortcut) => {
+      const active = shortcut.query ? search === shortcut.query : shortcut.family ? shortcut.family === family : shortcut.productType ? shortcut.productType === productType : shortcut.segment === segment;
+      const shortcutParameter = shortcut.query ? `q=${encodeURIComponent(shortcut.query)}` : shortcut.family ? `family=${encodeURIComponent(shortcut.family)}` : shortcut.productType ? `kind=${encodeURIComponent(shortcut.productType)}` : `segment=${encodeURIComponent(shortcut.segment ?? "")}`;
+      return <Link className={active ? "active" : undefined} aria-current={active ? "page" : undefined} href={`/catalog/category/${slug}?${shortcutParameter}#products`} key={shortcut.query ?? shortcut.family ?? shortcut.productType ?? shortcut.segment}><span><b>{shortcut.label}</b><small>{shortcut.copy}</small></span><em>{shortcut.count.toLocaleString("ru-RU")}</em></Link>;
     })}</div></div></nav>}
 
     {subsegmentShortcuts.length > 0 && segment && <nav className="category-type-navigation" aria-label={`Виды раздела «${activeShortcut?.label ?? "Сверлильные станки"}»`}><div className="container"><header><span>Виды оборудования</span><b>Уточните исполнение — или смотрите весь раздел</b></header><div><Link className={!subsegment ? "active" : undefined} aria-current={!subsegment ? "page" : undefined} href={`/catalog/category/${slug}?segment=${encodeURIComponent(segment)}#products`}><b>Все виды</b><small>{getFeedCategoryPage(slug, { productType, segment, pageSize:6 }).total.toLocaleString("ru-RU")}</small></Link>{subsegmentShortcuts.map((item) => <Link className={item.id === subsegment ? "active" : undefined} aria-current={item.id === subsegment ? "page" : undefined} href={`/catalog/category/${slug}?segment=${encodeURIComponent(segment)}&drill_type=${encodeURIComponent(item.id)}#products`} key={item.id}><span><b>{item.label}</b><small>{item.copy}</small></span><em>{item.count.toLocaleString("ru-RU")}</em></Link>)}</div></div></nav>}
 
-    {slug === "stanki-sverlilnye" && scopeGuidance && <section className="drill-scope-guide" aria-label={`Как выбирать: ${categoryTitle}`}><div className="container"><div><span>Подходит для</span><b>{scopeGuidance.bestFor}</b></div><div><span>Сначала проверить</span><b>{scopeGuidance.checkFirst}</b></div><div><span>Сравнивать по</span><b>{scopeGuidance.compareBy}</b></div></div></section>}
+    {scopeGuidance && <section className="drill-scope-guide" aria-label={`Как выбирать: ${categoryTitle}`}><div className="container"><div><span>Подходит для</span><b>{scopeGuidance.bestFor}</b></div><div><span>Сначала проверить</span><b>{scopeGuidance.checkFirst}</b></div><div><span>Сравнивать по</span><b>{scopeGuidance.compareBy}</b></div></div></section>}
 
     <section className="section feed-category-listing" id="products"><div className="container">
       <div className="section-heading feed-category-heading"><div><p className="eyebrow">Фактический ассортимент</p><h2>{listingTitle}</h2></div><p>Главные параметры вынесены наверх. Полный набор фильтров остаётся слева.</p></div>
@@ -278,7 +288,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
 
       {slug === "stanki-sverlilnye" && !browsingAccessories && engineerFirstSelection && <details className="burr-finder drill-engineer-request" id="drill-selector" open><summary><span className="drill-finder-symbol" aria-hidden="true"><b>✓</b><i>↗</i></span><span><small>Инженерный подбор</small><b>{selectorTitle}</b><em>{selectorIntro}</em></span><i>Передать параметры <span aria-hidden="true">↓</span></i></summary><div className="burr-finder-body"><div className="drill-engineer-request-grid"><div><span>Чтобы не ошибиться с исполнением</span><h3>Опишите задачу — модель знать не обязательно</h3><p>Укажите известные размеры, материал, место работы и требуемый результат. Инженер проверит конкретное исполнение по фактическому каталогу.</p><ul>{selectionCriteria.slice(0, 3).map((item) => <li key={item.title}><b>{item.title}</b><span>{item.copy}</span></li>)}</ul></div><TestRequestForm compact primaryContact="phone" context={activeQueryContext} buttonLabel="Заказать подбор инженера" /></div></div></details>}
 
-      {!browsingAccessories && slug !== "borfrezy" && slug !== "stanki-sverlilnye" && <CategorySelectionAssistant
+      {!browsingAccessories && slug !== "borfrezy" && slug !== "stanki-sverlilnye" && !engineerFirstSelection && <CategorySelectionAssistant
         categoryTitle={categoryTitle}
         selectorTitle={selectorTitle}
         selectorIntro={selectorIntro}
@@ -287,6 +297,8 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
         selectedFilters={filters}
         criteria={selectionCriteria}
       />}
+
+      {!browsingAccessories && slug !== "stanki-sverlilnye" && engineerFirstSelection && <details className="burr-finder drill-engineer-request" id="category-selector" open><summary><span className="drill-finder-symbol" aria-hidden="true"><b>✓</b><i>↗</i></span><span><small>Инженерный подбор</small><b>{selectorTitle}</b><em>{selectorIntro}</em></span><i>Передать параметры <span aria-hidden="true">↓</span></i></summary><div className="burr-finder-body"><div className="drill-engineer-request-grid"><div><span>Чтобы не ошибиться с исполнением</span><h3>Опишите задачу — модель и артикул знать не обязательно</h3><p>Укажите известные размеры, материал, условия работы и требуемый результат. Инженер проверит конкретное исполнение по фактическому каталогу.</p><ul>{selectionCriteria.slice(0, 3).map((item) => <li key={item.title}><b>{item.title}</b><span>{item.copy}</span></li>)}</ul></div><TestRequestForm compact primaryContact="phone" context={activeQueryContext} buttonLabel="Заказать подбор инженера" /></div></div></details>}
 
       <div className="feed-catalog-layout">
         <aside className="feed-filter-panel" id="feed-filter-panel">
@@ -297,6 +309,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
             {requestedProductType && <input type="hidden" name="kind" value={requestedProductType} />}
             {segment && <input type="hidden" name="segment" value={segment} />}
             {subsegment && <input type="hidden" name="drill_type" value={subsegment} />}
+            {family && <input type="hidden" name="family" value={family} />}
             {Object.entries(numericMinimums).map(([key, value]) => <input type="hidden" name={`min_${key}`} value={value} key={`minimum-${key}`} />)}
             {Object.entries(numericMaximums).map(([key, value]) => <input type="hidden" name={`max_${key}`} value={value} key={`maximum-${key}`} />)}
             <div className="feed-filter-priority"><span>Быстрый выбор</span>{availabilityFilterEnabled ? <label><input type="checkbox" name="availability" value="in-stock" defaultChecked={inStockOnly} /><b>В наличии</b><em>свежие данные</em></label> : <label className="feed-filter-availability-disabled"><input type="checkbox" disabled /><b>Наличие уточняем</b><em>менеджер проверит актуальный остаток</em></label>}<label><span>Порядок выдачи</span><select name="sort" defaultValue={sort}>{sortOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label><small>Остаток и срок отгрузки подтвердим перед оплатой.</small></div>
@@ -314,6 +327,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
               {requestedProductType && <input type="hidden" name="kind" value={requestedProductType} />}
               {segment && <input type="hidden" name="segment" value={segment} />}
               {subsegment && <input type="hidden" name="drill_type" value={subsegment} />}
+              {family && <input type="hidden" name="family" value={family} />}
               {search && <input type="hidden" name="q" value={search} />}
               {inStockOnly && <input type="hidden" name="availability" value="in-stock" />}
               {Object.entries(filters).flatMap(([key, values]) => values.map((value) => <input type="hidden" name={`f_${key}`} value={value} key={`${key}-${value}`} />))}
@@ -327,6 +341,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
             {productTypeChanged && <PromotedFilterLink href={`/catalog/category/${slug}#products`}>Раздел: оснастка и опции<b aria-hidden="true">×</b></PromotedFilterLink>}
             {segment && activeShortcut && <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKeys:["segment", "drill_type"] })}>Тип: {activeShortcut.label}<b aria-hidden="true">×</b></PromotedFilterLink>}
             {subsegment && activeSubsegment && <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:"drill_type" })}>Вид: {activeSubsegment.label}<b aria-hidden="true">×</b></PromotedFilterLink>}
+            {family && activeShortcut && <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:"family" })}>Вид: {activeShortcut.label}<b aria-hidden="true">×</b></PromotedFilterLink>}
             {search && <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:"q" })}>Поиск: {search}<b aria-hidden="true">×</b></PromotedFilterLink>}
             {inStockOnly && <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:"availability" })}>В наличии<b aria-hidden="true">×</b></PromotedFilterLink>}
             {result.facets.flatMap((facet) => (filters[facet.key] ?? []).map((value) => <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:`f_${facet.key}`, removeValue:value })} key={`${facet.key}-${value}`}>{facet.label}: {value}<b aria-hidden="true">×</b></PromotedFilterLink>))}

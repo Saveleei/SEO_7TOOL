@@ -1,4 +1,5 @@
 import feedSnapshotJson from "../../../../7tool-source/src/lib/products.json" with { type:"json" };
+import { getCategoryFamily, getCategoryFamilyLabel } from "./categoryAssortmentTaxonomy.mjs";
 import { getCategoryCardArchetype } from "./categoryCardArchetypes.mjs";
 import { getCategoryExpertProfile, getCategoryFacetKeywords } from "./categoryExpertProfiles.mjs";
 import { getCategorySelectionRule } from "./categorySelection.mjs";
@@ -163,6 +164,7 @@ export type FeedCategoryQuery = {
   productType?: FeedProductType;
   segment?: FeedCategorySegment;
   subsegment?: FeedCategorySubsegment;
+  family?: string;
 };
 
 export type FeedCategoryPage = {
@@ -377,6 +379,14 @@ export function getFeedCategorySubsegmentLabel(slug: string, subsegment?: FeedCa
   } satisfies Record<FeedCategorySubsegment, string>)[subsegment];
 }
 
+export function getFeedCategoryFamily(slug: string, product: FeedProduct): string | undefined {
+  return getCategoryFamily(slug, product);
+}
+
+export function getFeedCategoryFamilyLabel(slug: string, family?: string): string | undefined {
+  return family ? getCategoryFamilyLabel(slug, family) : undefined;
+}
+
 export function prefersDenseFeedTable(slug: string): boolean {
   return denseTableCategorySlugs.has(slug);
 }
@@ -406,10 +416,13 @@ export function getFeedCategoryPage(slug: string, query: FeedCategoryQuery = {})
   const subsegmentScopedProducts = query.subsegment && supportsSubsegments
     ? scopedProducts.filter((product) => getFeedCategorySubsegment(slug, product) === query.subsegment)
     : scopedProducts;
-  const cacheScope = [query.productType, query.segment, query.subsegment].filter(Boolean).join(":") || undefined;
-  const facets = getCategoryFacets(slug, subsegmentScopedProducts, query.filters ?? {}, cacheScope);
+  const familyScopedProducts = query.family
+    ? subsegmentScopedProducts.filter((product) => getCategoryFamily(slug, product) === query.family)
+    : subsegmentScopedProducts;
+  const cacheScope = [query.productType, query.segment, query.subsegment, query.family].filter(Boolean).join(":") || undefined;
+  const facets = getCategoryFacets(slug, familyScopedProducts, query.filters ?? {}, cacheScope);
   const normalizedSearch = query.search ? normalizeText(query.search) : "";
-  const filteredProducts = subsegmentScopedProducts.filter((product) => {
+  const filteredProducts = familyScopedProducts.filter((product) => {
     if (normalizedSearch && !getProductSearchText(product).includes(normalizedSearch)) return false;
     return productMatchesFacetFilters(product, facets, query.filters ?? {}, query.numericMinimums ?? {}, query.numericMaximums ?? {}, query.availability === "in-stock");
   });
@@ -602,7 +615,9 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
         ? [`${filter.label ?? filter.keyword}: не более ${filter.maximum}`]
         : filter.values.map((value) => `${filter.label ?? filter.keyword}: ${value}`)).slice(0, 4),
     decisionPrompts:decisionCriteria.map((item) => item.title).slice(0, 3),
-    taskLabel:getFeedCategorySubsegmentLabel(product.category, taskSubsegment) ?? getFeedCategorySegmentLabel(product.category, taskSegment),
+    taskLabel:getFeedCategorySubsegmentLabel(product.category, taskSubsegment)
+      ?? getFeedCategorySegmentLabel(product.category, taskSegment)
+      ?? getCategoryFamilyLabel(product.category, getCategoryFamily(product.category, product)),
     cardArchetype:getCategoryCardArchetype(product.category, cardArchetypeOverride),
   };
 }

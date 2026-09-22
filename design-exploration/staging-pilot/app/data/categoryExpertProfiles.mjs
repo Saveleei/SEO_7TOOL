@@ -1,3 +1,5 @@
+import { getCategoryFamilyShortcuts } from "./categoryAssortmentTaxonomy.mjs";
+
 const criterion = (title, copy) => ({ title, copy });
 
 const fallbackProfile = {
@@ -589,6 +591,7 @@ export const categoryExpertProfiles = {
   },
   "stanki-lazernoy-rezki": {
     selectionMode:"engineer",
+    assortmentPrompt:"Сначала выберите тип заготовки и технологическую задачу",
     heroIntro:"Подберите лазерный станок по материалу и толщине, рабочему полю, мощности источника, автоматизации и производственной программе.",
     listingTitle:"Подберите лазер под детали и программу выпуска",
     selectorTitle:"Подобрать станок лазерной резки",
@@ -730,7 +733,15 @@ export const categoryExpertProfiles = {
 };
 
 export function getCategoryExpertProfile(slug) {
-  return categoryExpertProfiles[slug] ?? fallbackProfile;
+  const profile = categoryExpertProfiles[slug] ?? fallbackProfile;
+  const familyProfile = getCategoryFamilyShortcuts(slug);
+  if (!familyProfile) return profile;
+  const structuralShortcuts = (profile.assortmentShortcuts ?? []).filter((shortcut) => shortcut.segment || shortcut.productType);
+  return {
+    ...profile,
+    assortmentPrompt:familyProfile.assortmentPrompt,
+    assortmentShortcuts:[...structuralShortcuts, ...familyProfile.assortmentShortcuts],
+  };
 }
 
 export function getCategoryExpertProfileSlugs() {
