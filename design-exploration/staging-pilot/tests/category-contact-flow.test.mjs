@@ -141,10 +141,16 @@ test("selection criteria end with one compact conversion block", async () => {
 
 test("product cards use readable actions and a native full-details navigation", async () => {
   const card = await readFile(new URL("../app/ui/FeedProductCard.tsx", import.meta.url), "utf8");
+  const list = await readFile(new URL("../app/ui/FeedProductList.tsx", import.meta.url), "utf8");
   const table = await readFile(new URL("../app/ui/FeedProductTable.tsx", import.meta.url), "utf8");
   const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(card, /<a className="feed-product-media" href=/u);
+  assert.match(card, /<h3><a href=/u);
   assert.match(card, /<a className="feed-all-characteristics" href=/u);
+  assert.match(list, /<a href=\{`\/product\/\$\{product\.slug\}`\}>Выбрать исполнение<\/a>/u);
   assert.match(table, /<a className="feed-all-characteristics" href=/u);
+  assert.doesNotMatch(card, /from "next\/link"/u);
+  assert.doesNotMatch(list, /from "next\/link"/u);
   assert.match(styles, /\.feed-product-actions button,\.feed-product-actions>a \{[^}]*font-size:11px/us);
   assert.match(styles, /\.contact-dialog-panel input,\.contact-dialog-panel textarea \{[^}]*font-size:14px/us);
 });

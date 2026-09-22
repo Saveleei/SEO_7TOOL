@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useState } from "react";
 import { pluralizeCardVariants } from "../data/categoryCardArchetypes.mjs";
 import type { FeedProductCardModel } from "../data/feedCatalog";
@@ -21,17 +20,17 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
   const projectConfiguration = archetype.id === "project-system";
   const visibleVariantLabel = pluralizeCardVariants(product.selectedVariantCount, archetype.variantForms);
   return <article className={`feed-product-card feed-product-card--${archetype.id} ${selected ? "feed-product-card--selected" : ""}`}>
-    <Link className="feed-product-media" href={`/product/${product.slug}`} aria-label={`Открыть ${product.title}`}>
+    <a className="feed-product-media" href={`/product/${product.slug}`} aria-label={`Открыть ${product.title}`}>
       {product.image ? <Image src={product.image} alt={product.title} width={430} height={340} unoptimized /> : <span>Изображение уточняется</span>}
       {product.image && <small>Фото из каталога поставщика</small>}
-    </Link>
+    </a>
 
     <div className="feed-product-copy">
       <div className="feed-product-identity">
         <em className="feed-product-kind">{archetype.badge}</em>
         {product.taskLabel && <em className="feed-product-task-label">{product.taskLabel}</em>}
         <span>{product.brand}{product.sku ? ` · ${product.sku}` : ""}</span>
-        <h3><Link href={`/product/${product.slug}`}>{product.title}</Link></h3>
+        <h3><a href={`/product/${product.slug}`}>{product.title}</a></h3>
         <p>{product.selectedVariantCount !== product.variantCount ? `${visibleVariantLabel} подходит из ${product.variantCount}` : product.variantCount > 1 ? `${visibleVariantLabel} в одной товарной группе` : visibleVariantLabel}</p>
         {product.matchReasons.length > 0 && <div className="feed-product-match" aria-label="Почему товар подходит"><b>Подходит по выбранным параметрам</b>{product.matchReasons.map((reason) => <span key={reason}>{reason}</span>)}</div>}
       </div>
@@ -49,7 +48,7 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
       </div>
     </div>
     {!directVariant && variantsOpen && <section className="feed-card-variants" id={`card-variants-${product.id}`} aria-label={`Исполнения ${product.title}`}>
-      <header><div><b>{archetype.multipleAction}</b><span>В КП попадёт только одна выбранная позиция, а не вся товарная группа.</span></div>{product.variantCount > product.variants.length && <Link href={`/product/${product.slug}`}>Все {pluralizeCardVariants(product.variantCount, archetype.variantForms)} →</Link>}</header>
+      <header><div><b>{archetype.multipleAction}</b><span>В КП попадёт только одна выбранная позиция, а не вся товарная группа.</span></div>{product.variantCount > product.variants.length && <a href={`/product/${product.slug}`}>Все {pluralizeCardVariants(product.variantCount, archetype.variantForms)} →</a>}</header>
       <div>{product.variants.map((variant) => <article className={variant.matchesSelection ? "feed-card-variant feed-card-variant--match" : "feed-card-variant"} key={variant.id}>
         <div><span>{variant.matchesSelection ? "Соответствует фильтрам" : capitalize(archetype.variantForms[0])}</span><a className="feed-variant-sku-link" href={`/product/${product.slug}?variant=${encodeURIComponent(variant.id)}#variants`}>{variant.sku || "Без артикула в фиде"}</a><small>{variant.specs.slice(0, 3).map((spec) => `${spec.label}: ${spec.value}`).join(" · ")}</small></div>
         <div><b>{variant.price}</b><FeedAvailability shippingPromise={variant.shippingPromise} exact /></div>
