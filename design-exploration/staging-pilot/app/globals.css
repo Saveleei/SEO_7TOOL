@@ -3891,7 +3891,7 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
 .category-assortment-shortcuts header span,.category-assortment-shortcuts header b { display:block; }
 .category-assortment-shortcuts header span { color:#757c75; font-size:8px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
 .category-assortment-shortcuts header b { margin-top:2px; font-size:15px; }
-.category-assortment-shortcuts header>a { min-height:34px; display:flex; align-items:center; padding:0 12px; border:1px solid #cbd0c8; border-radius:5px; background:#fff; color:#3d443f; font-size:10px; font-weight:800; }
+.category-assortment-shortcuts header>a { min-height:38px; display:flex; align-items:center; padding:0 14px; border:1px solid #cbd0c8; border-radius:5px; background:#fff; color:#3d443f; font-size:12px; font-weight:800; }
 .category-assortment-shortcuts header>a.active { border-color:#26302a; background:#26302a; color:#fff; }
 .category-assortment-shortcuts>.container>div { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
 .category-assortment-shortcuts>.container>div>a { min-width:0; min-height:72px; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 14px; border:1px solid #d3d7d0; border-radius:7px; background:#fff; color:#252b27; }

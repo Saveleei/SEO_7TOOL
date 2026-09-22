@@ -260,7 +260,7 @@ export function getFeedCategoryPage(slug: string, query: FeedCategoryQuery = {})
   const pageSize = Math.min(48, Math.max(6, query.pageSize ?? 12));
   const allProducts = getRankedCategoryProducts(slug);
   const facets = getCategoryFacets(slug, allProducts, query.filters ?? {});
-  const normalizedSearch = query.search?.trim().toLocaleLowerCase("ru-RU") ?? "";
+  const normalizedSearch = query.search ? normalizeText(query.search) : "";
   const filteredProducts = allProducts.filter((product) => {
     if (normalizedSearch && !getProductSearchText(product).includes(normalizedSearch)) return false;
     return productMatchesFacetFilters(product, facets, query.filters ?? {}, query.numericMinimums ?? {}, query.numericMaximums ?? {}, query.availability === "in-stock");
@@ -702,7 +702,7 @@ function getProductSearchText(product: FeedProduct): string {
 }
 
 function normalizeText(value: string): string {
-  return value.trim().toLocaleLowerCase("ru-RU").replace(/\s+/g, " ");
+  return value.trim().toLocaleLowerCase("ru-RU").replace(/ё/g, "е").replace(/\s+/g, " ");
 }
 
 function compareOptionalPrices(first: number | undefined, second: number | undefined, direction: "asc" | "desc"): number {

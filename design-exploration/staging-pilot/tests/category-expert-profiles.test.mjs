@@ -100,6 +100,26 @@ test("mixed diamond drilling assortment exposes complete feed-backed entry point
   assert.match(page, /shortcut\.count\.toLocaleString\("ru-RU"\)/u);
 });
 
+test("mixed drills and countersinks assortment exposes feed-backed product types", () => {
+  const profile = categoryExpertProfiles["sverla-i-zenkovki"];
+  const labels = profile.assortmentShortcuts.map((shortcut) => shortcut.label);
+  const counts = profile.assortmentShortcuts.map((shortcut) => getFeedCategoryPage("sverla-i-zenkovki", { search:shortcut.query, pageSize:48 }).total);
+
+  assert.deepEqual(labels, ["Свёрла", "Зенковки", "Цековки", "Термосверление Thermdrill", "Зенкеры"]);
+  assert.ok(counts.every((count) => count > 0));
+  assert.ok(counts[0] > counts[1]);
+  assert.ok(counts[1] > counts[2]);
+});
+
+test("category search treats Russian spellings with е and ё equally", () => {
+  const withE = getFeedCategoryPage("sverla-i-zenkovki", { search:"сверл", pageSize:48 });
+  const withYo = getFeedCategoryPage("sverla-i-zenkovki", { search:"свёрл", pageSize:48 });
+
+  assert.ok(withE.total > 0);
+  assert.equal(withYo.total, withE.total);
+  assert.deepEqual(withYo.products.map((product) => product.id), withE.products.map((product) => product.id));
+});
+
 test("generic guided selection replaces only its own filters and keeps commercial context", () => {
   const url = buildCategorySelectionUrl({
     pathname:"/catalog/category/kompressory",
