@@ -51,4 +51,4 @@
 - Полный набор: `225/225` тестов успешно; ESLint изменённых файлов — успешно; production build — успешно.
 - Browser QA без отправки форм: TCT + LENZ показывает LZTM и 110 мм; зенковки показывают Weldon 19 и КМ2; отдельный путь бесщёточных станков открывается и содержит товары. Визуально быстрый блок остаётся компактным.
 - Локальное production-preview: `http://127.0.0.1:3231/`. Публикация на тестовый или production-домен не выполнялась.
-- Commit экспертной доработки: `2263d4a` — `feat: refine industrial category decisions`.
+- Commit экспертной доработки: `bf851da` — `feat: refine industrial category decisions`.
