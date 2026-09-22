@@ -79,6 +79,22 @@ test("laser project cards identify the workpiece class before technical comparis
   }
 });
 
+test("robotics project cards explain the actual process and ask process-specific questions", () => {
+  const expectations = [
+    ["robot", "Отдельный робот", "Охват"],
+    ["welding-cell", "Сварочная ячейка", "Швы"],
+    ["laser-processing", "Лазерный процесс", "Материал"],
+    ["surface-finishing", "Обработка поверхности", "Операция"],
+  ];
+  for (const [segment, label, criterion] of expectations) {
+    const product = getFeedCategoryPage("svarochnye-roboty", { segment, pageSize:6 }).products.find((candidate) => toFeedProductCardModel(candidate).specs.length < 2);
+    assert.ok(product, `${segment}: sparse project card`);
+    const card = toFeedProductCardModel(product);
+    assert.equal(card.taskLabel, label);
+    assert.ok(card.decisionPrompts.includes(criterion), `${segment}: ${criterion}`);
+  }
+});
+
 test("multi-variant numeric specs use a natural range instead of arbitrary feed order", () => {
   const product = getFeedCategoryPage("koronchatye-sverla", { pageSize:6 }).products.find((item) => item.title.includes("LZTS"));
   assert.ok(product);

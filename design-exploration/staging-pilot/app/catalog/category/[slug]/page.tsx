@@ -23,7 +23,20 @@ import { getShippingRuntimeDiagnostic } from "../../../data/shippingRuntimeSetti
 type SearchValue = string | string[] | undefined;
 type SearchParams = Record<string, SearchValue>;
 type RouteProps = { params: Promise<{ slug: string }>; searchParams: Promise<SearchParams> };
-type AssortmentShortcut = { label: string; copy: string; listingTitle?: string; query?: string; productType?: FeedProductType; segment?: FeedCategorySegment };
+type AssortmentShortcut = {
+  label: string;
+  copy: string;
+  heroTitle?: string;
+  listingTitle?: string;
+  selectorTitle?: string;
+  selectorIntro?: string;
+  criteriaTitle?: string;
+  criteriaIntro?: string;
+  criteria?: Array<{ title: string; copy: string }>;
+  query?: string;
+  productType?: FeedProductType;
+  segment?: FeedCategorySegment;
+};
 
 const sortOptions: Array<{ value: FeedCategorySort; label: string }> = [
   { value:"relevance", label:"Сначала подходящие" },
@@ -132,7 +145,8 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     && !Number.isFinite(numericMinimums[facet.key])
     && !Number.isFinite(numericMaximums[facet.key])
     && !(facet.minimumFacetKey && Number.isFinite(numericMaximums[facet.minimumFacetKey])));
-  const categoryTitle = feedCategory?.h1 ?? subcategory.label;
+  const activeShortcut = profileShortcuts.find((shortcut) => shortcut.segment === segment);
+  const categoryTitle = activeShortcut?.heroTitle ?? feedCategory?.h1 ?? subcategory.label;
   const activeQueryContext = buildCategoryQueryContext(categoryTitle, result.facets, categoryQuery);
   const shapeFacet = technicalFacets.find((facet) => facet.keyword === "форма");
   const shankFacet = technicalFacets.find((facet) => facet.keyword === "диаметр хвостовика");
@@ -142,12 +156,11 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const orderedFacets = slug === "borfrezy"
     ? [...result.facets].sort((first, second) => facetOrder(first.keyword, first.key) - facetOrder(second.keyword, second.key))
     : result.facets;
-  const selectionCriteria = browsingAccessories && profile.accessoryCriteria ? profile.accessoryCriteria : profile.criteria;
-  const criteriaTitle = browsingAccessories ? profile.accessoryCriteriaTitle : profile.criteriaTitle;
-  const criteriaIntro = browsingAccessories ? profile.accessoryCriteriaIntro : profile.criteriaIntro;
-  const selectorTitle = browsingAccessories ? profile.accessorySelectorTitle : profile.selectorTitle;
-  const selectorIntro = browsingAccessories ? profile.accessorySelectorIntro : profile.selectorIntro;
-  const activeShortcut = profileShortcuts.find((shortcut) => shortcut.segment === segment);
+  const selectionCriteria = activeShortcut?.criteria ?? (browsingAccessories && profile.accessoryCriteria ? profile.accessoryCriteria : profile.criteria);
+  const criteriaTitle = activeShortcut?.criteriaTitle ?? (browsingAccessories ? profile.accessoryCriteriaTitle : profile.criteriaTitle);
+  const criteriaIntro = activeShortcut?.criteriaIntro ?? (browsingAccessories ? profile.accessoryCriteriaIntro : profile.criteriaIntro);
+  const selectorTitle = activeShortcut?.selectorTitle ?? (browsingAccessories ? profile.accessorySelectorTitle : profile.selectorTitle);
+  const selectorIntro = activeShortcut?.selectorIntro ?? (browsingAccessories ? profile.accessorySelectorIntro : profile.selectorIntro);
   const listingTitle = activeShortcut?.listingTitle ?? (browsingAccessories ? profile.accessoryListingTitle : profile.listingTitle);
   const emptyCopy = browsingAccessories && profile.accessoryEmptyCopy ? profile.accessoryEmptyCopy : profile.emptyCopy;
   const assortmentShortcuts = profileShortcuts.map((shortcut) => ({
@@ -166,7 +179,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
 
     <section className="page-hero page-hero--category"><div className="container page-hero-grid"><div>
       <p className="eyebrow">{group.title}</p>
-      <h1>{feedCategory?.h1 ?? subcategory.label}</h1>
+      <h1>{categoryTitle}</h1>
       <p>{profile.heroIntro}</p>
       <div className="category-hero-facts"><span><b>{categoryHeroCount.toLocaleString("ru-RU")}</b> {pluralizeProductGroups(categoryHeroCount)}</span><span>Цена — по данным поставщика</span><span>Наличие и срок — после проверки</span></div>
     </div><aside>
@@ -179,7 +192,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
       <div className="container"><header><span>В составе задачи</span><b>{group.title}</b><Link href={group.href}>Обзор направления →</Link></header><div>{group.subcategories.map((item) => <Link className={item.slug === slug ? "active" : undefined} aria-current={item.slug === slug ? "page" : undefined} href={item.href} key={item.slug}><span>{item.label}</span><small>{(item.count ?? 0).toLocaleString("ru-RU")}</small></Link>)}</div></div>
     </nav>
 
-    {assortmentShortcuts.length > 0 && <nav className={`category-assortment-shortcuts${supportedSegments.size > 0 ? " category-assortment-shortcuts--segments" : ""}`} aria-label="Разделы текущей категории"><div className="container"><header><div><span>Что вам нужно</span><b>{supportedSegments.size > 0 ? "Сначала выберите тип заготовки" : "Сначала выберите тип товара"}</b></div><Link className={!search && !productType && !segment ? "active" : undefined} aria-current={!search && !productType && !segment ? "page" : undefined} href={assortmentAllHref}>{defaultProductType ? "Все позиции" : "Весь ассортимент"}</Link></header><div>{assortmentShortcuts.map((shortcut) => {
+    {assortmentShortcuts.length > 0 && <nav className={`category-assortment-shortcuts${supportedSegments.size > 0 ? " category-assortment-shortcuts--segments" : ""}`} aria-label="Разделы текущей категории"><div className="container"><header><div><span>Что вам нужно</span><b>{profile.assortmentPrompt ?? (supportedSegments.size > 0 ? "Сначала выберите тип заготовки" : "Сначала выберите тип товара")}</b></div><Link className={!search && !productType && !segment ? "active" : undefined} aria-current={!search && !productType && !segment ? "page" : undefined} href={assortmentAllHref}>{defaultProductType ? "Все позиции" : "Весь ассортимент"}</Link></header><div>{assortmentShortcuts.map((shortcut) => {
       const active = shortcut.query ? search === shortcut.query : shortcut.productType ? shortcut.productType === productType : shortcut.segment === segment;
       const shortcutParameter = shortcut.query ? `q=${encodeURIComponent(shortcut.query)}` : shortcut.productType ? `kind=${encodeURIComponent(shortcut.productType)}` : `segment=${encodeURIComponent(shortcut.segment ?? "")}`;
       return <Link className={active ? "active" : undefined} aria-current={active ? "page" : undefined} href={`/catalog/category/${slug}?${shortcutParameter}#products`} key={shortcut.query ?? shortcut.productType ?? shortcut.segment}><span><b>{shortcut.label}</b><small>{shortcut.copy}</small></span><em>{shortcut.count.toLocaleString("ru-RU")}</em></Link>;
@@ -233,9 +246,9 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
       />}
 
       {!browsingAccessories && slug !== "borfrezy" && slug !== "stanki-sverlilnye" && <CategorySelectionAssistant
-        categoryTitle={feedCategory?.h1 ?? subcategory.label}
-        selectorTitle={profile.selectorTitle}
-        selectorIntro={profile.selectorIntro}
+        categoryTitle={categoryTitle}
+        selectorTitle={selectorTitle}
+        selectorIntro={selectorIntro}
         selectorResult={profile.selectorResult}
         facets={assistantFacets}
         selectedFilters={filters}
@@ -320,7 +333,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
       <div className="section-heading"><div><p className="eyebrow">Критерии выбора</p><h2>{criteriaTitle}</h2><p>{criteriaIntro}</p></div></div>
       <ol className="selection-criteria-list">{selectionCriteria.map((parameter,index) => <li key={parameter.title}><span>{String(index+1).padStart(2,"0")}</span><div><b>{parameter.title}</b><p>{parameter.copy}</p></div></li>)}</ol>
       <p className="selection-guide-note"><b>Не обязательно знать артикул.</b> Достаточно описать задачу и известные параметры; инженер проверит совместимость, исполнение и комплектность.</p>
-      <SelectionConversionBlock categoryTitle={feedCategory?.h1 ?? subcategory.label} />
+      <SelectionConversionBlock categoryTitle={categoryTitle} />
     </div><aside><ManagerContactCard compact /></aside></div></section>
 
     <section className="section"><div className="container"><div className="section-heading"><div><p className="eyebrow">В той же производственной задаче</p><h2>Смежные подкатегории</h2></div></div><nav className="related-category-links" aria-label="Смежные подкатегории">{group.subcategories.filter((item) => item.slug !== subcategory.slug).map((item) => <Link href={item.href} key={item.slug}>{item.label}<span>→</span></Link>)}</nav></div></section>

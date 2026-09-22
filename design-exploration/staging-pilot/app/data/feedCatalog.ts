@@ -148,7 +148,7 @@ export type FeedFacet = {
 
 export type FeedCategorySort = "relevance" | "price-asc" | "price-desc" | "name";
 export type FeedProductType = "equipment" | "accessories";
-export type FeedCategorySegment = "sheet" | "tube" | "combined" | "special";
+export type FeedCategorySegment = "sheet" | "tube" | "combined" | "special" | "robot" | "welding-cell" | "laser-processing" | "surface-finishing";
 
 export type FeedCategoryQuery = {
   search?: string;
@@ -255,15 +255,34 @@ export function getFeedCategoryProductType(slug: string, product: FeedProduct): 
 }
 
 export function getFeedCategorySegment(slug: string, product: FeedProduct): FeedCategorySegment | undefined {
-  if (slug !== "stanki-lazernoy-rezki") return undefined;
   const title = normalizeText(product.title);
-  if (/(труб.*(?:лист|пласт|плит)|(?:лист|пласт|плит).*труб|модул.*резки труб)/u.test(title)) return "combined";
-  if (/(труб|труборез)/u.test(title)) return "tube";
-  if (/(стекл|пробив|прецизион)/u.test(title)) return "special";
-  return "sheet";
+  if (slug === "stanki-lazernoy-rezki") {
+    if (/(труб.*(?:лист|пласт|плит)|(?:лист|пласт|плит).*труб|модул.*резки труб)/u.test(title)) return "combined";
+    if (/(труб|труборез)/u.test(title)) return "tube";
+    if (/(стекл|пробив|прецизион)/u.test(title)) return "special";
+    return "sheet";
+  }
+  if (slug === "svarochnye-roboty") {
+    if (/(шлиф|полир|окалин)/u.test(title)) return "surface-finishing";
+    if (/лазер/u.test(title)) return "laser-processing";
+    if (/(ячейк|сварочн.*комплекс|комплекс.*свароч)/u.test(title)) return "welding-cell";
+    return "robot";
+  }
+  return undefined;
 }
 
-export function getFeedCategorySegmentLabel(segment?: FeedCategorySegment): string | undefined {
+export function getFeedCategorySegmentLabel(slug: string, segment?: FeedCategorySegment): string | undefined {
+  if (slug === "svarochnye-roboty") {
+    return segment === "robot"
+      ? "Отдельный робот"
+      : segment === "welding-cell"
+        ? "Сварочная ячейка"
+        : segment === "laser-processing"
+          ? "Лазерный процесс"
+          : segment === "surface-finishing"
+            ? "Обработка поверхности"
+            : undefined;
+  }
   return segment === "sheet"
     ? "Для листового металла"
     : segment === "tube"
@@ -468,9 +487,11 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
     });
 
   const expertProfile = getCategoryExpertProfile(product.category);
+  const taskSegment = getFeedCategorySegment(product.category, product);
+  const segmentCriteria = expertProfile.assortmentShortcuts?.find((shortcut: { segment?: FeedCategorySegment }) => shortcut.segment === taskSegment)?.criteria;
   const decisionCriteria = cardArchetypeOverride === "fixtures" && expertProfile.accessoryCriteria
     ? expertProfile.accessoryCriteria
-    : expertProfile.criteria;
+    : segmentCriteria ?? expertProfile.criteria;
 
   return {
     id: product.id,
@@ -493,7 +514,7 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
         ? [`${filter.label ?? filter.keyword}: не более ${filter.maximum}`]
         : filter.values.map((value) => `${filter.label ?? filter.keyword}: ${value}`)).slice(0, 4),
     decisionPrompts:decisionCriteria.map((item) => item.title).slice(0, 3),
-    taskLabel:getFeedCategorySegmentLabel(getFeedCategorySegment(product.category, product)),
+    taskLabel:getFeedCategorySegmentLabel(product.category, taskSegment),
     cardArchetype:getCategoryCardArchetype(product.category, cardArchetypeOverride),
   };
 }

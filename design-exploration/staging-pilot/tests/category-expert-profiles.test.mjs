@@ -158,6 +158,21 @@ test("laser category separates production tasks without overlaps or invented pos
   assert.match(page, /Сначала выберите тип заготовки/u);
 });
 
+test("robotics category separates processes and carries process-specific engineering criteria", () => {
+  const slug = "svarochnye-roboty";
+  const profile = categoryExpertProfiles[slug];
+  const all = getFeedCategoryPage(slug, { pageSize:48 });
+  const counts = Object.fromEntries(profile.assortmentShortcuts.map((shortcut) => [shortcut.segment, getFeedCategoryPage(slug, { segment:shortcut.segment, pageSize:48 }).total]));
+
+  assert.deepEqual(profile.assortmentShortcuts.map((shortcut) => shortcut.label), ["Сварочные роботы", "Сварочные ячейки", "Лазерные системы", "Шлифовка и полировка"]);
+  assert.deepEqual(counts, { robot:32, "welding-cell":11, "laser-processing":5, "surface-finishing":7 });
+  assert.equal(Object.values(counts).reduce((sum, count) => sum + count, 0), all.total);
+  assert.equal(all.total, 55);
+  assert.ok(profile.assortmentShortcuts.every((shortcut) => shortcut.criteria.length === 5));
+  assert.ok(profile.assortmentShortcuts.every((shortcut) => shortcut.heroTitle.length >= 24));
+  assert.match(profile.assortmentShortcuts.find((shortcut) => shortcut.segment === "surface-finishing").criteriaTitle, /обработки поверхности/iu);
+});
+
 test("generic guided selection replaces only its own filters and keeps commercial context", () => {
   const url = buildCategorySelectionUrl({
     pathname:"/catalog/category/kompressory",
