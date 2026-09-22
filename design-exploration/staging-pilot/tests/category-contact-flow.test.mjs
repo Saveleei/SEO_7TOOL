@@ -20,6 +20,7 @@ test("send parameters opens a local callback form instead of composing an email"
   const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
   const assistant = await readFile(new URL("../app/ui/CategorySelectionAssistant.tsx", import.meta.url), "utf8");
   const dialog = await readFile(new URL("../app/ui/ContactRequestDialog.tsx", import.meta.url), "utf8");
+  const shortForm = await readFile(new URL("../app/ui/TestRequestForm.tsx", import.meta.url), "utf8");
   assert.match(page, /<CategorySelectionAssistant/u);
   assert.match(assistant, /primaryContact="phone"/u);
   assert.match(assistant, /Передать задачу инженеру/u);
@@ -27,6 +28,26 @@ test("send parameters opens a local callback form instead of composing an email"
   assert.match(dialog, /defaultChecked required/u);
   assert.match(dialog, /event\.preventDefault\(\)/u);
   assert.doesNotMatch(dialog, /mailto:/u);
+  for (const source of [dialog, shortForm]) {
+    assert.match(source, /fetch\("\/api\/quote-requests"/u);
+    assert.match(source, /formData\.set\("request_type", "selection"\)/u);
+    assert.match(source, /formData\.set\("idempotency_key"/u);
+    assert.match(source, /result\.requestNumber/u);
+    assert.match(source, /name="consent"[^>]*defaultChecked required/u);
+    assert.doesNotMatch(source, /ничего не отправляет/u);
+    assert.doesNotMatch(source, /fetch\("https?:/u);
+  }
+});
+
+test("catalog recovery CTAs keep task context and provide a native specification upload path", async () => {
+  const catalog = await readFile(new URL("../app/catalog/page.tsx", import.meta.url), "utf8");
+  const task = await readFile(new URL("../app/catalog/task/[task]/page.tsx", import.meta.url), "utf8");
+  for (const source of [catalog, task]) {
+    assert.match(source, /#quick-order/u);
+    assert.match(source, /Описать задачу/u);
+    assert.match(source, /request=spec/u);
+    assert.match(source, /Передать ТЗ файлом/u);
+  }
 });
 
 test("selection criteria align the manager with the first parameter row", async () => {

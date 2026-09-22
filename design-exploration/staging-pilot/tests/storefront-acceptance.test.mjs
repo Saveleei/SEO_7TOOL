@@ -101,5 +101,6 @@ test("customer dialogs trap keyboard focus and restore a usable target", async (
   assert.match(callbackDialog, /triggerElement\?\.focus\(\)/u);
   assert.match(quoteDrawer, /returnFocusRef\.current\?\.focus\(\)/u);
   assert.match(callbackDialog, /successCloseRef\.current\?\.focus\(\)/u);
+  assert.match(callbackDialog, /createPortal\([\s\S]*document\.body\)/u);
   assert.match(quoteDrawer, /successCloseRef\.current\?\.focus\(\)/u);
 });

@@ -119,7 +119,7 @@ export function FeedProductPurchase({ productId, productTitle, categorySlug, var
     </div>
 
     <dl className="feed-conversion-key-specs">{selected.keySpecs.map((spec) => <div key={spec.label}><dt>{spec.label}</dt><dd>{spec.value}</dd></div>)}</dl>
-    <p className="feed-conversion-proof">{pageArchetype.quoteProof} Форма прототипа ничего не отправляет наружу.</p>
+    <p className="feed-conversion-proof">{pageArchetype.quoteProof} После отправки запрос получит номер и сохранится для менеджера.</p>
   </div>;
 }
 
