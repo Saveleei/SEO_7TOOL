@@ -151,6 +151,7 @@ test("product cards use readable actions and a native full-details navigation", 
   assert.match(table, /<a className="feed-all-characteristics" href=/u);
   assert.doesNotMatch(card, /from "next\/link"/u);
   assert.doesNotMatch(list, /from "next\/link"/u);
+  assert.match(styles, /\.feed-product-identity h3>a \{[^}]*display:block/us);
   assert.match(styles, /\.feed-product-actions button,\.feed-product-actions>a \{[^}]*font-size:11px/us);
   assert.match(styles, /\.contact-dialog-panel input,\.contact-dialog-panel textarea \{[^}]*font-size:14px/us);
 });
