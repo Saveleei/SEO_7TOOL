@@ -67,3 +67,15 @@
 - Регрессии этапа: узкие тесты 40/40, полный ESLint passed, полный `node --test tests/*.test.mjs` 212/212 passed, production build passed.
 - Commit этапа: `55104e4` (`feat: guide laser equipment selection by workpiece`).
 - Публикация на `test.7tool.ru` в этом commit не выполнялась.
+
+## Финальный сквозной аудит форм и навигации
+
+- Устранён P0-разрыв категорий и карточек товара: `TestRequestForm` и `ContactRequestDialog` больше не имитируют успех локальным состоянием. Обе формы отправляют same-origin `POST /api/quote-requests`, используют тип `selection`, обязательный телефон и согласие, honeypot, UUID idempotency, UTM и технический контекст страницы; после надёжного сохранения показывают номер заявки.
+- События submit/success/error передают только allowlisted контекст (`page_type`, `placement`, `request_type`) без телефона, email, имени или текста клиента.
+- В hero каталога и страниц производственных задач email-only путь заменён основными действиями «Описать задачу» и «Передать ТЗ файлом». Оба ведут в существующий phone-first workbench с сохранением контекста; `info@7tool.ru` сохранён как альтернативный канал.
+- Текст карточки товара больше не утверждает, что форма ничего не отправляет: теперь честно сообщает о номере и сохранении запроса.
+- Browser QA обнаружил и устранил P1 mobile-дефект: модальный диалог, вложенный в узкую grid-колонку, обрезался и получал горизонтальную прокрутку. Диалог вынесен через `createPortal(..., document.body)` и теперь занимает весь viewport.
+- Browser QA без отправки форм: desktop `/catalog` (обе CTA), переход на главную с предзаполненной задачей, прямое открытие вкладки загрузки ТЗ; desktop и mobile 390×844 `kromkorezy-po-listu`, открытие/закрытие формы, фокус телефона, предзаполненный контекст, checked consent, отсутствие горизонтального обрезания после portal-fix. Временный viewport сброшен, локальный сервер остановлен.
+- Проверки финального состояния: узкие тесты 24/24 passed; полный ESLint passed; полный `node --test tests/*.test.mjs` 215/215 passed; production build passed.
+- Commit реализации: `177021a` (`feat: persist category selection requests`).
+- Внешние email/MAX/CRM-сообщения и тестовые лиды не отправлялись. Публикация на `test.7tool.ru` не выполнялась.
