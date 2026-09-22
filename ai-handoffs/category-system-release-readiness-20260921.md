@@ -79,3 +79,17 @@
 - Проверки финального состояния: узкие тесты 24/24 passed; полный ESLint passed; полный `node --test tests/*.test.mjs` 215/215 passed; production build passed.
 - Commit реализации: `177021a` (`feat: persist category selection requests`).
 - Внешние email/MAX/CRM-сообщения и тестовые лиды не отправлялись. Публикация на `test.7tool.ru` не выполнялась.
+
+## Test deployment — 2026-09-22
+
+- Пользователь продолжил ранее согласованный этап публикации только на `test.7tool.ru`; production, DNS, Nginx, секреты, товарный фид и внешние каналы не менялись.
+- Опубликован branch head `58a2f6f` (реализация `177021a`). Активный release: `/var/www/7tool-release-20260922-category-system-58a2f6f`.
+- Rollback сохранён: `/var/www/7tool-release-20260921-test-login-970d5fa`; предыдущий release с загрузкой ТЗ `/var/www/7tool-release-20260921-spec-upload-78b0087` также оставлен.
+- Перед переключением создана резервная копия persistent test data: `/var/www/7tool-test-shared/backups/quote-requests-before-58a2f6f-20260922.tar.gz` (216 KB). Данные по-прежнему хранятся в `/var/www/7tool-test-shared/quote-requests`.
+- Dependency lock полностью совпал с активным релизом (`sha256 7dacb299...b5056d1f`), поэтому переиспользовано существующее immutable `node_modules` дерево. Release-архив проверен по SHA-256 `21365bec...ea822150` до распаковки.
+- Server verification новой release-директории: полный `node --test tests/*.test.mjs` 215/215 passed, полный ESLint passed, production build passed.
+- Изолированный candidate на порту 3199 прошёл 57/57 read-only checks; после переключения порт 3000 повторно прошёл 57/57. Smoke не выполняет customer/quote/delivery write actions и дополнительно проверяет маркеры каталога, лазерных задач, роботизированных процессов и формы инженерного запроса.
+- Активный `7tool-storefront-test`: `online`, 0 рестартов, script path и cwd указывают на новый release. После контрольных запросов размер PM2 error log не изменился (`2753 → 2753` bytes); показанные в старом tail сообщения относятся к накопленной истории предыдущих release-путей.
+- External HTTPS: `/test/access` возвращает 200; anonymous `/` возвращает 302 на обычную HTML-страницу входа; production `https://7tool.ru/` возвращает 200. In-app browser подтвердил desktop DOM и mobile 390×844 компоновку формы входа; viewport сброшен, вкладка закрыта.
+- Для освобождения места удалены семь точно перечисленных неактивных test-release директорий от 2026-09-13. Активный test, два свежих rollback и production не затронуты. Свободное место выросло с 1.9 GB до 8.0 GB (79% used). Удалённые копии не восстанавливаются с сервера напрямую, но воспроизводимы из Git.
+- Временные candidate-процесс, архивы и deploy-скрипты удалены; PM2 process list сохранён. Внешние формы, email, MAX и CRM не вызывались.
