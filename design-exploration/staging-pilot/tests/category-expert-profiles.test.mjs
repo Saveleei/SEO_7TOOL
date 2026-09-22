@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { buildCategorySelectionContext, buildCategorySelectionUrl } from "../app/data/categorySelection.mjs";
 import { categoryExpertProfiles, getCategoryExpertProfileSlugs, selectCategoryAssistantFacets, selectCategoryFacets } from "../app/data/categoryExpertProfiles.mjs";
-import { getFeedCategoryPage } from "../app/data/feedCatalog.ts";
+import { getFeedCategoryPage, getFeedCategorySegment } from "../app/data/feedCatalog.ts";
 
 test("every published feed category has a complete expert profile", async () => {
   const snapshot = JSON.parse(await readFile(new URL("../../../7tool-source/src/lib/products.json", import.meta.url), "utf8"));
@@ -140,6 +140,51 @@ test("bandsaw category separates equipment from options without losing supplier 
   assert.match(page, /profile\.defaultProductType/u);
   assert.match(page, /name="kind"/u);
   assert.match(page, /getFeedCategoryProductType\(slug, product\) === "accessories"/u);
+});
+
+test("drilling machines expose feed-backed subcategories and kinds without mixing accessories", async () => {
+  const slug = "stanki-sverlilnye";
+  const profile = categoryExpertProfiles[slug];
+  const all = getFeedCategoryPage(slug, { pageSize:48 });
+  const equipment = getFeedCategoryPage(slug, { productType:"equipment", pageSize:48 });
+  const accessories = getFeedCategoryPage(slug, { productType:"accessories", pageSize:48 });
+  const segmentCounts = Object.fromEntries(profile.assortmentShortcuts
+    .filter((shortcut) => shortcut.segment)
+    .map((shortcut) => [shortcut.segment, getFeedCategoryPage(slug, { productType:"equipment", segment:shortcut.segment, pageSize:48 }).total]));
+
+  assert.equal(profile.defaultProductType, "equipment");
+  assert.equal(equipment.total + accessories.total, all.total);
+  assert.equal(equipment.total, 361);
+  assert.equal(accessories.total, 28);
+  assert.ok(accessories.products.every((product) => getFeedCategorySegment(slug, product) === undefined));
+  assert.deepEqual(segmentCounts, {
+    "drill-magnetic":141,
+    "drill-stationary":187,
+    "drill-rail":10,
+    "drill-special":23,
+  });
+  assert.equal(Object.values(segmentCounts).reduce((sum, count) => sum + count, 0), equipment.total);
+
+  const expectedKinds = {
+    "drill-magnetic": { "magnetic-standard":67, "magnetic-tapping":67, "magnetic-low-profile":3, "magnetic-atex":3, "magnetic-battery":1 },
+    "drill-stationary": { "stationary-column":90, "stationary-bench":11, "stationary-radial":29, "stationary-tapping":54, "stationary-production":3 },
+    "drill-rail": { "rail-electric":3, "rail-petrol":3, "rail-universal":4 },
+    "drill-special": { "special-vacuum":2, "special-pipe":6, "special-cnc":15 },
+  };
+  for (const shortcut of profile.assortmentShortcuts.filter((item) => item.segment)) {
+    assert.ok(shortcut.subsegments.length >= 3, shortcut.segment);
+    const kindCounts = {};
+    for (const kind of shortcut.subsegments) {
+      kindCounts[kind.id] = getFeedCategoryPage(slug, { productType:"equipment", segment:shortcut.segment, subsegment:kind.id, pageSize:48 }).total;
+    }
+    assert.deepEqual(kindCounts, expectedKinds[shortcut.segment]);
+    assert.equal(Object.values(kindCounts).reduce((sum, count) => sum + count, 0), segmentCounts[shortcut.segment]);
+  }
+
+  const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /name="drill_type"/u);
+  assert.match(page, /category-type-navigation/u);
+  assert.match(page, /Виды оборудования/u);
 });
 
 test("laser category separates production tasks without overlaps or invented positions", async () => {

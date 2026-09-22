@@ -21,7 +21,8 @@ test("drill selection preserves commercial context and applies a real minimum di
   assert.equal(parsed.searchParams.get("page"), null);
   assert.equal(parsed.searchParams.get("min_spec2"), "35");
   assert.deepEqual(parsed.searchParams.getAll("f_spec4"), ["Да"]);
-  assert.equal(parsed.searchParams.get("q"), "магнитн");
+  assert.equal(parsed.searchParams.get("q"), null);
+  assert.equal(parsed.searchParams.get("segment"), "drill-magnetic");
 });
 
 test("workshop selection removes an old installation query", () => {
@@ -34,6 +35,8 @@ test("workshop selection removes an old installation query", () => {
   });
   const parsed = new URL(url, "https://example.test");
   assert.equal(parsed.searchParams.get("q"), null);
+  assert.equal(parsed.searchParams.get("segment"), "drill-stationary");
+  assert.equal(parsed.searchParams.get("drill_type"), null);
   assert.equal(parsed.searchParams.get("min_spec2"), "50");
   assert.equal(parsed.searchParams.get("view"), "table");
 });

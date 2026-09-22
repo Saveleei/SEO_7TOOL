@@ -16,7 +16,7 @@ import { SelectionConversionBlock } from "../../../ui/SelectionConversionBlock";
 import { TestRequestForm } from "../../../ui/TestRequestForm";
 import { buildCategoryQueryContext, findCategorySelectionOption, getCategorySelectionRule } from "../../../data/categorySelection.mjs";
 import { getCategoryExpertProfile, selectCategoryAssistantFacets, selectCategoryFacets } from "../../../data/categoryExpertProfiles.mjs";
-import { getFeedCategory, getFeedCategoryPage, getFeedCategoryProductType, getFeedCategoryRecoverySuggestions, getFeedTableColumns, getGuidedFacetOptions, getPromotedFacetOptions, prefersDenseFeedTable, type FeedCategoryQuery, type FeedCategorySegment, type FeedCategorySort, type FeedProductType, type FeedVariantFilter, toFeedProductCardModel } from "../../../data/feedCatalog";
+import { getFeedCategory, getFeedCategoryPage, getFeedCategoryProductType, getFeedCategoryRecoverySuggestions, getFeedTableColumns, getGuidedFacetOptions, getPromotedFacetOptions, prefersDenseFeedTable, type FeedCategoryQuery, type FeedCategorySegment, type FeedCategorySort, type FeedCategorySubsegment, type FeedProductType, type FeedVariantFilter, toFeedProductCardModel } from "../../../data/feedCatalog";
 import { getProductionSubcategory } from "../../../data/productionCategoryGroups";
 import { getShippingRuntimeDiagnostic } from "../../../data/shippingRuntimeSettings.mjs";
 
@@ -36,6 +36,7 @@ type AssortmentShortcut = {
   query?: string;
   productType?: FeedProductType;
   segment?: FeedCategorySegment;
+  subsegments?: Array<{ id: FeedCategorySubsegment; label: string; copy: string; heroTitle?: string; listingTitle?: string }>;
 };
 
 const sortOptions: Array<{ value: FeedCategorySort; label: string }> = [
@@ -68,6 +69,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const search = firstValue(rawSearchParams.q)?.trim() ?? "";
   const profileShortcuts = (profile.assortmentShortcuts ?? []) as AssortmentShortcut[];
   const supportedProductTypes = new Set(profileShortcuts.flatMap((shortcut) => shortcut.productType ? [shortcut.productType] : []));
+  if (profile.defaultProductType === "equipment" || profile.defaultProductType === "accessories") supportedProductTypes.add(profile.defaultProductType);
   const defaultProductType = supportedProductTypes.has(profile.defaultProductType) ? profile.defaultProductType as FeedProductType : undefined;
   const requestedProductType = firstValue(rawSearchParams.kind);
   const productType = requestedProductType === "all"
@@ -80,6 +82,10 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const supportedSegments = new Set(profileShortcuts.flatMap((shortcut) => shortcut.segment ? [shortcut.segment] : []));
   const requestedSegment = firstValue(rawSearchParams.segment);
   const segment = supportedSegments.has(requestedSegment as FeedCategorySegment) ? requestedSegment as FeedCategorySegment : undefined;
+  const segmentShortcut = profileShortcuts.find((shortcut) => shortcut.segment === segment);
+  const supportedSubsegments = new Set(segmentShortcut?.subsegments?.map((item) => item.id) ?? []);
+  const requestedSubsegment = firstValue(rawSearchParams.drill_type);
+  const subsegment = supportedSubsegments.has(requestedSubsegment as FeedCategorySubsegment) ? requestedSubsegment as FeedCategorySubsegment : undefined;
   const requestedSort = firstValue(rawSearchParams.sort);
   const sort = sortOptions.some((option) => option.value === requestedSort) ? requestedSort as FeedCategorySort : "relevance";
   const requestedPage = Number.parseInt(firstValue(rawSearchParams.page) ?? "1", 10);
@@ -98,7 +104,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     .filter(([key]) => key.startsWith("max_"))
     .map(([key, value]) => [key.slice(4), Number.parseFloat(firstValue(value) ?? "")])
     .filter((entry): entry is [string, number] => Number.isFinite(entry[1]) && entry[1] > 0));
-  const categoryQuery: FeedCategoryQuery = { search, sort, page:Number.isFinite(requestedPage) ? requestedPage : 1, filters, numericMinimums, numericMaximums, availability:inStockOnly ? "in-stock" : undefined, productType, segment };
+  const categoryQuery: FeedCategoryQuery = { search, sort, page:Number.isFinite(requestedPage) ? requestedPage : 1, filters, numericMinimums, numericMaximums, availability:inStockOnly ? "in-stock" : undefined, productType, segment, subsegment };
   const result = getFeedCategoryPage(slug, categoryQuery);
   const recoverySuggestions = result.total === 0 ? getFeedCategoryRecoverySuggestions(slug, categoryQuery) : [];
   const activeVariantFilters = result.facets.flatMap((facet) => {
@@ -113,7 +119,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const tableColumns = getFeedTableColumns(productCards);
   const canUseTable = prefersDenseFeedTable(slug);
   const view = canUseTable && requestedView !== "cards" ? "table" : "cards";
-  const activeFilterCount = Object.values(filters).reduce((sum, values) => sum + values.length, 0) + Object.keys(numericMinimums).length + Object.keys(numericMaximums).length + (search ? 1 : 0) + (inStockOnly ? 1 : 0) + (productTypeChanged ? 1 : 0) + (segment ? 1 : 0);
+  const activeFilterCount = Object.values(filters).reduce((sum, values) => sum + values.length, 0) + Object.keys(numericMinimums).length + Object.keys(numericMaximums).length + (search ? 1 : 0) + (inStockOnly ? 1 : 0) + (productTypeChanged ? 1 : 0) + (segment ? 1 : 0) + (subsegment ? 1 : 0);
   const selectorHref = slug === "borfrezy" ? "#burr-selector" : slug === "stanki-sverlilnye" ? "#drill-selector" : "#category-selector";
   const activeSelectorHref = browsingAccessories ? "#selection-guide" : selectorHref;
   const start = result.total > 0 ? (result.page - 1) * result.pageSize + 1 : 0;
@@ -145,8 +151,9 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     && !Number.isFinite(numericMinimums[facet.key])
     && !Number.isFinite(numericMaximums[facet.key])
     && !(facet.minimumFacetKey && Number.isFinite(numericMaximums[facet.minimumFacetKey])));
-  const activeShortcut = profileShortcuts.find((shortcut) => shortcut.segment === segment);
-  const categoryTitle = activeShortcut?.heroTitle ?? feedCategory?.h1 ?? subcategory.label;
+  const activeShortcut = profileShortcuts.find((shortcut) => shortcut.segment === segment || shortcut.productType === productType && productTypeChanged || shortcut.query === search && Boolean(search));
+  const activeSubsegment = activeShortcut?.subsegments?.find((item) => item.id === subsegment);
+  const categoryTitle = activeSubsegment?.heroTitle ?? activeShortcut?.heroTitle ?? feedCategory?.h1 ?? subcategory.label;
   const activeQueryContext = buildCategoryQueryContext(categoryTitle, result.facets, categoryQuery);
   const shapeFacet = technicalFacets.find((facet) => facet.keyword === "форма");
   const shankFacet = technicalFacets.find((facet) => facet.keyword === "диаметр хвостовика");
@@ -161,15 +168,22 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const criteriaIntro = activeShortcut?.criteriaIntro ?? (browsingAccessories ? profile.accessoryCriteriaIntro : profile.criteriaIntro);
   const selectorTitle = activeShortcut?.selectorTitle ?? (browsingAccessories ? profile.accessorySelectorTitle : profile.selectorTitle);
   const selectorIntro = activeShortcut?.selectorIntro ?? (browsingAccessories ? profile.accessorySelectorIntro : profile.selectorIntro);
-  const listingTitle = activeShortcut?.listingTitle ?? (browsingAccessories ? profile.accessoryListingTitle : profile.listingTitle);
+  const listingTitle = activeSubsegment?.listingTitle ?? activeShortcut?.listingTitle ?? (browsingAccessories ? profile.accessoryListingTitle : profile.listingTitle);
   const emptyCopy = browsingAccessories && profile.accessoryEmptyCopy ? profile.accessoryEmptyCopy : profile.emptyCopy;
   const assortmentShortcuts = profileShortcuts.map((shortcut) => ({
     ...shortcut,
-    count:getFeedCategoryPage(slug, { search:shortcut.query, productType:shortcut.productType, segment:shortcut.segment, pageSize:6 }).total,
+    count:getFeedCategoryPage(slug, { search:shortcut.query, productType:shortcut.productType ?? defaultProductType, segment:shortcut.segment, pageSize:6 }).total,
   })).filter((shortcut: { count: number }) => shortcut.count > 0);
-  const assortmentAllHref = `/catalog/category/${slug}${defaultProductType ? "?kind=all" : ""}#products`;
-  const categoryHeroCount = segment
-    ? getFeedCategoryPage(slug, { segment, pageSize:6 }).total
+  const subsegmentShortcuts = (activeShortcut?.subsegments ?? []).map((item) => ({
+    ...item,
+    count:getFeedCategoryPage(slug, { productType, segment, subsegment:item.id, pageSize:6 }).total,
+  })).filter((item) => item.count > 0);
+  const assortmentAllHref = `/catalog/category/${slug}#products`;
+  const assortmentOverviewActive = !search && productType === defaultProductType && !segment && !subsegment;
+  const categoryHeroCount = subsegment
+    ? getFeedCategoryPage(slug, { productType, segment, subsegment, pageSize:6 }).total
+    : segment
+    ? getFeedCategoryPage(slug, { productType, segment, pageSize:6 }).total
     : productType
     ? getFeedCategoryPage(slug, { productType, pageSize:6 }).total
     : feedCategory?.count ?? result.total;
@@ -192,11 +206,13 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
       <div className="container"><header><span>В составе задачи</span><b>{group.title}</b><Link href={group.href}>Обзор направления →</Link></header><div>{group.subcategories.map((item) => <Link className={item.slug === slug ? "active" : undefined} aria-current={item.slug === slug ? "page" : undefined} href={item.href} key={item.slug}><span>{item.label}</span><small>{(item.count ?? 0).toLocaleString("ru-RU")}</small></Link>)}</div></div>
     </nav>
 
-    {assortmentShortcuts.length > 0 && <nav className={`category-assortment-shortcuts${supportedSegments.size > 0 ? " category-assortment-shortcuts--segments" : ""}`} aria-label="Разделы текущей категории"><div className="container"><header><div><span>Что вам нужно</span><b>{profile.assortmentPrompt ?? (supportedSegments.size > 0 ? "Сначала выберите тип заготовки" : "Сначала выберите тип товара")}</b></div><Link className={!search && !productType && !segment ? "active" : undefined} aria-current={!search && !productType && !segment ? "page" : undefined} href={assortmentAllHref}>{defaultProductType ? "Все позиции" : "Весь ассортимент"}</Link></header><div>{assortmentShortcuts.map((shortcut) => {
+    {assortmentShortcuts.length > 0 && <nav className={`category-assortment-shortcuts${supportedSegments.size > 0 ? " category-assortment-shortcuts--segments" : ""}`} aria-label="Разделы текущей категории"><div className="container"><header><div><span>Что вам нужно</span><b>{profile.assortmentPrompt ?? (supportedSegments.size > 0 ? "Сначала выберите тип заготовки" : "Сначала выберите тип товара")}</b></div><Link className={assortmentOverviewActive ? "active" : undefined} aria-current={assortmentOverviewActive ? "page" : undefined} href={assortmentAllHref}>{defaultProductType ? "Все станки" : "Весь ассортимент"}</Link></header><div>{assortmentShortcuts.map((shortcut) => {
       const active = shortcut.query ? search === shortcut.query : shortcut.productType ? shortcut.productType === productType : shortcut.segment === segment;
       const shortcutParameter = shortcut.query ? `q=${encodeURIComponent(shortcut.query)}` : shortcut.productType ? `kind=${encodeURIComponent(shortcut.productType)}` : `segment=${encodeURIComponent(shortcut.segment ?? "")}`;
       return <Link className={active ? "active" : undefined} aria-current={active ? "page" : undefined} href={`/catalog/category/${slug}?${shortcutParameter}#products`} key={shortcut.query ?? shortcut.productType ?? shortcut.segment}><span><b>{shortcut.label}</b><small>{shortcut.copy}</small></span><em>{shortcut.count.toLocaleString("ru-RU")}</em></Link>;
     })}</div></div></nav>}
+
+    {subsegmentShortcuts.length > 0 && segment && <nav className="category-type-navigation" aria-label={`Виды раздела «${activeShortcut?.label ?? "Сверлильные станки"}»`}><div className="container"><header><span>Виды оборудования</span><b>Уточните исполнение — или смотрите весь раздел</b></header><div><Link className={!subsegment ? "active" : undefined} aria-current={!subsegment ? "page" : undefined} href={`/catalog/category/${slug}?segment=${encodeURIComponent(segment)}#products`}><b>Все виды</b><small>{getFeedCategoryPage(slug, { productType, segment, pageSize:6 }).total.toLocaleString("ru-RU")}</small></Link>{subsegmentShortcuts.map((item) => <Link className={item.id === subsegment ? "active" : undefined} aria-current={item.id === subsegment ? "page" : undefined} href={`/catalog/category/${slug}?segment=${encodeURIComponent(segment)}&drill_type=${encodeURIComponent(item.id)}#products`} key={item.id}><span><b>{item.label}</b><small>{item.copy}</small></span><em>{item.count.toLocaleString("ru-RU")}</em></Link>)}</div></div></nav>}
 
     <section className="section feed-category-listing" id="products"><div className="container">
       <div className="section-heading feed-category-heading"><div><p className="eyebrow">Фактический ассортимент</p><h2>{listingTitle}</h2></div><p>Главные параметры вынесены наверх. Полный набор фильтров остаётся слева.</p></div>
@@ -242,7 +258,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
         reverseOptions={drillReverseFacet?.options}
         selectedDiameter={numericMinimums[drillDiameterFacet.key]}
         selectedReverse={drillReverseFacet ? filters[drillReverseFacet.key] : []}
-        selectedWork={search === "магнитн" ? "installation" : "unknown"}
+        selectedWork={segment === "drill-magnetic" ? "installation" : segment === "drill-stationary" ? "workshop" : "unknown"}
       />}
 
       {!browsingAccessories && slug !== "borfrezy" && slug !== "stanki-sverlilnye" && <CategorySelectionAssistant
@@ -263,6 +279,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
             {requestedView && <input type="hidden" name="view" value={requestedView} />}
             {requestedProductType && <input type="hidden" name="kind" value={requestedProductType} />}
             {segment && <input type="hidden" name="segment" value={segment} />}
+            {subsegment && <input type="hidden" name="drill_type" value={subsegment} />}
             {Object.entries(numericMinimums).map(([key, value]) => <input type="hidden" name={`min_${key}`} value={value} key={`minimum-${key}`} />)}
             {Object.entries(numericMaximums).map(([key, value]) => <input type="hidden" name={`max_${key}`} value={value} key={`maximum-${key}`} />)}
             <div className="feed-filter-priority"><span>Быстрый выбор</span>{availabilityFilterEnabled ? <label><input type="checkbox" name="availability" value="in-stock" defaultChecked={inStockOnly} /><b>В наличии</b><em>свежие данные</em></label> : <label className="feed-filter-availability-disabled"><input type="checkbox" disabled /><b>Наличие уточняем</b><em>менеджер проверит актуальный остаток</em></label>}<label><span>Порядок выдачи</span><select name="sort" defaultValue={sort}>{sortOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label><small>Остаток и срок отгрузки подтвердим перед оплатой.</small></div>
@@ -279,6 +296,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
               {requestedView && <input type="hidden" name="view" value={requestedView} />}
               {requestedProductType && <input type="hidden" name="kind" value={requestedProductType} />}
               {segment && <input type="hidden" name="segment" value={segment} />}
+              {subsegment && <input type="hidden" name="drill_type" value={subsegment} />}
               {search && <input type="hidden" name="q" value={search} />}
               {inStockOnly && <input type="hidden" name="availability" value="in-stock" />}
               {Object.entries(filters).flatMap(([key, values]) => values.map((value) => <input type="hidden" name={`f_${key}`} value={value} key={`${key}-${value}`} />))}
@@ -290,7 +308,8 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
 
           {activeFilterCount > 0 && <nav className="feed-applied-filters" aria-label="Применённые фильтры"><span>Вы выбрали:</span>
             {productTypeChanged && <PromotedFilterLink href={`/catalog/category/${slug}#products`}>Раздел: оснастка и опции<b aria-hidden="true">×</b></PromotedFilterLink>}
-            {segment && activeShortcut && <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:"segment" })}>Заготовка: {activeShortcut.label}<b aria-hidden="true">×</b></PromotedFilterLink>}
+            {segment && activeShortcut && <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKeys:["segment", "drill_type"] })}>Тип: {activeShortcut.label}<b aria-hidden="true">×</b></PromotedFilterLink>}
+            {subsegment && activeSubsegment && <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:"drill_type" })}>Вид: {activeSubsegment.label}<b aria-hidden="true">×</b></PromotedFilterLink>}
             {search && <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:"q" })}>Поиск: {search}<b aria-hidden="true">×</b></PromotedFilterLink>}
             {inStockOnly && <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:"availability" })}>В наличии<b aria-hidden="true">×</b></PromotedFilterLink>}
             {result.facets.flatMap((facet) => (filters[facet.key] ?? []).map((value) => <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:`f_${facet.key}`, removeValue:value })} key={`${facet.key}-${value}`}>{facet.label}: {value}<b aria-hidden="true">×</b></PromotedFilterLink>))}

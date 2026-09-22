@@ -30,11 +30,14 @@ export function buildDrillSelectionUrl({ pathname, search = "", diameterFacetKey
   const params = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search);
   params.delete("page");
   params.delete("q");
+  params.delete("segment");
+  params.delete("drill_type");
   params.delete(`min_${diameterFacetKey}`);
   if (reverseFacetKey) params.delete(`f_${reverseFacetKey}`);
   if (diameter > 0) params.set(`min_${diameterFacetKey}`, String(diameter));
   if (reverseFacetKey && reverse) params.set(`f_${reverseFacetKey}`, reverse);
-  if (work === "installation") params.set("q", "магнитн");
+  if (work === "installation") params.set("segment", "drill-magnetic");
+  if (work === "workshop") params.set("segment", "drill-stationary");
   const query = params.toString();
   return `${pathname}${query ? `?${query}` : ""}#products`;
 }

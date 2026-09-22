@@ -148,7 +148,8 @@ export type FeedFacet = {
 
 export type FeedCategorySort = "relevance" | "price-asc" | "price-desc" | "name";
 export type FeedProductType = "equipment" | "accessories";
-export type FeedCategorySegment = "sheet" | "tube" | "combined" | "special" | "robot" | "welding-cell" | "laser-processing" | "surface-finishing";
+export type FeedCategorySegment = "sheet" | "tube" | "combined" | "special" | "robot" | "welding-cell" | "laser-processing" | "surface-finishing" | "drill-magnetic" | "drill-stationary" | "drill-rail" | "drill-special";
+export type FeedCategorySubsegment = "magnetic-standard" | "magnetic-tapping" | "magnetic-low-profile" | "magnetic-atex" | "magnetic-battery" | "stationary-column" | "stationary-bench" | "stationary-radial" | "stationary-tapping" | "stationary-production" | "rail-electric" | "rail-petrol" | "rail-universal" | "special-vacuum" | "special-pipe" | "special-cnc";
 
 export type FeedCategoryQuery = {
   search?: string;
@@ -161,6 +162,7 @@ export type FeedCategoryQuery = {
   availability?: "in-stock";
   productType?: FeedProductType;
   segment?: FeedCategorySegment;
+  subsegment?: FeedCategorySubsegment;
 };
 
 export type FeedCategoryPage = {
@@ -248,6 +250,12 @@ export function getPublishedFeedCatalogSnapshot(): FeedSnapshot {
 }
 
 export function getFeedCategoryProductType(slug: string, product: FeedProduct): FeedProductType | undefined {
+  if (slug === "stanki-sverlilnye") {
+    const parameterNames = product.variants.flatMap((variant) => variant.params ?? []).map((parameter) => parameter.name).join(" ");
+    const equipmentTitle = /(станок|машин[аы]? сверлил|mabasic|pro-\d)/iu.test(product.title);
+    const equipmentParameters = /(макс.*диаметр.*(?:отверст|сверл)|шпиндель|рабочий ход|ход пиноли|число скоростей)/iu.test(parameterNames);
+    return equipmentTitle || equipmentParameters ? "equipment" : "accessories";
+  }
   if (slug !== "lentochnopilnye-stanki") return undefined;
   const hasWorkingCapacity = product.variants.some((variant) => variant.params?.some((parameter) => /макс\.\s*(?:ширина|высота|диаметр)/iu.test(parameter.name)));
   const equipmentTitle = /^(?:станок ленточнопильный|ленточнопильный станок|ленточная пила|автоматизированная линия)/iu.test(product.title.trim());
@@ -256,6 +264,14 @@ export function getFeedCategoryProductType(slug: string, product: FeedProduct): 
 
 export function getFeedCategorySegment(slug: string, product: FeedProduct): FeedCategorySegment | undefined {
   const title = normalizeText(product.title);
+  if (slug === "stanki-sverlilnye") {
+    if (getFeedCategoryProductType(slug, product) !== "equipment") return undefined;
+    const parameterNames = normalizeText(product.variants.flatMap((variant) => variant.params ?? []).map((parameter) => parameter.name).join(" "));
+    if (/рельс/u.test(title)) return "drill-rail";
+    if (/(вакуум|для труб|труб.*сверл|координатно|портальн|чпу)/u.test(title)) return "drill-special";
+    if (/(магнит|электромагнит)/u.test(title) || /макс.*диаметр корончатого сверла/u.test(parameterNames)) return "drill-magnetic";
+    return "drill-stationary";
+  }
   if (slug === "stanki-lazernoy-rezki") {
     if (/(труб.*(?:лист|пласт|плит)|(?:лист|пласт|плит).*труб|модул.*резки труб)/u.test(title)) return "combined";
     if (/(труб|труборез)/u.test(title)) return "tube";
@@ -272,6 +288,17 @@ export function getFeedCategorySegment(slug: string, product: FeedProduct): Feed
 }
 
 export function getFeedCategorySegmentLabel(slug: string, segment?: FeedCategorySegment): string | undefined {
+  if (slug === "stanki-sverlilnye") {
+    return segment === "drill-magnetic"
+      ? "Магнитный станок"
+      : segment === "drill-stationary"
+        ? "Стационарный станок"
+        : segment === "drill-rail"
+          ? "Рельсосверлильный станок"
+          : segment === "drill-special"
+            ? "Специальный станок"
+            : undefined;
+  }
   if (slug === "svarochnye-roboty") {
     return segment === "robot"
       ? "Отдельный робот"
@@ -292,6 +319,40 @@ export function getFeedCategorySegmentLabel(slug: string, segment?: FeedCategory
         : segment === "special"
           ? "Специальная задача"
           : undefined;
+}
+
+export function getFeedCategorySubsegment(slug: string, product: FeedProduct): FeedCategorySubsegment | undefined {
+  if (slug !== "stanki-sverlilnye" || getFeedCategoryProductType(slug, product) !== "equipment") return undefined;
+  const segment = getFeedCategorySegment(slug, product);
+  const title = normalizeText(product.title);
+  const parameters = product.variants.flatMap((variant) => variant.params ?? []);
+  const parameterText = normalizeText(parameters.map((parameter) => `${parameter.name} ${parameter.value}`).join(" "));
+
+  if (segment === "drill-magnetic") {
+    if (/(пневмат|atex|постоянн.*магнит)/u.test(`${title} ${parameterText}`)) return "magnetic-atex";
+    if (/(battery|аккумулятор)/u.test(`${title} ${parameterText}`)) return "magnetic-battery";
+    if (/(низкопроф|low profile|компакт)/u.test(`${title} ${parameterText}`)) return "magnetic-low-profile";
+    if (/резьб/u.test(title) || parameters.some((parameter) => /реверс/iu.test(parameter.name) && /да/iu.test(parameter.value))) return "magnetic-tapping";
+    return "magnetic-standard";
+  }
+  if (segment === "drill-stationary") {
+    if (/радиально/u.test(title)) return "stationary-radial";
+    if (/настоль/u.test(title)) return "stationary-bench";
+    if (/резьбонарез/u.test(title)) return "stationary-tapping";
+    if (/(многошпиндел|автомат)/u.test(title)) return "stationary-production";
+    return "stationary-column";
+  }
+  if (segment === "drill-rail") {
+    if (/бензин/u.test(title)) return "rail-petrol";
+    if (/электр/u.test(title)) return "rail-electric";
+    return "rail-universal";
+  }
+  if (segment === "drill-special") {
+    if (/вакуум/u.test(title)) return "special-vacuum";
+    if (/труб/u.test(title)) return "special-pipe";
+    if (/(чпу|портальн|координатно)/u.test(title)) return "special-cnc";
+  }
+  return undefined;
 }
 
 export function prefersDenseFeedTable(slug: string): boolean {
@@ -319,10 +380,14 @@ export function getFeedCategoryPage(slug: string, query: FeedCategoryQuery = {})
   const scopedProducts = query.segment && supportsSegments
     ? productTypeScopedProducts.filter((product) => getFeedCategorySegment(slug, product) === query.segment)
     : productTypeScopedProducts;
-  const cacheScope = [query.productType, query.segment].filter(Boolean).join(":") || undefined;
-  const facets = getCategoryFacets(slug, scopedProducts, query.filters ?? {}, cacheScope);
+  const supportsSubsegments = scopedProducts.some((product) => getFeedCategorySubsegment(slug, product) !== undefined);
+  const subsegmentScopedProducts = query.subsegment && supportsSubsegments
+    ? scopedProducts.filter((product) => getFeedCategorySubsegment(slug, product) === query.subsegment)
+    : scopedProducts;
+  const cacheScope = [query.productType, query.segment, query.subsegment].filter(Boolean).join(":") || undefined;
+  const facets = getCategoryFacets(slug, subsegmentScopedProducts, query.filters ?? {}, cacheScope);
   const normalizedSearch = query.search ? normalizeText(query.search) : "";
-  const filteredProducts = scopedProducts.filter((product) => {
+  const filteredProducts = subsegmentScopedProducts.filter((product) => {
     if (normalizedSearch && !getProductSearchText(product).includes(normalizedSearch)) return false;
     return productMatchesFacetFilters(product, facets, query.filters ?? {}, query.numericMinimums ?? {}, query.numericMaximums ?? {}, query.availability === "in-stock");
   });
