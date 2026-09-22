@@ -15,6 +15,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
   const rawSearchParams = await searchParams;
   const [trustContent, homepageContent] = await Promise.all([getTrustContentSettings(), getHomepageContentSettings()]);
   const initialTask = typeof rawSearchParams.task === "string" ? rawSearchParams.task : undefined;
+  const initialTool = rawSearchParams.request === "spec" ? "spec" as const : undefined;
   const categoryGroups = getProductionCategoryGroups(pilotFeedCategorySlugs);
   const keyCategoryBySlug = new Map(getHomepageKeyCategories().map((category) => [category.slug, category]));
   const homepageKeyCategories = homepageContent.categoryItems.flatMap((item) => {
@@ -89,7 +90,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
         <section className="section procurement-section">
           <div className="container procurement-grid">
             <div className="procurement-copy"><p className="eyebrow">Инженерный запрос</p><h2>Начните с задачи, а не с нашего каталога</h2><p>Опишите операцию, материал и условия работы, укажите известную модель либо передайте готовую спецификацию. Подтвердим, что действительно можем поставить.</p><ul><li>Подбор по производственной задаче</li><li>Замена отсутствующей модели</li><li>Разбор ТЗ и спецификации</li></ul><a href="mailto:info@7tool.ru?subject=Запрос%20на%20подбор">Можно сразу написать на <b>info@7tool.ru</b> →</a></div>
-            <ProcurementWorkbench initialTask={initialTask} />
+            <ProcurementWorkbench initialTask={initialTask} initialTool={initialTool} />
           </div>
         </section>
 

@@ -29,6 +29,7 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
     <div className="feed-product-copy">
       <div className="feed-product-identity">
         <em className="feed-product-kind">{archetype.badge}</em>
+        {product.taskLabel && <em className="feed-product-task-label">{product.taskLabel}</em>}
         <span>{product.brand}{product.sku ? ` · ${product.sku}` : ""}</span>
         <h3><Link href={`/product/${product.slug}`}>{product.title}</Link></h3>
         <p>{product.selectedVariantCount !== product.variantCount ? `${visibleVariantLabel} подходит из ${product.variantCount}` : product.variantCount > 1 ? `${visibleVariantLabel} в одной товарной группе` : visibleVariantLabel}</p>

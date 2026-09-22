@@ -110,6 +110,7 @@ export type FeedProductCardModel = {
   variants: FeedProductVariantModel[];
   matchReasons: string[];
   decisionPrompts: string[];
+  taskLabel?: string;
   cardArchetype: {
     id: string;
     badge: string;
@@ -147,6 +148,7 @@ export type FeedFacet = {
 
 export type FeedCategorySort = "relevance" | "price-asc" | "price-desc" | "name";
 export type FeedProductType = "equipment" | "accessories";
+export type FeedCategorySegment = "sheet" | "tube" | "combined" | "special";
 
 export type FeedCategoryQuery = {
   search?: string;
@@ -158,6 +160,7 @@ export type FeedCategoryQuery = {
   numericMaximums?: Record<string, number>;
   availability?: "in-stock";
   productType?: FeedProductType;
+  segment?: FeedCategorySegment;
 };
 
 export type FeedCategoryPage = {
@@ -251,6 +254,27 @@ export function getFeedCategoryProductType(slug: string, product: FeedProduct): 
   return hasWorkingCapacity || equipmentTitle ? "equipment" : "accessories";
 }
 
+export function getFeedCategorySegment(slug: string, product: FeedProduct): FeedCategorySegment | undefined {
+  if (slug !== "stanki-lazernoy-rezki") return undefined;
+  const title = normalizeText(product.title);
+  if (/(труб.*(?:лист|пласт|плит)|(?:лист|пласт|плит).*труб|модул.*резки труб)/u.test(title)) return "combined";
+  if (/(труб|труборез)/u.test(title)) return "tube";
+  if (/(стекл|пробив|прецизион)/u.test(title)) return "special";
+  return "sheet";
+}
+
+export function getFeedCategorySegmentLabel(segment?: FeedCategorySegment): string | undefined {
+  return segment === "sheet"
+    ? "Для листового металла"
+    : segment === "tube"
+      ? "Для труб и профиля"
+      : segment === "combined"
+        ? "Лист + труба"
+        : segment === "special"
+          ? "Специальная задача"
+          : undefined;
+}
+
 export function prefersDenseFeedTable(slug: string): boolean {
   return denseTableCategorySlugs.has(slug);
 }
@@ -269,10 +293,15 @@ export function getFeedCategoryPage(slug: string, query: FeedCategoryQuery = {})
   const pageSize = Math.min(48, Math.max(6, query.pageSize ?? 12));
   const allProducts = getRankedCategoryProducts(slug);
   const supportsProductTypes = allProducts.some((product) => getFeedCategoryProductType(slug, product) !== undefined);
-  const scopedProducts = query.productType && supportsProductTypes
+  const productTypeScopedProducts = query.productType && supportsProductTypes
     ? allProducts.filter((product) => getFeedCategoryProductType(slug, product) === query.productType)
     : allProducts;
-  const facets = getCategoryFacets(slug, scopedProducts, query.filters ?? {}, query.productType);
+  const supportsSegments = productTypeScopedProducts.some((product) => getFeedCategorySegment(slug, product) !== undefined);
+  const scopedProducts = query.segment && supportsSegments
+    ? productTypeScopedProducts.filter((product) => getFeedCategorySegment(slug, product) === query.segment)
+    : productTypeScopedProducts;
+  const cacheScope = [query.productType, query.segment].filter(Boolean).join(":") || undefined;
+  const facets = getCategoryFacets(slug, scopedProducts, query.filters ?? {}, cacheScope);
   const normalizedSearch = query.search ? normalizeText(query.search) : "";
   const filteredProducts = scopedProducts.filter((product) => {
     if (normalizedSearch && !getProductSearchText(product).includes(normalizedSearch)) return false;
@@ -464,6 +493,7 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
         ? [`${filter.label ?? filter.keyword}: не более ${filter.maximum}`]
         : filter.values.map((value) => `${filter.label ?? filter.keyword}: ${value}`)).slice(0, 4),
     decisionPrompts:decisionCriteria.map((item) => item.title).slice(0, 3),
+    taskLabel:getFeedCategorySegmentLabel(getFeedCategorySegment(product.category, product)),
     cardArchetype:getCategoryCardArchetype(product.category, cardArchetypeOverride),
   };
 }

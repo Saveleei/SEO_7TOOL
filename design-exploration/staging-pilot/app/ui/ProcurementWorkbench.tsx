@@ -16,9 +16,9 @@ const taskDirections: Array<Direction & { pattern: RegExp }> = [
 
 const fallbackDirection: Direction = { key:"catalog", title:"Инженерный подбор по задаче", summary:"Описание сохранит контекст. Инженер уточнит материал, размеры и режим работы, затем предложит подходящие разделы.", href:"/catalog" };
 
-export function ProcurementWorkbench({ initialTask }: { initialTask?: string }) {
+export function ProcurementWorkbench({ initialTask, initialTool }: { initialTask?: string; initialTool?: Tool }) {
   const initialValue = initialTask?.trim().slice(0, 500) || "";
-  const [tool, setTool] = useState<Tool>("task");
+  const [tool, setTool] = useState<Tool>(initialTool ?? "task");
   const [task, setTask] = useState(initialValue);
   const [analog, setAnalog] = useState("");
   const [specFile, setSpecFile] = useState<File | null>(null);

@@ -142,6 +142,22 @@ test("bandsaw category separates equipment from options without losing supplier 
   assert.match(page, /getFeedCategoryProductType\(slug, product\) === "accessories"/u);
 });
 
+test("laser category separates production tasks without overlaps or invented positions", async () => {
+  const slug = "stanki-lazernoy-rezki";
+  const profile = categoryExpertProfiles[slug];
+  const all = getFeedCategoryPage(slug, { pageSize:48 });
+  const counts = Object.fromEntries(profile.assortmentShortcuts.map((shortcut) => [shortcut.segment, getFeedCategoryPage(slug, { segment:shortcut.segment, pageSize:48 }).total]));
+
+  assert.deepEqual(profile.assortmentShortcuts.map((shortcut) => shortcut.label), ["Листовой металл", "Трубы и профиль", "Лист + труба", "Специальные задачи"]);
+  assert.deepEqual(counts, { sheet:37, tube:13, combined:6, special:3 });
+  assert.equal(Object.values(counts).reduce((sum, count) => sum + count, 0), all.total);
+  assert.equal(all.total, 59);
+
+  const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /name="segment"/u);
+  assert.match(page, /Сначала выберите тип заготовки/u);
+});
+
 test("generic guided selection replaces only its own filters and keeps commercial context", () => {
   const url = buildCategorySelectionUrl({
     pathname:"/catalog/category/kompressory",

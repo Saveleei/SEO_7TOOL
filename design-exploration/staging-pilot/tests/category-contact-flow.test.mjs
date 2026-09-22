@@ -161,6 +161,18 @@ test("drilling selector is integrated and maps to persistent numeric filters", a
   assert.match(selector, /a\[href="#drill-selector"\]/u);
 });
 
+test("engineer-first selection offers a direct specification upload path", async () => {
+  const [selector, home, workbench] = await Promise.all([
+    readFile(new URL("../app/ui/CategorySelectionAssistant.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/ui/ProcurementWorkbench.tsx", import.meta.url), "utf8"),
+  ]);
+  assert.match(selector, /request=spec/u);
+  assert.match(selector, /Передать ТЗ файлом/u);
+  assert.match(home, /initialTool/u);
+  assert.match(workbench, /initialTool \?\? "task"/u);
+});
+
 test("an exact category result can be added without an extra reveal", async () => {
   const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
   const list = await readFile(new URL("../app/ui/FeedProductList.tsx", import.meta.url), "utf8");

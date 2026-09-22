@@ -70,6 +70,15 @@ test("bandsaw options use compatibility-first fixture cards", () => {
   assert.deepEqual(card.decisionPrompts, ["Модель станка", "Назначение", "Интерфейс"]);
 });
 
+test("laser project cards identify the workpiece class before technical comparison", () => {
+  for (const [segment, label] of [["sheet", "Для листового металла"], ["tube", "Для труб и профиля"], ["combined", "Лист + труба"], ["special", "Специальная задача"]]) {
+    const product = getFeedCategoryPage("stanki-lazernoy-rezki", { segment, pageSize:6 }).products[0];
+    const card = toFeedProductCardModel(product);
+    assert.equal(card.cardArchetype.id, "project-system");
+    assert.equal(card.taskLabel, label);
+  }
+});
+
 test("multi-variant numeric specs use a natural range instead of arbitrary feed order", () => {
   const product = getFeedCategoryPage("koronchatye-sverla", { pageSize:6 }).products.find((item) => item.title.includes("LZTS"));
   assert.ok(product);
