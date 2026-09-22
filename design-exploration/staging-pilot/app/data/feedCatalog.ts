@@ -355,6 +355,28 @@ export function getFeedCategorySubsegment(slug: string, product: FeedProduct): F
   return undefined;
 }
 
+export function getFeedCategorySubsegmentLabel(slug: string, subsegment?: FeedCategorySubsegment): string | undefined {
+  if (slug !== "stanki-sverlilnye" || !subsegment) return undefined;
+  return ({
+    "magnetic-standard":"Универсальный магнитный станок",
+    "magnetic-tapping":"Магнитный станок с реверсом",
+    "magnetic-low-profile":"Низкопрофильный магнитный станок",
+    "magnetic-atex":"Специальный магнитный станок",
+    "magnetic-battery":"Аккумуляторный магнитный станок",
+    "stationary-column":"Вертикальный или колонный станок",
+    "stationary-bench":"Настольный сверлильный станок",
+    "stationary-radial":"Радиально-сверлильный станок",
+    "stationary-tapping":"Сверлильно-резьбонарезной станок",
+    "stationary-production":"Производственный сверлильный станок",
+    "rail-electric":"Электрический рельсосверлильный станок",
+    "rail-petrol":"Бензиновый рельсосверлильный станок",
+    "rail-universal":"Рельсосверлильный станок",
+    "special-vacuum":"Станок на вакуумном основании",
+    "special-pipe":"Станок для сверления труб",
+    "special-cnc":"Портальный станок или центр с ЧПУ",
+  } satisfies Record<FeedCategorySubsegment, string>)[subsegment];
+}
+
 export function prefersDenseFeedTable(slug: string): boolean {
   return denseTableCategorySlugs.has(slug);
 }
@@ -553,6 +575,7 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
 
   const expertProfile = getCategoryExpertProfile(product.category);
   const taskSegment = getFeedCategorySegment(product.category, product);
+  const taskSubsegment = getFeedCategorySubsegment(product.category, product);
   const segmentCriteria = expertProfile.assortmentShortcuts?.find((shortcut: { segment?: FeedCategorySegment }) => shortcut.segment === taskSegment)?.criteria;
   const decisionCriteria = cardArchetypeOverride === "fixtures" && expertProfile.accessoryCriteria
     ? expertProfile.accessoryCriteria
@@ -579,7 +602,7 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
         ? [`${filter.label ?? filter.keyword}: не более ${filter.maximum}`]
         : filter.values.map((value) => `${filter.label ?? filter.keyword}: ${value}`)).slice(0, 4),
     decisionPrompts:decisionCriteria.map((item) => item.title).slice(0, 3),
-    taskLabel:getFeedCategorySegmentLabel(product.category, taskSegment),
+    taskLabel:getFeedCategorySubsegmentLabel(product.category, taskSubsegment) ?? getFeedCategorySegmentLabel(product.category, taskSegment),
     cardArchetype:getCategoryCardArchetype(product.category, cardArchetypeOverride),
   };
 }

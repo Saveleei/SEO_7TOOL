@@ -27,17 +27,23 @@ type AssortmentShortcut = {
   label: string;
   copy: string;
   heroTitle?: string;
+  heroIntro?: string;
   listingTitle?: string;
   selectorTitle?: string;
   selectorIntro?: string;
+  selectionMode?: "guided" | "engineer";
+  promotedFacetKeywords?: string[];
+  scopeGuidance?: ScopeGuidance;
   criteriaTitle?: string;
   criteriaIntro?: string;
   criteria?: Array<{ title: string; copy: string }>;
   query?: string;
   productType?: FeedProductType;
   segment?: FeedCategorySegment;
-  subsegments?: Array<{ id: FeedCategorySubsegment; label: string; copy: string; heroTitle?: string; listingTitle?: string }>;
+  subsegments?: Array<{ id: FeedCategorySubsegment; label: string; copy: string; heroTitle?: string; heroIntro?: string; listingTitle?: string; selectionMode?: "guided" | "engineer"; promotedFacetKeywords?: string[]; scopeGuidance?: ScopeGuidance; criteriaTitle?: string; criteriaIntro?: string; criteria?: Array<{ title: string; copy: string }> }>;
 };
+
+type ScopeGuidance = { bestFor: string; checkFirst: string; compareBy: string };
 
 const sortOptions: Array<{ value: FeedCategorySort; label: string }> = [
   { value:"relevance", label:"Сначала подходящие" },
@@ -125,8 +131,11 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const start = result.total > 0 ? (result.page - 1) * result.pageSize + 1 : 0;
   const end = Math.min(result.page * result.pageSize, result.total);
   const technicalFacets = result.facets.filter((facet) => facet.keyword);
-  const engineerFirstSelection = profile.selectionMode === "engineer";
-  const promotedFacets = selectCategoryFacets(slug, result.facets, slug === "borfrezy" || slug === "stanki-sverlilnye" || slug === "lentochnopilnye-stanki" ? 3 : 2);
+  const activeShortcut = profileShortcuts.find((shortcut) => shortcut.segment === segment || shortcut.productType === productType && productTypeChanged || shortcut.query === search && Boolean(search));
+  const activeSubsegment = activeShortcut?.subsegments?.find((item) => item.id === subsegment);
+  const engineerFirstSelection = activeSubsegment?.selectionMode === "engineer" || activeShortcut?.selectionMode === "engineer" || profile.selectionMode === "engineer";
+  const promotedFacetPriorities = activeSubsegment?.promotedFacetKeywords ?? activeShortcut?.promotedFacetKeywords;
+  const promotedFacets = selectCategoryFacets(slug, result.facets, slug === "borfrezy" || slug === "stanki-sverlilnye" || slug === "lentochnopilnye-stanki" ? 3 : 2, promotedFacetPriorities);
   const assistantFacets = selectCategoryAssistantFacets(slug, technicalFacets).map((facet) => {
     const rule = getCategorySelectionRule(slug, facet.keyword);
     const selectedOption = rule.mode === "exact"
@@ -151,9 +160,8 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     && !Number.isFinite(numericMinimums[facet.key])
     && !Number.isFinite(numericMaximums[facet.key])
     && !(facet.minimumFacetKey && Number.isFinite(numericMaximums[facet.minimumFacetKey])));
-  const activeShortcut = profileShortcuts.find((shortcut) => shortcut.segment === segment || shortcut.productType === productType && productTypeChanged || shortcut.query === search && Boolean(search));
-  const activeSubsegment = activeShortcut?.subsegments?.find((item) => item.id === subsegment);
   const categoryTitle = activeSubsegment?.heroTitle ?? activeShortcut?.heroTitle ?? feedCategory?.h1 ?? subcategory.label;
+  const categoryIntro = activeSubsegment?.heroIntro ?? activeShortcut?.heroIntro ?? profile.heroIntro;
   const activeQueryContext = buildCategoryQueryContext(categoryTitle, result.facets, categoryQuery);
   const shapeFacet = technicalFacets.find((facet) => facet.keyword === "форма");
   const shankFacet = technicalFacets.find((facet) => facet.keyword === "диаметр хвостовика");
@@ -163,12 +171,13 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const orderedFacets = slug === "borfrezy"
     ? [...result.facets].sort((first, second) => facetOrder(first.keyword, first.key) - facetOrder(second.keyword, second.key))
     : result.facets;
-  const selectionCriteria = activeShortcut?.criteria ?? (browsingAccessories && profile.accessoryCriteria ? profile.accessoryCriteria : profile.criteria);
-  const criteriaTitle = activeShortcut?.criteriaTitle ?? (browsingAccessories ? profile.accessoryCriteriaTitle : profile.criteriaTitle);
-  const criteriaIntro = activeShortcut?.criteriaIntro ?? (browsingAccessories ? profile.accessoryCriteriaIntro : profile.criteriaIntro);
+  const selectionCriteria = activeSubsegment?.criteria ?? activeShortcut?.criteria ?? (browsingAccessories && profile.accessoryCriteria ? profile.accessoryCriteria : profile.criteria);
+  const criteriaTitle = activeSubsegment?.criteriaTitle ?? activeShortcut?.criteriaTitle ?? (browsingAccessories ? profile.accessoryCriteriaTitle : profile.criteriaTitle);
+  const criteriaIntro = activeSubsegment?.criteriaIntro ?? activeShortcut?.criteriaIntro ?? (browsingAccessories ? profile.accessoryCriteriaIntro : profile.criteriaIntro);
   const selectorTitle = activeShortcut?.selectorTitle ?? (browsingAccessories ? profile.accessorySelectorTitle : profile.selectorTitle);
   const selectorIntro = activeShortcut?.selectorIntro ?? (browsingAccessories ? profile.accessorySelectorIntro : profile.selectorIntro);
   const listingTitle = activeSubsegment?.listingTitle ?? activeShortcut?.listingTitle ?? (browsingAccessories ? profile.accessoryListingTitle : profile.listingTitle);
+  const scopeGuidance = activeSubsegment?.scopeGuidance ?? activeShortcut?.scopeGuidance;
   const emptyCopy = browsingAccessories && profile.accessoryEmptyCopy ? profile.accessoryEmptyCopy : profile.emptyCopy;
   const assortmentShortcuts = profileShortcuts.map((shortcut) => ({
     ...shortcut,
@@ -194,7 +203,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     <section className="page-hero page-hero--category"><div className="container page-hero-grid"><div>
       <p className="eyebrow">{group.title}</p>
       <h1>{categoryTitle}</h1>
-      <p>{profile.heroIntro}</p>
+      <p>{categoryIntro}</p>
       <div className="category-hero-facts"><span><b>{categoryHeroCount.toLocaleString("ru-RU")}</b> {pluralizeProductGroups(categoryHeroCount)}</span><span>Цена — по данным поставщика</span><span>Наличие и срок — после проверки</span></div>
     </div><aside>
       <b>{selectorTitle}</b>
@@ -213,6 +222,8 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     })}</div></div></nav>}
 
     {subsegmentShortcuts.length > 0 && segment && <nav className="category-type-navigation" aria-label={`Виды раздела «${activeShortcut?.label ?? "Сверлильные станки"}»`}><div className="container"><header><span>Виды оборудования</span><b>Уточните исполнение — или смотрите весь раздел</b></header><div><Link className={!subsegment ? "active" : undefined} aria-current={!subsegment ? "page" : undefined} href={`/catalog/category/${slug}?segment=${encodeURIComponent(segment)}#products`}><b>Все виды</b><small>{getFeedCategoryPage(slug, { productType, segment, pageSize:6 }).total.toLocaleString("ru-RU")}</small></Link>{subsegmentShortcuts.map((item) => <Link className={item.id === subsegment ? "active" : undefined} aria-current={item.id === subsegment ? "page" : undefined} href={`/catalog/category/${slug}?segment=${encodeURIComponent(segment)}&drill_type=${encodeURIComponent(item.id)}#products`} key={item.id}><span><b>{item.label}</b><small>{item.copy}</small></span><em>{item.count.toLocaleString("ru-RU")}</em></Link>)}</div></div></nav>}
+
+    {slug === "stanki-sverlilnye" && scopeGuidance && <section className="drill-scope-guide" aria-label={`Как выбирать: ${categoryTitle}`}><div className="container"><div><span>Подходит для</span><b>{scopeGuidance.bestFor}</b></div><div><span>Сначала проверить</span><b>{scopeGuidance.checkFirst}</b></div><div><span>Сравнивать по</span><b>{scopeGuidance.compareBy}</b></div></div></section>}
 
     <section className="section feed-category-listing" id="products"><div className="container">
       <div className="section-heading feed-category-heading"><div><p className="eyebrow">Фактический ассортимент</p><h2>{listingTitle}</h2></div><p>Главные параметры вынесены наверх. Полный набор фильтров остаётся слева.</p></div>
@@ -251,7 +262,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
         selectedShapes={filters[shapeFacet.key]}
       />}
 
-      {slug === "stanki-sverlilnye" && drillDiameterFacet && <DrillSelectionAssistant
+      {slug === "stanki-sverlilnye" && !browsingAccessories && !engineerFirstSelection && drillDiameterFacet && <DrillSelectionAssistant
         diameterFacetKey={drillDiameterFacet.key}
         diameterOptions={drillDiameterFacet.options}
         reverseFacetKey={drillReverseFacet?.key}
@@ -259,7 +270,13 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
         selectedDiameter={numericMinimums[drillDiameterFacet.key]}
         selectedReverse={drillReverseFacet ? filters[drillReverseFacet.key] : []}
         selectedWork={segment === "drill-magnetic" ? "installation" : segment === "drill-stationary" ? "workshop" : "unknown"}
+        lockedSegment={segment}
+        lockedSubsegment={subsegment}
+        selectorTitle={selectorTitle}
+        selectorIntro={selectorIntro}
       />}
+
+      {slug === "stanki-sverlilnye" && !browsingAccessories && engineerFirstSelection && <details className="burr-finder drill-engineer-request" id="drill-selector" open><summary><span className="drill-finder-symbol" aria-hidden="true"><b>✓</b><i>↗</i></span><span><small>Инженерный подбор</small><b>{selectorTitle}</b><em>{selectorIntro}</em></span><i>Передать параметры <span aria-hidden="true">↓</span></i></summary><div className="burr-finder-body"><div className="drill-engineer-request-grid"><div><span>Чтобы не ошибиться с исполнением</span><h3>Опишите задачу — модель знать не обязательно</h3><p>Укажите известные размеры, материал, место работы и требуемый результат. Инженер проверит конкретное исполнение по фактическому каталогу.</p><ul>{selectionCriteria.slice(0, 3).map((item) => <li key={item.title}><b>{item.title}</b><span>{item.copy}</span></li>)}</ul></div><TestRequestForm compact primaryContact="phone" context={activeQueryContext} buttonLabel="Заказать подбор инженера" /></div></div></details>}
 
       {!browsingAccessories && slug !== "borfrezy" && slug !== "stanki-sverlilnye" && <CategorySelectionAssistant
         categoryTitle={categoryTitle}

@@ -26,7 +26,7 @@ export function resolveReverseFacetValue(required, availableValues = []) {
   return availableValues.includes("Да") ? "Да" : "";
 }
 
-export function buildDrillSelectionUrl({ pathname, search = "", diameterFacetKey, reverseFacetKey, diameter, reverse = "", work = "unknown" }) {
+export function buildDrillSelectionUrl({ pathname, search = "", diameterFacetKey, reverseFacetKey, diameter, reverse = "", work = "unknown", lockedSegment, lockedSubsegment }) {
   const params = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search);
   params.delete("page");
   params.delete("q");
@@ -36,8 +36,10 @@ export function buildDrillSelectionUrl({ pathname, search = "", diameterFacetKey
   if (reverseFacetKey) params.delete(`f_${reverseFacetKey}`);
   if (diameter > 0) params.set(`min_${diameterFacetKey}`, String(diameter));
   if (reverseFacetKey && reverse) params.set(`f_${reverseFacetKey}`, reverse);
-  if (work === "installation") params.set("segment", "drill-magnetic");
-  if (work === "workshop") params.set("segment", "drill-stationary");
+  if (lockedSegment) params.set("segment", lockedSegment);
+  else if (work === "installation") params.set("segment", "drill-magnetic");
+  else if (work === "workshop") params.set("segment", "drill-stationary");
+  if (lockedSubsegment) params.set("drill_type", lockedSubsegment);
   const query = params.toString();
   return `${pathname}${query ? `?${query}` : ""}#products`;
 }

@@ -46,3 +46,20 @@ test("reverse is applied only when the feed exposes an exact affirmative value",
   assert.equal(resolveReverseFacetValue(true, ["Есть", "Нет"]), "");
   assert.equal(resolveReverseFacetValue(false, ["Да", "Нет"]), "");
 });
+
+test("selection inside an exact drilling kind preserves the hierarchy", () => {
+  const url = buildDrillSelectionUrl({
+    pathname:"/catalog/category/stanki-sverlilnye",
+    search:"?segment=drill-stationary&drill_type=stationary-radial&view=table&page=2",
+    diameterFacetKey:"spec1",
+    diameter:50,
+    work:"workshop",
+    lockedSegment:"drill-stationary",
+    lockedSubsegment:"stationary-radial",
+  });
+  const parsed = new URL(url, "https://example.test");
+  assert.equal(parsed.searchParams.get("segment"), "drill-stationary");
+  assert.equal(parsed.searchParams.get("drill_type"), "stationary-radial");
+  assert.equal(parsed.searchParams.get("min_spec1"), "50");
+  assert.equal(parsed.searchParams.get("page"), null);
+});

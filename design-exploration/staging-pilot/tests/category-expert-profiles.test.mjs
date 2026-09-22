@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { buildCategorySelectionContext, buildCategorySelectionUrl } from "../app/data/categorySelection.mjs";
 import { categoryExpertProfiles, getCategoryExpertProfileSlugs, selectCategoryAssistantFacets, selectCategoryFacets } from "../app/data/categoryExpertProfiles.mjs";
-import { getFeedCategoryPage, getFeedCategorySegment } from "../app/data/feedCatalog.ts";
+import { getFeedCategoryPage, getFeedCategorySegment, toFeedProductCardModel } from "../app/data/feedCatalog.ts";
 
 test("every published feed category has a complete expert profile", async () => {
   const snapshot = JSON.parse(await readFile(new URL("../../../7tool-source/src/lib/products.json", import.meta.url), "utf8"));
@@ -173,9 +173,21 @@ test("drilling machines expose feed-backed subcategories and kinds without mixin
   };
   for (const shortcut of profile.assortmentShortcuts.filter((item) => item.segment)) {
     assert.ok(shortcut.subsegments.length >= 3, shortcut.segment);
+    assert.ok(shortcut.heroIntro.length >= 100, `${shortcut.segment}: scoped hero`);
+    assert.ok(shortcut.scopeGuidance.bestFor.length >= 40, `${shortcut.segment}: best for`);
+    assert.ok(shortcut.scopeGuidance.checkFirst.length >= 40, `${shortcut.segment}: check first`);
+    assert.ok(shortcut.scopeGuidance.compareBy.length >= 35, `${shortcut.segment}: compare by`);
     const kindCounts = {};
     for (const kind of shortcut.subsegments) {
-      kindCounts[kind.id] = getFeedCategoryPage(slug, { productType:"equipment", segment:shortcut.segment, subsegment:kind.id, pageSize:48 }).total;
+      assert.ok(kind.heroTitle.length >= 24, `${kind.id}: title`);
+      assert.ok(kind.heroIntro.length >= 100, `${kind.id}: intro`);
+      assert.ok(kind.listingTitle.length >= 25, `${kind.id}: listing title`);
+      assert.ok(kind.scopeGuidance.bestFor.length >= 35, `${kind.id}: best for`);
+      assert.ok(kind.scopeGuidance.checkFirst.length >= 35, `${kind.id}: check first`);
+      assert.ok(kind.scopeGuidance.compareBy.length >= 30, `${kind.id}: compare by`);
+      const kindPage = getFeedCategoryPage(slug, { productType:"equipment", segment:shortcut.segment, subsegment:kind.id, pageSize:48 });
+      kindCounts[kind.id] = kindPage.total;
+      assert.ok(toFeedProductCardModel(kindPage.products[0]).taskLabel.length >= 20, `${kind.id}: product-card type label`);
     }
     assert.deepEqual(kindCounts, expectedKinds[shortcut.segment]);
     assert.equal(Object.values(kindCounts).reduce((sum, count) => sum + count, 0), segmentCounts[shortcut.segment]);
@@ -185,6 +197,11 @@ test("drilling machines expose feed-backed subcategories and kinds without mixin
   assert.match(page, /name="drill_type"/u);
   assert.match(page, /category-type-navigation/u);
   assert.match(page, /Виды оборудования/u);
+  assert.match(page, /drill-scope-guide/u);
+  assert.match(page, /drill-engineer-request/u);
+  assert.equal(profile.assortmentShortcuts.find((item) => item.segment === "drill-rail").selectionMode, "engineer");
+  assert.equal(profile.assortmentShortcuts.find((item) => item.segment === "drill-special").selectionMode, "engineer");
+  assert.equal(profile.assortmentShortcuts.find((item) => item.productType === "accessories").selectionMode, "engineer");
 });
 
 test("laser category separates production tasks without overlaps or invented positions", async () => {
