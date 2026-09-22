@@ -143,7 +143,8 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const selectionMode = activeSubsegment?.selectionMode ?? activeShortcut?.selectionMode ?? (profile.selectionMode === "engineer" ? "engineer" : "guided");
   const engineerFirstSelection = selectionMode === "engineer";
   const promotedFacetPriorities = activeSubsegment?.promotedFacetKeywords ?? activeShortcut?.promotedFacetKeywords;
-  const promotedFacets = selectCategoryFacets(slug, result.facets, slug === "borfrezy" || slug === "stanki-sverlilnye" || slug === "lentochnopilnye-stanki" ? 3 : 2, promotedFacetPriorities);
+  const promotedFacetLimit = slug === "koronchatye-sverla" ? 4 : slug === "sverla-i-zenkovki" || slug === "borfrezy" || slug === "stanki-sverlilnye" || slug === "lentochnopilnye-stanki" ? 3 : 2;
+  const promotedFacets = selectCategoryFacets(slug, result.facets, promotedFacetLimit, promotedFacetPriorities);
   const assistantFacets = selectCategoryAssistantFacets(slug, technicalFacets).map((facet) => {
     const rule = getCategorySelectionRule(slug, facet.keyword);
     const selectedOption = rule.mode === "exact"
@@ -225,7 +226,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
       <div className="container"><header><span>В составе задачи</span><b>{group.title}</b><Link href={group.href}>Обзор направления →</Link></header><div>{group.subcategories.map((item) => <Link className={item.slug === slug ? "active" : undefined} aria-current={item.slug === slug ? "page" : undefined} href={item.href} key={item.slug}><span>{item.label}</span><small>{(item.count ?? 0).toLocaleString("ru-RU")}</small></Link>)}</div></div>
     </nav>
 
-    {assortmentShortcuts.length > 0 && <nav className={`category-assortment-shortcuts${supportedSegments.size > 0 || supportedFamilies.size > 0 ? " category-assortment-shortcuts--segments" : ""}`} aria-label="Разделы текущей категории"><div className="container"><header><div><span>Что вам нужно</span><b>{profile.assortmentPrompt ?? (supportedSegments.size > 0 ? "Сначала выберите тип заготовки" : "Сначала выберите тип товара")}</b></div><Link className={assortmentOverviewActive ? "active" : undefined} aria-current={assortmentOverviewActive ? "page" : undefined} href={assortmentAllHref}>{defaultProductType ? "Все станки" : "Весь ассортимент"}</Link></header><div>{assortmentShortcuts.map((shortcut) => {
+    {assortmentShortcuts.length > 0 && <nav className={`category-assortment-shortcuts${supportedSegments.size > 0 || supportedFamilies.size > 0 ? " category-assortment-shortcuts--segments" : ""}`} aria-label="Разделы текущей категории"><div className="container"><header><div><span>Шаг 1 · тип или задача</span><b>{profile.assortmentPrompt ?? (supportedSegments.size > 0 ? "Сначала выберите тип заготовки" : "Сначала выберите тип товара")}</b></div><Link className={assortmentOverviewActive ? "active" : undefined} aria-current={assortmentOverviewActive ? "page" : undefined} href={assortmentAllHref}>{defaultProductType ? "Все станки" : "Весь ассортимент"}</Link></header><div>{assortmentShortcuts.map((shortcut) => {
       const active = shortcut.query ? search === shortcut.query : shortcut.family ? shortcut.family === family : shortcut.productType ? shortcut.productType === productType : shortcut.segment === segment;
       const shortcutParameter = shortcut.query ? `q=${encodeURIComponent(shortcut.query)}` : shortcut.family ? `family=${encodeURIComponent(shortcut.family)}` : shortcut.productType ? `kind=${encodeURIComponent(shortcut.productType)}` : `segment=${encodeURIComponent(shortcut.segment ?? "")}`;
       return <Link className={active ? "active" : undefined} aria-current={active ? "page" : undefined} href={`/catalog/category/${slug}?${shortcutParameter}#products`} key={shortcut.query ?? shortcut.family ?? shortcut.productType ?? shortcut.segment}><span><b>{shortcut.label}</b><small>{shortcut.copy}</small></span><em>{shortcut.count.toLocaleString("ru-RU")}</em></Link>;
@@ -233,10 +234,10 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
 
     {subsegmentShortcuts.length > 0 && segment && <nav className="category-type-navigation" aria-label={`Виды раздела «${activeShortcut?.label ?? "Сверлильные станки"}»`}><div className="container"><header><span>Виды оборудования</span><b>Уточните исполнение — или смотрите весь раздел</b></header><div><Link className={!subsegment ? "active" : undefined} aria-current={!subsegment ? "page" : undefined} href={`/catalog/category/${slug}?segment=${encodeURIComponent(segment)}#products`}><b>Все виды</b><small>{getFeedCategoryPage(slug, { productType, segment, pageSize:6 }).total.toLocaleString("ru-RU")}</small></Link>{subsegmentShortcuts.map((item) => <Link className={item.id === subsegment ? "active" : undefined} aria-current={item.id === subsegment ? "page" : undefined} href={`/catalog/category/${slug}?segment=${encodeURIComponent(segment)}&drill_type=${encodeURIComponent(item.id)}#products`} key={item.id}><span><b>{item.label}</b><small>{item.copy}</small></span><em>{item.count.toLocaleString("ru-RU")}</em></Link>)}</div></div></nav>}
 
-    {scopeGuidance && <section className="drill-scope-guide" aria-label={`Как выбирать: ${categoryTitle}`}><div className="container"><div><span>Подходит для</span><b>{scopeGuidance.bestFor}</b></div><div><span>Сначала проверить</span><b>{scopeGuidance.checkFirst}</b></div><div><span>Сравнивать по</span><b>{scopeGuidance.compareBy}</b></div></div></section>}
+    {scopeGuidance && <section className="drill-scope-guide" aria-label={`Как выбирать: ${categoryTitle}`}><div className="container"><div><span>Задача</span><b>{scopeGuidance.bestFor}</b></div><div><span>Критичное условие</span><b>{scopeGuidance.checkFirst}</b></div><div><span>Главные параметры</span><b>{scopeGuidance.compareBy}</b></div></div></section>}
 
     <section className="section feed-category-listing" id="products"><div className="container">
-      <div className="section-heading feed-category-heading"><div><p className="eyebrow">Фактический ассортимент</p><h2>{listingTitle}</h2></div><p>Главные параметры вынесены наверх. Полный набор фильтров остаётся слева.</p></div>
+      <div className="section-heading feed-category-heading"><div><p className="eyebrow">Шаг 2 · ключевые параметры</p><h2>{listingTitle}</h2></div><p>Начните с 3–4 решающих параметров. Остальные характеристики доступны в полном фильтре.</p></div>
 
       {promotedFacets.length > 0 && <nav className={`feed-promoted-filters${slug === "borfrezy" ? " feed-promoted-filters--burr" : ""}${slug === "stanki-sverlilnye" ? " feed-promoted-filters--equipment" : ""}`} aria-label="Быстрые фильтры">
         <div className="feed-priority-choice"><span>Показывать сначала</span><div>
@@ -246,7 +247,9 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
             : <span className="feed-promoted-unavailable">Наличие уточняем<small>через менеджера</small></span>}
         </div></div>
         {promotedFacets.map((facet) => {
-          const visibleOptions = getPromotedFacetOptions(facet, facet.numeric ? 5 : 6, filters[facet.key]);
+          const promotedOptionLimit = slug === "koronchatye-sverla" && facet.keyword === "рабочая длина" ? 6 : facet.numeric ? 5 : 6;
+          const preferredOptions = slug === "koronchatye-sverla" && facet.keyword === "рабочая длина" ? ["110 мм"] : [];
+          const visibleOptions = getPromotedFacetOptions(facet, promotedOptionLimit, filters[facet.key], preferredOptions);
           const rangeStart = facet.numeric ? facet.options[0]?.label : undefined;
           const rangeEnd = facet.numeric ? facet.options[facet.options.length - 1]?.label : undefined;
           return <div key={facet.key}><span className="feed-promoted-label">{facet.label}{rangeStart && rangeEnd && <small>диапазон {rangeStart}–{rangeEnd}</small>}</span><div className={facet.numeric ? "feed-promoted-values feed-promoted-values--numeric" : "feed-promoted-values"}>{visibleOptions.map((option) => {

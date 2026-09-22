@@ -50,7 +50,7 @@ test("serial categories ask the most useful feed-backed questions first", () => 
     "rezbonareznye-manipulyatory":["макс. резьба", "охват рабочей зоны", "частота вращения"],
     truborezy:["макс. диаметр тру", "макс. толщина стен"],
     kompressory:["производительность", "мощность", "объем ресивера"],
-    "sverla-i-zenkovki":["диаметр режущей", "материал", "диаметр хвостовика"],
+    "sverla-i-zenkovki":["диаметр режущей", "посадка хвостовика", "материал"],
   };
 
   for (const [slug, expected] of Object.entries(cases)) {
@@ -166,7 +166,7 @@ test("drilling machines expose feed-backed subcategories and kinds without mixin
   assert.equal(Object.values(segmentCounts).reduce((sum, count) => sum + count, 0), equipment.total);
 
   const expectedKinds = {
-    "drill-magnetic": { "magnetic-standard":67, "magnetic-tapping":67, "magnetic-low-profile":3, "magnetic-atex":3, "magnetic-battery":1 },
+    "drill-magnetic": { "magnetic-standard":66, "magnetic-brushless":7, "magnetic-tapping":61, "magnetic-low-profile":3, "magnetic-atex":3, "magnetic-battery":1 },
     "drill-stationary": { "stationary-column":90, "stationary-bench":11, "stationary-radial":29, "stationary-tapping":54, "stationary-production":3 },
     "drill-rail": { "rail-electric":3, "rail-petrol":3, "rail-universal":4 },
     "drill-special": { "special-vacuum":2, "special-pipe":6, "special-cnc":15 },

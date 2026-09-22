@@ -56,7 +56,8 @@ test("the maximum pipe range remains filterable", () => {
 test("promoted and full numeric filters remain visible without horizontal clipping", async () => {
   const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
   const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
-  assert.match(page, /getPromotedFacetOptions\(facet, facet\.numeric \? 5 : 6/u);
+  assert.match(page, /getPromotedFacetOptions\(facet, promotedOptionLimit, filters\[facet\.key\], preferredOptions\)/u);
+  assert.match(page, /facet\.keyword === "рабочая длина" \? \["110 мм"\] : \[\]/u);
   assert.match(page, /диапазон \{rangeStart\}–\{rangeEnd\}/u);
   assert.match(page, /feed-numeric-filter/u);
   assert.match(page, /Диапазон фида:/u);

@@ -150,7 +150,7 @@ export type FeedFacet = {
 export type FeedCategorySort = "relevance" | "price-asc" | "price-desc" | "name";
 export type FeedProductType = "equipment" | "accessories";
 export type FeedCategorySegment = "sheet" | "tube" | "combined" | "special" | "robot" | "welding-cell" | "laser-processing" | "surface-finishing" | "drill-magnetic" | "drill-stationary" | "drill-rail" | "drill-special";
-export type FeedCategorySubsegment = "magnetic-standard" | "magnetic-tapping" | "magnetic-low-profile" | "magnetic-atex" | "magnetic-battery" | "stationary-column" | "stationary-bench" | "stationary-radial" | "stationary-tapping" | "stationary-production" | "rail-electric" | "rail-petrol" | "rail-universal" | "special-vacuum" | "special-pipe" | "special-cnc";
+export type FeedCategorySubsegment = "magnetic-standard" | "magnetic-brushless" | "magnetic-tapping" | "magnetic-low-profile" | "magnetic-atex" | "magnetic-battery" | "stationary-column" | "stationary-bench" | "stationary-radial" | "stationary-tapping" | "stationary-production" | "rail-electric" | "rail-petrol" | "rail-universal" | "special-vacuum" | "special-pipe" | "special-cnc";
 
 export type FeedCategoryQuery = {
   search?: string;
@@ -334,6 +334,7 @@ export function getFeedCategorySubsegment(slug: string, product: FeedProduct): F
     if (/(пневмат|atex|постоянн.*магнит)/u.test(`${title} ${parameterText}`)) return "magnetic-atex";
     if (/(battery|аккумулятор)/u.test(`${title} ${parameterText}`)) return "magnetic-battery";
     if (/(низкопроф|low profile|компакт)/u.test(`${title} ${parameterText}`)) return "magnetic-low-profile";
+    if (/бесщеточ|brushless/u.test(`${title} ${parameterText}`)) return "magnetic-brushless";
     if (/резьб/u.test(title) || parameters.some((parameter) => /реверс/iu.test(parameter.name) && /да/iu.test(parameter.value))) return "magnetic-tapping";
     return "magnetic-standard";
   }
@@ -361,6 +362,7 @@ export function getFeedCategorySubsegmentLabel(slug: string, subsegment?: FeedCa
   if (slug !== "stanki-sverlilnye" || !subsegment) return undefined;
   return ({
     "magnetic-standard":"Универсальный магнитный станок",
+    "magnetic-brushless":"Бесщёточный магнитный станок",
     "magnetic-tapping":"Магнитный станок с реверсом",
     "magnetic-low-profile":"Низкопрофильный магнитный станок",
     "magnetic-atex":"Специальный магнитный станок",
@@ -420,7 +422,15 @@ export function getFeedCategoryPage(slug: string, query: FeedCategoryQuery = {})
     ? subsegmentScopedProducts.filter((product) => getCategoryFamily(slug, product) === query.family)
     : subsegmentScopedProducts;
   const cacheScope = [query.productType, query.segment, query.subsegment, query.family].filter(Boolean).join(":") || undefined;
-  const facets = getCategoryFacets(slug, familyScopedProducts, query.filters ?? {}, cacheScope);
+  let facets = getCategoryFacets(slug, familyScopedProducts, query.filters ?? {}, cacheScope);
+  const selectedBrands = query.filters?.brand?.filter(Boolean) ?? [];
+  if (selectedBrands.length > 0) {
+    const brandScopedProducts = familyScopedProducts.filter((product) => selectedBrands.includes(product.brand));
+    const technicalFacets = getCategoryFacets(slug, brandScopedProducts, query.filters ?? {}, `${cacheScope ?? slug}:brand:${selectedBrands.slice().sort().join("|")}`)
+      .filter((facet) => facet.keyword);
+    const brandFacet = facets.find((facet) => facet.key === "brand");
+    facets = [...(brandFacet ? [brandFacet] : []), ...technicalFacets];
+  }
   const normalizedSearch = query.search ? normalizeText(query.search) : "";
   const filteredProducts = familyScopedProducts.filter((product) => {
     if (normalizedSearch && !getProductSearchText(product).includes(normalizedSearch)) return false;
@@ -558,7 +568,7 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
       variant,
       sourceOrder,
       matchesSelection: hasVariantSelection && (activeFilters.length === 0 || activeFilters.every((filter) => {
-        const values = getVariantParameterValues(variant, filter.keyword);
+        const values = getVariantParameterValues(variant, filter.keyword, product);
         return Number.isFinite(filter.minimum)
           ? values.some((value) => parseNumericValue(value) >= (filter.minimum ?? Number.POSITIVE_INFINITY))
           : Number.isFinite(filter.maximum)
@@ -678,7 +688,7 @@ function getCategoryFacets(slug: string, products: FeedProduct[], selectedFilter
 function buildCategoryFacets(slug: string, products: FeedProduct[]): CachedFeedFacet[] {
   const facets: CachedFeedFacet[] = [];
   const categoryFacetKeywords = getCategoryFacetKeywords(slug);
-  const { brands, parameters } = analyzeCategoryFacets(products, categoryFacetKeywords);
+  const { brands, parameters } = analyzeCategoryFacets(slug, products, categoryFacetKeywords);
   if (brands.size > 1) {
     facets.push({
       key: "brand",
@@ -690,7 +700,7 @@ function buildCategoryFacets(slug: string, products: FeedProduct[]): CachedFeedF
   }
 
   const usedParameterNames = new Set<string>();
-  const technicalFacetLimit = Math.min(5, categoryFacetKeywords.length);
+  const technicalFacetLimit = Math.min(slug === "sverla-i-zenkovki" ? 6 : 5, categoryFacetKeywords.length);
   for (const { keyword, names, values } of parameters) {
     if (facets.filter((facet) => facet.keyword).length >= technicalFacetLimit) break;
     const matchingNames = Array.from(names.entries()).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ru-RU")).map(([name]) => name);
@@ -702,7 +712,7 @@ function buildCategoryFacets(slug: string, products: FeedProduct[]): CachedFeedF
     matchingNames.forEach((name) => usedParameterNames.add(normalizeText(name)));
     facets.push({
       key,
-      label: matchingNames[0],
+      label: keyword === "посадка хвостовика" ? "Хвостовик" : matchingNames[0],
       help: getFacetHelp(keyword),
       keyword,
       numeric,
@@ -714,7 +724,7 @@ function buildCategoryFacets(slug: string, products: FeedProduct[]): CachedFeedF
   return facets;
 }
 
-function analyzeCategoryFacets(products: FeedProduct[], keywords: string[]) {
+function analyzeCategoryFacets(slug: string, products: FeedProduct[], keywords: string[]) {
   const brands = new Map<string, number>();
   const parameters = keywords.map((keyword) => ({ keyword, normalizedKeyword:normalizeText(keyword), names:new Map<string, number>(), values:new Map<string, number>() }));
 
@@ -727,9 +737,9 @@ function analyzeCategoryFacets(products: FeedProduct[], keywords: string[]) {
       for (const parameter of variant.params ?? []) {
         const normalizedName = normalizeText(parameter.name);
         parameters.forEach((analysis, index) => {
-          if (!normalizedName.includes(analysis.normalizedKeyword)) return;
+          if (!parameterMatchesFacetKeyword(normalizedName, analysis.normalizedKeyword)) return;
           productNames[index].add(parameter.name);
-          const value = formatParameterValue(parameter);
+          const value = getFacetParameterValue(slug, analysis.normalizedKeyword, product, variant, parameter);
           if (value) productValues[index].add(value);
         });
       }
@@ -769,11 +779,16 @@ function selectFacetOptions(allOptions: FeedFacetOption[], selectedValues: strin
   return preserveRange ? visible.sort((first, second) => compareNumericFacetValues(first.value, second.value)) : visible;
 }
 
-export function getPromotedFacetOptions(facet: FeedFacet, limit = 6, selectedValues: string[] = []): FeedFacetOption[] {
+export function getPromotedFacetOptions(facet: FeedFacet, limit = 6, selectedValues: string[] = [], preferredValues: string[] = []): FeedFacetOption[] {
   if (limit <= 0) return [];
   if (limit === 1) return facet.options.slice(0, 1);
   if (!facet.numeric || facet.options.length <= limit) return facet.options.slice(0, limit);
-  const sampled = Array.from({ length:limit }, (_, index) => facet.options[Math.round(index * (facet.options.length - 1) / (limit - 1))]);
+  const preferred = preferredValues.flatMap((value) => facet.options.find((option) => option.value === value) ?? []);
+  const sampleLimit = Math.max(1, limit - preferred.length);
+  const sampled = sampleLimit === 1
+    ? facet.options.slice(0, 1)
+    : Array.from({ length:sampleLimit }, (_, index) => facet.options[Math.round(index * (facet.options.length - 1) / (sampleLimit - 1))]);
+  sampled.push(...preferred);
   for (const selected of selectedValues) {
     const entry = facet.options.find((option) => option.value === selected);
     if (entry && !sampled.some((option) => option.value === selected)) sampled.push(entry);
@@ -828,9 +843,9 @@ function productMatchesFacetFilters(product: FeedProduct, facets: FeedFacet[], f
 
   return product.variants.some((variant) => (!requireAvailable || isConfirmedAvailableVariant(variant)) && technicalFacets.every((facet) => {
     const selected = filters[facet.key] ?? [];
-    return getVariantParameterValues(variant, facet.keyword ?? "").some((value) => selected.includes(value));
-  }) && minimumFacets.every((facet) => getVariantParameterValues(variant, facet.keyword ?? "").some((value) => parseNumericValue(value) >= numericMinimums[facet.key]))
-    && maximumFacets.every((facet) => getVariantParameterValues(variant, facet.keyword ?? "").some((value) => parseNumericValue(value) <= numericMaximums[facet.key])));
+    return getVariantParameterValues(variant, facet.keyword ?? "", product).some((value) => selected.includes(value));
+  }) && minimumFacets.every((facet) => getVariantParameterValues(variant, facet.keyword ?? "", product).some((value) => parseNumericValue(value) >= numericMinimums[facet.key]))
+    && maximumFacets.every((facet) => getVariantParameterValues(variant, facet.keyword ?? "", product).some((value) => parseNumericValue(value) <= numericMaximums[facet.key])));
 }
 
 function removeCategoryQueryKeys(query: FeedCategoryQuery, removeKeys: string[]): FeedCategoryQuery {
@@ -854,10 +869,24 @@ function parseNumericValue(value: string): number {
   return Number.isFinite(parsed) ? parsed : Number.NEGATIVE_INFINITY;
 }
 
-function getVariantParameterValues(variant: FeedVariant, keyword: string): string[] {
+function getVariantParameterValues(variant: FeedVariant, keyword: string, product?: FeedProduct): string[] {
+  const normalizedKeyword = normalizeText(keyword);
   return (variant.params ?? [])
-    .filter((parameter) => normalizeText(parameter.name).includes(normalizeText(keyword)))
-    .map(formatParameterValue);
+    .filter((parameter) => parameterMatchesFacetKeyword(normalizeText(parameter.name), normalizedKeyword))
+    .map((parameter) => getFacetParameterValue(product?.category, normalizedKeyword, product, variant, parameter));
+}
+
+function getFacetParameterValue(slug: string | undefined, normalizedKeyword: string, product: FeedProduct | undefined, variant: FeedVariant, parameter: FeedParameter): string {
+  if (slug === "koronchatye-sverla" && normalizedKeyword === "серия" && product?.brand === "LENZ") {
+    const canonicalSeries = [product.title, variant.name, variant.sku].join(" ").match(/\b(LZ[A-Z0-9-]{2,})\b/iu)?.[1];
+    if (canonicalSeries) return canonicalSeries.toLocaleUpperCase("ru-RU");
+  }
+  return formatParameterValue(parameter);
+}
+
+function parameterMatchesFacetKeyword(normalizedName: string, normalizedKeyword: string): boolean {
+  if (normalizedKeyword === "посадка хвостовика") return normalizedName === "хвостовик" || normalizedName === "тип хвостовика";
+  return normalizedName.includes(normalizedKeyword);
 }
 
 function formatParameterValue(parameter: FeedParameter): string {
