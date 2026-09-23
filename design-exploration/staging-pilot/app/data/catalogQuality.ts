@@ -1,9 +1,11 @@
-import { selectCategoryFacets } from "./categoryExpertProfiles.mjs";
+import { getCategoryExpertProfile, selectCategoryFacets } from "./categoryExpertProfiles.mjs";
+import { getCategoryFamily, getCategoryFamilyShortcuts } from "./categoryAssortmentTaxonomy.mjs";
 import { getCategorySelectionRule } from "./categorySelection.mjs";
-import { getFeedCategoryPage, getPublishedFeedCatalogSnapshot, type FeedCategory, type FeedParameter, type FeedProduct, type FeedVariant } from "./feedCatalog.ts";
+import { getFeedCategoryPage, getFeedCategoryProductType, getFeedCategorySegment, getFeedCategorySubsegment, getPublishedFeedCatalogSnapshot, type FeedCategory, type FeedCategoryQuery, type FeedFacet, type FeedParameter, type FeedProduct, type FeedVariant } from "./feedCatalog.ts";
 
 export type CatalogQualityStatus = "critical" | "review" | "healthy";
 export type CatalogQualitySeverity = "critical" | "warning" | "notice";
+export type CatalogQualityPriority = "p0" | "p1" | "p2";
 export type CatalogQualityIssueCode =
   | "missing_sku"
   | "invalid_range"
@@ -20,12 +22,17 @@ export type CatalogQualityIssue = {
   id: string;
   code: CatalogQualityIssueCode;
   severity: CatalogQualitySeverity;
+  priority: CatalogQualityPriority;
   categorySlug: string;
   categoryTitle: string;
   productId: string;
   productSlug: string;
   productTitle: string;
   brand: string;
+  familyId?: string;
+  familyLabel?: string;
+  scopeHref?: string;
+  scopeLabel?: string;
   variantId?: string;
   sku?: string;
   title: string;
@@ -63,11 +70,21 @@ export type CatalogQualityReport = {
   issueCount: number;
   affectedProductCount: number;
   statuses: Record<CatalogQualityStatus, number>;
+  priorities: Record<CatalogQualityPriority, { issueCount: number; affectedProductCount: number }>;
   categories: CatalogQualityCategory[];
   issues: CatalogQualityIssue[];
 };
 
 type NumericInstance = { categorySlug: string; product: FeedProduct; variant: FeedVariant; parameter: FeedParameter; numeric: number };
+type ProductSelectionProfile = {
+  mode: "guided" | "engineer";
+  familyId?: string;
+  familyLabel?: string;
+  scopeHref?: string;
+  scopeLabel?: string;
+  facets: FeedFacet[];
+  keywords: string[];
+};
 
 const feedSnapshot = getPublishedFeedCatalogSnapshot();
 const publishedCategories = feedSnapshot.categories;
@@ -85,6 +102,18 @@ const issueLabels: Record<CatalogQualityIssueCode, string> = {
   duplicate_sku:"Артикул используется повторно",
   duplicate_signature:"Исполнения неразличимы по параметрам",
 };
+const issuePriorities: Record<CatalogQualityIssueCode, CatalogQualityPriority> = {
+  missing_sku:"p0",
+  invalid_range:"p0",
+  duplicate_sku:"p0",
+  malformed_numeric:"p1",
+  numeric_outlier:"p1",
+  missing_image:"p1",
+  not_filterable:"p1",
+  missing_price:"p2",
+  missing_parameter:"p2",
+  duplicate_signature:"p2",
+};
 
 let cachedReport: CatalogQualityReport | undefined;
 
@@ -100,11 +129,7 @@ export function catalogQualityIssueLabel(code: CatalogQualityIssueCode): string 
 function buildCatalogQualityReport(): CatalogQualityReport {
   const issues: CatalogQualityIssue[] = [];
   const numericInstances = collectNumericInstances(publishedProducts);
-  const selectionFacetsBySlug = new Map(publishedCategories.map((category) => {
-    const page = getFeedCategoryPage(category.slug, { pageSize:48 });
-    return [category.slug, selectCategoryFacets(category.slug, page.facets.filter((facet) => facet.keyword), 3)];
-  }));
-  const selectionKeywordsBySlug = new Map(Array.from(selectionFacetsBySlug, ([slug, facets]) => [slug, facets.map((facet) => facet.keyword).filter(Boolean)]));
+  const selectionProfilesByProduct = buildProductSelectionProfiles();
   const duplicateSkus = duplicateGroups(publishedProducts.flatMap((product) => product.variants.map((variant) => ({
     key:normalizeKey(variant.sku), product, variant,
   }))));
@@ -114,17 +139,25 @@ function buildCatalogQualityReport(): CatalogQualityReport {
 
   for (const product of publishedProducts) {
     const category = categoryBySlug.get(product.category)!;
-    const selectionFacets = selectionFacetsBySlug.get(product.category) ?? [];
-    const selectionKeywords = selectionKeywordsBySlug.get(product.category) ?? [];
+    const selectionProfile = selectionProfilesByProduct.get(product.id) ?? emptySelectionProfile;
+    const selectionFacets = selectionProfile.facets;
+    const selectionKeywords = selectionProfile.keywords;
 
     if (!hasProductImage(product)) issues.push(issue(product, category, "missing_image", "warning", "Карточка и листинг не могут показать товар наглядно."));
 
-    const missingKeywords = selectionKeywords.filter((keyword) => !product.variants.some((variant) => hasParameter(variant, keyword)));
-    for (const keyword of missingKeywords) {
-      issues.push(issue(product, category, "missing_parameter", "notice", `Нет параметра «${keyword}», используемого в подборе этой категории.`));
-    }
-    if (selectionKeywords.length > 0 && missingKeywords.length === selectionKeywords.length) {
-      issues.push(issue(product, category, "not_filterable", "warning", "Ни один из основных вопросов подбора не может привести к этому товару."));
+    if (selectionProfile.mode === "guided") {
+      const context = { familyId:selectionProfile.familyId, familyLabel:selectionProfile.familyLabel, scopeHref:selectionProfile.scopeHref, scopeLabel:selectionProfile.scopeLabel };
+      const missingKeywords = selectionKeywords.filter((keyword) => !product.variants.some((variant) => hasParameter(variant, keyword)));
+      if (selectionKeywords.length === 0) {
+        issues.push(issue(product, category, "not_filterable", "warning", `${selectionContext(selectionProfile)}не найдено ни одной надёжной характеристики для самостоятельного подбора.`, undefined, context));
+      } else {
+        if (missingKeywords.length > 0) {
+          issues.push(issue(product, category, "missing_parameter", "notice", `${selectionContext(selectionProfile)}нет ${formatKeywordList(missingKeywords)} из решающих параметров этой подкатегории.`, undefined, context));
+        }
+        if (missingKeywords.length === selectionKeywords.length) {
+          issues.push(issue(product, category, "not_filterable", "warning", `${selectionContext(selectionProfile)}ни один из решающих параметров не может привести к этому товару.`, undefined, context));
+        }
+      }
     }
 
     for (const variant of product.variants) {
@@ -167,7 +200,7 @@ function buildCatalogQualityReport(): CatalogQualityReport {
   }
 
   const deduplicatedIssues = Array.from(new Map(issues.map((entry) => [entry.id, entry])).values());
-  const categories = publishedCategories.map((category) => buildCategoryQuality(category, publishedProducts.filter((product) => product.category === category.slug), deduplicatedIssues.filter((entry) => entry.categorySlug === category.slug), selectionKeywordsBySlug.get(category.slug) ?? []));
+  const categories = publishedCategories.map((category) => buildCategoryQuality(category, publishedProducts.filter((product) => product.category === category.slug), deduplicatedIssues.filter((entry) => entry.categorySlug === category.slug), selectionProfilesByProduct));
   const affectedProductIds = new Set(deduplicatedIssues.map((entry) => entry.productId));
   return {
     generatedFrom:"bundled-supplier-feed",
@@ -181,18 +214,27 @@ function buildCatalogQualityReport(): CatalogQualityReport {
       review:categories.filter((category) => category.status === "review").length,
       healthy:categories.filter((category) => category.status === "healthy").length,
     },
+    priorities:{
+      p0:prioritySummary(deduplicatedIssues, "p0"),
+      p1:prioritySummary(deduplicatedIssues, "p1"),
+      p2:prioritySummary(deduplicatedIssues, "p2"),
+    },
     categories:categories.sort((first, second) => statusRank(first.status) - statusRank(second.status) || first.score - second.score || first.title.localeCompare(second.title, "ru-RU")),
     issues:sortIssues(deduplicatedIssues),
   };
 }
 
-function buildCategoryQuality(category: FeedCategory, products: FeedProduct[], issues: CatalogQualityIssue[], selectionKeywords: string[]): CatalogQualityCategory {
+function buildCategoryQuality(category: FeedCategory, products: FeedProduct[], issues: CatalogQualityIssue[], selectionProfilesByProduct: Map<string, ProductSelectionProfile>): CatalogQualityCategory {
   const variants = products.flatMap((product) => product.variants);
+  const guidedProfiles = products.map((product) => ({ product, profile:selectionProfilesByProduct.get(product.id) ?? emptySelectionProfile })).filter(({ profile }) => profile.mode === "guided");
+  const selectionKeywords = Array.from(new Set(guidedProfiles.flatMap(({ profile }) => profile.keywords)));
   const photoCoverage = percent(products.filter(hasProductImage).length, products.length);
   const priceCoverage = percent(variants.filter((variant) => typeof variant.price === "number" && variant.price > 0).length, variants.length);
   const skuCoverage = percent(variants.filter((variant) => Boolean(normalizeKey(variant.sku))).length, variants.length);
-  const selectionCoverage = selectionKeywords.length === 0 ? null : percent(products.filter((product) => selectionKeywords.some((keyword) => product.variants.some((variant) => hasParameter(variant, keyword)))).length, products.length);
-  const criticalParameterCoverage = selectionKeywords.length === 0 ? null : percent(products.reduce((sum, product) => sum + selectionKeywords.filter((keyword) => product.variants.some((variant) => hasParameter(variant, keyword))).length, 0), products.length * selectionKeywords.length);
+  const selectionCoverage = guidedProfiles.length === 0 ? null : percent(guidedProfiles.filter(({ product, profile }) => profile.keywords.some((keyword) => product.variants.some((variant) => hasParameter(variant, keyword)))).length, guidedProfiles.length);
+  const expectedParameterCount = guidedProfiles.reduce((sum, { profile }) => sum + profile.keywords.length, 0);
+  const presentParameterCount = guidedProfiles.reduce((sum, { product, profile }) => sum + profile.keywords.filter((keyword) => product.variants.some((variant) => hasParameter(variant, keyword))).length, 0);
+  const criticalParameterCoverage = guidedProfiles.length === 0 ? null : expectedParameterCount === 0 ? 0 : percent(presentParameterCount, expectedParameterCount);
   const score = Math.round(photoCoverage * .2 + priceCoverage * .25 + skuCoverage * .15 + (selectionCoverage ?? 100) * .25 + (criticalParameterCoverage ?? 100) * .15);
   const criticalCount = issues.filter((entry) => entry.severity === "critical").length;
   const warningCount = issues.filter((entry) => entry.severity === "warning").length;
@@ -260,22 +302,150 @@ function variantSignature(product: FeedProduct, variant: FeedVariant): string {
   return `${product.category}|${normalizeKey(product.brand)}|${normalizeKey(product.title)}|${parameters.join("|")}`;
 }
 
-function issue(product: FeedProduct, category: FeedCategory, code: CatalogQualityIssueCode, severity: CatalogQualitySeverity, detail: string, variant?: FeedVariant): CatalogQualityIssue {
+function issue(product: FeedProduct, category: FeedCategory, code: CatalogQualityIssueCode, severity: CatalogQualitySeverity, detail: string, variant?: FeedVariant, context?: Pick<ProductSelectionProfile, "familyId" | "familyLabel" | "scopeHref" | "scopeLabel">): CatalogQualityIssue {
   return {
     id:`${category.slug}:${product.id}:${variant?.id ?? "product"}:${code}`,
     code,
     severity,
+    priority:issuePriorities[code],
     categorySlug:category.slug,
     categoryTitle:category.h1 ?? category.title,
     productId:product.id,
     productSlug:product.slug,
     productTitle:product.title,
     brand:product.brand,
+    familyId:context?.familyId,
+    familyLabel:context?.familyLabel,
+    scopeHref:context?.scopeHref,
+    scopeLabel:context?.scopeLabel,
     variantId:variant?.id,
     sku:variant?.sku || product.sku || undefined,
     title:issueLabels[code],
     detail,
   };
+}
+
+function prioritySummary(issues: CatalogQualityIssue[], priority: CatalogQualityPriority): { issueCount: number; affectedProductCount: number } {
+  const matching = issues.filter((entry) => entry.priority === priority);
+  return { issueCount:matching.length, affectedProductCount:new Set(matching.map((entry) => entry.productId)).size };
+}
+
+const emptySelectionProfile: ProductSelectionProfile = { mode:"engineer", facets:[], keywords:[] };
+
+function buildProductSelectionProfiles(): Map<string, ProductSelectionProfile> {
+  const profiles = new Map<string, ProductSelectionProfile>();
+  for (const category of publishedCategories) {
+    const categoryProducts = publishedProducts.filter((product) => product.category === category.slug);
+    const structuralGroups = new Map<string, { target: StructuralSelectionTarget; products: FeedProduct[] }>();
+    for (const product of categoryProducts) {
+      const familyId = getCategoryFamily(category.slug, product);
+      const familyShortcut = getCategoryFamilyShortcuts(category.slug)?.assortmentShortcuts.find((shortcut) => shortcut.family === familyId);
+      if (familyShortcut?.selectionMode === "engineer") continue;
+      const target = structuralSelectionTarget(category.slug, product);
+      if (!target) continue;
+      const group = structuralGroups.get(target.scopeHref);
+      if (group) group.products.push(product);
+      else structuralGroups.set(target.scopeHref, { target, products:[product] });
+    }
+    for (const { target, products } of structuralGroups.values()) {
+      const mode = target.selectionMode === "engineer" ? "engineer" : "guided";
+      const page = getFeedCategoryPage(category.slug, { ...target.query, pageSize:48 });
+      const facets = mode === "engineer"
+        ? []
+        : selectCategoryFacets(category.slug, page.facets.filter((facet) => facet.keyword), decisionFacetLimit(category.slug), target.promotedFacetKeywords);
+      const profile: ProductSelectionProfile = { mode, scopeHref:target.scopeHref, scopeLabel:target.scopeLabel, facets, keywords:facets.map((facet) => facet.keyword).filter(Boolean) };
+      for (const product of products) profiles.set(product.id, profile);
+    }
+
+    const shortcuts = getCategoryFamilyShortcuts(category.slug)?.assortmentShortcuts ?? [];
+    for (const shortcut of shortcuts) {
+      const familyProducts = categoryProducts.filter((product) => !profiles.has(product.id) && getCategoryFamily(category.slug, product) === shortcut.family);
+      if (familyProducts.length === 0) continue;
+      const mode = shortcut.selectionMode === "engineer" ? "engineer" : "guided";
+      const page = getFeedCategoryPage(category.slug, { family:shortcut.family, pageSize:48 });
+      const facets = mode === "engineer"
+        ? []
+        : selectCategoryFacets(category.slug, page.facets.filter((facet) => facet.keyword), decisionFacetLimit(category.slug), shortcut.promotedFacetKeywords);
+      const profile: ProductSelectionProfile = {
+        mode,
+        familyId:shortcut.family,
+        familyLabel:shortcut.label,
+        scopeHref:`/catalog/category/${category.slug}?family=${encodeURIComponent(shortcut.family)}`,
+        scopeLabel:shortcut.label,
+        facets,
+        keywords:facets.map((facet) => facet.keyword).filter(Boolean),
+      };
+      for (const product of familyProducts) profiles.set(product.id, profile);
+    }
+
+    const unclassifiedProducts = categoryProducts.filter((product) => !profiles.has(product.id));
+    if (unclassifiedProducts.length > 0) {
+      const page = getFeedCategoryPage(category.slug, { pageSize:48 });
+      const facets = selectCategoryFacets(category.slug, page.facets.filter((facet) => facet.keyword), decisionFacetLimit(category.slug));
+      const profile: ProductSelectionProfile = { mode:"guided", facets, keywords:facets.map((facet) => facet.keyword).filter(Boolean) };
+      for (const product of unclassifiedProducts) profiles.set(product.id, profile);
+    }
+  }
+  return profiles;
+}
+
+type StructuralSelectionTarget = {
+  query: Pick<FeedCategoryQuery, "productType" | "segment" | "subsegment">;
+  selectionMode?: "guided" | "engineer";
+  promotedFacetKeywords?: string[];
+  scopeHref: string;
+  scopeLabel: string;
+};
+
+function structuralSelectionTarget(slug: string, product: FeedProduct): StructuralSelectionTarget | undefined {
+  const profile = getCategoryExpertProfile(slug);
+  const productType = getFeedCategoryProductType(slug, product);
+  const segment = getFeedCategorySegment(slug, product);
+  const subsegment = getFeedCategorySubsegment(slug, product);
+  const segmentShortcut = profile.assortmentShortcuts?.find((shortcut) => shortcut.segment === segment);
+  const subsegmentShortcut = segmentShortcut?.subsegments?.find((shortcut) => shortcut.id === subsegment);
+  if (segmentShortcut && subsegmentShortcut && segment && subsegment) {
+    return {
+      query:{ productType, segment, subsegment },
+      selectionMode:subsegmentShortcut.selectionMode ?? segmentShortcut.selectionMode ?? profile.selectionMode,
+      promotedFacetKeywords:subsegmentShortcut.promotedFacetKeywords ?? segmentShortcut.promotedFacetKeywords,
+      scopeHref:`/catalog/category/${slug}?segment=${encodeURIComponent(segment)}&drill_type=${encodeURIComponent(subsegment)}`,
+      scopeLabel:`${segmentShortcut.label} · ${subsegmentShortcut.label}`,
+    };
+  }
+  if (segmentShortcut && segment) {
+    return {
+      query:{ productType, segment },
+      selectionMode:segmentShortcut.selectionMode ?? profile.selectionMode,
+      promotedFacetKeywords:segmentShortcut.promotedFacetKeywords,
+      scopeHref:`/catalog/category/${slug}?segment=${encodeURIComponent(segment)}`,
+      scopeLabel:segmentShortcut.label,
+    };
+  }
+  const productTypeShortcut = profile.assortmentShortcuts?.find((shortcut) => shortcut.productType === productType);
+  if (productTypeShortcut && productType) {
+    return {
+      query:{ productType },
+      selectionMode:productTypeShortcut.selectionMode ?? profile.selectionMode,
+      promotedFacetKeywords:productTypeShortcut.promotedFacetKeywords,
+      scopeHref:`/catalog/category/${slug}?kind=${encodeURIComponent(productType)}`,
+      scopeLabel:productTypeShortcut.label,
+    };
+  }
+  return undefined;
+}
+
+function decisionFacetLimit(slug: string): number {
+  if (slug === "koronchatye-sverla") return 4;
+  return ["sverla-i-zenkovki", "borfrezy", "stanki-sverlilnye", "lentochnopilnye-stanki"].includes(slug) ? 3 : 2;
+}
+
+function selectionContext(profile: ProductSelectionProfile): string {
+  return profile.scopeLabel ? `В подкатегории «${profile.scopeLabel}» ` : profile.familyLabel ? `В подкатегории «${profile.familyLabel}» ` : "";
+}
+
+function formatKeywordList(keywords: string[]): string {
+  return keywords.map((keyword) => `«${keyword}»`).join(", ");
 }
 
 function hasProductImage(product: FeedProduct): boolean {
