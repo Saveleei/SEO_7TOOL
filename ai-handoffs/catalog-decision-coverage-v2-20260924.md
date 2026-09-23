@@ -75,4 +75,4 @@
 
 ## Git
 
-- Commit: pending.
+- Commit: `49b373e` (`feat: improve drill and pipe cutter decisions`).
