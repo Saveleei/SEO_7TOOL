@@ -7,6 +7,8 @@ export type CatalogQualityStatus = "critical" | "review" | "healthy";
 export type CatalogQualitySeverity = "critical" | "warning" | "notice";
 export type CatalogQualityPriority = "p0" | "p1" | "p2";
 export type CatalogQualityIssueCode =
+  | "missing_identifier"
+  | "duplicate_identifier"
   | "missing_sku"
   | "invalid_range"
   | "malformed_numeric"
@@ -91,7 +93,9 @@ const publishedCategories = feedSnapshot.categories;
 const publishedProducts = feedSnapshot.products;
 const categoryBySlug = new Map(publishedCategories.map((category) => [category.slug, category]));
 const issueLabels: Record<CatalogQualityIssueCode, string> = {
-  missing_sku:"Нет артикула исполнения",
+  missing_identifier:"Нет устойчивого кода исполнения",
+  duplicate_identifier:"Код исполнения используется повторно",
+  missing_sku:"Нет публичного артикула исполнения",
   invalid_range:"Нижняя граница выше верхней",
   malformed_numeric:"Размер записан как допуск или код",
   numeric_outlier:"Подозрительный числовой выброс",
@@ -103,7 +107,9 @@ const issueLabels: Record<CatalogQualityIssueCode, string> = {
   duplicate_signature:"Исполнения неразличимы по параметрам",
 };
 const issuePriorities: Record<CatalogQualityIssueCode, CatalogQualityPriority> = {
-  missing_sku:"p0",
+  missing_identifier:"p0",
+  duplicate_identifier:"p0",
+  missing_sku:"p2",
   invalid_range:"p0",
   duplicate_sku:"p0",
   malformed_numeric:"p1",
@@ -130,8 +136,11 @@ function buildCatalogQualityReport(): CatalogQualityReport {
   const issues: CatalogQualityIssue[] = [];
   const numericInstances = collectNumericInstances(publishedProducts);
   const selectionProfilesByProduct = buildProductSelectionProfiles();
+  const duplicateIdentifiers = duplicateIdentityGroups(publishedProducts.flatMap((product) => product.variants.map((variant) => ({
+    key:normalizeKey(variant.id), product, variant,
+  }))));
   const duplicateSkus = duplicateGroups(publishedProducts.flatMap((product) => product.variants.map((variant) => ({
-    key:normalizeKey(variant.sku), product, variant,
+    key:scopedSkuKey(product, variant), product, variant,
   }))));
   const duplicateSignatures = duplicateGroups(publishedProducts.flatMap((product) => product.variants.map((variant) => ({
     key:variantSignature(product, variant), product, variant,
@@ -161,7 +170,19 @@ function buildCatalogQualityReport(): CatalogQualityReport {
     }
 
     for (const variant of product.variants) {
-      if (!normalizeKey(variant.sku)) issues.push(issue(product, category, "missing_sku", "critical", "Исполнение нельзя однозначно добавить в КП или сверить с поставщиком.", variant));
+      const identifierKey = normalizeKey(variant.id);
+      const publicSku = variantPublicSku(product, variant);
+      if (!identifierKey) {
+        issues.push(issue(product, category, "missing_identifier", "critical", "Исполнение нельзя надёжно сохранить в КП или связать с исходной записью фида.", variant));
+      } else if (duplicateIdentifiers.has(identifierKey)) {
+        issues.push(issue(product, category, "duplicate_identifier", "critical", `Код фида «${variant.id}» встречается у ${duplicateIdentifiers.get(identifierKey)?.length} исполнений.`, variant));
+      }
+      if (!normalizeKey(publicSku)) {
+        const identityDetail = identifierKey
+          ? `Код фида «${variant.id}» сохраняет однозначность позиции в КП; публичный артикул нужно подтвердить в источнике поставщика.`
+          : "Публичный артикул нужно подтвердить в источнике поставщика.";
+        issues.push(issue(product, category, "missing_sku", "notice", identityDetail, variant));
+      }
       if (!(typeof variant.price === "number" && variant.price > 0)) issues.push(issue(product, category, "missing_price", "warning", "На витрине будет показано «Цена по запросу».", variant));
 
       for (const parameter of variant.params ?? []) {
@@ -181,9 +202,10 @@ function buildCatalogQualityReport(): CatalogQualityReport {
         }
       }
 
-      const skuKey = normalizeKey(variant.sku);
+      const skuKey = scopedSkuKey(product, variant);
       if (skuKey && duplicateSkus.has(skuKey)) {
-        issues.push(issue(product, category, "duplicate_sku", "warning", `Артикул «${variant.sku}» встречается у ${duplicateSkus.get(skuKey)?.length} исполнений.`, variant));
+        const brandScope = product.brand ? ` бренда «${product.brand}»` : " без указанного бренда";
+        issues.push(issue(product, category, "duplicate_sku", "warning", `Артикул «${publicSku}» встречается у ${duplicateSkus.get(skuKey)?.length} исполнений${brandScope}.`, variant));
       }
       const signature = variantSignature(product, variant);
       if (signature && duplicateSignatures.has(signature)) {
@@ -230,7 +252,7 @@ function buildCategoryQuality(category: FeedCategory, products: FeedProduct[], i
   const selectionKeywords = Array.from(new Set(guidedProfiles.flatMap(({ profile }) => profile.keywords)));
   const photoCoverage = percent(products.filter(hasProductImage).length, products.length);
   const priceCoverage = percent(variants.filter((variant) => typeof variant.price === "number" && variant.price > 0).length, variants.length);
-  const skuCoverage = percent(variants.filter((variant) => Boolean(normalizeKey(variant.sku))).length, variants.length);
+  const skuCoverage = percent(products.flatMap((product) => product.variants.map((variant) => ({ product, variant }))).filter(({ product, variant }) => Boolean(normalizeKey(variantPublicSku(product, variant)))).length, variants.length);
   const selectionCoverage = guidedProfiles.length === 0 ? null : percent(guidedProfiles.filter(({ product, profile }) => profile.keywords.some((keyword) => product.variants.some((variant) => hasParameter(variant, keyword)))).length, guidedProfiles.length);
   const expectedParameterCount = guidedProfiles.reduce((sum, { profile }) => sum + profile.keywords.length, 0);
   const presentParameterCount = guidedProfiles.reduce((sum, { product, profile }) => sum + profile.keywords.filter((keyword) => product.variants.some((variant) => hasParameter(variant, keyword))).length, 0);
@@ -296,6 +318,27 @@ function duplicateGroups(entries: Array<{ key: string; product: FeedProduct; var
   return new Map(Array.from(grouped.entries()).filter(([, values]) => new Set(values.map((value) => value.variant.id)).size > 1));
 }
 
+function duplicateIdentityGroups(entries: Array<{ key: string; product: FeedProduct; variant: FeedVariant }>): Map<string, Array<{ product: FeedProduct; variant: FeedVariant }>> {
+  const grouped = new Map<string, Array<{ product: FeedProduct; variant: FeedVariant }>>();
+  for (const entry of entries) {
+    if (!entry.key) continue;
+    const group = grouped.get(entry.key);
+    if (group) group.push({ product:entry.product, variant:entry.variant });
+    else grouped.set(entry.key, [{ product:entry.product, variant:entry.variant }]);
+  }
+  return new Map(Array.from(grouped.entries()).filter(([, values]) => values.length > 1));
+}
+
+function scopedSkuKey(product: FeedProduct, variant: FeedVariant): string {
+  const sku = normalizeKey(variantPublicSku(product, variant));
+  return sku ? `${normalizeKey(product.brand)}::${sku}` : "";
+}
+
+function variantPublicSku(product: FeedProduct, variant: FeedVariant): string {
+  if (normalizeKey(variant.sku)) return String(variant.sku);
+  return product.variants.length === 1 ? String(product.sku ?? "") : "";
+}
+
 function variantSignature(product: FeedProduct, variant: FeedVariant): string {
   const parameters = (variant.params ?? []).map((parameter) => `${normalizeKey(parameter.name)}=${normalizeKey(formatParameter(parameter))}`).sort();
   if (parameters.length === 0) return "";
@@ -319,7 +362,7 @@ function issue(product: FeedProduct, category: FeedCategory, code: CatalogQualit
     scopeHref:context?.scopeHref,
     scopeLabel:context?.scopeLabel,
     variantId:variant?.id,
-    sku:variant?.sku || product.sku || undefined,
+    sku:variant ? variantPublicSku(product, variant) || undefined : product.sku || undefined,
     title:issueLabels[code],
     detail,
   };

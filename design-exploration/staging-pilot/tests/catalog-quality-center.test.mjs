@@ -58,7 +58,9 @@ test("selection quality follows each assortment family and excludes engineer-fir
 test("catalog work queues separate blockers, decision defects and enrichment", () => {
   const report = getCatalogQualityReport();
   const expectedPriority = {
-    missing_sku:"p0",
+    missing_identifier:"p0",
+    duplicate_identifier:"p0",
+    missing_sku:"p2",
     invalid_range:"p0",
     duplicate_sku:"p0",
     malformed_numeric:"p1",
@@ -79,6 +81,27 @@ test("catalog work queues separate blockers, decision defects and enrichment", (
   assert.ok(report.priorities.p0.affectedProductCount < report.priorities.p1.affectedProductCount);
 });
 
+test("P0 identity checks use the stable feed id and scope public articles by brand", () => {
+  const report = getCatalogQualityReport();
+  const variants = publishedProducts.flatMap((product) => product.variants.map((variant) => ({ product, variant })));
+  const normalize = (value) => String(value ?? "").trim().toLocaleLowerCase("ru-RU").replace(/\s+/gu, " ");
+  const publicSku = (product, variant) => normalize(variant.sku) || (product.variants.length === 1 ? normalize(product.sku) : "");
+  const missingPublicSkuCount = variants.filter(({ product, variant }) => !publicSku(product, variant)).length;
+  const identifiers = variants.map(({ variant }) => normalize(variant.id)).filter(Boolean);
+  const duplicateIdentityCount = Object.values(Object.groupBy(identifiers, (identifier) => identifier)).filter((group) => group.length > 1).reduce((sum, group) => sum + group.length, 0);
+
+  assert.equal(report.issues.filter((issue) => issue.code === "missing_sku").length, missingPublicSkuCount);
+  assert.equal(report.issues.some((issue) => issue.code === "missing_sku" && issue.priority === "p0"), false);
+  assert.equal(report.issues.filter((issue) => issue.code === "missing_identifier").length, variants.filter(({ variant }) => !normalize(variant.id)).length);
+  assert.equal(report.issues.filter((issue) => issue.code === "duplicate_identifier").length, duplicateIdentityCount);
+
+  for (const issue of report.issues.filter((entry) => entry.code === "duplicate_sku")) {
+    const product = productById.get(issue.productId);
+    const matching = variants.filter(({ product: candidateProduct, variant }) => normalize(candidateProduct.brand) === normalize(product.brand) && publicSku(candidateProduct, variant) === normalize(issue.sku));
+    assert.ok(matching.length > 1, `${issue.id} is only a cross-brand model-code collision`);
+  }
+});
+
 test("every catalog quality issue points to evidence in the current feed", () => {
   const report = getCatalogQualityReport();
 
@@ -90,7 +113,8 @@ test("every catalog quality issue points to evidence in the current feed", () =>
 
     const variant = issue.variantId ? product.variants.find((entry) => entry.id === issue.variantId) : undefined;
     if (issue.variantId) assert.ok(variant, `${issue.id} references an unknown variant`);
-    if (issue.code === "missing_sku") assert.equal(String(variant?.sku ?? "").trim(), "");
+    if (issue.code === "missing_identifier") assert.equal(String(variant?.id ?? "").trim(), "");
+    if (issue.code === "missing_sku") assert.equal(String(variant?.sku ?? "").trim() || (product.variants.length === 1 ? String(product.sku ?? "").trim() : ""), "");
     if (issue.code === "missing_price") assert.equal(typeof variant?.price === "number" && variant.price > 0, false);
     if (issue.code === "missing_image") {
       assert.equal((product.images ?? []).some(Boolean) || product.variants.some((entry) => (entry.images ?? []).some(Boolean)), false);
