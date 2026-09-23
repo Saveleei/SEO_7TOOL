@@ -64,8 +64,18 @@ Completed and published to the isolated test domain.
 - Temporary candidate, upload archive, helper scripts, and verification logs were removed. About 7.2 GB remained free after deployment.
 - At the user's request, the `test.7tool.ru` administrator password was rotated on 2026-09-23 while preserving the username `7tool-admin`. The PBKDF2 hash was updated in the isolated PM2 environment, the session-signing key was rotated to invalidate prior sessions, the process list was saved, and a loopback sign-in plus authenticated `/test/catalog-media` check returned 200. The plaintext password was shown to the user only and was not stored in the repository or handoff.
 
+## First verified media batch — 2026-09-23
+
+- Published four exact product images through the authenticated test-only media workflow. Each upload was first saved as a draft, then explicitly published; its protected asset route and its use on the corresponding product page and exact search result were checked after publication.
+- MRCM `MR-K2`, product `A60039`: source page from Zhejiang Meiri Intelligent Machinery Co., Ltd.; published asset `catalog-043f916c681d151f0f7f3480832097cc6fa05acbca4a3348ae5afb5e6c965d06.webp`.
+- MRCM `MR-26A`, product `A60040`: source page from Zhejiang Meiri Intelligent Machinery Co., Ltd.; published asset `catalog-e88e21796972421ecc5dcb4f2ec661c045b0b4c50e891315d8c3e488fe32332d.webp`.
+- MRCM `MR-AS12`, product `A60041`: source page from Zhejiang Meiri Intelligent Machinery Co., Ltd.; published asset `catalog-a5fe8c84cc9e73b5e038c93be44c6cbebca850f789190e0d120ed7e928865b0e.webp`.
+- Heden `ETM-48 SA`, supplier article `500.065`, product `A26240`: exact supplier product page; published asset `catalog-ab4c516c2d5a0af61f594b495d9c62d46332186f4c5722896620b85f06ae9265.jpg`.
+- Promotech `BM-25S` was deliberately not uploaded: the API detected that the current runtime catalog already had a feed/static image and rejected the manual override with `409`, confirming the feed-priority safety rule.
+- No form, lead, email, MAX/CRM event, production endpoint, feed, DNS, Nginx configuration, or production service was changed.
+
 ## Known limits / next work
 
-- No product photos were fetched automatically. The administrator must verify provenance and upload each exact image.
-- The 54 in-stock/source-ready items remain the next content batch; suggested order is Totem, Heden, ONIX, Kasker/Beveltools/MRCM, then the residual brands.
+- Product photos are not fetched automatically. Each remaining image still needs a human-verifiable product/model match and source URL before publication.
+- Continue with the remaining high-stock/source-ready queue. Prefer exact Totem SKU matches and Heden/Kasker/Beveltools supplier pages. Do not use visually similar ONIX/Optimum machinery without an exact ONIX identity match.
 - No production deployment, feed mutation, credential change, or external message was performed.
