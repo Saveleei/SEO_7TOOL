@@ -5,6 +5,7 @@ import { getCategoryExpertProfile, getCategoryFacetKeywords } from "./categoryEx
 import { getCategorySelectionRule } from "./categorySelection.mjs";
 import { selectComparableAlternatives, selectProductCompatibility } from "./productRecommendations.mjs";
 import { getProductShippingPromise, getVariantShippingPromise } from "./shippingPromise.mjs";
+import { applyVerifiedProductMedia } from "./verifiedProductMedia.mjs";
 
 export type FeedParameter = {
   name: string;
@@ -192,7 +193,7 @@ type CachedFeedFacet = Omit<FeedFacet, "options"> & {
   optionLimit: number;
 };
 
-const feedSnapshot = feedSnapshotJson as unknown as FeedSnapshot;
+const feedSnapshot = applyVerifiedProductMedia(feedSnapshotJson as unknown as FeedSnapshot) as FeedSnapshot;
 
 const categoriesBySlug = new Map(
   feedSnapshot.categories

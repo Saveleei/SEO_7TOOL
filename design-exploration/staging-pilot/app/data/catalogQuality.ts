@@ -1,6 +1,7 @@
 import { getCategoryExpertProfile, selectCategoryFacets } from "./categoryExpertProfiles.mjs";
 import { getCategoryFamily, getCategoryFamilyShortcuts } from "./categoryAssortmentTaxonomy.mjs";
 import { getCategorySelectionRule } from "./categorySelection.mjs";
+import { classifyMissingProductMedia } from "./catalogMediaRecovery.mjs";
 import { getFeedCategoryPage, getFeedCategoryProductType, getFeedCategorySegment, getFeedCategorySubsegment, getPublishedFeedCatalogSnapshot, type FeedCategory, type FeedCategoryQuery, type FeedFacet, type FeedParameter, type FeedProduct, type FeedVariant } from "./feedCatalog.ts";
 
 export type CatalogQualityStatus = "critical" | "review" | "healthy";
@@ -152,7 +153,10 @@ function buildCatalogQualityReport(): CatalogQualityReport {
     const selectionFacets = selectionProfile.facets;
     const selectionKeywords = selectionProfile.keywords;
 
-    if (!hasProductImage(product)) issues.push(issue(product, category, "missing_image", "warning", "Карточка и листинг не могут показать товар наглядно."));
+    if (!hasProductImage(product)) {
+      const recovery = classifyMissingProductMedia(product);
+      issues.push(issue(product, category, "missing_image", "warning", `${recovery.label}. ${recovery.instruction}`));
+    }
 
     if (selectionProfile.mode === "guided") {
       const context = { familyId:selectionProfile.familyId, familyLabel:selectionProfile.familyLabel, scopeHref:selectionProfile.scopeHref, scopeLabel:selectionProfile.scopeLabel };

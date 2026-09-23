@@ -1,14 +1,12 @@
-import feedSnapshotJson from "../../../../7tool-source/src/lib/products.json";
-import { formatFeedPrice, getFeedProductImage, toFeedProductCardModel, type FeedProduct, type FeedVariant } from "./feedCatalog";
+import { formatFeedPrice, getFeedProductImage, getPublishedFeedCatalogSnapshot, toFeedProductCardModel, type FeedProduct, type FeedVariant } from "./feedCatalog";
 import { getProductionCategoryGroups, pilotFeedCategorySlugs } from "./productionCategoryGroups";
 import { normalizeCatalogQuery, rankCatalogItems } from "./catalogSearchEngine.mjs";
 import type { CatalogSearchHit, CatalogSearchResponse } from "./catalogSearchTypes";
 import { getProductShippingPromise, getVariantShippingPromise } from "./shippingPromise.mjs";
 
-type FeedSnapshot = { categories: Array<{ slug: string; title: string; count: number; published: boolean }>; products: FeedProduct[] };
 type SearchIndexItem<T> = { title: string; searchText: string; normalizedTitle: string; normalizedSearchText: string; identifiers?: string[]; normalizedIdentifiers?: string[]; available?: boolean; data: T };
 
-const feedSnapshot = feedSnapshotJson as unknown as FeedSnapshot;
+const feedSnapshot = getPublishedFeedCatalogSnapshot();
 const publishedCategories = new Map(feedSnapshot.categories.filter((category) => category.published).map((category) => [category.slug, category]));
 const categoryProducts = new Map<string, number>();
 for (const product of feedSnapshot.products) categoryProducts.set(product.category, (categoryProducts.get(product.category) ?? 0) + 1);
