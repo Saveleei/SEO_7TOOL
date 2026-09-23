@@ -34,4 +34,4 @@ Complete locally. No deployment was performed.
 
 ## Commits
 
-Pending final commit.
+- Implementation and verified handoff snapshot: `6023078` (`fix: stabilize mobile quote conversion path`).
