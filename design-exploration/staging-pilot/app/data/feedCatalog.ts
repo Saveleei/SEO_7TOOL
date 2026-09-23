@@ -7,11 +7,13 @@ import { selectComparableAlternatives, selectProductCompatibility } from "./prod
 import { getProductShippingPromise, getVariantShippingPromise } from "./shippingPromise.mjs";
 import { applyVerifiedProductMedia } from "./verifiedProductMedia.mjs";
 import { getRuntimeCatalogProductMediaUrl } from "./catalogProductMediaStore.ts";
+import { getFeedDecisionParameters } from "./feedDecisionParameters.mjs";
 
 export type FeedParameter = {
   name: string;
   value: string;
   unit?: string;
+  derivedFromTitle?: true;
 };
 
 export type FeedVariant = {
@@ -704,11 +706,14 @@ function buildCategoryFacets(slug: string, products: FeedProduct[]): CachedFeedF
   }
 
   const usedParameterNames = new Set<string>();
-  const technicalFacetLimit = Math.min(slug === "sverla-i-zenkovki" ? 6 : 5, categoryFacetKeywords.length);
+  const technicalFacetLimit = Math.min(slug === "sverla-i-zenkovki" ? 8 : 5, categoryFacetKeywords.length);
   for (const { keyword, names, values } of parameters) {
     if (facets.filter((facet) => facet.keyword).length >= technicalFacetLimit) break;
-    const matchingNames = Array.from(names.entries()).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ru-RU")).map(([name]) => name);
-    if (matchingNames.length === 0 || matchingNames.some((name) => usedParameterNames.has(normalizeText(name)))) continue;
+    const matchingNames = Array.from(names.entries())
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ru-RU"))
+      .map(([name]) => name)
+      .filter((name) => !usedParameterNames.has(normalizeText(name)));
+    if (matchingNames.length === 0) continue;
     if (values.size < 2) continue;
 
     const key = `spec${facets.filter((facet) => facet.keyword).length + 1}`;
@@ -739,7 +744,7 @@ function analyzeCategoryFacets(slug: string, products: FeedProduct[], keywords: 
     const productValues = parameters.map(() => new Set<string>());
 
     for (const variant of product.variants) {
-      for (const parameter of variant.params ?? []) {
+      for (const parameter of getFeedDecisionParameters(product, variant)) {
         const normalizedName = normalizeText(parameter.name);
         parameters.forEach((analysis, index) => {
           if (!parameterMatchesFacetKeyword(normalizedName, analysis.normalizedKeyword)) return;
@@ -876,7 +881,7 @@ function parseNumericValue(value: string): number {
 
 function getVariantParameterValues(variant: FeedVariant, keyword: string, product?: FeedProduct): string[] {
   const normalizedKeyword = normalizeText(keyword);
-  return (variant.params ?? [])
+  return (product ? getFeedDecisionParameters(product, variant) : variant.params ?? [])
     .filter((parameter) => parameterMatchesFacetKeyword(normalizeText(parameter.name), normalizedKeyword))
     .map((parameter) => getFacetParameterValue(product?.category, normalizedKeyword, product, variant, parameter));
 }
@@ -895,7 +900,9 @@ function getFacetParameterValue(slug: string | undefined, normalizedKeyword: str
 
 function parameterMatchesFacetKeyword(normalizedName: string, normalizedKeyword: string): boolean {
   if (normalizedKeyword === "посадка хвостовика") return normalizedName === "хвостовик" || normalizedName === "тип хвостовика";
-  return normalizedName.includes(normalizedKeyword);
+  if (!normalizedName.includes(normalizedKeyword)) return false;
+  const disambiguators = ["допуск", "отклонени", "точност", "квалитет", "посадк"];
+  return !disambiguators.some((term) => normalizedName.includes(term) && !normalizedKeyword.includes(term));
 }
 
 function formatParameterValue(parameter: FeedParameter): string {
@@ -966,13 +973,13 @@ function getFacetHelp(keyword: string): string {
 }
 
 function getFeedProductSpecs(product: FeedProduct): FeedProductSpec[] {
-  const parameters = product.variants.flatMap((variant) => variant.params ?? []);
+  const parameters = product.variants.flatMap((variant) => getFeedDecisionParameters(product, variant));
   const names = Array.from(new Set(parameters.map((parameter) => parameter.name).filter((name) => name && !lowValueParameterPattern.test(name))));
   const priorities = getProductSpecPriorities(product);
   const orderedNames: string[] = [];
 
   for (const priority of priorities) {
-    const match = names.find((name) => name.toLocaleLowerCase("ru-RU").includes(priority.toLocaleLowerCase("ru-RU")) && !orderedNames.includes(name));
+    const match = names.find((name) => parameterMatchesFacetKeyword(normalizeText(name), normalizeText(priority)) && !orderedNames.includes(name));
     if (match) orderedNames.push(match);
   }
   for (const name of names) {
@@ -983,13 +990,13 @@ function getFeedProductSpecs(product: FeedProduct): FeedProductSpec[] {
 }
 
 export function getFeedVariantSpecs(product: FeedProduct, variant: FeedVariant): FeedProductSpec[] {
-  const parameters = variant.params ?? [];
+  const parameters = getFeedDecisionParameters(product, variant);
   const priorities = getProductSpecPriorities(product);
   const selected: FeedProductSpec[] = [];
   const selectedNames = new Set<string>();
 
   for (const priority of priorities) {
-    const parameter = parameters.find((candidate) => normalizeText(candidate.name).includes(normalizeText(priority)));
+    const parameter = parameters.find((candidate) => parameterMatchesFacetKeyword(normalizeText(candidate.name), normalizeText(priority)));
     const parameterKey = parameter ? normalizeText(parameter.name) : "";
     if (!parameter || selectedNames.has(parameterKey)) continue;
     selectedNames.add(parameterKey);
@@ -1031,7 +1038,7 @@ export function getFeedVariantTechnicalSpecs(product: FeedProduct, variant: Feed
   const keySpecs = getFeedVariantSpecs(product, variant);
   const selected = new Map(keySpecs.map((spec) => [normalizeText(spec.label), spec]));
 
-  for (const parameter of variant.params ?? []) {
+  for (const parameter of getFeedDecisionParameters(product, variant)) {
     if (!parameter.name || !parameter.value || lowValueParameterPattern.test(parameter.name)) continue;
     const displayLabel = getFeedParameterLabel(product, parameter.name);
     const key = normalizeText(displayLabel);

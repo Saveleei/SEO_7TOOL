@@ -124,3 +124,61 @@ test("welding positions lead with plain-language meaning and retain exact feed v
   assert.match(cardPosition?.value ?? "", /Горизонтальное, угловой шов · PB\/2F/u);
   assert.match(getFeedVariantTechnicalSpecs(product, variant).find((spec) => spec.label === "Положения сварки")?.value ?? "", /Горизонтальное, угловой шов · PB\/2F/u);
 });
+
+test("drill families expose feed-backed diameter, stated length, shank, material and standard", () => {
+  const snapshot = getPublishedFeedCatalogSnapshot();
+  const cylindrical = snapshot.products.find((product) => product.slug === "spiralnye-sverla-ruko-ts-h-hss-tin-din-338-seriya-214");
+  const taper = snapshot.products.find((product) => product.slug === "sverla-spiralnye-k-h-gost-10903-77");
+  const range = snapshot.products.find((product) => product.title.includes("Коническое сверло Ø 8-20 мм"));
+  assert.ok(cylindrical);
+  assert.ok(taper);
+  assert.ok(range);
+  assert.equal(getFeedCategoryFamily("sverla-i-zenkovki", cylindrical), "cylindrical-shank");
+  assert.equal(getFeedCategoryFamily("sverla-i-zenkovki", taper), "taper-shank");
+  assert.equal(getFeedCategoryFamily("sverla-i-zenkovki", range), "range");
+
+  const cylindricalSpecs = getFeedVariantTechnicalSpecs(cylindrical, cylindrical.variants[0]);
+  assert.equal(cylindricalSpecs.find((spec) => spec.label === "Диаметр режущей части")?.value, "12 мм");
+  assert.equal(cylindricalSpecs.find((spec) => spec.label === "Длина по наименованию")?.value, "101 мм");
+  assert.equal(cylindricalSpecs.find((spec) => spec.label === "Хвостовик")?.value, "Цилиндрический");
+  assert.equal(cylindricalSpecs.find((spec) => spec.label === "Материал режущей части")?.value, "HSS");
+  assert.equal(cylindricalSpecs.find((spec) => spec.label === "Стандарт")?.value, "DIN 338");
+
+  const taperPage = getFeedCategoryPage("sverla-i-zenkovki", { family:"taper-shank", pageSize:1000 });
+  const diameter = taperPage.facets.find((facet) => facet.keyword === "диаметр режущей");
+  const statedLength = taperPage.facets.find((facet) => facet.keyword === "длина по наименованию");
+  assert.ok(diameter?.options.some((option) => option.value === "16 мм"));
+  assert.ok(statedLength?.options.some((option) => option.value === "120 мм"));
+
+  const overallDiameter = getFeedCategoryPage("sverla-i-zenkovki", { pageSize:48 }).facets.find((facet) => facet.keyword === "диаметр режущей");
+  assert.ok(overallDiameter?.options.length > 0);
+  assert.equal(overallDiameter.options.some((option) => /(?:\/\s*[-−]|[-−]\s*\d+\s*\/)/u.test(option.value)), false, "diameter choices must not contain tolerance notation");
+});
+
+test("pipe cutters separate orbital saws from split-frame cold-cut machines", () => {
+  const snapshot = getPublishedFeedCatalogSnapshot();
+  const splitFrame = snapshot.products.find((product) => product.title === "Разъёмный труборез и фаскосниматель ТВС-230 с электроприводом");
+  const orbital = snapshot.products.find((product) => product.title === "Орбитальный труборез Lefon Lite4");
+  const modelOnly = snapshot.products.find((product) => product.title === "Труборез разъемный ISD-168");
+  assert.ok(splitFrame);
+  assert.ok(orbital);
+  assert.ok(modelOnly);
+  assert.equal(getFeedCategoryFamily("truborezy", splitFrame), "split-frame");
+  assert.equal(getFeedCategoryFamily("truborezy", orbital), "orbital");
+
+  const specs = getFeedVariantTechnicalSpecs(splitFrame, splitFrame.variants[0]);
+  assert.equal(specs.find((spec) => spec.label.startsWith("Мин. диаметр труб"))?.value, "80");
+  assert.equal(specs.find((spec) => spec.label.startsWith("Макс. диаметр труб"))?.value, "230");
+  assert.equal(specs.find((spec) => spec.label === "Тип привода")?.value, "Электрический");
+  assert.equal(specs.find((spec) => spec.label === "Возможности")?.value, "Резка и снятие фаски");
+
+  const splitPage = getFeedCategoryPage("truborezy", { family:"split-frame", pageSize:1000 });
+  const drive = splitPage.facets.find((facet) => facet.keyword === "тип привода");
+  assert.deepEqual(drive?.options.map((option) => option.value).sort(), ["Гидравлический", "Пневматический", "Электрический"]);
+  const filtered = getFeedCategoryPage("truborezy", { family:"split-frame", filters:{ [drive.key]:["Электрический"] }, pageSize:1000 });
+  assert.ok(filtered.total > 0);
+  assert.ok(filtered.total < splitPage.total);
+
+  const modelOnlySpecs = getFeedVariantTechnicalSpecs(modelOnly, modelOnly.variants[0]);
+  assert.equal(modelOnlySpecs.some((spec) => /диаметр труб/iu.test(spec.label)), false, "model code must not masquerade as a tube diameter");
+});

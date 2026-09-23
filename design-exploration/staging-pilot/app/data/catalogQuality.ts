@@ -3,6 +3,7 @@ import { getCategoryFamily, getCategoryFamilyShortcuts } from "./categoryAssortm
 import { getCategorySelectionRule } from "./categorySelection.mjs";
 import { classifyMissingProductMedia } from "./catalogMediaRecovery.mjs";
 import { feedParameterMatchesFacetKeyword, getFeedCategoryPage, getFeedCategoryProductType, getFeedCategorySegment, getFeedCategorySubsegment, getFeedProductImage, getPublishedFeedCatalogSnapshot, type FeedCategory, type FeedCategoryQuery, type FeedFacet, type FeedParameter, type FeedProduct, type FeedVariant } from "./feedCatalog.ts";
+import { getFeedDecisionParameters } from "./feedDecisionParameters.mjs";
 
 export type CatalogQualityStatus = "critical" | "review" | "healthy";
 export type CatalogQualitySeverity = "critical" | "warning" | "notice";
@@ -160,7 +161,7 @@ function buildCatalogQualityReport(): CatalogQualityReport {
 
     if (selectionProfile.mode === "guided") {
       const context = { familyId:selectionProfile.familyId, familyLabel:selectionProfile.familyLabel, scopeHref:selectionProfile.scopeHref, scopeLabel:selectionProfile.scopeLabel };
-      const missingKeywords = selectionKeywords.filter((keyword) => !product.variants.some((variant) => hasParameter(variant, keyword)));
+      const missingKeywords = selectionKeywords.filter((keyword) => !product.variants.some((variant) => hasParameter(product, variant, keyword)));
       if (selectionKeywords.length === 0) {
         issues.push(issue(product, category, "not_filterable", "warning", `${selectionContext(selectionProfile)}не найдено ни одной надёжной характеристики для самостоятельного подбора.`, undefined, context));
       } else {
@@ -189,7 +190,7 @@ function buildCatalogQualityReport(): CatalogQualityReport {
       }
       if (!(typeof variant.price === "number" && variant.price > 0)) issues.push(issue(product, category, "missing_price", "warning", "На витрине будет показано «Цена по запросу».", variant));
 
-      for (const parameter of variant.params ?? []) {
+      for (const parameter of getFeedDecisionParameters(product, variant)) {
         const canEnterGuidedFacet = selectionFacets.some((facet) => facet.keyword && parameterMatchesKeyword(parameter.name, facet.keyword));
         if (canEnterGuidedFacet && isMalformedNumericParameter(parameter)) {
           issues.push(issue(product, category, "malformed_numeric", "warning", `«${parameter.name}» содержит значение «${formatParameter(parameter)}», которое нельзя безопасно использовать как размер.`));
@@ -199,8 +200,8 @@ function buildCatalogQualityReport(): CatalogQualityReport {
       for (const facet of selectionFacets) {
         const rule = getCategorySelectionRule(product.category, facet.keyword);
         if (rule.mode !== "range" || !rule.minimumKeyword) continue;
-        const maximum = firstNumericParameter(variant, facet.keyword);
-        const minimum = firstNumericParameter(variant, rule.minimumKeyword);
+        const maximum = firstNumericParameter(product, variant, facet.keyword);
+        const minimum = firstNumericParameter(product, variant, rule.minimumKeyword);
         if (Number.isFinite(minimum) && Number.isFinite(maximum) && minimum > maximum) {
           issues.push(issue(product, category, "invalid_range", "critical", `${rule.minimumKeyword}: ${minimum}; ${facet.keyword}: ${maximum}.`, variant));
         }
@@ -257,9 +258,9 @@ function buildCategoryQuality(category: FeedCategory, products: FeedProduct[], i
   const photoCoverage = percent(products.filter(hasProductImage).length, products.length);
   const priceCoverage = percent(variants.filter((variant) => typeof variant.price === "number" && variant.price > 0).length, variants.length);
   const skuCoverage = percent(products.flatMap((product) => product.variants.map((variant) => ({ product, variant }))).filter(({ product, variant }) => Boolean(normalizeKey(variantPublicSku(product, variant)))).length, variants.length);
-  const selectionCoverage = guidedProfiles.length === 0 ? null : percent(guidedProfiles.filter(({ product, profile }) => profile.keywords.some((keyword) => product.variants.some((variant) => hasParameter(variant, keyword)))).length, guidedProfiles.length);
+  const selectionCoverage = guidedProfiles.length === 0 ? null : percent(guidedProfiles.filter(({ product, profile }) => profile.keywords.some((keyword) => product.variants.some((variant) => hasParameter(product, variant, keyword)))).length, guidedProfiles.length);
   const expectedParameterCount = guidedProfiles.reduce((sum, { profile }) => sum + profile.keywords.length, 0);
-  const presentParameterCount = guidedProfiles.reduce((sum, { product, profile }) => sum + profile.keywords.filter((keyword) => product.variants.some((variant) => hasParameter(variant, keyword))).length, 0);
+  const presentParameterCount = guidedProfiles.reduce((sum, { product, profile }) => sum + profile.keywords.filter((keyword) => product.variants.some((variant) => hasParameter(product, variant, keyword))).length, 0);
   const criticalParameterCoverage = guidedProfiles.length === 0 ? null : expectedParameterCount === 0 ? 0 : percent(presentParameterCount, expectedParameterCount);
   const score = Math.round(photoCoverage * .2 + priceCoverage * .25 + skuCoverage * .15 + (selectionCoverage ?? 100) * .25 + (criticalParameterCoverage ?? 100) * .15);
   const criticalCount = issues.filter((entry) => entry.severity === "critical").length;
@@ -287,7 +288,7 @@ function buildCategoryQuality(category: FeedCategory, products: FeedProduct[], i
 
 function collectNumericInstances(products: FeedProduct[], selectionProfilesByProduct: Map<string, ProductSelectionProfile>): NumericInstance[] {
   const instances: NumericInstance[] = [];
-  for (const product of products) for (const variant of product.variants) for (const parameter of variant.params ?? []) {
+  for (const product of products) for (const variant of product.variants) for (const parameter of getFeedDecisionParameters(product, variant)) {
     if (!isSelectionNumericParameter(parameter.name)) continue;
     const numeric = parseNumeric(parameter.value);
     const profile = selectionProfilesByProduct.get(product.id) ?? emptySelectionProfile;
@@ -503,12 +504,12 @@ function hasProductImage(product: FeedProduct): boolean {
   return Boolean(getFeedProductImage(product));
 }
 
-function hasParameter(variant: FeedVariant, keyword: string): boolean {
-  return (variant.params ?? []).some((parameter) => parameterMatchesKeyword(parameter.name, keyword) && Boolean(String(parameter.value ?? "").trim()));
+function hasParameter(product: FeedProduct, variant: FeedVariant, keyword: string): boolean {
+  return getFeedDecisionParameters(product, variant).some((parameter) => parameterMatchesKeyword(parameter.name, keyword) && Boolean(String(parameter.value ?? "").trim()));
 }
 
-function firstNumericParameter(variant: FeedVariant, keyword: string): number {
-  const parameter = (variant.params ?? []).find((entry) => parameterMatchesKeyword(entry.name, keyword));
+function firstNumericParameter(product: FeedProduct, variant: FeedVariant, keyword: string): number {
+  const parameter = getFeedDecisionParameters(product, variant).find((entry) => parameterMatchesKeyword(entry.name, keyword));
   return parseNumeric(parameter?.value);
 }
 

@@ -48,9 +48,9 @@ test("sheet beveler quick filters prioritize manufacturer while guided selection
 test("serial categories ask the most useful feed-backed questions first", () => {
   const cases = {
     "rezbonareznye-manipulyatory":["макс. резьба", "охват рабочей зоны", "частота вращения"],
-    truborezy:["макс. диаметр тру", "макс. толщина стен"],
+    truborezy:["макс. диаметр тру", "тип привода"],
     kompressory:["производительность", "мощность", "объем ресивера"],
-    "sverla-i-zenkovki":["диаметр режущей", "посадка хвостовика", "материал"],
+    "sverla-i-zenkovki":["диаметр режущей", "посадка хвостовика", "материал режущей части"],
   };
 
   for (const [slug, expected] of Object.entries(cases)) {
