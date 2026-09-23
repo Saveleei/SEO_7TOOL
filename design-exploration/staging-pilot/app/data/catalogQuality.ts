@@ -2,7 +2,7 @@ import { getCategoryExpertProfile, selectCategoryFacets } from "./categoryExpert
 import { getCategoryFamily, getCategoryFamilyShortcuts } from "./categoryAssortmentTaxonomy.mjs";
 import { getCategorySelectionRule } from "./categorySelection.mjs";
 import { classifyMissingProductMedia } from "./catalogMediaRecovery.mjs";
-import { getFeedCategoryPage, getFeedCategoryProductType, getFeedCategorySegment, getFeedCategorySubsegment, getFeedProductImage, getPublishedFeedCatalogSnapshot, type FeedCategory, type FeedCategoryQuery, type FeedFacet, type FeedParameter, type FeedProduct, type FeedVariant } from "./feedCatalog.ts";
+import { feedParameterMatchesFacetKeyword, getFeedCategoryPage, getFeedCategoryProductType, getFeedCategorySegment, getFeedCategorySubsegment, getFeedProductImage, getPublishedFeedCatalogSnapshot, type FeedCategory, type FeedCategoryQuery, type FeedFacet, type FeedParameter, type FeedProduct, type FeedVariant } from "./feedCatalog.ts";
 
 export type CatalogQualityStatus = "critical" | "review" | "healthy";
 export type CatalogQualitySeverity = "critical" | "warning" | "notice";
@@ -533,7 +533,7 @@ function isSelectionNumericParameter(name: string): boolean {
 function parameterMatchesKeyword(name: string, keyword: string): boolean {
   const normalizedName = normalizeKey(name);
   const normalizedKeyword = normalizeKey(keyword);
-  if (!normalizedKeyword || !normalizedName.includes(normalizedKeyword)) return false;
+  if (!normalizedKeyword || !feedParameterMatchesFacetKeyword(name, keyword)) return false;
   const disambiguators = ["допуск", "отклонени", "точност", "квалитет", "посадк"];
   return !disambiguators.some((term) => normalizedName.includes(term) && !normalizedKeyword.includes(term));
 }

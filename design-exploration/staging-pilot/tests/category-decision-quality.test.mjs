@@ -4,9 +4,11 @@ import { getCategoryExpertProfile } from "../app/data/categoryExpertProfiles.mjs
 import {
   getFeedCategoryFamily,
   getFeedCategoryPage,
+  getFeedVariantTechnicalSpecs,
   getPromotedFacetOptions,
   getFeedCategorySubsegment,
   getPublishedFeedCatalogSnapshot,
+  toFeedProductCardModel,
 } from "../app/data/feedCatalog.ts";
 
 test("magnetic drills expose a feed-backed brushless decision path", () => {
@@ -70,4 +72,55 @@ test("tapping manipulators separate drive and operation before technical filteri
 
   assert.deepEqual(counts, expected);
   assert.equal(Object.values(counts).reduce((sum, count) => sum + count, 0), 77);
+});
+
+test("compatibility-first items do not masquerade as primary equipment", () => {
+  const snapshot = getPublishedFeedCatalogSnapshot();
+  const byTitle = (title) => snapshot.products.find((product) => product.title === title);
+  const cases = [
+    ["kompressory", "Воздушный фильтр Fubag на 4/5,5/7,5/11 кВт", "accessories"],
+    ["kromkorezy-po-listu", "25916", "unidentified"],
+    ["borfrezy", "Артикул 11.4919U", "sets"],
+    ["koronchatye-sverla", "Набор корончатых сверл Ø12-22 мм, 6 шт., арт. LZHS-001", "sets"],
+    ["shlifovalnoe-i-zatochnoe-oborudovanie", "Шлифовально-зачистной станок Heden DGR-600SL", "wide-belt"],
+    ["shlifovalnoe-i-zatochnoe-oborudovanie", "Мобильный ленточный шлифовальный станок Heden SF-75M", "portable-belt"],
+  ];
+
+  for (const [category, title, expectedFamily] of cases) {
+    const product = byTitle(title);
+    assert.ok(product, title);
+    assert.equal(getFeedCategoryFamily(category, product), expectedFamily, title);
+  }
+
+  const bevelerProfile = getCategoryExpertProfile("kromkorezy-po-listu");
+  const compressorProfile = getCategoryExpertProfile("kompressory");
+  assert.equal(bevelerProfile.assortmentShortcuts.find((shortcut) => shortcut.family === "unidentified")?.selectionMode, "engineer");
+  assert.equal(compressorProfile.assortmentShortcuts.find((shortcut) => shortcut.family === "accessories")?.selectionMode, "engineer");
+});
+
+test("welding positions lead with plain-language meaning and retain exact feed values", () => {
+  const page = getFeedCategoryPage("karetki-svarochnye", { pageSize:1000 });
+  const positions = page.facets.find((facet) => facet.keyword === "положения сварки");
+  assert.ok(positions);
+  const labels = new Map(positions.options.map((option) => [option.value, option.label]));
+
+  assert.equal(labels.get("PA/1G"), "Нижнее положение, стыковой шов · PA/1G");
+  assert.equal(labels.get("PA/1F"), "Нижнее положение, угловой шов · PA/1F");
+  assert.equal(labels.get("PB/2F"), "Горизонтальное положение, угловой шов · PB/2F");
+  assert.equal(labels.get("PC/2G"), "Горизонтальное положение, стыковой шов · PC/2G");
+  assert.equal(labels.get("PF/3G"), "Вертикальное снизу вверх, стыковой шов · PF/3G");
+  assert.equal(labels.get("PF/3F"), "Вертикальное снизу вверх, угловой шов · PF/3F");
+  assert.equal(labels.get("PC/2G (стыковой шов трубы)"), "Труба — Горизонтальное положение, стыковой шов · PC/2G");
+  assert.equal(labels.get("PB/2F (угловой шов трубы)"), "Труба — Горизонтальное положение, угловой шов · PB/2F");
+
+  const filtered = getFeedCategoryPage("karetki-svarochnye", { filters:{ [positions.key]:["PB/2F"] }, pageSize:1000 });
+  assert.ok(filtered.total > 0);
+  assert.ok(filtered.total < page.total);
+
+  const product = getPublishedFeedCatalogSnapshot().products.find((entry) => entry.slug === "svarochnaya-karetka-huawei-hk-8snw");
+  assert.ok(product);
+  const cardPosition = toFeedProductCardModel(product).specs.find((spec) => spec.label === "Положения сварки");
+  const variant = product.variants.find((entry) => entry.params.some((parameter) => parameter.name === "Положения сварки" && parameter.value === "PB/2F"));
+  assert.match(cardPosition?.value ?? "", /Горизонтальное, угловой шов · PB\/2F/u);
+  assert.match(getFeedVariantTechnicalSpecs(product, variant).find((spec) => spec.label === "Положения сварки")?.value ?? "", /Горизонтальное, угловой шов · PB\/2F/u);
 });

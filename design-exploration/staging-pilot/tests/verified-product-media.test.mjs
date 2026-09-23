@@ -59,7 +59,7 @@ test("catalog quality removes only the 21 proven missing-image cases", () => {
 
   assert.equal(missingImages.length, 637);
   assert.equal(missingImages.some((issue) => verifiedIds.has(issue.productId)), false);
-  assert.deepEqual(report.priorities.p1, { issueCount:1301, affectedProductCount:991 });
+  assert.deepEqual(report.priorities.p1, { issueCount:1142, affectedProductCount:853 });
 });
 
 test("every unresolved image has an actionable evidence queue without approximate matching", () => {

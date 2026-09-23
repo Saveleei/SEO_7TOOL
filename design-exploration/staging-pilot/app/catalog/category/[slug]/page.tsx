@@ -239,7 +239,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     <section className="section feed-category-listing" id="products"><div className="container">
       <div className="section-heading feed-category-heading"><div><p className="eyebrow">Шаг 2 · ключевые параметры</p><h2>{listingTitle}</h2></div><p>Начните с 3–4 решающих параметров. Остальные характеристики доступны в полном фильтре.</p></div>
 
-      {promotedFacets.length > 0 && <nav className={`feed-promoted-filters${slug === "borfrezy" ? " feed-promoted-filters--burr" : ""}${slug === "stanki-sverlilnye" ? " feed-promoted-filters--equipment" : ""}`} aria-label="Быстрые фильтры">
+      {promotedFacets.length > 0 && <nav className={`feed-promoted-filters${slug === "borfrezy" ? " feed-promoted-filters--burr" : ""}${slug === "stanki-sverlilnye" ? " feed-promoted-filters--equipment" : ""}${slug === "karetki-svarochnye" ? " feed-promoted-filters--welding" : ""}`} aria-label="Быстрые фильтры">
         <div className="feed-priority-choice"><span>Показывать сначала</span><div>
           <PromotedFilterLink className={sort === "relevance" ? "active" : undefined} current={sort === "relevance"} href={categoryUrl(slug, rawSearchParams, { setKey:"sort", setValue:"relevance" })}>Подходящие</PromotedFilterLink>
           {availabilityFilterEnabled
@@ -252,7 +252,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
           const visibleOptions = getPromotedFacetOptions(facet, promotedOptionLimit, filters[facet.key], preferredOptions);
           const rangeStart = facet.numeric ? facet.options[0]?.label : undefined;
           const rangeEnd = facet.numeric ? facet.options[facet.options.length - 1]?.label : undefined;
-          return <div key={facet.key}><span className="feed-promoted-label">{facet.label}{rangeStart && rangeEnd && <small>диапазон {rangeStart}–{rangeEnd}</small>}</span><div className={facet.numeric ? "feed-promoted-values feed-promoted-values--numeric" : "feed-promoted-values"}>{visibleOptions.map((option) => {
+          return <div className={slug === "karetki-svarochnye" && facet.keyword === "положения сварки" ? "feed-promoted-group--welding-position" : undefined} key={facet.key}><span className="feed-promoted-label">{facet.label}{rangeStart && rangeEnd && <small>диапазон {rangeStart}–{rangeEnd}</small>}</span><div className={facet.numeric ? "feed-promoted-values feed-promoted-values--numeric" : "feed-promoted-values"}>{visibleOptions.map((option) => {
             const selected = filters[facet.key]?.includes(option.value) ?? false;
             return <PromotedFilterLink className={selected ? "active" : undefined} current={selected} href={categoryUrl(slug, rawSearchParams, { toggleKey:`f_${facet.key}`, toggleValue:option.value })} key={option.value}>{facet.keyword === "форма" && <BurrShapeMark shape={option.value} />}{option.label}<small>{option.count}</small></PromotedFilterLink>;
           })}</div></div>;

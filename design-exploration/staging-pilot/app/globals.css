@@ -1407,6 +1407,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .feed-promoted-filters--equipment>div>div { flex-wrap:wrap; overflow:visible; }
 .feed-promoted-filters--equipment>div:nth-child(4) { grid-column:1/3; }
 .feed-promoted-filters--equipment>.feed-promoted-more { grid-column:3; align-self:end; justify-self:end; }
+.feed-promoted-filters--welding { grid-template-columns:minmax(205px,.72fr) minmax(450px,1.55fr) minmax(230px,.8fr) auto; align-items:start; }
 .feed-promoted-filters>div>span { display:block; margin-bottom:7px; color:var(--muted); font-size:11px; font-weight:800; }
 .feed-promoted-filters>div>div { display:flex; flex-wrap:wrap; gap:6px; overflow:visible; padding-bottom:1px; }
 .feed-promoted-filters>div>div { scrollbar-width:none; }
@@ -1487,6 +1488,7 @@ body:has(.feed-compare-tray) .request-cart-dock { bottom:96px; }
 @media (max-width:1180px) {
   .feed-promoted-filters { grid-template-columns:1fr 1fr; }
   .feed-promoted-filters--burr,.feed-promoted-filters--equipment { grid-template-columns:1fr 1fr; }
+  .feed-promoted-filters--welding { grid-template-columns:1fr 1fr; }
   .feed-promoted-filters--burr>div:nth-child(4),.feed-promoted-filters--burr>.feed-promoted-more,.feed-promoted-filters--equipment>div:nth-child(4),.feed-promoted-filters--equipment>.feed-promoted-more { grid-column:1/-1; }
   .feed-promoted-more { grid-column:1/-1; }
 }
@@ -1509,6 +1511,8 @@ body:has(.feed-compare-tray) .request-cart-dock { bottom:96px; }
   .feed-promoted-filters>div:not(.feed-priority-choice)>div { max-width:calc(100vw - 56px); flex-wrap:nowrap; overflow-x:auto; padding:0 13px 7px 0; scroll-snap-type:x proximity; scrollbar-width:thin; }
   .feed-promoted-filters>div:not(.feed-priority-choice)>div>a { scroll-snap-align:start; white-space:nowrap; }
   .feed-promoted-filters>.feed-priority-choice>div { flex-wrap:wrap; overflow:visible; }
+  .feed-promoted-group--welding-position .feed-promoted-values { max-width:none!important; flex-wrap:wrap!important; overflow:visible!important; padding-right:0!important; }
+  .feed-promoted-group--welding-position .feed-promoted-values>a { width:100%; justify-content:space-between; padding:9px 11px; line-height:1.35; white-space:normal!important; }
   .feed-promoted-more { grid-column:auto; }
   .category-live-summary { align-items:flex-start; flex-direction:column; gap:9px; margin-top:-3px; }
   .category-live-summary>a { width:100%; justify-content:center; }

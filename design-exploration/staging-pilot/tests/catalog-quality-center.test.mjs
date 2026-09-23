@@ -63,7 +63,7 @@ test("P1 excludes tolerance notation and compatibility-first accessory groups", 
 
   assert.equal(numericIssues.some((issue) => /допуск|квалитет|отклонени/iu.test(issue.detail)), false);
   assert.equal(numericIssues.filter((issue) => issue.categorySlug === "svarochnye-vrashchateli-i-pozitsionery" && /скорость вращения/iu.test(issue.detail)).every((issue) => /мин\. скорость/iu.test(issue.detail)), true);
-  assert.equal(filterIssues.filter((issue) => issue.categorySlug === "shlifovalnoe-i-zatochnoe-oborudovanie").every((issue) => issue.familyId === "belt" || issue.familyId === "drill"), true);
+  assert.equal(filterIssues.filter((issue) => issue.categorySlug === "shlifovalnoe-i-zatochnoe-oborudovanie").every((issue) => ["wide-belt", "portable-belt", "belt", "drill"].includes(issue.familyId)), true);
   assert.equal(filterIssues.some((issue) => issue.scopeLabel === "Оснастка и опции" || issue.scopeLabel === "Патроны и оснастка" || issue.scopeLabel === "Оснастка и комплектующие"), false);
 });
 

@@ -627,7 +627,7 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
       ? [`${filter.label ?? filter.keyword}: не менее ${filter.minimum}`]
       : Number.isFinite(filter.maximum)
         ? [`${filter.label ?? filter.keyword}: не более ${filter.maximum}`]
-        : filter.values.map((value) => `${filter.label ?? filter.keyword}: ${value}`)).slice(0, 4),
+        : filter.values.map((value) => `${filter.label ?? filter.keyword}: ${formatSelectedFilterValue(product.category, filter.keyword, value)}`)).slice(0, 4),
     decisionPrompts:decisionCriteria.map((item) => item.title).slice(0, 3),
     taskLabel:getFeedCategorySubsegmentLabel(product.category, taskSubsegment)
       ?? getFeedCategorySegmentLabel(product.category, taskSegment)
@@ -720,7 +720,8 @@ function buildCategoryFacets(slug: string, products: FeedProduct[]): CachedFeedF
       help: getFacetHelp(keyword),
       keyword,
       numeric,
-      allOptions:toFacetOptions(values, keyword === "форма" ? "value" : numeric ? "numeric" : "count"),
+      allOptions:toFacetOptions(values, keyword === "форма" ? "value" : numeric ? "numeric" : "count")
+        .map((option) => ({ ...option, label:formatFacetOptionLabel(slug, keyword, option.value) })),
       optionLimit:keyword === "форма" ? 100 : numeric ? values.size : 10,
     });
   }
@@ -880,6 +881,10 @@ function getVariantParameterValues(variant: FeedVariant, keyword: string, produc
     .map((parameter) => getFacetParameterValue(product?.category, normalizedKeyword, product, variant, parameter));
 }
 
+export function feedParameterMatchesFacetKeyword(name: string, keyword: string): boolean {
+  return parameterMatchesFacetKeyword(normalizeText(name), normalizeText(keyword));
+}
+
 function getFacetParameterValue(slug: string | undefined, normalizedKeyword: string, product: FeedProduct | undefined, variant: FeedVariant, parameter: FeedParameter): string {
   if (slug === "koronchatye-sverla" && normalizedKeyword === "серия" && product?.brand === "LENZ") {
     const canonicalSeries = [product.title, variant.name, variant.sku].join(" ").match(/\b(LZ[A-Z0-9-]{2,})\b/iu)?.[1];
@@ -896,6 +901,38 @@ function parameterMatchesFacetKeyword(normalizedName: string, normalizedKeyword:
 function formatParameterValue(parameter: FeedParameter): string {
   const localizedValue = /^-?\d+(?:\.\d+)?$/.test(parameter.value) ? parameter.value.replace(".", ",") : parameter.value;
   return `${localizedValue}${parameter.unit ? ` ${parameter.unit}` : ""}`.trim();
+}
+
+function formatProductParameterValue(product: FeedProduct, parameter: FeedParameter): string {
+  const value = formatParameterValue(parameter);
+  if (product.category !== "karetki-svarochnye" || normalizeText(parameter.name) !== "положения сварки") return value;
+  return formatWeldingPositionLabel(value, true);
+}
+
+function formatFacetOptionLabel(slug: string, keyword: string, value: string): string {
+  if (slug !== "karetki-svarochnye" || normalizeText(keyword) !== "положения сварки") return value;
+  return formatWeldingPositionLabel(value);
+}
+
+function formatSelectedFilterValue(slug: string, keyword: string, value: string): string {
+  if (slug !== "karetki-svarochnye" || normalizeText(keyword) !== "положения сварки") return value;
+  return formatWeldingPositionLabel(value, true);
+}
+
+function formatWeldingPositionLabel(value: string, compact = false): string {
+  const code = value.match(/\b(PA\/1[GF]|PB\/2F|PC\/2G|PF\/3[GF])\b/iu)?.[1]?.toLocaleUpperCase("ru-RU");
+  if (!code) return value;
+  const positionLabels: Record<string, string> = {
+    "PA/1G":"Нижнее положение, стыковой шов",
+    "PA/1F":"Нижнее положение, угловой шов",
+    "PB/2F":"Горизонтальное положение, угловой шов",
+    "PC/2G":"Горизонтальное положение, стыковой шов",
+    "PF/3G":"Вертикальное снизу вверх, стыковой шов",
+    "PF/3F":"Вертикальное снизу вверх, угловой шов",
+  };
+  const productForm = /труб/iu.test(value) ? "Труба — " : "";
+  if (compact) return `${productForm}${positionLabels[code].replace(" положение,", ",")} · ${code}`;
+  return `${productForm}${positionLabels[code]} · ${code}`;
 }
 
 function getProductSearchText(product: FeedProduct): string {
@@ -942,7 +979,7 @@ function getFeedProductSpecs(product: FeedProduct): FeedProductSpec[] {
     if (!orderedNames.includes(name)) orderedNames.push(name);
   }
 
-  return orderedNames.slice(0, 4).map((name) => ({ label:getFeedParameterLabel(product, name), value:summarizeParameterValues(parameters, name) }));
+  return orderedNames.slice(0, 4).map((name) => ({ label:getFeedParameterLabel(product, name), value:summarizeParameterValues(product, parameters, name) }));
 }
 
 export function getFeedVariantSpecs(product: FeedProduct, variant: FeedVariant): FeedProductSpec[] {
@@ -956,7 +993,7 @@ export function getFeedVariantSpecs(product: FeedProduct, variant: FeedVariant):
     const parameterKey = parameter ? normalizeText(parameter.name) : "";
     if (!parameter || selectedNames.has(parameterKey)) continue;
     selectedNames.add(parameterKey);
-    selected.push({ label:getFeedParameterLabel(product, parameter.name), value:formatParameterValue(parameter) });
+    selected.push({ label:getFeedParameterLabel(product, parameter.name), value:formatProductParameterValue(product, parameter) });
     if (selected.length === 6) break;
   }
 
@@ -999,7 +1036,7 @@ export function getFeedVariantTechnicalSpecs(product: FeedProduct, variant: Feed
     const displayLabel = getFeedParameterLabel(product, parameter.name);
     const key = normalizeText(displayLabel);
     if (!key || selected.has(key)) continue;
-    selected.set(key, { label:displayLabel, value:formatParameterValue(parameter) });
+    selected.set(key, { label:displayLabel, value:formatProductParameterValue(product, parameter) });
   }
 
   return Array.from(selected.values()).slice(0, 16);
@@ -1007,9 +1044,9 @@ export function getFeedVariantTechnicalSpecs(product: FeedProduct, variant: Feed
 
 const summaryNumberFormatter = new Intl.NumberFormat("ru-RU", { maximumFractionDigits:4 });
 
-function summarizeParameterValues(parameters: FeedParameter[], name: string): string {
+function summarizeParameterValues(product: FeedProduct, parameters: FeedParameter[], name: string): string {
   const matchingParameters = parameters.filter((parameter) => parameter.name === name);
-  const values = Array.from(new Set(matchingParameters.map(formatParameterValue)));
+  const values = Array.from(new Set(matchingParameters.map((parameter) => formatProductParameterValue(product, parameter))));
   if (values.length <= 2) return values.join(" / ");
 
   const scalarValues = matchingParameters.map((parameter) => ({
