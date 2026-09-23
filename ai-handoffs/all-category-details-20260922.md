@@ -52,3 +52,17 @@
 - Browser QA без отправки форм: TCT + LENZ показывает LZTM и 110 мм; зенковки показывают Weldon 19 и КМ2; отдельный путь бесщёточных станков открывается и содержит товары. Визуально быстрый блок остаётся компактным.
 - Локальное production-preview: `http://127.0.0.1:3231/`. Публикация на тестовый или production-домен не выполнялась.
 - Commit экспертной доработки: `bf851da` — `feat: refine industrial category decisions`.
+
+## Test deployment — 2026-09-23
+
+- Пользователь продолжил согласованный приоритетный этап публикации и сквозной проверки только на `test.7tool.ru`. Production, DNS, Nginx, credentials, фид и внешние каналы не изменялись.
+- Опубликован branch head `ca75bfd` (реализация `bf851da`). Активный release: `/var/www/7tool-release-20260923-category-decisions-ca75bfd`.
+- Rollback сохранён: `/var/www/7tool-release-20260922-drilling-hierarchy-edaabd3`.
+- Архив перед распаковкой проверен по SHA-256: `255be4fdc26e30dc4fe3f3d9928539c30f639fbf9967957d03e8dab8b699f145`.
+- Lockfile и товарный snapshot совпали с предыдущим test-release по SHA-256; существующее неизменяемое дерево `node_modules` переиспользовано ссылкой. Товарные данные не заменялись.
+- В новой release-папке на сервере: `225/225` tests passed, полный ESLint passed, production build passed.
+- До переключения отдельный candidate на `127.0.0.1:3199` прошёл read-only проверки главной, бесщёточных станков, LENZ LZTM/110 мм, хвостовиков Weldon 19/КМ2, групп манипуляторов и закрытого staff-маршрута.
+- Переключение выполнено rollback-safe скриптом: новая главная обязана вернуть 200, иначе автоматически восстанавливается прежний release. Новый `7tool-storefront-test` online, 0 restarts, cwd и script path указывают на release `ca75bfd`; список PM2 сохранён.
+- После переключения те же ключевые маршруты вернули 200 и содержат ожидаемые серверные маркеры. Внешний HTTPS-gate: anonymous home → 302 на `/test/access`, access page → 200; `https://7tool.ru/` остаётся 200.
+- Встроенный браузер подтвердил штатную HTML-страницу входа. Обнаружено ограничение test-gate: при анонимном входе по URL с фильтрами параметр `returnTo` сохраняет путь и hash, но теряет query-фильтры; production-каталог этим шлюзом не затронут. Требует отдельной безопасной доработки gateway/app-login.
+- После релиза свободно около `7.4 GB` на `/var/www`. Формы, тестовые лиды, email, Telegram, MAX и CRM не вызывались.
