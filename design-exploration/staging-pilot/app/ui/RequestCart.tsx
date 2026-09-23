@@ -119,11 +119,14 @@ export function RequestCartButton({ compact = false }: { compact?: boolean }) {
   return <button className={compact ? "request-cart-trigger request-cart-trigger--compact" : "request-cart-trigger"} type="button" onClick={open} aria-label={`Открыть запрос КП, позиций: ${items.length}, единиц: ${totalQuantity}`}><span>КП</span>{items.length > 0 && <b>{items.length}</b>}</button>;
 }
 
-export function AddRequestButton({ item, className, children }: { item: RequestItem; className?: string; children?: ReactNode }) {
-  const { items, addItem } = useRequestCart();
+export function AddRequestButton({ item, className, children, openWhenAdded = false }: { item: RequestItem; className?: string; children?: ReactNode; openWhenAdded?: boolean }) {
+  const { items, addItem, open } = useRequestCart();
   const added = items.some((current) => current.id === item.id);
   const buttonClassName = [className, added ? "request-item-added" : ""].filter(Boolean).join(" ") || undefined;
-  return <button className={buttonClassName} type="button" onClick={() => addItem(item)} aria-live="polite">{added ? "Добавлено · ещё +1" : children ?? "В запрос"}</button>;
+  const activate = () => { if (added && openWhenAdded) open(); else addItem(item); };
+  const addedLabel = added ? "Добавлено · ещё +1" : children ?? "В запрос";
+  const buttonLabel = added && openWhenAdded ? "Открыть КП" : addedLabel;
+  return <button className={buttonClassName} type="button" onClick={activate} aria-live="polite">{buttonLabel}</button>;
 }
 
 function RequestCartDock() {

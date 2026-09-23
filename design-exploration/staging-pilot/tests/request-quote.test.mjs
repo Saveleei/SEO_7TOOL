@@ -69,3 +69,16 @@ test("invoice requisites are optional, progressive and size-bounded", async () =
   assert.doesNotMatch(component, /name="billing_(?:inn|file)"[^>]*required/u);
   assert.match(styles, /\.request-cart-requisites>summary \{[^}]*cursor:pointer/us);
 });
+
+test("mobile product buybar opens the existing quote instead of changing its quantity", async () => {
+  const [component, page, styles] = await Promise.all([
+    readFile(new URL("../app/ui/RequestCart.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/product/[slug]/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+  ]);
+  assert.match(component, /if \(added && openWhenAdded\) open\(\); else addItem\(item\);/u);
+  assert.match(component, /added && openWhenAdded \? "Открыть КП" : addedLabel/u);
+  assert.match(page, /<AddRequestButton openWhenAdded item=/u);
+  assert.match(styles, /\.site-shell:has\(\.feed-product-conversion-page\) \.mobile-action-bar \{ display:none; \}/u);
+  assert.match(styles, /\.request-cart-item-copy \{ padding-right:68px; \}/u);
+});
