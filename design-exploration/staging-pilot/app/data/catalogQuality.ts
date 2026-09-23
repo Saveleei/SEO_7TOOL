@@ -2,7 +2,7 @@ import { getCategoryExpertProfile, selectCategoryFacets } from "./categoryExpert
 import { getCategoryFamily, getCategoryFamilyShortcuts } from "./categoryAssortmentTaxonomy.mjs";
 import { getCategorySelectionRule } from "./categorySelection.mjs";
 import { classifyMissingProductMedia } from "./catalogMediaRecovery.mjs";
-import { getFeedCategoryPage, getFeedCategoryProductType, getFeedCategorySegment, getFeedCategorySubsegment, getPublishedFeedCatalogSnapshot, type FeedCategory, type FeedCategoryQuery, type FeedFacet, type FeedParameter, type FeedProduct, type FeedVariant } from "./feedCatalog.ts";
+import { getFeedCategoryPage, getFeedCategoryProductType, getFeedCategorySegment, getFeedCategorySubsegment, getFeedProductImage, getPublishedFeedCatalogSnapshot, type FeedCategory, type FeedCategoryQuery, type FeedFacet, type FeedParameter, type FeedProduct, type FeedVariant } from "./feedCatalog.ts";
 
 export type CatalogQualityStatus = "critical" | "review" | "healthy";
 export type CatalogQualitySeverity = "critical" | "warning" | "notice";
@@ -500,7 +500,7 @@ function formatKeywordList(keywords: string[]): string {
 }
 
 function hasProductImage(product: FeedProduct): boolean {
-  return (product.images ?? []).some(Boolean) || product.variants.some((variant) => (variant.images ?? []).some(Boolean));
+  return Boolean(getFeedProductImage(product));
 }
 
 function hasParameter(variant: FeedVariant, keyword: string): boolean {

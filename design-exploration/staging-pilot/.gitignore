@@ -10,6 +10,7 @@
 
 # testing
 /coverage
+/.local-qa-*/
 
 # next.js
 /.next/

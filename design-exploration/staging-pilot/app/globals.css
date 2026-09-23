@@ -132,6 +132,119 @@ img { display:block; max-width:100%; }
   .route-demo { grid-template-columns:1fr; }
 }
 
+/* Catalog product media workspace */
+.catalog-media-hero { padding:42px 0; border-bottom:1px solid var(--line); background:linear-gradient(135deg,#f6f7f4 0%,#fff 66%); }
+.catalog-media-hero .container { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:40px; align-items:end; }
+.catalog-media-hero h1 { margin:7px 0 12px; font-size:clamp(38px,5vw,64px); line-height:.96; letter-spacing:-.045em; }
+.catalog-media-hero p { max-width:760px; margin:0; color:var(--muted); font-size:18px; line-height:1.55; }
+.catalog-media-hero aside { display:grid; gap:6px; padding:20px; border:1px solid #cfd5ce; border-left:4px solid #df4d0f; border-radius:12px; background:#fff; }
+.catalog-media-hero aside span,.catalog-media-hero aside small { color:var(--muted); font-size:13px; line-height:1.4; }
+.catalog-media-hero aside b { font-size:20px; line-height:1.25; }
+.catalog-media-content { padding-top:28px; }
+.catalog-media-summary { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; margin-bottom:20px; }
+.catalog-media-summary-card { display:grid; gap:5px; min-height:98px; padding:16px; border:1px solid var(--line); border-radius:10px; background:#fff; }
+.catalog-media-summary-card b { font-size:30px; line-height:1; }
+.catalog-media-summary-card span { color:var(--muted); font-size:13px; line-height:1.3; }
+.catalog-media-summary-card--priority { border-top:3px solid #df4d0f; }
+.catalog-media-summary-card--success { border-top:3px solid #16834f; }
+.catalog-media-filters { display:grid; grid-template-columns:1.2fr 1fr minmax(260px,2fr) auto auto; gap:10px; align-items:end; padding:16px; border:1px solid var(--line); border-radius:12px; background:#f6f7f4; }
+.catalog-media-filters label { display:grid; gap:6px; }
+.catalog-media-filters label span { color:#4f5751; font-size:12px; font-weight:700; }
+.catalog-media-filters select,.catalog-media-filters input { width:100%; min-height:46px; padding:0 12px; border:1px solid #c7ccc6; border-radius:7px; background:#fff; color:#171b18; font:inherit; }
+.catalog-media-filters button,.catalog-media-filters>a { display:inline-flex; min-height:46px; align-items:center; justify-content:center; padding:0 18px; border:1px solid #202521; border-radius:7px; background:#202521; color:#fff; font-weight:750; text-decoration:none; }
+.catalog-media-filters>a { border-color:#c7ccc6; background:#fff; color:#202521; }
+.catalog-media-policy { display:grid; grid-template-columns:190px 1fr; gap:18px; margin:16px 0 28px; padding:16px 18px; border-left:3px solid #df4d0f; background:#fff8f3; }
+.catalog-media-policy p { margin:0; color:#5a514b; line-height:1.55; }
+.catalog-media-workspace>header { display:flex; align-items:end; justify-content:space-between; gap:20px; margin-bottom:14px; }
+.catalog-media-workspace h2 { margin:4px 0 0; font-size:32px; letter-spacing:-.025em; }
+.catalog-media-workspace>header>span { color:var(--muted); font-size:14px; }
+.catalog-media-feedback { position:sticky; top:10px; z-index:9; }
+.catalog-media-feedback p { margin:0 0 12px; padding:12px 16px; border-radius:8px; box-shadow:0 8px 30px rgba(0,0,0,.09); }
+.catalog-media-feedback .success { border:1px solid #a8d7bf; background:#edf8f2; color:#086439; }
+.catalog-media-feedback .error { border:1px solid #e2b1a4; background:#fff1ed; color:#962d16; }
+.catalog-media-list { display:grid; gap:16px; }
+.catalog-media-item { display:grid; grid-template-columns:minmax(0,1.45fr) minmax(230px,.72fr); gap:0 20px; overflow:hidden; border:1px solid #cfd3cf; border-radius:14px; background:#fff; box-shadow:0 8px 30px rgba(24,31,26,.04); }
+.catalog-media-item-main { display:grid; grid-template-columns:180px 1fr; gap:18px; padding:20px; }
+.catalog-media-product-image { position:relative; min-height:180px; overflow:hidden; border:1px solid #e0e3df; border-radius:10px; background:#f5f6f3; }
+.catalog-media-product-image img { object-fit:contain; padding:10px; }
+.catalog-media-product-image>span { position:absolute; inset:0; display:grid; place-items:center; color:#939a94; font-size:14px; font-weight:700; text-align:center; }
+.catalog-media-product-copy h3 { margin:10px 0 7px; font-size:21px; line-height:1.23; }
+.catalog-media-product-copy>p { margin:0 0 6px; color:#4f5751; }
+.catalog-media-product-copy>small { color:#676e69; }
+.catalog-media-badges { display:flex; flex-wrap:wrap; gap:6px; }
+.catalog-media-badges span { padding:5px 8px; border-radius:99px; background:#eef0ed; color:#424944; font-size:11px; font-weight:800; }
+.catalog-media-badges span[data-state="draft"] { background:#fff0e5; color:#9e3c0b; }
+.catalog-media-badges span[data-state="published"] { background:#e6f5ed; color:#08703d; }
+.catalog-media-badges span[data-state="disabled"] { background:#fbe9e5; color:#932b18; }
+.catalog-media-instruction { margin-top:12px!important; padding-top:10px; border-top:1px solid #e6e8e5; font-size:13px; line-height:1.45; }
+.catalog-media-links { display:flex; flex-wrap:wrap; gap:16px; margin-top:12px; }
+.catalog-media-links a { color:#a43a0e; font-size:13px; font-weight:750; }
+.catalog-media-preview { padding:20px; border-left:1px solid var(--line); background:#f7f8f5; }
+.catalog-media-preview>span { display:block; margin-bottom:10px; color:#646b66; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; }
+.catalog-media-preview>div { display:grid; gap:10px; padding:10px; border:1px solid #d8dcd7; border-radius:9px; background:#fff; }
+.catalog-media-preview-image { position:relative; min-height:132px; overflow:hidden; border-radius:6px; background:#f5f6f3; }
+.catalog-media-preview-image img { object-fit:contain; padding:6px; }
+.catalog-media-preview-image i { position:absolute; inset:0; display:grid; place-items:center; color:#aeb4af; font-size:28px; font-style:normal; font-weight:900; }
+.catalog-media-preview section { display:grid; gap:5px; }
+.catalog-media-preview section small { color:#707772; font-size:11px; }
+.catalog-media-preview section b { font-size:14px; line-height:1.3; }
+.catalog-media-preview section em { font-size:17px; font-style:normal; font-weight:850; }
+.catalog-media-upload { grid-column:1/-1; display:grid; grid-template-columns:minmax(260px,1fr) minmax(220px,.7fr) auto; gap:12px; align-items:end; padding:16px 20px; border-top:1px solid var(--line); background:#fbfcfa; }
+.catalog-media-upload label { display:grid; gap:6px; }
+.catalog-media-upload label>span { font-size:12px; font-weight:800; }
+.catalog-media-upload input[type="url"] { min-height:44px; padding:0 12px; border:1px solid #c8cdc7; border-radius:7px; font:inherit; }
+.catalog-media-file { position:relative; grid-template-columns:1fr auto; padding:8px 12px; border:1px dashed #aeb5ae; border-radius:7px; background:#fff; cursor:pointer; }
+.catalog-media-file input { position:absolute; inline-size:1px; block-size:1px; opacity:.01; }
+.catalog-media-file small { color:#747b75; font-size:11px; }
+.catalog-media-upload button,.catalog-media-controls button { min-height:44px; padding:0 16px; border:1px solid #222823; border-radius:7px; background:#222823; color:#fff; font:inherit; font-weight:800; cursor:pointer; }
+.catalog-media-upload button:disabled,.catalog-media-controls button:disabled { cursor:wait; opacity:.5; }
+.catalog-media-controls { grid-column:1/-1; display:grid; gap:12px; padding:0 20px 18px; background:#fbfcfa; }
+.catalog-media-controls>div { display:flex; flex-wrap:wrap; gap:8px; }
+.catalog-media-controls button.secondary { border-color:#bfc5bf; background:#fff; color:#222823; }
+.catalog-media-controls button.danger { border-color:#c74a31; background:#fff; color:#a32f18; }
+.catalog-media-restore { align-items:end; }
+.catalog-media-restore label { display:grid; gap:5px; min-width:280px; }
+.catalog-media-restore label span { font-size:12px; font-weight:750; }
+.catalog-media-restore select { min-height:42px; padding:0 10px; border:1px solid #c8cdc7; border-radius:7px; background:#fff; }
+.catalog-media-audit { border-top:1px solid #e0e3df; padding-top:12px; }
+.catalog-media-audit summary { cursor:pointer; font-size:13px; font-weight:800; }
+.catalog-media-audit ol { display:grid; gap:6px; margin:10px 0 0; padding:0; list-style:none; }
+.catalog-media-audit li { display:grid; grid-template-columns:170px 1fr; gap:12px; font-size:12px; }
+.catalog-media-audit li span { color:#69706b; }
+.catalog-media-empty { padding:48px 20px; border:1px dashed #c8cdc7; border-radius:12px; text-align:center; }
+.catalog-media-empty b { font-size:20px; }
+.catalog-media-empty p { color:var(--muted); }
+.catalog-media-empty a { color:#a43a0e; font-weight:800; }
+
+@media (max-width:980px) {
+  .catalog-media-summary { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .catalog-media-filters { grid-template-columns:1fr 1fr; }
+  .catalog-media-search { grid-column:1/-1; }
+  .catalog-media-item { grid-template-columns:1fr; }
+  .catalog-media-preview { display:none; }
+}
+
+@media (max-width:680px) {
+  .catalog-media-hero { padding:28px 0; }
+  .catalog-media-hero .container { grid-template-columns:1fr; gap:20px; }
+  .catalog-media-hero h1 { font-size:40px; }
+  .catalog-media-hero p { font-size:16px; }
+  .catalog-media-summary { grid-template-columns:1fr 1fr; }
+  .catalog-media-filters { grid-template-columns:1fr; }
+  .catalog-media-search { grid-column:auto; }
+  .catalog-media-filters button,.catalog-media-filters>a { width:100%; }
+  .catalog-media-policy { grid-template-columns:1fr; gap:6px; }
+  .catalog-media-workspace>header { align-items:start; flex-direction:column; }
+  .catalog-media-item-main { grid-template-columns:92px 1fr; gap:12px; padding:14px; }
+  .catalog-media-product-image { min-height:92px; }
+  .catalog-media-product-copy h3 { font-size:17px; }
+  .catalog-media-upload { grid-template-columns:1fr; padding:14px; }
+  .catalog-media-controls { padding:0 14px 14px; }
+  .catalog-media-controls button { width:100%; }
+  .catalog-media-restore label { min-width:0; width:100%; }
+  .catalog-media-audit li { grid-template-columns:1fr; gap:2px; }
+}
+
 /* Product recommendation system: evidence first, no random cross-sell. */
 .feed-recommendation-system { scroll-margin-top:58px; background:#f1f3ef; }
 .feed-recommendation-heading { margin-bottom:24px; }

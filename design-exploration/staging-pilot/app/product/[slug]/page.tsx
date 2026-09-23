@@ -45,7 +45,7 @@ export default async function FeedProductPage({ params, searchParams }: RoutePro
   const selectedVariantId = typeof rawSearchParams.variant === "string" ? rawSearchParams.variant : "";
   const allVariants = sortVariantsForChoice(product, product.variants.filter((variant) => variant.name || variant.sku));
   const primaryVariant = allVariants.find((variant) => variant.id === selectedVariantId) ?? allVariants[0];
-  const images = Array.from(new Set([...(primaryVariant?.images ?? []), ...product.images].filter(Boolean)));
+  const images = Array.from(new Set([...(primaryVariant?.images ?? []), ...product.images, getFeedProductImage(product)].filter((image): image is string => Boolean(image))));
   const keySpecs = primaryVariant ? getFeedVariantSpecs(product, primaryVariant).slice(0, 4) : [];
   const fullSpecs = primaryVariant?.params.filter((parameter) => !/^(бренд|производитель)$/i.test(parameter.name)) ?? [];
   const descriptionParagraphs = product.description?.split(/\n\s*\n/).map((paragraph) => paragraph.trim()).filter((paragraph) => paragraph.length >= 60 && !paragraph.endsWith("?")).slice(0, 2) ?? [];

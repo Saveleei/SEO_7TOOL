@@ -6,6 +6,7 @@ import { getCategorySelectionRule } from "./categorySelection.mjs";
 import { selectComparableAlternatives, selectProductCompatibility } from "./productRecommendations.mjs";
 import { getProductShippingPromise, getVariantShippingPromise } from "./shippingPromise.mjs";
 import { applyVerifiedProductMedia } from "./verifiedProductMedia.mjs";
+import { getRuntimeCatalogProductMediaUrl } from "./catalogProductMediaStore.ts";
 
 export type FeedParameter = {
   name: string;
@@ -545,7 +546,9 @@ export function getFeedProductAlternatives(product: FeedProduct, variant: FeedVa
 }
 
 export function getFeedProductImage(product: FeedProduct): string | undefined {
-  return product.images.find(Boolean) ?? product.variants.find((variant) => variant.images?.some(Boolean))?.images?.find(Boolean);
+  return product.images.find(Boolean)
+    ?? product.variants.find((variant) => variant.images?.some(Boolean))?.images?.find(Boolean)
+    ?? getRuntimeCatalogProductMediaUrl(product);
 }
 
 export function formatFeedPrice(value?: number): string | undefined {
