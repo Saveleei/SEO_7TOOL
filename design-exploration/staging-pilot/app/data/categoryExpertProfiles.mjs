@@ -383,7 +383,7 @@ export const categoryExpertProfiles = {
     promotedFacetKeywords:["тип исполнения", "макс. диаметр круглого профиля при резке 90", "макс. ширина заготовки"],
     assortmentShortcuts:[
       { label:"Ленточнопильные станки", productType:"equipment", copy:"Модели оборудования с рабочей зоной и параметрами реза." },
-      { label:"Оснастка и опции", productType:"accessories", copy:"Прижимы, измерительные устройства, рольганги и системы удаления стружки." },
+      { label:"Оснастка и опции", productType:"accessories", copy:"Прижимы, измерительные устройства, рольганги и системы удаления стружки.", selectionMode:"engineer" },
     ],
     criteriaTitle:"Что определяет выбор ленточнопильного станка",
     criteriaIntro:"Сообщите типовые и максимальные сечения, а не только один диаметр.",

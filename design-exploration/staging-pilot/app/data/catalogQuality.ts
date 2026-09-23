@@ -77,7 +77,7 @@ export type CatalogQualityReport = {
   issues: CatalogQualityIssue[];
 };
 
-type NumericInstance = { categorySlug: string; product: FeedProduct; variant: FeedVariant; parameter: FeedParameter; numeric: number };
+type NumericInstance = { categorySlug: string; selectionScope: string; product: FeedProduct; variant: FeedVariant; parameter: FeedParameter; numeric: number };
 type ProductSelectionProfile = {
   mode: "guided" | "engineer";
   familyId?: string;
@@ -134,8 +134,8 @@ export function catalogQualityIssueLabel(code: CatalogQualityIssueCode): string 
 
 function buildCatalogQualityReport(): CatalogQualityReport {
   const issues: CatalogQualityIssue[] = [];
-  const numericInstances = collectNumericInstances(publishedProducts);
   const selectionProfilesByProduct = buildProductSelectionProfiles();
+  const numericInstances = collectNumericInstances(publishedProducts, selectionProfilesByProduct);
   const duplicateIdentifiers = duplicateIdentityGroups(publishedProducts.flatMap((product) => product.variants.map((variant) => ({
     key:normalizeKey(variant.id), product, variant,
   }))));
@@ -186,7 +186,7 @@ function buildCatalogQualityReport(): CatalogQualityReport {
       if (!(typeof variant.price === "number" && variant.price > 0)) issues.push(issue(product, category, "missing_price", "warning", "На витрине будет показано «Цена по запросу».", variant));
 
       for (const parameter of variant.params ?? []) {
-        const canEnterGuidedFacet = selectionFacets.some((facet) => facet.keyword && normalizeKey(parameter.name).includes(normalizeKey(facet.keyword)));
+        const canEnterGuidedFacet = selectionFacets.some((facet) => facet.keyword && parameterMatchesKeyword(parameter.name, facet.keyword));
         if (canEnterGuidedFacet && isMalformedNumericParameter(parameter)) {
           issues.push(issue(product, category, "malformed_numeric", "warning", `«${parameter.name}» содержит значение «${formatParameter(parameter)}», которое нельзя безопасно использовать как размер.`));
         }
@@ -281,12 +281,14 @@ function buildCategoryQuality(category: FeedCategory, products: FeedProduct[], i
   };
 }
 
-function collectNumericInstances(products: FeedProduct[]): NumericInstance[] {
+function collectNumericInstances(products: FeedProduct[], selectionProfilesByProduct: Map<string, ProductSelectionProfile>): NumericInstance[] {
   const instances: NumericInstance[] = [];
   for (const product of products) for (const variant of product.variants) for (const parameter of variant.params ?? []) {
-    if (!isMeasuredParameter(parameter.name)) continue;
+    if (!isSelectionNumericParameter(parameter.name)) continue;
     const numeric = parseNumeric(parameter.value);
-    if (Number.isFinite(numeric) && numeric > 0) instances.push({ categorySlug:product.category, product, variant, parameter, numeric });
+    const profile = selectionProfilesByProduct.get(product.id) ?? emptySelectionProfile;
+    const selectionScope = profile.familyId ?? profile.scopeHref ?? product.category;
+    if (Number.isFinite(numeric) && numeric > 0) instances.push({ categorySlug:product.category, selectionScope, product, variant, parameter, numeric });
   }
   return instances;
 }
@@ -294,7 +296,7 @@ function collectNumericInstances(products: FeedProduct[]): NumericInstance[] {
 function numericOutliers(instances: NumericInstance[]): NumericInstance[][] {
   const groups = new Map<string, NumericInstance[]>();
   for (const instance of instances) {
-    const key = `${instance.categorySlug}|${normalizeKey(instance.parameter.name)}|${normalizeKey(instance.parameter.unit ?? "")}`;
+    const key = `${instance.categorySlug}|${instance.selectionScope}|${normalizeKey(instance.parameter.name)}|${normalizeKey(instance.parameter.unit ?? "")}`;
     const group = groups.get(key);
     if (group) group.push(instance);
     else groups.set(key, [instance]);
@@ -379,11 +381,12 @@ function buildProductSelectionProfiles(): Map<string, ProductSelectionProfile> {
   const profiles = new Map<string, ProductSelectionProfile>();
   for (const category of publishedCategories) {
     const categoryProducts = publishedProducts.filter((product) => product.category === category.slug);
+    const categorySelectionMode = getCategoryExpertProfile(category.slug).selectionMode ?? "guided";
     const structuralGroups = new Map<string, { target: StructuralSelectionTarget; products: FeedProduct[] }>();
     for (const product of categoryProducts) {
       const familyId = getCategoryFamily(category.slug, product);
       const familyShortcut = getCategoryFamilyShortcuts(category.slug)?.assortmentShortcuts.find((shortcut) => shortcut.family === familyId);
-      if (familyShortcut?.selectionMode === "engineer") continue;
+      if ((familyShortcut?.selectionMode ?? categorySelectionMode) === "engineer") continue;
       const target = structuralSelectionTarget(category.slug, product);
       if (!target) continue;
       const group = structuralGroups.get(target.scopeHref);
@@ -404,7 +407,7 @@ function buildProductSelectionProfiles(): Map<string, ProductSelectionProfile> {
     for (const shortcut of shortcuts) {
       const familyProducts = categoryProducts.filter((product) => !profiles.has(product.id) && getCategoryFamily(category.slug, product) === shortcut.family);
       if (familyProducts.length === 0) continue;
-      const mode = shortcut.selectionMode === "engineer" ? "engineer" : "guided";
+      const mode = (shortcut.selectionMode ?? categorySelectionMode) === "engineer" ? "engineer" : "guided";
       const page = getFeedCategoryPage(category.slug, { family:shortcut.family, pageSize:48 });
       const facets = mode === "engineer"
         ? []
@@ -424,8 +427,9 @@ function buildProductSelectionProfiles(): Map<string, ProductSelectionProfile> {
     const unclassifiedProducts = categoryProducts.filter((product) => !profiles.has(product.id));
     if (unclassifiedProducts.length > 0) {
       const page = getFeedCategoryPage(category.slug, { pageSize:48 });
-      const facets = selectCategoryFacets(category.slug, page.facets.filter((facet) => facet.keyword), decisionFacetLimit(category.slug));
-      const profile: ProductSelectionProfile = { mode:"guided", facets, keywords:facets.map((facet) => facet.keyword).filter(Boolean) };
+      const mode = categorySelectionMode === "engineer" ? "engineer" : "guided";
+      const facets = mode === "engineer" ? [] : selectCategoryFacets(category.slug, page.facets.filter((facet) => facet.keyword), decisionFacetLimit(category.slug));
+      const profile: ProductSelectionProfile = { mode, facets, keywords:facets.map((facet) => facet.keyword).filter(Boolean) };
       for (const product of unclassifiedProducts) profiles.set(product.id, profile);
     }
   }
@@ -496,17 +500,16 @@ function hasProductImage(product: FeedProduct): boolean {
 }
 
 function hasParameter(variant: FeedVariant, keyword: string): boolean {
-  const normalizedKeyword = normalizeKey(keyword);
-  return (variant.params ?? []).some((parameter) => normalizeKey(parameter.name).includes(normalizedKeyword) && Boolean(String(parameter.value ?? "").trim()));
+  return (variant.params ?? []).some((parameter) => parameterMatchesKeyword(parameter.name, keyword) && Boolean(String(parameter.value ?? "").trim()));
 }
 
 function firstNumericParameter(variant: FeedVariant, keyword: string): number {
-  const parameter = (variant.params ?? []).find((entry) => normalizeKey(entry.name).includes(normalizeKey(keyword)));
+  const parameter = (variant.params ?? []).find((entry) => parameterMatchesKeyword(entry.name, keyword));
   return parseNumeric(parameter?.value);
 }
 
 function isMalformedNumericParameter(parameter: FeedParameter): boolean {
-  if (!isMeasuredParameter(parameter.name)) return false;
+  if (!isSelectionNumericParameter(parameter.name)) return false;
   if (/резьб|угол/iu.test(parameter.name)) return false;
   const value = String(parameter.value ?? "").trim();
   if (/^(?:h|js|it)\d+$/iu.test(value)) return true;
@@ -517,6 +520,18 @@ function isMalformedNumericParameter(parameter: FeedParameter): boolean {
 
 function isMeasuredParameter(name: string): boolean {
   return /(диаметр|длина|ширина|толщина|мощность|производительность|объ[её]м|масса|грузопод|усилие|радиус|охват|частота|скорость|напряжение|ход|поле|размер)/iu.test(name);
+}
+
+function isSelectionNumericParameter(name: string): boolean {
+  return isMeasuredParameter(name) && !/(допуск|отклонени|точност|квалитет|посадк)/iu.test(name);
+}
+
+function parameterMatchesKeyword(name: string, keyword: string): boolean {
+  const normalizedName = normalizeKey(name);
+  const normalizedKeyword = normalizeKey(keyword);
+  if (!normalizedKeyword || !normalizedName.includes(normalizedKeyword)) return false;
+  const disambiguators = ["допуск", "отклонени", "точност", "квалитет", "посадк"];
+  return !disambiguators.some((term) => normalizedName.includes(term) && !normalizedKeyword.includes(term));
 }
 
 function parseNumeric(value: unknown): number {

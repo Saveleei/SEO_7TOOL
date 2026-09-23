@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import feedSnapshotJson from "../../../7tool-source/src/lib/products.json" with { type:"json" };
 import { getCategoryFamily, getCategoryFamilyShortcuts } from "../app/data/categoryAssortmentTaxonomy.mjs";
+import { getCategoryExpertProfile } from "../app/data/categoryExpertProfiles.mjs";
 import { getCatalogQualityReport } from "../app/data/catalogQuality.ts";
 import { canManager } from "../app/data/managerAccess.ts";
 
@@ -44,7 +45,7 @@ test("selection quality follows each assortment family and excludes engineer-fir
   for (const product of publishedProducts) {
     const familyId = getCategoryFamily(product.category, product);
     const shortcut = getCategoryFamilyShortcuts(product.category)?.assortmentShortcuts.find((candidate) => candidate.family === familyId);
-    if (shortcut?.selectionMode === "engineer") engineerProductIds.add(product.id);
+    if ((shortcut?.selectionMode ?? getCategoryExpertProfile(product.category).selectionMode) === "engineer") engineerProductIds.add(product.id);
   }
 
   assert.ok(engineerProductIds.size > 0, "the feed must exercise engineer-first assortment families");
@@ -53,6 +54,17 @@ test("selection quality follows each assortment family and excludes engineer-fir
 
   const manipulatorSelectionIssues = selectionIssues.filter((issue) => issue.categorySlug === "rezbonareznye-manipulyatory");
   assert.ok(manipulatorSelectionIssues.length < 30, "accessories and project manipulators must not inherit mass-market filters");
+});
+
+test("P1 excludes tolerance notation and compatibility-first accessory groups", () => {
+  const report = getCatalogQualityReport();
+  const numericIssues = report.issues.filter((issue) => issue.code === "malformed_numeric" || issue.code === "numeric_outlier");
+  const filterIssues = report.issues.filter((issue) => issue.code === "not_filterable");
+
+  assert.equal(numericIssues.some((issue) => /допуск|квалитет|отклонени/iu.test(issue.detail)), false);
+  assert.equal(numericIssues.filter((issue) => issue.categorySlug === "svarochnye-vrashchateli-i-pozitsionery" && /скорость вращения/iu.test(issue.detail)).every((issue) => /мин\. скорость/iu.test(issue.detail)), true);
+  assert.equal(filterIssues.filter((issue) => issue.categorySlug === "shlifovalnoe-i-zatochnoe-oborudovanie").every((issue) => issue.familyId === "belt" || issue.familyId === "drill"), true);
+  assert.equal(filterIssues.some((issue) => issue.scopeLabel === "Оснастка и опции" || issue.scopeLabel === "Патроны и оснастка" || issue.scopeLabel === "Оснастка и комплектующие"), false);
 });
 
 test("catalog work queues separate blockers, decision defects and enrichment", () => {
