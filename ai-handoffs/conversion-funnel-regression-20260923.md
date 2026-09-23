@@ -35,3 +35,17 @@ Complete locally. No deployment was performed.
 ## Commits
 
 - Implementation and verified handoff snapshot: `6023078` (`fix: stabilize mobile quote conversion path`).
+
+## Test deployment — 2026-09-23
+
+- Пользователь продолжил заранее описанный этап release-candidate и публикации только на `test.7tool.ru`. Production, DNS, Nginx, credentials, supplier feed и внешние каналы не изменялись.
+- Опубликован branch head `7603c36` (реализация `6023078`). Активный release: `/var/www/7tool-release-20260923-conversion-funnel-7603c36`.
+- Предыдущий release `/var/www/7tool-release-20260923-catalog-media-d821533` сохранён для rollback; новый head является его прямым потомком, поэтому каталог-медиа и подтверждённые изображения не потеряны.
+- Архив перед распаковкой проверен по SHA-256: `436960acb5e304b0b5cf859606fd2967a4d13bfe0e7231c6e9a7add1fbbe4932`. Lockfile совпал с активным release; неизменяемое дерево `node_modules` переиспользовано hard-link копией.
+- Перед переключением создан backup тестовых данных: `/var/www/7tool-test-shared/backups/quote-requests-before-7603c36-20260923.tar.gz`.
+- На сервере в отдельной release-папке прошли 238/238 тестов, полный ESLint и production build.
+- Изолированный кандидат на `127.0.0.1:3199` последовательно прошёл 50 read-only проверок: главная, поиск, товар, задачи, все опубликованные категории и анонимные редиректы защищённых рабочих пространств. Формы и внешние каналы не вызывались.
+- Rollback-safe переключение прошло успешно: `7tool-storefront-test` online, `0` рестартов, cwd/script path указывают на новый release, PM2 process list сохранён, error-log не вырос (`2931 -> 2931` bytes).
+- Внешний HTTPS: anonymous home возвращает `302` на `/test/access`, страница входа — `200`; production `https://7tool.ru/` остался `200`.
+- Встроенный браузер подтвердил штатную страницу входа и возврат на карточку товара. Сохраняется ранее известное ограничение test-only Nginx gateway: `returnTo` сохраняет pathname, но отбрасывает query выбранного варианта. Исправление требует отдельного явного разрешения на изменение Nginx; production этим шлюзом не затронут.
+- После релиза на `/var/www` свободно около `7.0 GB`. Тестовые лиды, email, Telegram, MAX и CRM не отправлялись.
