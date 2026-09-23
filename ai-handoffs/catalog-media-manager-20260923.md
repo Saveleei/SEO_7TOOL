@@ -62,6 +62,7 @@ Completed and published to the isolated test domain.
 - The rollback-safe switch succeeded. `7tool-storefront-test` is online with zero restarts and its cwd/script path point to the new release. The PM2 error-log size remained unchanged during the switch (`2931 -> 2931` bytes).
 - External HTTPS verification: anonymous `/` redirects to the HTML access page, `/test/access` returns 200, `/test/catalog-media` remains protected, and production `https://7tool.ru/` continues to return 200.
 - Temporary candidate, upload archive, helper scripts, and verification logs were removed. About 7.2 GB remained free after deployment.
+- At the user's request, the `test.7tool.ru` administrator password was rotated on 2026-09-23 while preserving the username `7tool-admin`. The PBKDF2 hash was updated in the isolated PM2 environment, the session-signing key was rotated to invalidate prior sessions, the process list was saved, and a loopback sign-in plus authenticated `/test/catalog-media` check returned 200. The plaintext password was shown to the user only and was not stored in the repository or handoff.
 
 ## Known limits / next work
 
