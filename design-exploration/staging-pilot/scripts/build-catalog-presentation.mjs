@@ -3,6 +3,8 @@ import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import {
   getFeedCategory,
+  getFeedCategoryFacetSnapshot,
+  getFeedCategoryRankingSnapshot,
   getFeedCategoryProducts,
   getFeedProductBySlug,
   getFeedProductImage,
@@ -20,6 +22,7 @@ const FEATURED_PRODUCT_SLUGS = [
 
 const feedPath = path.resolve(process.cwd(), "../../7tool-source/src/lib/products.json");
 const destination = path.resolve(process.cwd(), "app/data/generatedCatalogPresentation.json");
+const facetsDestination = path.resolve(process.cwd(), "app/data/generatedCatalogFacets.json");
 const feedBytes = await readFile(feedPath);
 const publishedCategorySlugs = getPublishedFeedCategorySlugs().slice().sort();
 
@@ -46,4 +49,10 @@ const presentation = {
 };
 
 await writeFile(destination, `${JSON.stringify(presentation, null, 2)}\n`, "utf8");
+await writeFile(facetsDestination, `${JSON.stringify({
+  version:1,
+  sourceSha256:presentation.sourceSha256,
+  categories:Object.fromEntries(publishedCategorySlugs.map((slug) => [slug, getFeedCategoryFacetSnapshot(slug)])),
+  rankings:Object.fromEntries(publishedCategorySlugs.map((slug) => [slug, getFeedCategoryRankingSnapshot(slug)])),
+}, null, 2)}\n`, "utf8");
 console.log(`Catalog presentation generated: ${publishedCategorySlugs.length} categories.`);

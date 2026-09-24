@@ -97,4 +97,7 @@ test("assortment counters reuse the ranked category without rebuilding every fac
   const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
   assert.match(page, /getFeedCategoryProductCountForQuery/u);
   assert.doesNotMatch(page, /count:getFeedCategoryPage\(slug/u);
+  const catalog = await readFile(new URL("../app/data/feedCatalog.ts", import.meta.url), "utf8");
+  assert.match(catalog, /matchingAnalysisIndexes/u);
+  assert.match(catalog, /normalizeParameterName/u);
 });

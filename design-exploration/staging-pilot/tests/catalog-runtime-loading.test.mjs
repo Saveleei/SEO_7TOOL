@@ -17,6 +17,22 @@ test("catalog snapshot is loaded once at runtime instead of embedded in the serv
   assert.ok(getFeedProductBySlug("magnitnyy-sverlilnyy-stanok-lenz-steyr-35"));
 });
 
+test("base facets are precomputed from the exact feed while runtime overrides remain dynamic", async () => {
+  const [feed, generatedSource, catalogSource] = await Promise.all([
+    readFile(new URL("../../../7tool-source/src/lib/products.json", import.meta.url)),
+    readFile(new URL("../app/data/generatedCatalogFacets.json", import.meta.url), "utf8"),
+    readFile(new URL("../app/data/feedCatalog.ts", import.meta.url), "utf8"),
+  ]);
+  const generated = JSON.parse(generatedSource);
+  assert.equal(generated.sourceSha256, createHash("sha256").update(feed).digest("hex"));
+  assert.ok(generated.categories["sverla-i-zenkovki"].length >= 10);
+  assert.equal(generated.rankings["sverla-i-zenkovki"].length, 367);
+  assert.match(catalogSource, /generatedCatalogFacets\.sourceSha256 === feedSnapshotSha256/u);
+  assert.match(catalogSource, /revision === 0/u);
+  assert.match(catalogSource, /generatedFacets \?\? buildCategoryFacets/u);
+  assert.match(catalogSource, /generatedRanking\.length === \(productsByCategory/u);
+});
+
 test("global navigation uses a feed-current lightweight catalog projection", async () => {
   const [feed, presentationSource, groupsSource] = await Promise.all([
     readFile(new URL("../../../7tool-source/src/lib/products.json", import.meta.url)),

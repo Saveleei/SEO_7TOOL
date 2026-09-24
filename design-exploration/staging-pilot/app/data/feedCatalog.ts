@@ -1,6 +1,8 @@
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import generatedCatalogFacets from "./generatedCatalogFacets.json" with { type:"json" };
 import { getCategoryFamily, getCategoryFamilyLabel } from "./categoryAssortmentTaxonomy.mjs";
 import { getCategoryCardArchetype } from "./categoryCardArchetypes.mjs";
 import { getCategoryExpertProfile, getCategoryFacetKeywords } from "./categoryExpertProfiles.mjs";
@@ -206,15 +208,18 @@ type CachedFeedFacet = Omit<FeedFacet, "options"> & {
 // The JSON is parsed once when this server module is loaded and then shared by all
 // catalog indexes below. CATALOG_FEED_PATH is an operator-only escape hatch for a
 // future immutable feed location; the release layout remains the safe default.
-const feedSnapshot = applyVerifiedProductMedia(loadFeedSnapshot()) as FeedSnapshot;
+const loadedFeedSnapshot = loadFeedSnapshot();
+const feedSnapshotSha256 = loadedFeedSnapshot.sha256;
+const feedSnapshot = applyVerifiedProductMedia(loadedFeedSnapshot.snapshot) as FeedSnapshot;
 
-function loadFeedSnapshot(): FeedSnapshot {
+function loadFeedSnapshot(): { snapshot: FeedSnapshot; sha256: string } {
   const configuredPath = process.env.CATALOG_FEED_PATH?.trim();
   const defaultPath = path.resolve(process.cwd(), "../../7tool-source/src/lib/products.json");
   const sourceTreePath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../7tool-source/src/lib/products.json");
   const snapshotPath = [configuredPath, defaultPath, sourceTreePath].filter(Boolean).find((candidate) => existsSync(candidate));
   if (!snapshotPath) throw new Error(`Catalog feed snapshot was not found. Expected ${defaultPath}.`);
-  return JSON.parse(readFileSync(snapshotPath, "utf8")) as FeedSnapshot;
+  const source = readFileSync(snapshotPath, "utf8");
+  return { snapshot:JSON.parse(source) as FeedSnapshot, sha256:createHash("sha256").update(source).digest("hex") };
 }
 
 const categoriesBySlug = new Map(
@@ -225,6 +230,7 @@ const categoriesBySlug = new Map(
 
 const productsByCategory = new Map<string, FeedProduct[]>();
 const productsBySlug = new Map<string, FeedProduct>();
+const productsById = new Map<string, FeedProduct>();
 const variantsById = new Map<string, { product: FeedProduct; variant: FeedVariant }>();
 const categoryFacetCache = new Map<string, CachedFeedFacet[]>();
 let categoryFacetCacheRevision = -1;
@@ -255,6 +261,7 @@ const denseTableCategorySlugs = new Set([
 
 for (const product of feedSnapshot.products) {
   if (!categoriesBySlug.has(product.category)) continue;
+  productsById.set(product.id, product);
   productsBySlug.set(product.slug, product);
   for (const variant of product.variants) variantsById.set(variant.id, { product, variant });
   const categoryProducts = productsByCategory.get(product.category) ?? [];
@@ -466,6 +473,14 @@ export function getFeedCategoryPage(slug: string, query: FeedCategoryQuery = {})
     pageCount,
     pageSize,
   };
+}
+
+export function getFeedCategoryFacetSnapshot(slug: string): CachedFeedFacet[] {
+  return buildCategoryFacets(slug, getRankedCategoryProducts(slug)).map((facet) => ({ ...facet, allOptions:facet.allOptions.map((option) => ({ ...option })) }));
+}
+
+export function getFeedCategoryRankingSnapshot(slug: string): string[] {
+  return getRankedCategoryProducts(slug).map((product) => product.id);
 }
 
 export function getFeedCategoryProductCountForQuery(slug: string, query: Pick<FeedCategoryQuery, "search" | "productType" | "segment" | "subsegment" | "family"> = {}): number {
@@ -693,6 +708,14 @@ function getRankedCategoryProducts(slug: string): FeedProduct[] {
   }
   const cached = rankedCategoryCache.get(slug);
   if (cached) return cached;
+  const generatedIds = revision === 0 && generatedCatalogFacets.sourceSha256 === feedSnapshotSha256
+    ? (generatedCatalogFacets.rankings as unknown as Record<string, string[]> | undefined)?.[slug]
+    : undefined;
+  const generatedRanking = generatedIds?.flatMap((id) => productsById.get(id) ?? []) ?? [];
+  if (generatedRanking.length === (productsByCategory.get(slug)?.length ?? 0) && generatedRanking.length > 0) {
+    rankedCategoryCache.set(slug, generatedRanking);
+    return generatedRanking;
+  }
   const ranked = applyRuntimeCatalogParameterOverridesToProducts(productsByCategory.get(slug) ?? [])
     .map((product, sourceOrder) => ({ product, sourceOrder, score:scoreFeedProduct(product, slug) }))
     .sort((a, b) => b.score - a.score || a.sourceOrder - b.sourceOrder)
@@ -729,7 +752,12 @@ function getCategoryFacets(slug: string, products: FeedProduct[], selectedFilter
   const cacheKey = cacheScope ? `${slug}:${cacheScope}` : slug;
   let cachedFacets = categoryFacetCache.get(cacheKey);
   if (!cachedFacets) {
-    cachedFacets = buildCategoryFacets(slug, products);
+    const generatedFacets = !cacheScope
+      && revision === 0
+      && generatedCatalogFacets.sourceSha256 === feedSnapshotSha256
+      ? (generatedCatalogFacets.categories as unknown as Record<string, CachedFeedFacet[]>)[slug]
+      : undefined;
+    cachedFacets = generatedFacets ?? buildCategoryFacets(slug, products);
     categoryFacetCache.set(cacheKey, cachedFacets);
   }
   return cachedFacets.map(({ allOptions, optionLimit, ...facet }) => ({
@@ -784,6 +812,7 @@ function buildCategoryFacets(slug: string, products: FeedProduct[]): CachedFeedF
 function analyzeCategoryFacets(slug: string, products: FeedProduct[], keywords: string[]) {
   const brands = new Map<string, number>();
   const parameters = keywords.map((keyword) => ({ keyword, normalizedKeyword:normalizeText(keyword), names:new Map<string, number>(), values:new Map<string, number>() }));
+  const matchingAnalysisIndexes = new Map<string, number[]>();
 
   for (const product of products) {
     if (product.brand) brands.set(product.brand, (brands.get(product.brand) ?? 0) + 1);
@@ -792,13 +821,18 @@ function analyzeCategoryFacets(slug: string, products: FeedProduct[], keywords: 
 
     for (const variant of product.variants) {
       for (const parameter of getFeedDecisionParameters(product, variant)) {
-        const normalizedName = normalizeText(parameter.name);
-        parameters.forEach((analysis, index) => {
-          if (!parameterMatchesFacetKeyword(normalizedName, analysis.normalizedKeyword)) return;
+        const normalizedName = normalizeParameterName(parameter.name);
+        let matchingIndexes = matchingAnalysisIndexes.get(normalizedName);
+        if (!matchingIndexes) {
+          matchingIndexes = parameters.flatMap((analysis, index) => parameterMatchesFacetKeyword(normalizedName, analysis.normalizedKeyword) ? [index] : []);
+          matchingAnalysisIndexes.set(normalizedName, matchingIndexes);
+        }
+        for (const index of matchingIndexes) {
+          const analysis = parameters[index];
           productNames[index].add(parameter.name);
           const value = getFacetParameterValue(slug, analysis.normalizedKeyword, product, variant, parameter);
           if (value) productValues[index].add(value);
-        });
+        }
       }
     }
 
@@ -929,7 +963,7 @@ function parseNumericValue(value: string): number {
 function getVariantParameterValues(variant: FeedVariant, keyword: string, product?: FeedProduct): string[] {
   const normalizedKeyword = normalizeText(keyword);
   return (product ? getFeedDecisionParameters(product, variant) : variant.params ?? [])
-    .filter((parameter) => parameterMatchesFacetKeyword(normalizeText(parameter.name), normalizedKeyword))
+    .filter((parameter) => parameterMatchesFacetKeyword(normalizeParameterName(parameter.name), normalizedKeyword))
     .map((parameter) => getFacetParameterValue(product?.category, normalizedKeyword, product, variant, parameter));
 }
 
@@ -1000,6 +1034,16 @@ function getProductSearchText(product: FeedProduct): string {
 
 function normalizeText(value: string): string {
   return value.trim().toLocaleLowerCase("ru-RU").replace(/ё/g, "е").replace(/\s+/g, " ");
+}
+
+const normalizedParameterNameCache = new Map<string, string>();
+
+function normalizeParameterName(value: string): string {
+  const cached = normalizedParameterNameCache.get(value);
+  if (cached !== undefined) return cached;
+  const normalized = normalizeText(value);
+  normalizedParameterNameCache.set(value, normalized);
+  return normalized;
 }
 
 function compareOptionalPrices(first: number | undefined, second: number | undefined, direction: "asc" | "desc"): number {
