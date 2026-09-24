@@ -28,6 +28,7 @@ test("critical catalog, product, contact, search and public-page text uses the s
 
   assert.match(contract, /\.feed-product-table th,\.feed-product-table td \{ font-size:var\(--type-secondary\)/u);
   assert.match(contract, /\.feed-table-product>div>a \{ font-size:var\(--type-control\)/u);
+  assert.match(contract, /\.feed-mobile-series-head b,\.feed-mobile-series-head>div>a \{ font-size:var\(--type-body\)/u);
   assert.match(contract, /\.feed-filter-search input,[\s\S]*font-size:var\(--type-control\)/u);
   assert.match(contract, /\.feed-product-actions button,\.feed-product-actions>a \{ min-height:var\(--control-min-height\); font-size:var\(--type-control\)/u);
   assert.match(contract, /\.feed-product-kind,\.feed-product-task-label \{ font-size:var\(--type-caption\)/u);

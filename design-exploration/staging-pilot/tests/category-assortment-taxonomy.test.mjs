@@ -5,6 +5,7 @@ import {
   categoryAssortmentTaxonomies,
   getCategoryFamily,
   getCategoryFamilyLabel,
+  getCategoryFamilyShortcuts,
 } from "../app/data/categoryAssortmentTaxonomy.mjs";
 import { getCategoryExpertProfile } from "../app/data/categoryExpertProfiles.mjs";
 import {
@@ -60,6 +61,62 @@ test("family shortcuts carry a decision frame and product cards identify their f
     const card = toFeedProductCardModel(product);
     assert.equal(card.taskLabel, getCategoryFamilyLabel(slug, getCategoryFamily(slug, product)), `${slug}: card family label`);
   }
+});
+
+test("launch categories lead with decision paths and keep secondary ranges out of the first scan", async () => {
+  const cases = {
+    "koronchatye-sverla": {
+      primary:["Твердосплавные TCT", "Быстрорежущие HSS", "Для рельсов"],
+      secondary:["Наборы корончатых свёрл", "Дюймовые исполнения", "Специальные исполнения"],
+    },
+    "kromkorezy-po-listu": {
+      primary:["Ручные и переносные", "Самоходные и автоматические", "Стационарные", "Радиусная фаска и отверстия"],
+      secondary:["Оснастка и комплектующие", "Позиции без понятного наименования"],
+    },
+    "kromkorezy-dlya-trub": {
+      primary:["Электрические", "Пневматические", "Со сменным приводом", "Гидравлические", "Ручные"],
+      secondary:[],
+    },
+    borfrezy: {
+      primary:["Стандартные формы A–N", "Миниатюрные", "Удлинённые"],
+      secondary:["Наборы борфрез"],
+    },
+    "rezbonareznye-manipulyatory": {
+      primary:["Электрические", "Пневматические", "Сверлильно-резьбонарезные", "Гидравлические и сервоприводные"],
+      secondary:["Верстаки, опоры и позиционеры", "Цанги, втулки и держатели", "Прочие комплектующие"],
+    },
+    "karetki-svarochnye": {
+      primary:["Колёсные и магнитные", "На направляющих", "Для труб и обечаек", "С осцилляцией"],
+      secondary:[],
+    },
+    kompressory: {
+      primary:["Винтовые", "Поршневые", "Безмасляные", "Дизельные передвижные", "Высокого давления и бустеры"],
+      secondary:["Компрессорные наборы", "Фильтры, ремни и сервисные элементы"],
+    },
+  };
+
+  for (const [slug, expected] of Object.entries(cases)) {
+    const shortcuts = getCategoryFamilyShortcuts(slug).assortmentShortcuts;
+    assert.deepEqual(shortcuts.filter((shortcut) => !shortcut.secondary).map((shortcut) => shortcut.label), expected.primary, `${slug}: primary`);
+    assert.deepEqual(shortcuts.filter((shortcut) => shortcut.secondary).map((shortcut) => shortcut.label), expected.secondary, `${slug}: secondary`);
+  }
+
+  const drilling = getCategoryExpertProfile("stanki-sverlilnye").assortmentShortcuts;
+  assert.deepEqual(drilling.filter((shortcut) => !shortcut.secondary).map((shortcut) => shortcut.label), [
+    "Магнитные сверлильные станки",
+    "Стационарные сверлильные станки",
+    "Рельсосверлильные станки",
+    "Специальные сверлильные станки",
+  ]);
+  assert.deepEqual(drilling.filter((shortcut) => shortcut.secondary).map((shortcut) => shortcut.label), ["Оснастка и крепления"]);
+
+  const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /decisionShortcuts = assortmentShortcuts\.filter/u);
+  assert.match(page, /secondaryShortcuts = assortmentShortcuts\.filter/u);
+  assert.match(page, /assortmentShortcutIsActive/u);
+  assert.match(page, /Boolean\(shortcut\.productType\)/u);
+  assert.match(page, /href=\{assortmentShortcutHref\(shortcut\)\}/u);
+  assert.match(page, /Ещё разделы каталога/u);
 });
 
 test("category page preserves family context and uses engineer-first handoff where configured", async () => {

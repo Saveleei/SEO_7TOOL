@@ -41,6 +41,7 @@ type AssortmentShortcut = {
   productType?: FeedProductType;
   segment?: FeedCategorySegment;
   family?: string;
+  secondary?: boolean;
   subsegments?: Array<{ id: FeedCategorySubsegment; label: string; copy: string; heroTitle?: string; heroIntro?: string; listingTitle?: string; selectionMode?: "guided" | "engineer"; promotedFacetKeywords?: string[]; scopeGuidance?: ScopeGuidance; criteriaTitle?: string; criteriaIntro?: string; criteria?: Array<{ title: string; copy: string }> }>;
 };
 
@@ -197,8 +198,21 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     .sort((first, second) => slug === "sverla-i-zenkovki"
       ? drillAssortmentOrder.indexOf(first.family ?? "") - drillAssortmentOrder.indexOf(second.family ?? "")
       : 0);
-  const primaryAssortmentShortcuts = slug === "sverla-i-zenkovki" ? assortmentShortcuts.slice(0, 8) : assortmentShortcuts;
-  const additionalAssortmentShortcuts = slug === "sverla-i-zenkovki" ? assortmentShortcuts.slice(8) : [];
+  const decisionShortcuts = assortmentShortcuts.filter((shortcut) => !shortcut.secondary);
+  const secondaryShortcuts = assortmentShortcuts.filter((shortcut) => shortcut.secondary);
+  const primaryAssortmentShortcuts = slug === "sverla-i-zenkovki" ? decisionShortcuts.slice(0, 8) : decisionShortcuts;
+  const additionalAssortmentShortcuts = slug === "sverla-i-zenkovki" ? [...decisionShortcuts.slice(8), ...secondaryShortcuts] : secondaryShortcuts;
+  const assortmentShortcutIsActive = (shortcut: AssortmentShortcut) => Boolean(shortcut.query) && shortcut.query === search
+    || Boolean(shortcut.family) && shortcut.family === family
+    || Boolean(shortcut.productType) && shortcut.productType === productType && productTypeChanged
+    || Boolean(shortcut.segment) && shortcut.segment === segment;
+  const assortmentShortcutHref = (shortcut: AssortmentShortcut) => {
+    const parameter = shortcut.query ? `q=${encodeURIComponent(shortcut.query)}`
+      : shortcut.family ? `family=${encodeURIComponent(shortcut.family)}`
+      : shortcut.productType ? `kind=${encodeURIComponent(shortcut.productType)}`
+      : `segment=${encodeURIComponent(shortcut.segment ?? "")}`;
+    return `/catalog/category/${slug}?${parameter}#products`;
+  };
   const subsegmentShortcuts = (activeShortcut?.subsegments ?? []).map((item) => ({
     ...item,
     count:getFeedCategoryProductCountForQuery(slug, { productType, segment, subsegment:item.id }),
@@ -234,12 +248,11 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     </nav>
 
     {assortmentShortcuts.length > 0 && <nav className={`category-assortment-shortcuts${supportedSegments.size > 0 || supportedFamilies.size > 0 ? " category-assortment-shortcuts--segments" : ""}`} aria-label="Разделы текущей категории"><div className="container"><header><div><span>Шаг 1 · тип или задача</span><b>{profile.assortmentPrompt ?? (supportedSegments.size > 0 ? "Сначала выберите тип заготовки" : "Сначала выберите тип товара")}</b></div><Link className={assortmentOverviewActive ? "active" : undefined} aria-current={assortmentOverviewActive ? "page" : undefined} href={assortmentAllHref}>{defaultProductType ? "Все станки" : "Весь ассортимент"}</Link></header><div>{primaryAssortmentShortcuts.map((shortcut) => {
-      const active = shortcut.query ? search === shortcut.query : shortcut.family ? shortcut.family === family : shortcut.productType ? shortcut.productType === productType : shortcut.segment === segment;
-      const shortcutParameter = shortcut.query ? `q=${encodeURIComponent(shortcut.query)}` : shortcut.family ? `family=${encodeURIComponent(shortcut.family)}` : shortcut.productType ? `kind=${encodeURIComponent(shortcut.productType)}` : `segment=${encodeURIComponent(shortcut.segment ?? "")}`;
-      return <Link className={active ? "active" : undefined} aria-current={active ? "page" : undefined} href={`/catalog/category/${slug}?${shortcutParameter}#products`} key={shortcut.query ?? shortcut.family ?? shortcut.productType ?? shortcut.segment}><span><b>{shortcut.label}</b><small>{shortcut.copy}</small></span><em>{shortcut.count.toLocaleString("ru-RU")}</em></Link>;
-    })}</div>{additionalAssortmentShortcuts.length > 0 && <details className="category-assortment-more" open={additionalAssortmentShortcuts.some((shortcut) => shortcut.family === family) || undefined}><summary>Ещё типы инструмента <span>{additionalAssortmentShortcuts.length}</span></summary><div>{additionalAssortmentShortcuts.map((shortcut) => {
-      const active = shortcut.family === family;
-      return <Link className={active ? "active" : undefined} aria-current={active ? "page" : undefined} href={`/catalog/category/${slug}?family=${encodeURIComponent(shortcut.family ?? "")}#products`} key={shortcut.family}><span><b>{shortcut.label}</b><small>{shortcut.copy}</small></span><em>{shortcut.count.toLocaleString("ru-RU")}</em></Link>;
+      const active = assortmentShortcutIsActive(shortcut);
+      return <Link className={active ? "active" : undefined} aria-current={active ? "page" : undefined} href={assortmentShortcutHref(shortcut)} key={shortcut.query ?? shortcut.family ?? shortcut.productType ?? shortcut.segment}><span><b>{shortcut.label}</b><small>{shortcut.copy}</small></span><em>{shortcut.count.toLocaleString("ru-RU")}</em></Link>;
+    })}</div>{additionalAssortmentShortcuts.length > 0 && <details className="category-assortment-more" open={additionalAssortmentShortcuts.some(assortmentShortcutIsActive) || undefined}><summary>Ещё разделы каталога <span>{additionalAssortmentShortcuts.length}</span></summary><div>{additionalAssortmentShortcuts.map((shortcut) => {
+      const active = assortmentShortcutIsActive(shortcut);
+      return <Link className={active ? "active" : undefined} aria-current={active ? "page" : undefined} href={assortmentShortcutHref(shortcut)} key={shortcut.query ?? shortcut.family ?? shortcut.productType ?? shortcut.segment}><span><b>{shortcut.label}</b><small>{shortcut.copy}</small></span><em>{shortcut.count.toLocaleString("ru-RU")}</em></Link>;
     })}</div></details>}</div></nav>}
 
     {subsegmentShortcuts.length > 0 && segment && <nav className="category-type-navigation" aria-label={`Виды раздела «${activeShortcut?.label ?? "Сверлильные станки"}»`}><div className="container"><header><span>Виды оборудования</span><b>Уточните исполнение — или смотрите весь раздел</b></header><div><Link className={!subsegment ? "active" : undefined} aria-current={!subsegment ? "page" : undefined} href={`/catalog/category/${slug}?segment=${encodeURIComponent(segment)}#products`}><b>Все виды</b><small>{getFeedCategoryProductCountForQuery(slug, { productType, segment }).toLocaleString("ru-RU")}</small></Link>{subsegmentShortcuts.map((item) => <Link className={item.id === subsegment ? "active" : undefined} aria-current={item.id === subsegment ? "page" : undefined} href={`/catalog/category/${slug}?segment=${encodeURIComponent(segment)}&drill_type=${encodeURIComponent(item.id)}#products`} key={item.id}><span><b>{item.label}</b><small>{item.copy}</small></span><em>{item.count.toLocaleString("ru-RU")}</em></Link>)}</div></div></nav>}

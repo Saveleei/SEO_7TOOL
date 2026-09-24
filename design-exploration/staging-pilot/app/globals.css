@@ -4954,7 +4954,7 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
 
 .feed-pagination a,.feed-pagination>div span { min-width:var(--control-min-height); min-height:var(--control-min-height); font-size:var(--type-secondary); }
 .feed-mobile-series-head span { font-size:var(--type-caption); }
-.feed-mobile-series-head b { font-size:var(--type-body); line-height:1.35; }
+.feed-mobile-series-head b,.feed-mobile-series-head>div>a { font-size:var(--type-body); line-height:1.35; }
 .feed-mobile-series-head small,.feed-mobile-series-commercial span { font-size:var(--type-caption); line-height:1.4; }
 .feed-mobile-series dt,.feed-mobile-variant dt { font-size:var(--type-secondary); }
 .feed-mobile-series dd,.feed-mobile-variant dd { font-size:var(--type-control); }
