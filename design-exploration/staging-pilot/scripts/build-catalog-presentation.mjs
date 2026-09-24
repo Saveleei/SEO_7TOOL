@@ -10,6 +10,7 @@ import {
   getFeedProductImage,
   getPublishedFeedCategorySlugs,
 } from "../app/data/feedCatalog.ts";
+import { getCatalogQualityReportSnapshot } from "../app/data/catalogQuality.ts";
 
 const FEATURED_PRODUCT_SLUGS = [
   "magnitnyy-sverlilnyy-stanok-lenz-steyr-35",
@@ -23,6 +24,7 @@ const FEATURED_PRODUCT_SLUGS = [
 const feedPath = path.resolve(process.cwd(), "../../7tool-source/src/lib/products.json");
 const destination = path.resolve(process.cwd(), "app/data/generatedCatalogPresentation.json");
 const facetsDestination = path.resolve(process.cwd(), "app/data/generatedCatalogFacets.json");
+const qualityDestination = path.resolve(process.cwd(), "app/data/generatedCatalogQuality.json");
 const feedBytes = await readFile(feedPath);
 const publishedCategorySlugs = getPublishedFeedCategorySlugs().slice().sort();
 
@@ -55,4 +57,9 @@ await writeFile(facetsDestination, `${JSON.stringify({
   categories:Object.fromEntries(publishedCategorySlugs.map((slug) => [slug, getFeedCategoryFacetSnapshot(slug)])),
   rankings:Object.fromEntries(publishedCategorySlugs.map((slug) => [slug, getFeedCategoryRankingSnapshot(slug)])),
 }, null, 2)}\n`, "utf8");
+await writeFile(qualityDestination, `${JSON.stringify({
+  version:1,
+  sourceSha256:presentation.sourceSha256,
+  report:getCatalogQualityReportSnapshot(),
+})}\n`, "utf8");
 console.log(`Catalog presentation generated: ${publishedCategorySlugs.length} categories.`);

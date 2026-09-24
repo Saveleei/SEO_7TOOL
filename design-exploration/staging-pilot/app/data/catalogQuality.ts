@@ -1,8 +1,10 @@
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
 import { getCategoryExpertProfile, selectCategoryFacets } from "./categoryExpertProfiles.mjs";
 import { getCategoryFamily, getCategoryFamilyShortcuts } from "./categoryAssortmentTaxonomy.mjs";
 import { getCategorySelectionRule } from "./categorySelection.mjs";
 import { classifyMissingProductMedia } from "./catalogMediaRecovery.mjs";
-import { feedParameterMatchesFacetKeyword, getFeedCategoryPage, getFeedCategoryProductType, getFeedCategorySegment, getFeedCategorySubsegment, getFeedProductImage, getPublishedFeedCatalogSnapshot, type FeedCategory, type FeedCategoryQuery, type FeedFacet, type FeedParameter, type FeedProduct, type FeedVariant } from "./feedCatalog.ts";
+import { feedParameterMatchesFacetKeyword, getFeedCategoryPage, getFeedCategoryProductType, getFeedCategorySegment, getFeedCategorySubsegment, getFeedProductImage, getPublishedFeedCatalogSnapshot, getPublishedFeedCatalogSourceSha256, type FeedCategory, type FeedCategoryQuery, type FeedFacet, type FeedParameter, type FeedProduct, type FeedVariant } from "./feedCatalog.ts";
 import { getFeedDecisionParameters } from "./feedDecisionParameters.mjs";
 import { getRuntimeCatalogParameterOverrideRevision } from "./catalogParameterOverrideStore.ts";
 
@@ -140,12 +142,27 @@ const issuePriorities: Record<CatalogQualityIssueCode, CatalogQualityPriority> =
   duplicate_signature:"p2",
 };
 
+type GeneratedCatalogQuality = {
+  version: number;
+  sourceSha256: string;
+  report: CatalogQualityReport;
+};
+
+const generatedCatalogQuality = loadGeneratedCatalogQuality();
+
 let cachedReport: { revision: number; report: CatalogQualityReport } | undefined;
 
 export function getCatalogQualityReport(): CatalogQualityReport {
   const revision = getRuntimeCatalogParameterOverrideRevision();
-  if (!cachedReport || cachedReport.revision !== revision) cachedReport = { revision, report:buildCatalogQualityReport(getPublishedFeedCatalogSnapshot()) };
+  const generatedReport = revision === 0 && generatedCatalogQuality?.sourceSha256 === getPublishedFeedCatalogSourceSha256()
+    ? generatedCatalogQuality.report
+    : undefined;
+  if (!cachedReport || cachedReport.revision !== revision) cachedReport = { revision, report:generatedReport ?? buildCatalogQualityReport(getPublishedFeedCatalogSnapshot()) };
   return cachedReport.report;
+}
+
+export function getCatalogQualityReportSnapshot(): CatalogQualityReport {
+  return buildCatalogQualityReport(getPublishedFeedCatalogSnapshot());
 }
 
 export function catalogQualityIssueLabel(code: CatalogQualityIssueCode): string {
@@ -270,6 +287,17 @@ function buildCatalogQualityReport(feedSnapshot: ReturnType<typeof getPublishedF
     categories:categories.sort((first, second) => statusRank(first.status) - statusRank(second.status) || first.score - second.score || first.title.localeCompare(second.title, "ru-RU")),
     issues:sortIssues(deduplicatedIssues),
   };
+}
+
+function loadGeneratedCatalogQuality(): GeneratedCatalogQuality | undefined {
+  const snapshotPath = path.resolve(process.cwd(), "app/data/generatedCatalogQuality.json");
+  if (!existsSync(snapshotPath)) return undefined;
+  try {
+    const parsed = JSON.parse(readFileSync(snapshotPath, "utf8")) as GeneratedCatalogQuality;
+    return parsed.version === 1 && parsed.report?.generatedFrom === "bundled-supplier-feed" ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function buildCategoryQuality(category: FeedCategory, products: FeedProduct[], issues: CatalogQualityIssue[], selectionProfilesByProduct: Map<string, ProductSelectionProfile>): CatalogQualityCategory {

@@ -284,6 +284,10 @@ export function getPublishedFeedCatalogSnapshot(): FeedSnapshot {
   };
 }
 
+export function getPublishedFeedCatalogSourceSha256(): string {
+  return feedSnapshotSha256;
+}
+
 export function getFeedCategoryProductType(slug: string, product: FeedProduct): FeedProductType | undefined {
   if (slug === "stanki-sverlilnye") {
     const parameterNames = product.variants.flatMap((variant) => variant.params ?? []).map((parameter) => parameter.name).join(" ");

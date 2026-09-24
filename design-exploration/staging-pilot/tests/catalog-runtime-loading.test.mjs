@@ -33,6 +33,22 @@ test("base facets are precomputed from the exact feed while runtime overrides re
   assert.match(catalogSource, /generatedRanking\.length === \(productsByCategory/u);
 });
 
+test("base catalog quality is precomputed without embedding its large report in the server bundle", async () => {
+  const [feed, generatedSource, qualitySource] = await Promise.all([
+    readFile(new URL("../../../7tool-source/src/lib/products.json", import.meta.url)),
+    readFile(new URL("../app/data/generatedCatalogQuality.json", import.meta.url), "utf8"),
+    readFile(new URL("../app/data/catalogQuality.ts", import.meta.url), "utf8"),
+  ]);
+  const generated = JSON.parse(generatedSource);
+  assert.equal(generated.sourceSha256, createHash("sha256").update(feed).digest("hex"));
+  assert.equal(generated.report.productCount, getPublishedFeedCatalogSnapshot().products.length);
+  assert.ok(generated.report.issueCount > 0);
+  assert.match(qualitySource, /readFileSync\(snapshotPath, "utf8"\)/u);
+  assert.match(qualitySource, /revision === 0/u);
+  assert.match(qualitySource, /generatedReport \?\? buildCatalogQualityReport/u);
+  assert.doesNotMatch(qualitySource, /import\s+generatedCatalogQuality/u);
+});
+
 test("global navigation uses a feed-current lightweight catalog projection", async () => {
   const [feed, presentationSource, groupsSource] = await Promise.all([
     readFile(new URL("../../../7tool-source/src/lib/products.json", import.meta.url)),
