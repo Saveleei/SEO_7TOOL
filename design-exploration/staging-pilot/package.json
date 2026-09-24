@@ -11,6 +11,7 @@
     "prebuild": "node scripts/build-catalog-presentation.mjs",
     "build": "vinext build",
     "catalog:build-presentation": "node scripts/build-catalog-presentation.mjs",
+    "acceptance:business": "node scripts/run-business-acceptance.mjs",
     "start": "vinext start",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "test": "node --test tests/*.test.mjs",
