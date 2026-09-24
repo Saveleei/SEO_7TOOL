@@ -45,4 +45,4 @@
 
 ## Commit
 
-- Будет указан после фиксации реализации.
+- Реализация и проверки: `17d5e21` (`fix: improve storefront readability`).
