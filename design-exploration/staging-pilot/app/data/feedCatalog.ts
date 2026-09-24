@@ -228,6 +228,8 @@ const productsBySlug = new Map<string, FeedProduct>();
 const variantsById = new Map<string, { product: FeedProduct; variant: FeedVariant }>();
 const categoryFacetCache = new Map<string, CachedFeedFacet[]>();
 let categoryFacetCacheRevision = -1;
+const rankedCategoryCache = new Map<string, FeedProduct[]>();
+let rankedCategoryCacheRevision = -1;
 const compatibilityCache = new Map<string, FeedCompatibilityRecommendation[]>();
 const alternativeCache = new Map<string, FeedProductAlternative[]>();
 
@@ -425,22 +427,7 @@ export function getFeedCategoryProducts(slug: string, limit = 6): FeedProduct[] 
 
 export function getFeedCategoryPage(slug: string, query: FeedCategoryQuery = {}): FeedCategoryPage {
   const pageSize = Math.min(48, Math.max(6, query.pageSize ?? 12));
-  const allProducts = getRankedCategoryProducts(slug);
-  const supportsProductTypes = allProducts.some((product) => getFeedCategoryProductType(slug, product) !== undefined);
-  const productTypeScopedProducts = query.productType && supportsProductTypes
-    ? allProducts.filter((product) => getFeedCategoryProductType(slug, product) === query.productType)
-    : allProducts;
-  const supportsSegments = productTypeScopedProducts.some((product) => getFeedCategorySegment(slug, product) !== undefined);
-  const scopedProducts = query.segment && supportsSegments
-    ? productTypeScopedProducts.filter((product) => getFeedCategorySegment(slug, product) === query.segment)
-    : productTypeScopedProducts;
-  const supportsSubsegments = scopedProducts.some((product) => getFeedCategorySubsegment(slug, product) !== undefined);
-  const subsegmentScopedProducts = query.subsegment && supportsSubsegments
-    ? scopedProducts.filter((product) => getFeedCategorySubsegment(slug, product) === query.subsegment)
-    : scopedProducts;
-  const familyScopedProducts = query.family
-    ? subsegmentScopedProducts.filter((product) => getCategoryFamily(slug, product) === query.family)
-    : subsegmentScopedProducts;
+  const familyScopedProducts = getScopedCategoryProducts(slug, query);
   const cacheScope = [query.productType, query.segment, query.subsegment, query.family].filter(Boolean).join(":") || undefined;
   let facets = getCategoryFacets(slug, familyScopedProducts, query.filters ?? {}, cacheScope);
   const selectedBrands = query.filters?.brand?.filter(Boolean) ?? [];
@@ -479,6 +466,12 @@ export function getFeedCategoryPage(slug: string, query: FeedCategoryQuery = {})
     pageCount,
     pageSize,
   };
+}
+
+export function getFeedCategoryProductCountForQuery(slug: string, query: Pick<FeedCategoryQuery, "search" | "productType" | "segment" | "subsegment" | "family"> = {}): number {
+  const products = getScopedCategoryProducts(slug, query);
+  const normalizedSearch = query.search ? normalizeText(query.search) : "";
+  return normalizedSearch ? products.filter((product) => getProductSearchText(product).includes(normalizedSearch)).length : products.length;
 }
 
 export function getFeedCategoryRecoverySuggestions(slug: string, query: FeedCategoryQuery = {}, limit = 3): FeedCategoryRecoverySuggestion[] {
@@ -693,10 +686,38 @@ function scoreFeedProduct(product: FeedProduct, categorySlug: string): number {
 }
 
 function getRankedCategoryProducts(slug: string): FeedProduct[] {
-  return applyRuntimeCatalogParameterOverridesToProducts(productsByCategory.get(slug) ?? [])
+  const revision = getRuntimeCatalogParameterOverrideRevision();
+  if (revision !== rankedCategoryCacheRevision) {
+    rankedCategoryCache.clear();
+    rankedCategoryCacheRevision = revision;
+  }
+  const cached = rankedCategoryCache.get(slug);
+  if (cached) return cached;
+  const ranked = applyRuntimeCatalogParameterOverridesToProducts(productsByCategory.get(slug) ?? [])
     .map((product, sourceOrder) => ({ product, sourceOrder, score:scoreFeedProduct(product, slug) }))
     .sort((a, b) => b.score - a.score || a.sourceOrder - b.sourceOrder)
     .map(({ product }) => product);
+  rankedCategoryCache.set(slug, ranked);
+  return ranked;
+}
+
+function getScopedCategoryProducts(slug: string, query: Pick<FeedCategoryQuery, "productType" | "segment" | "subsegment" | "family">): FeedProduct[] {
+  const allProducts = getRankedCategoryProducts(slug);
+  const supportsProductTypes = allProducts.some((product) => getFeedCategoryProductType(slug, product) !== undefined);
+  const productTypeScopedProducts = query.productType && supportsProductTypes
+    ? allProducts.filter((product) => getFeedCategoryProductType(slug, product) === query.productType)
+    : allProducts;
+  const supportsSegments = productTypeScopedProducts.some((product) => getFeedCategorySegment(slug, product) !== undefined);
+  const segmentScopedProducts = query.segment && supportsSegments
+    ? productTypeScopedProducts.filter((product) => getFeedCategorySegment(slug, product) === query.segment)
+    : productTypeScopedProducts;
+  const supportsSubsegments = segmentScopedProducts.some((product) => getFeedCategorySubsegment(slug, product) !== undefined);
+  const subsegmentScopedProducts = query.subsegment && supportsSubsegments
+    ? segmentScopedProducts.filter((product) => getFeedCategorySubsegment(slug, product) === query.subsegment)
+    : segmentScopedProducts;
+  return query.family
+    ? subsegmentScopedProducts.filter((product) => getCategoryFamily(slug, product) === query.family)
+    : subsegmentScopedProducts;
 }
 
 function getCategoryFacets(slug: string, products: FeedProduct[], selectedFilters: Record<string, string[]>, cacheScope?: string): FeedFacet[] {

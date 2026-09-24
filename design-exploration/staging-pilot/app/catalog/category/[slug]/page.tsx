@@ -16,7 +16,7 @@ import { SelectionConversionBlock } from "../../../ui/SelectionConversionBlock";
 import { TestRequestForm } from "../../../ui/TestRequestForm";
 import { buildCategoryQueryContext, findCategorySelectionOption, getCategorySelectionRule } from "../../../data/categorySelection.mjs";
 import { getCategoryExpertProfile, selectCategoryAssistantFacets, selectCategoryFacets } from "../../../data/categoryExpertProfiles.mjs";
-import { getFeedCategory, getFeedCategoryPage, getFeedCategoryProductType, getFeedCategoryRecoverySuggestions, getFeedTableColumns, getGuidedFacetOptions, getPromotedFacetOptions, prefersDenseFeedTable, type FeedCategoryQuery, type FeedCategorySegment, type FeedCategorySort, type FeedCategorySubsegment, type FeedProductType, type FeedVariantFilter, toFeedProductCardModel } from "../../../data/feedCatalog";
+import { getFeedCategory, getFeedCategoryPage, getFeedCategoryProductCountForQuery, getFeedCategoryProductType, getFeedCategoryRecoverySuggestions, getFeedTableColumns, getGuidedFacetOptions, getPromotedFacetOptions, prefersDenseFeedTable, type FeedCategoryQuery, type FeedCategorySegment, type FeedCategorySort, type FeedCategorySubsegment, type FeedFacet, type FeedProductType, type FeedVariantFilter, toFeedProductCardModel } from "../../../data/feedCatalog";
 import { getProductionSubcategory } from "../../../data/productionCategoryGroups";
 import { getShippingRuntimeDiagnostic } from "../../../data/shippingRuntimeSettings.mjs";
 
@@ -192,7 +192,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const emptyCopy = browsingAccessories && profile.accessoryEmptyCopy ? profile.accessoryEmptyCopy : profile.emptyCopy;
   const assortmentShortcuts = profileShortcuts.map((shortcut) => ({
     ...shortcut,
-    count:getFeedCategoryPage(slug, { search:shortcut.query, productType:shortcut.productType ?? defaultProductType, segment:shortcut.segment, family:shortcut.family, pageSize:6 }).total,
+    count:getFeedCategoryProductCountForQuery(slug, { search:shortcut.query, productType:shortcut.productType ?? defaultProductType, segment:shortcut.segment, family:shortcut.family }),
   })).filter((shortcut: { count: number }) => shortcut.count > 0)
     .sort((first, second) => slug === "sverla-i-zenkovki"
       ? drillAssortmentOrder.indexOf(first.family ?? "") - drillAssortmentOrder.indexOf(second.family ?? "")
@@ -201,18 +201,18 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const additionalAssortmentShortcuts = slug === "sverla-i-zenkovki" ? assortmentShortcuts.slice(8) : [];
   const subsegmentShortcuts = (activeShortcut?.subsegments ?? []).map((item) => ({
     ...item,
-    count:getFeedCategoryPage(slug, { productType, segment, subsegment:item.id, pageSize:6 }).total,
+    count:getFeedCategoryProductCountForQuery(slug, { productType, segment, subsegment:item.id }),
   })).filter((item) => item.count > 0);
   const assortmentAllHref = `/catalog/category/${slug}#products`;
   const assortmentOverviewActive = !search && productType === defaultProductType && !segment && !subsegment && !family;
   const categoryHeroCount = family
-    ? getFeedCategoryPage(slug, { productType, family, pageSize:6 }).total
+    ? getFeedCategoryProductCountForQuery(slug, { productType, family })
     : subsegment
-    ? getFeedCategoryPage(slug, { productType, segment, subsegment, pageSize:6 }).total
+    ? getFeedCategoryProductCountForQuery(slug, { productType, segment, subsegment })
     : segment
-    ? getFeedCategoryPage(slug, { productType, segment, pageSize:6 }).total
+    ? getFeedCategoryProductCountForQuery(slug, { productType, segment })
     : productType
-    ? getFeedCategoryPage(slug, { productType, pageSize:6 }).total
+    ? getFeedCategoryProductCountForQuery(slug, { productType })
     : feedCategory?.count ?? result.total;
 
   return <div className="site-shell"><PilotHeader /><main className="inner-page">
@@ -242,7 +242,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
       return <Link className={active ? "active" : undefined} aria-current={active ? "page" : undefined} href={`/catalog/category/${slug}?family=${encodeURIComponent(shortcut.family ?? "")}#products`} key={shortcut.family}><span><b>{shortcut.label}</b><small>{shortcut.copy}</small></span><em>{shortcut.count.toLocaleString("ru-RU")}</em></Link>;
     })}</div></details>}</div></nav>}
 
-    {subsegmentShortcuts.length > 0 && segment && <nav className="category-type-navigation" aria-label={`Виды раздела «${activeShortcut?.label ?? "Сверлильные станки"}»`}><div className="container"><header><span>Виды оборудования</span><b>Уточните исполнение — или смотрите весь раздел</b></header><div><Link className={!subsegment ? "active" : undefined} aria-current={!subsegment ? "page" : undefined} href={`/catalog/category/${slug}?segment=${encodeURIComponent(segment)}#products`}><b>Все виды</b><small>{getFeedCategoryPage(slug, { productType, segment, pageSize:6 }).total.toLocaleString("ru-RU")}</small></Link>{subsegmentShortcuts.map((item) => <Link className={item.id === subsegment ? "active" : undefined} aria-current={item.id === subsegment ? "page" : undefined} href={`/catalog/category/${slug}?segment=${encodeURIComponent(segment)}&drill_type=${encodeURIComponent(item.id)}#products`} key={item.id}><span><b>{item.label}</b><small>{item.copy}</small></span><em>{item.count.toLocaleString("ru-RU")}</em></Link>)}</div></div></nav>}
+    {subsegmentShortcuts.length > 0 && segment && <nav className="category-type-navigation" aria-label={`Виды раздела «${activeShortcut?.label ?? "Сверлильные станки"}»`}><div className="container"><header><span>Виды оборудования</span><b>Уточните исполнение — или смотрите весь раздел</b></header><div><Link className={!subsegment ? "active" : undefined} aria-current={!subsegment ? "page" : undefined} href={`/catalog/category/${slug}?segment=${encodeURIComponent(segment)}#products`}><b>Все виды</b><small>{getFeedCategoryProductCountForQuery(slug, { productType, segment }).toLocaleString("ru-RU")}</small></Link>{subsegmentShortcuts.map((item) => <Link className={item.id === subsegment ? "active" : undefined} aria-current={item.id === subsegment ? "page" : undefined} href={`/catalog/category/${slug}?segment=${encodeURIComponent(segment)}&drill_type=${encodeURIComponent(item.id)}#products`} key={item.id}><span><b>{item.label}</b><small>{item.copy}</small></span><em>{item.count.toLocaleString("ru-RU")}</em></Link>)}</div></div></nav>}
 
     {scopeGuidance && <section className="drill-scope-guide" aria-label={`Как выбирать: ${categoryTitle}`}><div className="container"><div><span>Задача</span><b>{scopeGuidance.bestFor}</b></div><div><span>Критичное условие</span><b>{scopeGuidance.checkFirst}</b></div><div><span>Главные параметры</span><b>{scopeGuidance.compareBy}</b></div></div></section>}
 
@@ -323,11 +323,15 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
             {segment && <input type="hidden" name="segment" value={segment} />}
             {subsegment && <input type="hidden" name="drill_type" value={subsegment} />}
             {family && <input type="hidden" name="family" value={family} />}
-            {Object.entries(numericMinimums).map(([key, value]) => <input type="hidden" name={`min_${key}`} value={value} key={`minimum-${key}`} />)}
-            {Object.entries(numericMaximums).map(([key, value]) => <input type="hidden" name={`max_${key}`} value={value} key={`maximum-${key}`} />)}
             <div className="feed-filter-priority"><span>Быстрый выбор</span>{availabilityFilterEnabled ? <label><input type="checkbox" name="availability" value="in-stock" defaultChecked={inStockOnly} /><b>В наличии</b><em>свежие данные</em></label> : <label className="feed-filter-availability-disabled"><input type="checkbox" disabled /><b>Наличие уточняем</b><em>менеджер проверит актуальный остаток</em></label>}<label><span>Порядок выдачи</span><select name="sort" defaultValue={sort}>{sortOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label><small>Остаток и срок отгрузки подтвердим перед оплатой.</small></div>
             <label className="feed-filter-search"><span>Поиск в категории</span><input type="search" name="q" defaultValue={search} placeholder="Название, бренд или модель" /></label>
-            {orderedFacets.map((facet) => <fieldset className={[facet.keyword === "форма" ? "feed-shape-filter" : "", facet.numeric ? "feed-numeric-filter" : ""].filter(Boolean).join(" ") || undefined} key={facet.key}><legend>{facet.label}</legend><small>{facet.keyword === "форма" ? <>Стандартные формы A–N и комбинированные исполнения. <a href="#burr-selector">Не знаете форму? Подобрать по задаче</a></> : facet.numeric && facet.options.length > 1 ? <>Диапазон фида: <b>{facet.options[0].label}–{facet.options[facet.options.length - 1].label}</b>. {facet.help}</> : facet.help}</small><div>{facet.options.map((option) => <label key={option.value}><input type="checkbox" name={`f_${facet.key}`} value={option.value} defaultChecked={filters[facet.key]?.includes(option.value)} /><span className={facet.keyword === "форма" ? "feed-shape-option" : undefined}>{facet.keyword === "форма" && <BurrShapeMark shape={option.value} />}{option.label}</span><em>{option.count}</em></label>)}</div></fieldset>)}
+            {orderedFacets.map((facet) => <FeedFacetFilter
+              facet={facet}
+              selectedValues={filters[facet.key] ?? []}
+              minimum={numericMinimums[facet.key]}
+              maximum={numericMaximums[facet.key]}
+              key={facet.key}
+            />)}
             <div className="feed-filter-actions"><button className="button button-orange" type="submit">Показать товары</button><Link href={`/catalog/category/${slug}#products`}>Сбросить</Link></div>
           </form>
         </aside>
@@ -467,4 +471,40 @@ function facetOrder(keyword?: string, key?: string): number {
   if (keyword === "диаметр хвостовика") return 4;
   if (keyword === "длина режущей") return 5;
   return keyword ? 6 : 7;
+}
+
+const HIGH_CARDINALITY_NUMERIC_OPTIONS = 40;
+
+function FeedFacetFilter({ facet, selectedValues, minimum, maximum }: { facet: FeedFacet; selectedValues: string[]; minimum?: number; maximum?: number }) {
+  const isLargeNumeric = Boolean(facet.numeric && facet.options.length > HIGH_CARDINALITY_NUMERIC_OPTIONS);
+  const selectedOptions = isLargeNumeric ? facet.options.filter((option) => selectedValues.includes(option.value)) : [];
+  const bounds = facet.numeric ? numericFacetBounds(facet) : undefined;
+  const className = [facet.keyword === "форма" ? "feed-shape-filter" : "", facet.numeric ? "feed-numeric-filter" : ""].filter(Boolean).join(" ") || undefined;
+
+  return <fieldset className={className}>
+    <legend>{facet.label}</legend>
+    <small>{facet.keyword === "форма"
+      ? <>Стандартные формы A–N и комбинированные исполнения. <a href="#burr-selector">Не знаете форму? Подобрать по задаче</a></>
+      : facet.numeric && facet.options.length > 1
+        ? <>Диапазон фида: <b>{facet.options[0].label}–{facet.options[facet.options.length - 1].label}</b>. {facet.help}</>
+        : facet.help}</small>
+    {isLargeNumeric ? <>
+      <div className="feed-numeric-range">
+        <label><span>От</span><input type="number" inputMode="decimal" step="any" name={`min_${facet.key}`} min={bounds?.minimum} max={bounds?.maximum} defaultValue={minimum} placeholder={bounds?.minimumLabel} aria-label={`${facet.label}: от`} /></label>
+        <label><span>До</span><input type="number" inputMode="decimal" step="any" name={`max_${facet.key}`} min={bounds?.minimum} max={bounds?.maximum} defaultValue={maximum} placeholder={bounds?.maximumLabel} aria-label={`${facet.label}: до`} /></label>
+      </div>
+      {selectedOptions.length > 0 && <div className="feed-numeric-selected"><small>Точно выбрано:</small>{selectedOptions.map((option) => <label key={option.value}><input type="checkbox" name={`f_${facet.key}`} value={option.value} defaultChecked /><span>{option.label}</span><em>{option.count}</em></label>)}</div>}
+    </> : <>
+      {facet.numeric && Number.isFinite(minimum) && <input type="hidden" name={`min_${facet.key}`} value={minimum} />}
+      {facet.numeric && Number.isFinite(maximum) && <input type="hidden" name={`max_${facet.key}`} value={maximum} />}
+      <div>{facet.options.map((option) => <label key={option.value}><input type="checkbox" name={`f_${facet.key}`} value={option.value} defaultChecked={selectedValues.includes(option.value)} /><span className={facet.keyword === "форма" ? "feed-shape-option" : undefined}>{facet.keyword === "форма" && <BurrShapeMark shape={option.value} />}{option.label}</span><em>{option.count}</em></label>)}</div>
+    </>}
+  </fieldset>;
+}
+
+function numericFacetBounds(facet: FeedFacet): { minimum: number; maximum: number; minimumLabel: string; maximumLabel: string } | undefined {
+  const values = facet.options.map((option) => ({ number:Number.parseFloat(option.value.trim().replace(",", ".")), label:option.label })).filter((item) => Number.isFinite(item.number));
+  if (values.length === 0) return undefined;
+  values.sort((first, second) => first.number - second.number);
+  return { minimum:values[0].number, maximum:values[values.length - 1].number, minimumLabel:values[0].label, maximumLabel:values[values.length - 1].label };
 }

@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   getFeedCategoryPage,
+  getFeedCategoryProductCountForQuery,
   getPromotedFacetOptions,
   getPublishedFeedCategorySlugs,
 } from "../app/data/feedCatalog.ts";
@@ -63,4 +64,37 @@ test("promoted and full numeric filters remain visible without horizontal clippi
   assert.match(page, /Диапазон фида:/u);
   assert.match(styles, /\.feed-promoted-filters>div>div \{[^}]*flex-wrap:wrap[^}]*overflow:visible/us);
   assert.match(styles, /\.feed-filter-panel \.feed-numeric-filter>div \{[^}]*max-height:285px[^}]*overflow:auto/us);
+});
+
+test("high-cardinality dimensions use a bounded range control instead of hundreds of checkboxes", async () => {
+  const category = getFeedCategoryPage("sverla-i-zenkovki", { pageSize:6 });
+  assert.ok(category.facets.some((facet) => facet.numeric && facet.options.length > 40));
+
+  const [page, styles] = await Promise.all([
+    readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+  ]);
+  assert.match(page, /HIGH_CARDINALITY_NUMERIC_OPTIONS = 40/u);
+  assert.match(page, /className="feed-numeric-range"/u);
+  assert.match(page, /name=\{`min_\$\{facet\.key\}`\}/u);
+  assert.match(page, /name=\{`max_\$\{facet\.key\}`\}/u);
+  assert.match(page, /selectedOptions\.map/u);
+  assert.match(styles, /\.feed-filter-panel \.feed-numeric-filter>\.feed-numeric-range \{[^}]*grid-template-columns:repeat\(2/us);
+});
+
+test("assortment counters reuse the ranked category without rebuilding every facet", async () => {
+  const queries = [
+    { family:"drills" },
+    { family:"countersinks" },
+    { search:"ступенчат" },
+  ];
+  for (const query of queries) {
+    assert.equal(
+      getFeedCategoryProductCountForQuery("sverla-i-zenkovki", query),
+      getFeedCategoryPage("sverla-i-zenkovki", { ...query, pageSize:6 }).total,
+    );
+  }
+  const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /getFeedCategoryProductCountForQuery/u);
+  assert.doesNotMatch(page, /count:getFeedCategoryPage\(slug/u);
 });

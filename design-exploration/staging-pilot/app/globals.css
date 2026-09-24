@@ -2067,6 +2067,12 @@ body:has(.feed-compare-tray) .request-cart-dock { bottom:96px; }
 .feed-priority-choice a:first-child { border-color:var(--ink); }
 .feed-filter-panel .feed-shape-filter>div { grid-template-columns:repeat(2,minmax(0,1fr)); max-height:238px; overflow:auto; gap:5px; padding-right:3px; scrollbar-width:thin; }
 .feed-filter-panel .feed-numeric-filter>div { max-height:285px; overflow:auto; padding-right:5px; scrollbar-width:thin; }
+.feed-filter-panel .feed-numeric-filter>.feed-numeric-range { grid-template-columns:repeat(2,minmax(0,1fr)); max-height:none; overflow:visible; padding:0; }
+.feed-filter-panel .feed-numeric-range label { min-height:0; display:grid; grid-template-columns:1fr; gap:5px; color:var(--muted); font-size:10px; font-weight:750; cursor:default; }
+.feed-filter-panel .feed-numeric-range input { width:100%; min-height:40px; padding:0 9px; border:1px solid #cdd0cb; border-radius:4px; background:#fff; color:var(--ink); font-size:12px; }
+.feed-filter-panel .feed-numeric-range input:focus-visible { outline:2px solid rgba(199,70,17,.3); outline-offset:1px; border-color:var(--orange-dark); }
+.feed-filter-panel .feed-numeric-filter>.feed-numeric-selected { max-height:150px; margin-top:9px; padding:9px; border:1px solid #e1e2de; border-radius:4px; background:#fafaf8; }
+.feed-filter-panel .feed-numeric-selected>small { color:var(--muted); font-size:9px; font-weight:750; }
 .feed-filter-panel .feed-shape-filter label { min-height:30px; padding:4px 6px; border:1px solid #e1e2de; border-radius:4px; background:#fff; }
 
 /* Guided burr selection: helps an unsure buyer without blocking expert filtering. */
