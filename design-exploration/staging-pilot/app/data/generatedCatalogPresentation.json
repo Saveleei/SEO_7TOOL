@@ -1,0 +1,148 @@
+{
+  "version": 1,
+  "sourceSha256": "1ff5575dc5ae5ff8450190d070e176003485022fa0edc14d53b665ffdc58f065",
+  "publishedCategorySlugs": [
+    "almaznoe-burenie",
+    "borfrezy",
+    "disko-otreznye-stanki",
+    "karetki-svarochnye",
+    "karetki-termicheskoy-rezki",
+    "kompressory",
+    "koronchatye-sverla",
+    "kromkorezy-dlya-trub",
+    "kromkorezy-po-listu",
+    "lentochnopilnye-stanki",
+    "magnitnaya-osnastka",
+    "metchiki",
+    "pilnye-diski",
+    "rezbonareznye-manipulyatory",
+    "shlifovalnoe-i-zatochnoe-oborudovanie",
+    "sozh-i-sots",
+    "stanki-lazernoy-rezki",
+    "stanki-sverlilnye",
+    "stanochnaya-osnastka",
+    "svarochnye-roboty",
+    "svarochnye-vrashchateli-i-pozitsionery",
+    "sverla-i-zenkovki",
+    "truborezy",
+    "zahvaty-dlya-gruzov"
+  ],
+  "categories": {
+    "almaznoe-burenie": {
+      "count": 22,
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/68ba907327dcd.png"
+    },
+    "borfrezy": {
+      "count": 414,
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/68ad6057b1b91.png"
+    },
+    "disko-otreznye-stanki": {
+      "count": 55,
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/oJJOiooYPiOAlh7Ys8iC.jpg"
+    },
+    "karetki-svarochnye": {
+      "count": 74,
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/89OykE1c4hn5AhHMa0dA.jpg"
+    },
+    "karetki-termicheskoy-rezki": {
+      "count": 44,
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/DuaiMkecTHSSfqdDYL9i.jpg"
+    },
+    "kompressory": {
+      "count": 501,
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/_5stfYPgD60_iN-P-jJ1.jpg"
+    },
+    "koronchatye-sverla": {
+      "count": 309,
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/MY4xHoYMjxc9q1pdZZEK.png"
+    },
+    "kromkorezy-dlya-trub": {
+      "count": 173,
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/68371cd7db7d2.jpg"
+    },
+    "kromkorezy-po-listu": {
+      "count": 332,
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/DzJ2Qrf7qIDud2DfRMqB.jpg"
+    },
+    "lentochnopilnye-stanki": {
+      "count": 301,
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/6810a1ea09b3f.jpg"
+    },
+    "magnitnaya-osnastka": {
+      "count": 51,
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/gya35ahmSMsRiIXGXmBi.png"
+    },
+    "metchiki": {
+      "count": 52,
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/8PPEf8oUpLVnA0JM7m1h.jpg"
+    },
+    "pilnye-diski": {
+      "count": 128,
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/SG1U6XEWrtLiDEIJk6fM.jpg"
+    },
+    "rezbonareznye-manipulyatory": {
+      "count": 77,
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/68419e71673a6.jpg"
+    },
+    "shlifovalnoe-i-zatochnoe-oborudovanie": {
+      "count": 436,
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/68d52d6e26497.png"
+    },
+    "sozh-i-sots": {
+      "count": 42,
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/692710fe089f8.jpg"
+    },
+    "stanki-lazernoy-rezki": {
+      "count": 59,
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/p_SsAjsKgz2wYTVyLmkh.png"
+    },
+    "stanki-sverlilnye": {
+      "count": 389,
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/dXhTdisXzBn6a7Qvbb6j.jpg"
+    },
+    "stanochnaya-osnastka": {
+      "count": 4,
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/54LKgM5bfilx7IGaTanX.jpg"
+    },
+    "svarochnye-roboty": {
+      "count": 55,
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/RT6OvVIH7uv1vepTeMfR.jpg"
+    },
+    "svarochnye-vrashchateli-i-pozitsionery": {
+      "count": 159,
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/690de9733eafc.png"
+    },
+    "sverla-i-zenkovki": {
+      "count": 367,
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/EKVKPuLpUSfRwUWuUOkG.jpg"
+    },
+    "truborezy": {
+      "count": 206,
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/kgJsc3BF_A6jSRizDnZI.jpg"
+    },
+    "zahvaty-dlya-gruzov": {
+      "count": 24,
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/DcvRxaHEPA.jpg"
+    }
+  },
+  "products": {
+    "magnitnyy-sverlilnyy-stanok-lenz-steyr-35": {
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/dXhTdisXzBn6a7Qvbb6j.jpg"
+    },
+    "ruchnaya-mashina-dlya-snyatiya-faski-s-trub-tvr-270": {
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/68371cd7db7d2.jpg"
+    },
+    "elektricheskiy-truborez-dlya-stalnyh-i-plastikovyh-trub-liden-roar-250": {
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/kgJsc3BF_A6jSRizDnZI.jpg"
+    },
+    "svarochnyy-traktor-rail-bull-2": {
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/zTcVU-bPoCovfIkmjZrf.jpg"
+    },
+    "sverla-koronchatye-lzhs": {
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/MY4xHoYMjxc9q1pdZZEK.png"
+    },
+    "porshnevoy-bezmaslyanyy-2-v-1-kompressor-dc990ad-10l": {
+      "image": "https://s3.export.k2tool.ru/pim/images/product/preview/_5stfYPgD60_iN-P-jJ1.jpg"
+    }
+  }
+}

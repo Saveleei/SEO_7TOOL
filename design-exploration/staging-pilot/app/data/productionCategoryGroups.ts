@@ -1,4 +1,4 @@
-import { getFeedCategory, getFeedCategoryProducts, getFeedProductBySlug, getFeedProductImage, getPublishedFeedCategorySlugs } from "./feedCatalog.ts";
+import catalogPresentation from "./generatedCatalogPresentation.json" with { type:"json" };
 
 export type ProductionSubcategory = {
   slug: string;
@@ -66,8 +66,10 @@ const definitions: ProductionCategoryGroup[] = [
   ]},
 ];
 
-// Пилот читает опубликованные категории из локального снимка нормализованного фида.
-export const pilotFeedCategorySlugs = getPublishedFeedCategorySlugs();
+// This small build-time projection keeps the global header and homepage from
+// ranking every product group on every server render. The generator is run by
+// `npm run build` and its source hash is covered by regression tests.
+export const pilotFeedCategorySlugs = catalogPresentation.publishedCategorySlugs;
 
 export const homepageKeyCategorySlugs = [
   "stanki-sverlilnye",
@@ -83,16 +85,17 @@ export function getProductionCategoryGroups(activeCategorySlugs: string[]): Prod
   return definitions
     .map((group) => {
       const subcategories = group.subcategories.filter((subcategory) => active.has(subcategory.slug)).map((subcategory) => {
-        const category = getFeedCategory(subcategory.slug);
-        const representativeProduct = getFeedCategoryProducts(subcategory.slug, 1)[0];
+        const category = catalogPresentation.categories[subcategory.slug as keyof typeof catalogPresentation.categories];
         return {
           ...subcategory,
           count:category?.count ?? 0,
-          image:representativeProduct ? getFeedProductImage(representativeProduct) : undefined,
+          image:category?.image || undefined,
         };
       });
-      const representativeProduct = group.representativeProductSlug ? getFeedProductBySlug(group.representativeProductSlug) : undefined;
-      return { ...group, subcategories, productCount:subcategories.reduce((total, subcategory) => total + (subcategory.count ?? 0), 0), representativeImage:representativeProduct ? getFeedProductImage(representativeProduct) : undefined };
+      const representativeImage = group.representativeProductSlug
+        ? catalogPresentation.products[group.representativeProductSlug as keyof typeof catalogPresentation.products]?.image
+        : undefined;
+      return { ...group, subcategories, productCount:subcategories.reduce((total, subcategory) => total + (subcategory.count ?? 0), 0), representativeImage:representativeImage || undefined };
     })
     .filter((group) => group.subcategories.length > 0);
 }

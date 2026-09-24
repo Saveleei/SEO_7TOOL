@@ -1,4 +1,6 @@
-import feedSnapshotJson from "../../../../7tool-source/src/lib/products.json" with { type:"json" };
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { getCategoryFamily, getCategoryFamilyLabel } from "./categoryAssortmentTaxonomy.mjs";
 import { getCategoryCardArchetype } from "./categoryCardArchetypes.mjs";
 import { getCategoryExpertProfile, getCategoryFacetKeywords } from "./categoryExpertProfiles.mjs";
@@ -198,7 +200,22 @@ type CachedFeedFacet = Omit<FeedFacet, "options"> & {
   optionLimit: number;
 };
 
-const feedSnapshot = applyVerifiedProductMedia(feedSnapshotJson as unknown as FeedSnapshot) as FeedSnapshot;
+// Keep the 68 MB supplier snapshot out of the Vinext server bundle. Embedding it as
+// a JavaScript object made the runtime parse a 42 MB module before rendering a
+// catalog route, which added several seconds to every request in the Node host.
+// The JSON is parsed once when this server module is loaded and then shared by all
+// catalog indexes below. CATALOG_FEED_PATH is an operator-only escape hatch for a
+// future immutable feed location; the release layout remains the safe default.
+const feedSnapshot = applyVerifiedProductMedia(loadFeedSnapshot()) as FeedSnapshot;
+
+function loadFeedSnapshot(): FeedSnapshot {
+  const configuredPath = process.env.CATALOG_FEED_PATH?.trim();
+  const defaultPath = path.resolve(process.cwd(), "../../7tool-source/src/lib/products.json");
+  const sourceTreePath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../7tool-source/src/lib/products.json");
+  const snapshotPath = [configuredPath, defaultPath, sourceTreePath].filter(Boolean).find((candidate) => existsSync(candidate));
+  if (!snapshotPath) throw new Error(`Catalog feed snapshot was not found. Expected ${defaultPath}.`);
+  return JSON.parse(readFileSync(snapshotPath, "utf8")) as FeedSnapshot;
+}
 
 const categoriesBySlug = new Map(
   feedSnapshot.categories
