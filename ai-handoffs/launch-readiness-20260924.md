@@ -44,7 +44,7 @@
 ## Текущий статус
 
 - Этап 1 — завершён.
-- Этап 2 — не начат.
+- Этап 2 — завершён.
 - Этапы 3–5 — не начаты.
 
 ## Этап 1 — единый release candidate
@@ -67,3 +67,29 @@
 ### Наблюдение
 
 - Первая команда `pnpm run lint` была остановлена самой обёрткой pnpm до запуска ESLint, поскольку pnpm попытался переустановить junction-дерево без TTY. ESLint затем запущен напрямую из зафиксированного `node_modules` и прошёл без ошибок; это не дефект приложения.
+
+## Этап 2 — сквозная заявка
+
+### Найденный и исправленный блокер
+
+- Изолированный импорт основного POST-маршрута заявки падал до обработки запроса: `app/api/quote-requests/route.ts` использовал extensionless-импорт TypeScript-хранилища. Production-сборщик его разрешал, но прямой серверный release gate — нет.
+- Импорт сделан явным (`quoteRequestStore.ts`), без изменения бизнес-логики API.
+
+### Сквозной launch gate
+
+- Добавлена регрессия `tests/launch-conversion-gate.test.mjs` на реальном товаре и точном исполнении `A9409` / `STEYR-35`.
+- POST-маршрут принял валидированную форму и вернул номер формата `7T-YYYYMMDD-XXXXXX`.
+- Повтор с тем же idempotency key вернул тот же номер и не создал вторую заявку.
+- В сохранённой заявке остались точный variant ID, артикул, product URL и UTM-контекст.
+- Заявка появилась в менеджерском списке; назначение Евгения Савельева и перевод в проверку записались в append-only журнал.
+- КП сохранило точную товарную позицию, прошло стадии submitted → approved → delivery_prepared.
+- Пакет поставлен только во внутренний outbox: `status=held`, `transport=disabled-test-contour`, `deliveryEnabled=false`, `attempts=0`.
+- Изолированные данные созданы во временной директории и удалены после проверки; внешние email, Telegram, MAX и CRM не вызывались.
+
+### Контрольные точки
+
+- Новый сквозной gate: 1/1 passed.
+- Связанный набор request/manager/quote/approval/outbox: 33/33 passed.
+- Полный `node --test --test-reporter=dot tests/*.test.mjs`: exit code 0.
+- Полный ESLint: passed.
+- Production `vinext build`: passed.

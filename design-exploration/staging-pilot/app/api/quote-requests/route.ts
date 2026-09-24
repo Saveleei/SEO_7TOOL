@@ -1,4 +1,4 @@
-import { isQuoteTestModeEnabled, saveQuoteRequest } from "../../data/quoteRequestStore";
+import { isQuoteTestModeEnabled, saveQuoteRequest } from "../../data/quoteRequestStore.ts";
 import { createMemoryRateLimiter, validateQuoteAttachment, validateQuoteRequest, validateSpecificationAttachment } from "../../data/quoteRequestValidation.mjs";
 import { isSameOriginRequest } from "../../data/requestOrigin.ts";
 
