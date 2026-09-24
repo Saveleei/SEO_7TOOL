@@ -66,4 +66,4 @@
 
 ## Git
 
-- Commit: pending.
+- Commit: `74a0d5f` (`feat: extend catalog decision coverage`).
