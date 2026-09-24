@@ -3795,6 +3795,28 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
 .catalog-quality-pagination>div { display:flex; gap:9px; }
 .catalog-quality-pagination a { min-height:40px; display:inline-flex; align-items:center; justify-content:center; padding:0 14px; border:1px solid #cbd2c9; border-radius:6px; background:#fff; color:#263b2d; font-weight:850; }
 .catalog-quality-pagination a:hover { border-color:#879189; background:#f4f6f2; }
+.catalog-enrichment-intro { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,2.3fr) auto; align-items:center; gap:18px; margin-bottom:10px; padding:15px 17px; border:1px solid #cfd8cf; border-left:4px solid #2d704e; border-radius:7px; background:#eef5f0; }
+.catalog-enrichment-intro b { font-size:13px; }
+.catalog-enrichment-intro p { margin:0; color:#526058; font-size:12px; line-height:1.5; }
+.catalog-enrichment-intro>a { min-height:40px; display:inline-flex; align-items:center; padding:0 13px; border:1px solid #7d9484; border-radius:5px; background:#fff; color:#245f40; font-size:11px; font-weight:850; white-space:nowrap; }
+.catalog-enrichment-groups { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+.catalog-enrichment-groups>article { min-width:0; display:flex; flex-direction:column; gap:11px; padding:16px; border:1px solid #d4dbd2; border-radius:7px; background:#fff; }
+.catalog-enrichment-groups article>header { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
+.catalog-enrichment-groups article>header>div { min-width:0; display:grid; gap:3px; }
+.catalog-enrichment-groups article>header span { color:#677068; font-size:9px; font-weight:850; letter-spacing:.025em; text-transform:uppercase; }
+.catalog-enrichment-groups article>header b { font-size:15px; line-height:1.25; }
+.catalog-enrichment-groups article>header strong { flex:0 0 auto; color:#245f40; font-size:24px; line-height:1; }
+.catalog-enrichment-groups article>header strong small { display:block; margin-top:3px; color:#758078; font-size:9px; font-weight:750; text-align:right; }
+.catalog-enrichment-groups article>p { min-height:36px; margin:0; color:#555f57; font-size:11px; line-height:1.5; }
+.catalog-enrichment-parameters { display:flex; flex-wrap:wrap; gap:5px; }
+.catalog-enrichment-parameters>span { padding:5px 7px; border:1px solid #d6ddd4; border-radius:4px; background:#f5f7f4; color:#4f5951; font-size:9px; font-weight:750; }
+.catalog-enrichment-groups ul { display:grid; gap:5px; margin:0; padding:0; list-style:none; }
+.catalog-enrichment-groups li { min-width:0; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; padding-top:5px; border-top:1px solid #edf0eb; }
+.catalog-enrichment-groups li>a { overflow:hidden; color:#2d3830; font-size:10px; font-weight:750; text-overflow:ellipsis; white-space:nowrap; }
+.catalog-enrichment-groups li>small { color:#7b837c; font-size:9px; }
+.catalog-enrichment-groups footer { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:auto; padding-top:9px; border-top:1px solid #dfe4dd; }
+.catalog-enrichment-groups footer>a { color:#245f40; font-size:10px; font-weight:850; }
+.catalog-enrichment-tail { margin:9px 0 0; color:#687169; font-size:10px; }
 
 @media (max-width:1100px) {
   .catalog-quality-summary { grid-template-columns:repeat(3,minmax(0,1fr)); }
@@ -3825,6 +3847,12 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
   .catalog-quality-product-link { grid-column:auto; }
   .catalog-quality-issue-copy>small,.catalog-quality-product-link>span { white-space:normal; }
   .catalog-quality-pagination { align-items:flex-start; flex-direction:column; }
+  .catalog-enrichment-intro { grid-template-columns:1fr; gap:7px; }
+  .catalog-enrichment-intro>a { width:100%; justify-content:center; }
+  .catalog-enrichment-groups { grid-template-columns:1fr; }
+  .catalog-enrichment-groups article>p { min-height:0; }
+  .catalog-enrichment-groups li { grid-template-columns:1fr; gap:2px; }
+  .catalog-enrichment-groups li>a { white-space:normal; }
 }
 
 @media print {

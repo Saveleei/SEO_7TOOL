@@ -37,10 +37,30 @@ export type CatalogQualityIssue = {
   familyLabel?: string;
   scopeHref?: string;
   scopeLabel?: string;
+  missingParameters?: string[];
   variantId?: string;
   sku?: string;
   title: string;
   detail: string;
+};
+
+export type CatalogEnrichmentGroup = {
+  id: string;
+  categorySlug: string;
+  categoryTitle: string;
+  familyLabel?: string;
+  scopeHref: string;
+  queueHref: string;
+  productCount: number;
+  missingParameters: string[];
+  sampleProducts: Array<{ slug: string; title: string; brand: string }>;
+  action: string;
+};
+
+export type CatalogEnrichmentQueue = {
+  productCount: number;
+  groupCount: number;
+  groups: CatalogEnrichmentGroup[];
 };
 
 export type CatalogQualityCategory = {
@@ -163,13 +183,13 @@ function buildCatalogQualityReport(): CatalogQualityReport {
       const context = { familyId:selectionProfile.familyId, familyLabel:selectionProfile.familyLabel, scopeHref:selectionProfile.scopeHref, scopeLabel:selectionProfile.scopeLabel };
       const missingKeywords = selectionKeywords.filter((keyword) => !product.variants.some((variant) => hasParameter(product, variant, keyword)));
       if (selectionKeywords.length === 0) {
-        issues.push(issue(product, category, "not_filterable", "warning", `${selectionContext(selectionProfile)}не найдено ни одной надёжной характеристики для самостоятельного подбора.`, undefined, context));
+        issues.push(issue(product, category, "not_filterable", "warning", `${selectionContext(selectionProfile)}не найдено ни одной надёжной характеристики для самостоятельного подбора.`, undefined, { ...context, missingParameters:[] }));
       } else {
         if (missingKeywords.length > 0) {
-          issues.push(issue(product, category, "missing_parameter", "notice", `${selectionContext(selectionProfile)}нет ${formatKeywordList(missingKeywords)} из решающих параметров этой подкатегории.`, undefined, context));
+          issues.push(issue(product, category, "missing_parameter", "notice", `${selectionContext(selectionProfile)}нет ${formatKeywordList(missingKeywords)} из решающих параметров этой подкатегории.`, undefined, { ...context, missingParameters:missingKeywords }));
         }
         if (missingKeywords.length === selectionKeywords.length) {
-          issues.push(issue(product, category, "not_filterable", "warning", `${selectionContext(selectionProfile)}ни один из решающих параметров не может привести к этому товару.`, undefined, context));
+          issues.push(issue(product, category, "not_filterable", "warning", `${selectionContext(selectionProfile)}ни один из решающих параметров не может привести к этому товару.`, undefined, { ...context, missingParameters:missingKeywords }));
         }
       }
     }
@@ -352,7 +372,7 @@ function variantSignature(product: FeedProduct, variant: FeedVariant): string {
   return `${product.category}|${normalizeKey(product.brand)}|${normalizeKey(product.title)}|${parameters.join("|")}`;
 }
 
-function issue(product: FeedProduct, category: FeedCategory, code: CatalogQualityIssueCode, severity: CatalogQualitySeverity, detail: string, variant?: FeedVariant, context?: Pick<ProductSelectionProfile, "familyId" | "familyLabel" | "scopeHref" | "scopeLabel">): CatalogQualityIssue {
+function issue(product: FeedProduct, category: FeedCategory, code: CatalogQualityIssueCode, severity: CatalogQualitySeverity, detail: string, variant?: FeedVariant, context?: Pick<ProductSelectionProfile, "familyId" | "familyLabel" | "scopeHref" | "scopeLabel"> & { missingParameters?: string[] }): CatalogQualityIssue {
   return {
     id:`${category.slug}:${product.id}:${variant?.id ?? "product"}:${code}`,
     code,
@@ -368,11 +388,48 @@ function issue(product: FeedProduct, category: FeedCategory, code: CatalogQualit
     familyLabel:context?.familyLabel,
     scopeHref:context?.scopeHref,
     scopeLabel:context?.scopeLabel,
+    missingParameters:context?.missingParameters,
     variantId:variant?.id,
     sku:variant ? variantPublicSku(product, variant) || undefined : product.sku || undefined,
     title:issueLabels[code],
     detail,
   };
+}
+
+export function getCatalogEnrichmentQueue(report: CatalogQualityReport = getCatalogQualityReport()): CatalogEnrichmentQueue {
+  const productById = new Map(publishedProducts.map((product) => [product.id, product]));
+  const grouped = new Map<string, CatalogQualityIssue[]>();
+  for (const entry of report.issues.filter((candidate) => candidate.code === "not_filterable")) {
+    const key = `${entry.categorySlug}:${entry.familyId ?? entry.scopeLabel ?? "category"}`;
+    const group = grouped.get(key);
+    if (group) group.push(entry);
+    else grouped.set(key, [entry]);
+  }
+
+  const groups = Array.from(grouped.entries()).map(([id, entries]) => {
+    const first = entries[0];
+    const missingParameters = Array.from(new Set(entries.flatMap((entry) => entry.missingParameters ?? [])));
+    const categoryParam = encodeURIComponent(first.categorySlug);
+    return {
+      id,
+      categorySlug:first.categorySlug,
+      categoryTitle:first.categoryTitle,
+      familyLabel:first.familyLabel ?? first.scopeLabel,
+      scopeHref:first.scopeHref ?? `/catalog/category/${first.categorySlug}`,
+      queueHref:`/test/catalog-quality?priority=p1&category=${categoryParam}&issue=not_filterable`,
+      productCount:new Set(entries.map((entry) => entry.productId)).size,
+      missingParameters,
+      sampleProducts:entries.slice(0, 3).map((entry) => {
+        const product = productById.get(entry.productId);
+        return { slug:entry.productSlug, title:entry.productTitle, brand:product?.brand ?? entry.brand };
+      }),
+      action:missingParameters.length > 0
+        ? `Запросить и проверить: ${formatKeywordList(missingParameters)}.`
+        : "Запросить технический паспорт и определить решающие параметры для этой товарной группы.",
+    } satisfies CatalogEnrichmentGroup;
+  }).sort((first, second) => second.productCount - first.productCount || first.categoryTitle.localeCompare(second.categoryTitle, "ru-RU") || (first.familyLabel ?? "").localeCompare(second.familyLabel ?? "", "ru-RU"));
+
+  return { productCount:new Set(report.issues.filter((entry) => entry.code === "not_filterable").map((entry) => entry.productId)).size, groupCount:groups.length, groups };
 }
 
 function prioritySummary(issues: CatalogQualityIssue[], priority: CatalogQualityPriority): { issueCount: number; affectedProductCount: number } {

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { catalogQualityIssueLabel, getCatalogQualityReport, type CatalogQualityIssue, type CatalogQualityIssueCode, type CatalogQualityPriority, type CatalogQualityStatus } from "../../data/catalogQuality.ts";
+import { catalogQualityIssueLabel, getCatalogEnrichmentQueue, getCatalogQualityReport, type CatalogEnrichmentGroup, type CatalogQualityIssue, type CatalogQualityIssueCode, type CatalogQualityPriority, type CatalogQualityStatus } from "../../data/catalogQuality.ts";
 import { requireManagerPageAccess } from "../../data/managerAccessPage.ts";
 import { Breadcrumbs } from "../../ui/Breadcrumbs";
 import { PilotFooter } from "../../ui/PilotFooter";
@@ -23,6 +23,7 @@ export default async function CatalogQualityPage({ searchParams }: { searchParam
   const returnTo = `/test/catalog-quality${returnParams.size ? `?${returnParams}` : ""}`;
   const actor = await requireManagerPageAccess("catalog:audit", returnTo);
   const report = getCatalogQualityReport();
+  const enrichmentQueue = getCatalogEnrichmentQueue(report);
   const status = normalizeStatus(raw.status);
   const priority = normalizePriority(raw.priority);
   const issueCode = normalizeIssue(raw.issue, report.issues);
@@ -40,6 +41,7 @@ export default async function CatalogQualityPage({ searchParams }: { searchParam
   const issueOffset = (issuePage - 1) * ISSUE_PAGE_SIZE;
   const visibleIssues = matchingIssues.slice(issueOffset, issueOffset + ISSUE_PAGE_SIZE);
   const issueCodes = Array.from(new Set(report.issues.map((issue) => issue.code))).sort((first, second) => catalogQualityIssueLabel(first).localeCompare(catalogQualityIssueLabel(second), "ru-RU"));
+  const enrichmentGroups = enrichmentQueue.groups.filter((group) => categorySlug === "all" || group.categorySlug === categorySlug);
 
   return <div className="site-shell"><PilotHeader managerMode managerActor={actor} /><main className="inner-page catalog-quality-page">
     <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Заявки", href:"/test/requests" }, { label:"Качество каталога" }]} /></div>
@@ -65,6 +67,12 @@ export default async function CatalogQualityPage({ searchParams }: { searchParam
 
       <div className="catalog-quality-explainer"><b>Как читать оценку</b><p>P0 мешает надёжно идентифицировать товар, P1 — выбрать его без ошибки, P2 — полноценно показать и предложить. Баллы отражают полноту фото, цены, артикула и параметров подбора, но не подтверждают техническую корректность товара. Одна карточка может иметь несколько замечаний, поэтому число проблем больше числа товаров.</p></div>
 
+      <section className="catalog-quality-section catalog-enrichment-section" aria-labelledby="catalog-enrichment-title"><header><div><p className="eyebrow">Следующее безопасное действие</p><h2 id="catalog-enrichment-title">Очередь обогащения параметров</h2></div><span>{enrichmentQueue.productCount.toLocaleString("ru-RU")} товаров · {enrichmentQueue.groupCount} групп</span></header>
+        <div className="catalog-enrichment-intro"><b>Сначала закрывайте крупные однородные группы</b><p>Очередь показывает только товары, которые нельзя надёжно подобрать по текущим данным. Заполняйте параметры по паспорту поставщика; код модели сам по себе не считается характеристикой.</p><Link href="/test/catalog-quality?priority=p1&issue=not_filterable">Все товары очереди →</Link></div>
+        {enrichmentGroups.length > 0 ? <div className="catalog-enrichment-groups">{enrichmentGroups.slice(0, 12).map((group) => <EnrichmentGroupCard group={group} key={group.id} />)}</div> : <EmptyState />}
+        {enrichmentGroups.length > 12 ? <p className="catalog-enrichment-tail">Показаны 12 крупнейших групп из {enrichmentGroups.length}. Остальные доступны через фильтр категории и полный список товаров.</p> : null}
+      </section>
+
       <section className="catalog-quality-section" aria-labelledby="category-health-title"><header><div><p className="eyebrow">Приоритет исправлений</p><h2 id="category-health-title">Состояние категорий</h2></div><span>{visibleCategories.length} из {report.categoryCount}</span></header>
         {visibleCategories.length > 0 ? <div className="catalog-quality-categories">{visibleCategories.map((category) => <details key={category.slug}><summary><StatusBadge status={category.status} /><div><b>{category.title}</b><small>{category.productCount.toLocaleString("ru-RU")} товаров · {category.variantCount.toLocaleString("ru-RU")} исполнений</small></div><strong>{category.score}<small>/100</small></strong><i aria-hidden="true">+</i></summary><div className="catalog-quality-category-body"><div className="catalog-quality-metrics"><Metric label="Фото" value={category.metrics.photoCoverage} /><Metric label="Цена" value={category.metrics.priceCoverage} /><Metric label="Артикул" value={category.metrics.skuCoverage} /><Metric label="Участвуют в подборе" value={category.metrics.selectionCoverage} /><Metric label="Ключевые параметры" value={category.metrics.criticalParameterCoverage} /></div><div className="catalog-quality-category-foot"><p><b>{category.affectedProductCount.toLocaleString("ru-RU")}</b> товаров с замечаниями · критичных записей: {category.criticalCount}, проверок: {category.warningCount}, уведомлений: {category.noticeCount}</p><div>{category.selectionKeywords.length > 0 ? <span>Подбор: {category.selectionKeywords.join(" · ")}</span> : <span>Подбор передаётся инженеру: структурированных параметров недостаточно</span>}<Link href={`/catalog/category/${category.slug}`}>Открыть категорию →</Link></div></div></div></details>)}</div> : <EmptyState />}
       </section>
@@ -75,6 +83,10 @@ export default async function CatalogQualityPage({ searchParams }: { searchParam
       </section>
     </div></section>
   </main><PilotFooter /></div>;
+}
+
+function EnrichmentGroupCard({ group }: { group: CatalogEnrichmentGroup }) {
+  return <article><header><div><span>{group.categoryTitle}</span><b>{group.familyLabel ?? "Вся категория"}</b></div><strong>{group.productCount.toLocaleString("ru-RU")}<small> товаров</small></strong></header><p>{group.action}</p>{group.missingParameters.length > 0 ? <div className="catalog-enrichment-parameters" aria-label="Недостающие параметры">{group.missingParameters.slice(0, 5).map((parameter) => <span key={parameter}>{parameter}</span>)}</div> : null}<ul>{group.sampleProducts.map((product) => <li key={product.slug}><Link href={`/product/${product.slug}`}>{product.title}</Link><small>{product.brand || "Бренд не указан"}</small></li>)}</ul><footer><Link href={group.queueHref}>Товары в очереди →</Link><Link href={group.scopeHref}>Проверить раздел</Link></footer></article>;
 }
 
 function SummaryCard({ label, value, note, tone = "neutral" }: { label: string; value: number; note: string; tone?: "neutral" | CatalogQualityStatus }) {

@@ -4,7 +4,7 @@ import test from "node:test";
 import feedSnapshotJson from "../../../7tool-source/src/lib/products.json" with { type:"json" };
 import { getCategoryFamily, getCategoryFamilyShortcuts } from "../app/data/categoryAssortmentTaxonomy.mjs";
 import { getCategoryExpertProfile } from "../app/data/categoryExpertProfiles.mjs";
-import { getCatalogQualityReport } from "../app/data/catalogQuality.ts";
+import { getCatalogEnrichmentQueue, getCatalogQualityReport } from "../app/data/catalogQuality.ts";
 import { canManager } from "../app/data/managerAccess.ts";
 
 const feedSnapshot = feedSnapshotJson;
@@ -93,6 +93,29 @@ test("catalog work queues separate blockers, decision defects and enrichment", (
   assert.ok(report.priorities.p0.affectedProductCount < report.priorities.p1.affectedProductCount);
 });
 
+test("parameter enrichment queue turns every unfilterable product into a bounded admin task", () => {
+  const report = getCatalogQualityReport();
+  const queue = getCatalogEnrichmentQueue(report);
+  const unfilterable = report.issues.filter((issue) => issue.code === "not_filterable");
+
+  assert.equal(queue.productCount, new Set(unfilterable.map((issue) => issue.productId)).size);
+  assert.equal(queue.productCount, 359);
+  assert.equal(queue.groupCount, queue.groups.length);
+  assert.equal(queue.groups.reduce((sum, group) => sum + group.productCount, 0), queue.productCount);
+  assert.ok(queue.groups.length > 10);
+  assert.ok(queue.groups.some((group) => group.missingParameters.length > 0));
+  assert.ok(queue.groups.some((group) => group.missingParameters.length === 0 && /технический паспорт/iu.test(group.action)));
+
+  for (let index = 0; index < queue.groups.length; index += 1) {
+    const group = queue.groups[index];
+    assert.ok(group.productCount > 0);
+    assert.ok(group.sampleProducts.length > 0 && group.sampleProducts.length <= 3);
+    assert.match(group.queueHref, /^\/test\/catalog-quality\?priority=p1&category=[^&]+&issue=not_filterable$/u);
+    assert.match(group.scopeHref, /^\/catalog\/category\//u);
+    if (index > 0) assert.ok(queue.groups[index - 1].productCount >= group.productCount);
+  }
+});
+
 test("P0 identity checks use the stable feed id and scope public articles by brand", () => {
   const report = getCatalogQualityReport();
   const variants = publishedProducts.flatMap((product) => product.variants.map((variant) => ({ product, variant })));
@@ -137,6 +160,7 @@ test("every catalog quality issue points to evidence in the current feed", () =>
 test("catalog audit is an administrator-only read-only workspace", async () => {
   const page = await readFile(new URL("../app/test/catalog-quality/page.tsx", import.meta.url), "utf8");
   const header = await readFile(new URL("../app/ui/PilotHeader.tsx", import.meta.url), "utf8");
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
   const authCall = page.indexOf('requireManagerPageAccess("catalog:audit"');
   const reportCall = page.indexOf("getCatalogQualityReport()", authCall);
 
@@ -150,6 +174,12 @@ test("catalog audit is an administrator-only read-only workspace", async () => {
   assert.match(page, /aria-label="Страницы замечаний"/u);
   assert.match(page, /name="priority"/u);
   assert.match(page, /P0 · идентификация/u);
+  assert.match(page, /Очередь обогащения параметров/u);
+  assert.match(page, /getCatalogEnrichmentQueue\(report\)/u);
+  assert.match(page, /group\.missingParameters/u);
+  assert.match(page, /Все товары очереди/u);
+  assert.match(css, /\.catalog-enrichment-groups \{ display:grid; grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/u);
+  assert.match(css, /@media \(max-width:720px\)[\s\S]*\.catalog-enrichment-groups \{ grid-template-columns:1fr; \}/u);
   assert.match(page, /issue\.scopeHref \?\? `\/catalog\/category\/\$\{issue\.categorySlug\}`/u);
   assert.doesNotMatch(page, /method="post"|fetch\(|server action|<button[^>]+name="action"/iu);
   assert.ok(page.includes('href={`/product/${issue.productSlug}`}'));
