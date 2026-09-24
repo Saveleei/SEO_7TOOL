@@ -4,6 +4,7 @@ import { getCategorySelectionRule } from "./categorySelection.mjs";
 import { classifyMissingProductMedia } from "./catalogMediaRecovery.mjs";
 import { feedParameterMatchesFacetKeyword, getFeedCategoryPage, getFeedCategoryProductType, getFeedCategorySegment, getFeedCategorySubsegment, getFeedProductImage, getPublishedFeedCatalogSnapshot, type FeedCategory, type FeedCategoryQuery, type FeedFacet, type FeedParameter, type FeedProduct, type FeedVariant } from "./feedCatalog.ts";
 import { getFeedDecisionParameters } from "./feedDecisionParameters.mjs";
+import { getRuntimeCatalogParameterOverrideRevision } from "./catalogParameterOverrideStore.ts";
 
 export type CatalogQualityStatus = "critical" | "review" | "healthy";
 export type CatalogQualitySeverity = "critical" | "warning" | "notice";
@@ -110,10 +111,6 @@ type ProductSelectionProfile = {
   keywords: string[];
 };
 
-const feedSnapshot = getPublishedFeedCatalogSnapshot();
-const publishedCategories = feedSnapshot.categories;
-const publishedProducts = feedSnapshot.products;
-const categoryBySlug = new Map(publishedCategories.map((category) => [category.slug, category]));
 const issueLabels: Record<CatalogQualityIssueCode, string> = {
   missing_identifier:"Нет устойчивого кода исполнения",
   duplicate_identifier:"Код исполнения используется повторно",
@@ -143,20 +140,24 @@ const issuePriorities: Record<CatalogQualityIssueCode, CatalogQualityPriority> =
   duplicate_signature:"p2",
 };
 
-let cachedReport: CatalogQualityReport | undefined;
+let cachedReport: { revision: number; report: CatalogQualityReport } | undefined;
 
 export function getCatalogQualityReport(): CatalogQualityReport {
-  cachedReport ??= buildCatalogQualityReport();
-  return cachedReport;
+  const revision = getRuntimeCatalogParameterOverrideRevision();
+  if (!cachedReport || cachedReport.revision !== revision) cachedReport = { revision, report:buildCatalogQualityReport(getPublishedFeedCatalogSnapshot()) };
+  return cachedReport.report;
 }
 
 export function catalogQualityIssueLabel(code: CatalogQualityIssueCode): string {
   return issueLabels[code];
 }
 
-function buildCatalogQualityReport(): CatalogQualityReport {
+function buildCatalogQualityReport(feedSnapshot: ReturnType<typeof getPublishedFeedCatalogSnapshot>): CatalogQualityReport {
+  const publishedCategories = feedSnapshot.categories;
+  const publishedProducts = feedSnapshot.products;
+  const categoryBySlug = new Map(publishedCategories.map((category) => [category.slug, category]));
   const issues: CatalogQualityIssue[] = [];
-  const selectionProfilesByProduct = buildProductSelectionProfiles();
+  const selectionProfilesByProduct = buildProductSelectionProfiles(publishedCategories, publishedProducts);
   const numericInstances = collectNumericInstances(publishedProducts, selectionProfilesByProduct);
   const duplicateIdentifiers = duplicateIdentityGroups(publishedProducts.flatMap((product) => product.variants.map((variant) => ({
     key:normalizeKey(variant.id), product, variant,
@@ -397,6 +398,7 @@ function issue(product: FeedProduct, category: FeedCategory, code: CatalogQualit
 }
 
 export function getCatalogEnrichmentQueue(report: CatalogQualityReport = getCatalogQualityReport()): CatalogEnrichmentQueue {
+  const publishedProducts = getPublishedFeedCatalogSnapshot().products;
   const productById = new Map(publishedProducts.map((product) => [product.id, product]));
   const grouped = new Map<string, CatalogQualityIssue[]>();
   for (const entry of report.issues.filter((candidate) => candidate.code === "not_filterable")) {
@@ -439,7 +441,7 @@ function prioritySummary(issues: CatalogQualityIssue[], priority: CatalogQuality
 
 const emptySelectionProfile: ProductSelectionProfile = { mode:"engineer", facets:[], keywords:[] };
 
-function buildProductSelectionProfiles(): Map<string, ProductSelectionProfile> {
+function buildProductSelectionProfiles(publishedCategories: FeedCategory[], publishedProducts: FeedProduct[]): Map<string, ProductSelectionProfile> {
   const profiles = new Map<string, ProductSelectionProfile>();
   for (const category of publishedCategories) {
     const categoryProducts = publishedProducts.filter((product) => product.category === category.slug);

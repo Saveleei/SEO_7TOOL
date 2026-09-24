@@ -7,6 +7,7 @@ import { selectComparableAlternatives, selectProductCompatibility } from "./prod
 import { getProductShippingPromise, getVariantShippingPromise } from "./shippingPromise.mjs";
 import { applyVerifiedProductMedia } from "./verifiedProductMedia.mjs";
 import { getRuntimeCatalogProductMediaUrl } from "./catalogProductMediaStore.ts";
+import { applyRuntimeCatalogParameterOverrides, applyRuntimeCatalogParameterOverridesToProducts, getRuntimeCatalogParameterOverrideRevision } from "./catalogParameterOverrideStore.ts";
 import { getFeedDecisionParameters } from "./feedDecisionParameters.mjs";
 
 export type FeedParameter = {
@@ -14,6 +15,7 @@ export type FeedParameter = {
   value: string;
   unit?: string;
   derivedFromTitle?: true;
+  manualOverride?: true;
 };
 
 export type FeedVariant = {
@@ -208,6 +210,7 @@ const productsByCategory = new Map<string, FeedProduct[]>();
 const productsBySlug = new Map<string, FeedProduct>();
 const variantsById = new Map<string, { product: FeedProduct; variant: FeedVariant }>();
 const categoryFacetCache = new Map<string, CachedFeedFacet[]>();
+let categoryFacetCacheRevision = -1;
 const compatibilityCache = new Map<string, FeedCompatibilityRecommendation[]>();
 const alternativeCache = new Map<string, FeedProductAlternative[]>();
 
@@ -251,7 +254,7 @@ export function getPublishedFeedCategorySlugs(): string[] {
 export function getPublishedFeedCatalogSnapshot(): FeedSnapshot {
   return {
     categories:Array.from(categoriesBySlug.values()),
-    products:Array.from(productsByCategory.values()).flat(),
+    products:applyRuntimeCatalogParameterOverridesToProducts(Array.from(productsByCategory.values()).flat()),
   };
 }
 
@@ -398,13 +401,9 @@ export function prefersDenseFeedTable(slug: string): boolean {
 }
 
 export function getFeedCategoryProducts(slug: string, limit = 6): FeedProduct[] {
-  const products = productsByCategory.get(slug) ?? [];
-  return products
-    .map((product, sourceOrder) => ({ product, sourceOrder, score: scoreFeedProduct(product, slug) }))
-    .filter(({ product }) => Boolean(getFeedProductImage(product)))
-    .sort((a, b) => b.score - a.score || a.sourceOrder - b.sourceOrder)
-    .slice(0, limit)
-    .map(({ product }) => product);
+  return getRankedCategoryProducts(slug)
+    .filter((product) => Boolean(getFeedProductImage(product)))
+    .slice(0, limit);
 }
 
 export function getFeedCategoryPage(slug: string, query: FeedCategoryQuery = {}): FeedCategoryPage {
@@ -517,11 +516,16 @@ export function getFeedCategoryProductCount(slug: string): number {
 }
 
 export function getFeedProductBySlug(slug: string): FeedProduct | undefined {
-  return productsBySlug.get(slug);
+  const product = productsBySlug.get(slug);
+  return product ? applyRuntimeCatalogParameterOverrides(product) : undefined;
 }
 
 export function getFeedProductVariantById(id: string): { product: FeedProduct; variant: FeedVariant } | undefined {
-  return variantsById.get(id);
+  const found = variantsById.get(id);
+  if (!found) return undefined;
+  const product = applyRuntimeCatalogParameterOverrides(found.product);
+  const variant = product.variants.find((entry) => entry.id === id);
+  return variant ? { product, variant } : undefined;
 }
 
 export function getFeedProductCompatibility(product: FeedProduct, variant: FeedVariant, limit = 3): FeedCompatibilityRecommendation[] {
@@ -672,13 +676,18 @@ function scoreFeedProduct(product: FeedProduct, categorySlug: string): number {
 }
 
 function getRankedCategoryProducts(slug: string): FeedProduct[] {
-  return (productsByCategory.get(slug) ?? [])
-    .map((product, sourceOrder) => ({ product, sourceOrder, score: scoreFeedProduct(product, slug) }))
+  return applyRuntimeCatalogParameterOverridesToProducts(productsByCategory.get(slug) ?? [])
+    .map((product, sourceOrder) => ({ product, sourceOrder, score:scoreFeedProduct(product, slug) }))
     .sort((a, b) => b.score - a.score || a.sourceOrder - b.sourceOrder)
     .map(({ product }) => product);
 }
 
 function getCategoryFacets(slug: string, products: FeedProduct[], selectedFilters: Record<string, string[]>, cacheScope?: string): FeedFacet[] {
+  const revision = getRuntimeCatalogParameterOverrideRevision();
+  if (revision !== categoryFacetCacheRevision) {
+    categoryFacetCache.clear();
+    categoryFacetCacheRevision = revision;
+  }
   const cacheKey = cacheScope ? `${slug}:${cacheScope}` : slug;
   let cachedFacets = categoryFacetCache.get(cacheKey);
   if (!cachedFacets) {

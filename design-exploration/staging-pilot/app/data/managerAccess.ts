@@ -2,6 +2,7 @@ export const MANAGER_SESSION_COOKIE = "7tool_manager_session";
 
 export const MANAGER_CAPABILITIES = [
   "catalog:audit",
+  "catalog:manage",
   "requests:view",
   "requests:update",
   "quotes:edit",

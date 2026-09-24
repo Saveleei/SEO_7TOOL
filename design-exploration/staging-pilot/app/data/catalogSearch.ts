@@ -1,8 +1,9 @@
-import { formatFeedPrice, getFeedProductImage, getPublishedFeedCatalogSnapshot, toFeedProductCardModel, type FeedProduct, type FeedVariant } from "./feedCatalog";
-import { getProductionCategoryGroups, pilotFeedCategorySlugs } from "./productionCategoryGroups";
+import { formatFeedPrice, getFeedProductImage, getPublishedFeedCatalogSnapshot, toFeedProductCardModel, type FeedProduct, type FeedVariant } from "./feedCatalog.ts";
+import { getProductionCategoryGroups, pilotFeedCategorySlugs } from "./productionCategoryGroups.ts";
 import { normalizeCatalogQuery, rankCatalogItems } from "./catalogSearchEngine.mjs";
-import type { CatalogSearchHit, CatalogSearchResponse } from "./catalogSearchTypes";
+import type { CatalogSearchHit, CatalogSearchResponse } from "./catalogSearchTypes.ts";
 import { getProductShippingPromise, getVariantShippingPromise } from "./shippingPromise.mjs";
+import { getRuntimeCatalogParameterOverrideRevision } from "./catalogParameterOverrideStore.ts";
 
 type SearchIndexItem<T> = { title: string; searchText: string; normalizedTitle: string; normalizedSearchText: string; identifiers?: string[]; normalizedIdentifiers?: string[]; available?: boolean; data: T };
 
@@ -11,18 +12,7 @@ const publishedCategories = new Map(feedSnapshot.categories.filter((category) =>
 const categoryProducts = new Map<string, number>();
 for (const product of feedSnapshot.products) categoryProducts.set(product.category, (categoryProducts.get(product.category) ?? 0) + 1);
 
-const productIndex: Array<SearchIndexItem<FeedProduct>> = feedSnapshot.products
-  .filter((product) => publishedCategories.has(product.category))
-  .map((product) => {
-    const available = getProductShippingPromise(product.variants).available;
-    return makeSearchIndexItem({
-      title:product.title,
-      identifiers:[product.sku, ...product.variants.map((variant) => variant.sku)].filter(Boolean),
-      available,
-      searchText:[product.title, product.brand, product.sku, publishedCategories.get(product.category)?.title, ...product.variants.flatMap((variant) => [variant.name, variant.sku, ...variant.params.flatMap((parameter) => [parameter.name, parameter.value])])].filter(Boolean).join(" "),
-      data:product,
-    });
-  });
+let productIndexCache: { revision: number; index: Array<SearchIndexItem<FeedProduct>> } | undefined;
 
 const taskAliases: Record<string, string> = {
   drilling:"сверлить отверстие нарезать резьбу монтаж магнитный станок сверло метчик",
@@ -51,7 +41,7 @@ const categoryIndex = groups.flatMap((group) => group.subcategories.map((subcate
 export function searchCatalog(query: string, limits: { products?: number; categories?: number; tasks?: number } = {}): CatalogSearchResponse {
   const cleanQuery = query.trim().slice(0, 120);
   const normalized = normalizeCatalogQuery(cleanQuery);
-  const productMatches = rankCatalogItems(productIndex, cleanQuery, limits.products ?? 6) as Array<SearchIndexItem<FeedProduct>>;
+  const productMatches = rankCatalogItems(getProductIndex(), cleanQuery, limits.products ?? 6) as Array<SearchIndexItem<FeedProduct>>;
   const categoryMatches = rankCatalogItems(categoryIndex, cleanQuery, limits.categories ?? 3) as typeof categoryIndex;
   const taskMatches = rankCatalogItems(taskIndex, cleanQuery, limits.tasks ?? 2) as typeof taskIndex;
 
@@ -78,6 +68,25 @@ export function searchCatalog(query: string, limits: { products?: number; catego
       image:data.image,
     })),
   };
+}
+
+function getProductIndex(): Array<SearchIndexItem<FeedProduct>> {
+  const revision = getRuntimeCatalogParameterOverrideRevision();
+  if (productIndexCache?.revision === revision) return productIndexCache.index;
+  const index = getPublishedFeedCatalogSnapshot().products
+    .filter((product) => publishedCategories.has(product.category))
+    .map((product) => {
+      const available = getProductShippingPromise(product.variants).available;
+      return makeSearchIndexItem({
+        title:product.title,
+        identifiers:[product.sku, ...product.variants.map((variant) => variant.sku)].filter(Boolean),
+        available,
+        searchText:[product.title, product.brand, product.sku, publishedCategories.get(product.category)?.title, ...product.variants.flatMap((variant) => [variant.name, variant.sku, ...variant.params.flatMap((parameter) => [parameter.name, parameter.value])])].filter(Boolean).join(" "),
+        data:product,
+      });
+    });
+  productIndexCache = { revision, index };
+  return index;
 }
 
 function toProductHit(product: FeedProduct, normalizedQuery: string): CatalogSearchHit {
