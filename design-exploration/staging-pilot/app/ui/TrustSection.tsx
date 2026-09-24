@@ -15,9 +15,16 @@ export function TrustSection({ content }: { content: TrustContentSettings }) {
         const presentation = TRUST_CARD_PRESENTATION[card.id];
         return <article key={card.id}>
           <Image src={trustCardImageUrl(card)} alt={card.imageAlt} width={520} height={300} unoptimized={Boolean(card.imageAssetId)} />
-          <div><span>{card.kicker}</span><h3>{card.title}</h3><p>{card.text}</p><div className="assurance-outcome"><small>Что получает покупатель</small><b>{card.outcome}</b></div><Link href={presentation.href}>{presentation.linkLabel} →</Link></div>
+          <div><span>{card.kicker}</span><h3>{card.title}</h3><p>{card.text}</p><ul className="assurance-proof-list">{presentation.proofs.map((proof) => <li key={proof}>{proof}</li>)}</ul><div className="assurance-outcome"><small>Результат для согласования</small><b>{card.outcome}</b></div><Link href={presentation.href}>{presentation.linkLabel} →</Link></div>
         </article>;
       })}
     </div>
+    <nav className="assurance-evidence-links" aria-label="Проверяемая информация о покупке">
+      <div><span>Можно проверить до обращения</span><b>Компания, документы и порядок поставки</b></div>
+      <Link href="/company">Как работает 7TOOL</Link>
+      <Link href="/warranty">Гарантия и документы</Link>
+      <Link href="/delivery">Доставка и отгрузка</Link>
+      <Link href="/ordering">Как оформить заказ</Link>
+    </nav>
   </div></section>;
 }

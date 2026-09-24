@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PilotFooter } from "./ui/PilotFooter";
 import { PilotHeader } from "./ui/PilotHeader";
 import { HomepageCategoryTiles } from "./ui/HomepageCategoryTiles";
+import { HomepageAnalytics } from "./ui/HomepageAnalytics";
 import { HomepageTaskPaths } from "./ui/HomepageTaskPaths";
 import { ProcurementWorkbench } from "./ui/ProcurementWorkbench";
 import { TrustSection } from "./ui/TrustSection";
@@ -25,6 +26,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
   const categoryCount = new Set(categoryGroups.flatMap((group) => group.subcategories.map((subcategory) => subcategory.slug))).size;
   return (
     <div className="site-shell">
+      <HomepageAnalytics />
       <PilotHeader />
       <main>
         <section className="hero" id="top">
@@ -34,9 +36,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
               <h1>{homepageContent.hero.title}</h1>
               <p className="hero-lead">{homepageContent.hero.intro}</p>
               <div className="hero-primary-actions">
-                <Link className="button button-dark" href="/catalog">Открыть каталог</Link>
-                <a className="button button-quiet" href="#production-categories">Выбрать по задаче</a>
+                <Link className="button button-dark" href="/catalog" data-home-action="open_catalog">Открыть каталог</Link>
+                <a className="button button-quiet" href="#production-categories" data-home-action="choose_task">Выбрать по задаче</a>
               </div>
+              <Link className="hero-specification-link" href="/?request=spec#quick-order" data-home-action="upload_specification">Есть ТЗ или список позиций? Передать файл без письма →</Link>
               <nav className="hero-category-shortcuts" aria-label="Популярные категории">
                 <span>Часто ищут:</span>
                 <Link href="/catalog/category/stanki-sverlilnye">Магнитные станки</Link>
@@ -67,10 +70,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
 
         <section className="proof-strip" aria-label="Условия поставки">
           <div className="container proof-grid">
-            <div><strong>КП с НДС</strong><span>цена, наличие и срок в одном письме</span></div>
-            <div><strong>Инженер</strong><span>проверит совместимость комплекта</span></div>
-            <div><strong>Документы</strong><span>по конкретному артикулу</span></div>
-            <div><strong>По РФ</strong><span>условия доставки фиксируются в КП</span></div>
+            <div><strong>КП с НДС</strong><span>позиции, цена и комплектность</span></div>
+            <div><strong>Проверка инженером</strong><span>исполнение и совместимая оснастка</span></div>
+            <div><strong>Документы к позиции</strong><span>доступный пакет проверяется до оплаты</span></div>
+            <div><strong>Условия поставки</strong><span>подтверждённый срок фиксируется в КП</span></div>
           </div>
         </section>
 

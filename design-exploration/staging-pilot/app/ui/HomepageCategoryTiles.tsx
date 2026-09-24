@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { ProductionSubcategory } from "../data/productionCategoryGroups";
+import { HomepageCategoryMedia } from "./HomepageCategoryMedia";
 
 type HomepageCategoryTile = ProductionSubcategory & { imageAlt?: string; imageFit?: "contain" | "cover"; imagePosition?: "center" | "top" | "bottom" | "left" | "right" };
 
@@ -18,9 +18,7 @@ export function HomepageCategoryTiles({ categories, compact = false }: { categor
         <span>Перейти в раздел <i aria-hidden="true">↗</i></span>
       </span>
       <span className="homepage-category-tile-media" data-fit={category.imageFit || "contain"} data-position={category.imagePosition || "center"}>
-        {category.image
-          ? <Image src={category.image} alt={category.imageAlt || category.label} fill sizes="(max-width: 760px) 42vw, (max-width: 1050px) 34vw, 420px" unoptimized />
-          : <span aria-hidden="true">7T</span>}
+        <HomepageCategoryMedia src={category.image} alt={category.imageAlt || category.label} />
       </span>
     </Link>)}
   </nav>;

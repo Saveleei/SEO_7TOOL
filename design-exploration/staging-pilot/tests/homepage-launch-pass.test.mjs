@@ -1,0 +1,60 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+import { DEFAULT_TRUST_CONTENT_SETTINGS, TRUST_CARD_PRESENTATION } from "../app/data/trustContentModel.ts";
+
+const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
+
+test("homepage hero keeps three distinct launch paths readable on mobile", async () => {
+  const [page, analytics, css] = await Promise.all([
+    read("../app/page.tsx"),
+    read("../app/ui/HomepageAnalytics.tsx"),
+    read("../app/globals.css"),
+  ]);
+
+  assert.match(page, /data-home-action="open_catalog"/u);
+  assert.match(page, /data-home-action="choose_task"/u);
+  assert.match(page, /data-home-action="upload_specification"/u);
+  assert.match(page, /\?request=spec#quick-order/u);
+  assert.match(page, /Передать файл без письма/u);
+  assert.match(analytics, /new Set\(\["open_catalog", "choose_task", "upload_specification"\]\)/u);
+  assert.match(analytics, /event:"homepage_action", page_type:"homepage", placement:"hero", action/u);
+  assert.doesNotMatch(analytics, /email|phone|query|searchParams|textContent/iu);
+  assert.match(css, /@media \(max-width:520px\)[\s\S]*?\.hero-primary-actions \{ grid-template-columns:1fr; \}/u);
+  assert.match(css, /\.hero-primary-actions \.button \{ white-space:normal; text-align:center; \}/u);
+});
+
+test("homepage category media replaces failed supplier images without layout shift", async () => {
+  const [tiles, media, css] = await Promise.all([
+    read("../app/ui/HomepageCategoryTiles.tsx"),
+    read("../app/ui/HomepageCategoryMedia.tsx"),
+    read("../app/globals.css"),
+  ]);
+
+  assert.match(tiles, /<HomepageCategoryMedia src=\{category\.image\}/u);
+  assert.match(media, /useState\(false\)/u);
+  assert.match(media, /onError=\{\(\) => setFailed\(true\)\}/u);
+  assert.match(media, /homepage-category-tile-placeholder/u);
+  assert.match(media, /раздел каталога/u);
+  assert.match(css, /\.homepage-category-tile-placeholder \{[\s\S]*?width:100%;[\s\S]*?height:100%;/u);
+});
+
+test("trust section exposes verifiable evidence instead of unsupported claims", async () => {
+  const [section, css] = await Promise.all([
+    read("../app/ui/TrustSection.tsx"),
+    read("../app/globals.css"),
+  ]);
+
+  assert.match(DEFAULT_TRUST_CONTENT_SETTINGS.sectionTitle, /до оплаты/u);
+  assert.match(DEFAULT_TRUST_CONTENT_SETTINGS.sectionIntro, /коммерческом предложении/u);
+  assert.doesNotMatch(JSON.stringify(DEFAULT_TRUST_CONTENT_SETTINGS), /официальный дилер|всегда в наличии|лет на рынке/iu);
+  for (const presentation of Object.values(TRUST_CARD_PRESENTATION)) {
+    assert.equal(presentation.proofs.length, 2);
+    assert.match(presentation.href, /^\/(company|warranty|delivery)$/u);
+  }
+  assert.match(section, /presentation\.proofs\.map/u);
+  for (const href of ["/company", "/warranty", "/delivery", "/ordering"]) assert.match(section, new RegExp(`href="${href}"`, "u"));
+  assert.match(css, /\.assurance-proof-list/u);
+  assert.match(css, /\.assurance-evidence-links/u);
+  assert.match(css, /@media \(max-width:520px\)[\s\S]*?\.assurance-grid article \{ display:block; \}/u);
+});
