@@ -33,6 +33,7 @@ export const categorySelectionRules = Object.freeze({
   "kompressory": Object.freeze({ "производительность":minimum, "объем ресивера":minimum, "мощность":exact }),
   "sverla-i-zenkovki": Object.freeze({
     "диаметр режущей":exact,
+    "минимальный диаметр":exact,
     "максимальный диаметр":Object.freeze({ mode:"range", minimumKeyword:"минимальный диаметр", question:"Нужный диаметр, мм" }),
     "мин. диаметр зенкования":exact,
     "посадка хвостовика":exact,

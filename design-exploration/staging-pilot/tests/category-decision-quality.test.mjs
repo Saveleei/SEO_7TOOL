@@ -182,3 +182,65 @@ test("pipe cutters separate orbital saws from split-frame cold-cut machines", ()
   const modelOnlySpecs = getFeedVariantTechnicalSpecs(modelOnly, modelOnly.variants[0]);
   assert.equal(modelOnlySpecs.some((spec) => /диаметр труб/iu.test(spec.label)), false, "model code must not masquerade as a tube diameter");
 });
+
+test("sheet beveler accessories stay outside machine selection while explicit machine types remain filterable", () => {
+  const snapshot = getPublishedFeedCatalogSnapshot();
+  const accessory = snapshot.products.find((product) => product.title === "Блок автоматической подачи для кромкорезов AHA с пультом управления");
+  const automatic = snapshot.products.find((product) => product.title === "Кромкорез автоматический UZ-47, 400 В");
+  const manual = snapshot.products.find((product) => product.title === "Кромкорез ручной пневматический AX207");
+  assert.ok(accessory);
+  assert.ok(automatic);
+  assert.ok(manual);
+  assert.equal(getFeedCategoryFamily("kromkorezy-po-listu", accessory), "accessories");
+  assert.equal(getFeedCategoryFamily("kromkorezy-po-listu", automatic), "automatic");
+  assert.equal(getFeedVariantTechnicalSpecs(automatic, automatic.variants[0]).find((spec) => spec.label === "Тип")?.value, "Автоматический");
+  assert.equal(getFeedVariantTechnicalSpecs(manual, manual.variants[0]).find((spec) => spec.label === "Тип")?.value, "Ручной");
+
+  const page = getFeedCategoryPage("kromkorezy-po-listu", { family:"automatic", pageSize:1000 });
+  const type = page.facets.find((facet) => facet.keyword === "тип");
+  assert.ok(type?.options.some((option) => option.value === "Автоматический"));
+});
+
+test("bandsaw execution type is derived only from explicit buyer-facing wording", () => {
+  const snapshot = getPublishedFeedCatalogSnapshot();
+  const automatic = snapshot.products.find((product) => product.title === "Станок ленточнопильный автоматический колонный Stalex BS-600GA");
+  const modelOnly = snapshot.products.find((product) => product.title === "Ленточнопильный станок Heden DBS-170");
+  assert.ok(automatic);
+  assert.ok(modelOnly);
+  assert.equal(getFeedVariantTechnicalSpecs(automatic, automatic.variants[0]).find((spec) => spec.label === "Тип исполнения")?.value, "Автоматический");
+  assert.equal(getFeedVariantTechnicalSpecs(modelOnly, modelOnly.variants[0]).some((spec) => spec.label === "Тип исполнения"), false, "model code must not imply automation");
+
+  const page = getFeedCategoryPage("lentochnopilnye-stanki", { productType:"equipment", pageSize:1000 });
+  const type = page.facets.find((facet) => facet.keyword === "тип исполнения");
+  assert.ok(type?.options.some((option) => option.value === "Автоматический"));
+  const filtered = getFeedCategoryPage("lentochnopilnye-stanki", { productType:"equipment", filters:{ [type.key]:["Автоматический"] }, pageSize:1000 });
+  assert.ok(filtered.total > 0);
+  assert.ok(filtered.total < page.total);
+});
+
+test("step drills expose their explicit working range as the primary decision", () => {
+  const page = getFeedCategoryPage("sverla-i-zenkovki", { family:"step", pageSize:1000 });
+  const maximum = page.facets.find((facet) => facet.keyword === "максимальный диаметр");
+  const minimum = page.facets.find((facet) => facet.keyword === "минимальный диаметр");
+  assert.ok(maximum?.options.some((option) => option.value === "38 мм"));
+  assert.ok(minimum?.options.some((option) => option.value === "4 мм"));
+});
+
+test("annular cutter dimensions and shank come only from explicit title tokens", () => {
+  const product = getPublishedFeedCatalogSnapshot().products.find((entry) => entry.title === "Сверло корончатое NEO Ø19,5х35 мм, TCT, W19");
+  assert.ok(product);
+  const specs = getFeedVariantTechnicalSpecs(product, product.variants[0]);
+  assert.equal(specs.find((spec) => spec.label === "Диаметр режущей части")?.value, "19,5 мм");
+  assert.equal(specs.find((spec) => spec.label === "Рабочая длина")?.value, "35 мм");
+  assert.equal(specs.find((spec) => spec.label === "Хвостовик")?.value, "Weldon 19");
+  assert.equal(specs.find((spec) => spec.label === "Материал режущей части")?.value, "Твёрдый сплав");
+});
+
+test("saw blade dimensions distinguish outer diameter from bore", () => {
+  const product = getPublishedFeedCatalogSnapshot().products.find((entry) => entry.title === "Диск пильный по стали Stalex HSS 315х2,5х40, S=2/4мм, Е макс=75мм");
+  assert.ok(product);
+  const specs = getFeedVariantTechnicalSpecs(product, product.variants[0]);
+  assert.equal(specs.find((spec) => spec.label === "Диаметр диска")?.value, "315 мм");
+  assert.equal(specs.find((spec) => spec.label === "Посадочное отверстие")?.value, "40 мм");
+  assert.equal(specs.find((spec) => spec.label === "Материал")?.value, "HSS");
+});

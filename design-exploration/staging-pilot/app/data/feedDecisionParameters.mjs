@@ -4,10 +4,90 @@ export function getFeedDecisionParameters(product, variant) {
   const rawParameters = Array.isArray(variant?.params) ? variant.params : [];
   const derived = product?.category === "sverla-i-zenkovki"
     ? deriveDrillParameters(product, variant)
+    : product?.category === "koronchatye-sverla"
+      ? deriveAnnularCutterParameters(product, variant)
     : product?.category === "truborezy"
       ? derivePipeCutterParameters(product, variant)
-      : [];
+      : product?.category === "kromkorezy-po-listu"
+        ? deriveSheetBevelerParameters(product, variant)
+        : product?.category === "lentochnopilnye-stanki"
+          ? deriveBandsawParameters(product, variant)
+          : product?.category === "pilnye-diski"
+            ? deriveSawBladeParameters(product, variant)
+          : [];
   return mergeParameters(rawParameters, derived);
+}
+
+function deriveAnnularCutterParameters(product, variant) {
+  const text = sourceText(product, variant);
+  const dimensions = text.match(new RegExp(`[Ø⌀∅]?\\s*(${decimalPattern})\\s*[xх×]\\s*(${decimalPattern})\\s*мм`, "iu"));
+  const parameters = [];
+  if (dimensions) {
+    parameters.push(measurement("Диаметр режущей части", dimensions[1]));
+    parameters.push(measurement("Рабочая длина", dimensions[2]));
+  }
+  const shank = text.match(/(?:^|\s)W(?:eldon\s*)?(19|32)(?:\s|$|[,;])/iu)?.[1];
+  if (shank) parameters.push({ name:"Хвостовик", value:`Weldon ${shank}`, derivedFromTitle:true });
+  const material = /(?:^|\s)TCT(?:\s|$|[,;])/iu.test(text)
+    ? "Твёрдый сплав"
+    : /(?:^|\s)HSS(?:\s|$|[,;])/iu.test(text)
+      ? "HSS"
+      : undefined;
+  if (material) parameters.push({ name:"Материал режущей части", value:material, derivedFromTitle:true });
+  return parameters;
+}
+
+function deriveSawBladeParameters(product, variant) {
+  const text = sourceText(product, variant);
+  const parameters = [];
+  const full = text.match(new RegExp(`[Ø⌀∅]?\\s*(${decimalPattern})\\s*[xх×]\\s*${decimalPattern}(?:\\s*[/]\\s*${decimalPattern})?\\s*[xх×]\\s*(${decimalPattern})(?:\\s*мм)?(?=\\s|[,;]|$)`, "iu"));
+  const simple = text.match(new RegExp(`[Ø⌀∅]\\s*(${decimalPattern})\\s*[xх×]\\s*(${decimalPattern})\\s*мм`, "iu"));
+  const dimensions = full ?? simple;
+  if (dimensions) {
+    parameters.push(measurement("Диаметр диска", dimensions[1]));
+    parameters.push(measurement("Посадочное отверстие", dimensions[2]));
+  }
+  const material = /алмазн/iu.test(text)
+    ? "Алмазный"
+    : /твердосплав|твердосплавн.*зуб|(?:^|\s)TCT(?:\s|$|[,;])/iu.test(text)
+      ? "Твердосплавные зубья"
+      : /(?:^|\s)HSS(?:\s|$|[,;])/iu.test(text)
+        ? "HSS"
+        : undefined;
+  if (material) parameters.push({ name:"Материал", value:material, derivedFromTitle:true });
+  return parameters;
+}
+
+function deriveSheetBevelerParameters(product, variant) {
+  const text = sourceText(product, variant);
+  const type = /самоход/iu.test(text)
+    ? "Самоходный"
+    : /автоматическ/iu.test(text)
+      ? "Автоматический"
+      : /стационар|настольн/iu.test(text)
+        ? "Стационарный"
+        : /ручн/iu.test(text)
+          ? "Ручной"
+          : undefined;
+  return type ? [{ name:"Тип", value:type, derivedFromTitle:true }] : [];
+}
+
+function deriveBandsawParameters(product, variant) {
+  const text = sourceText(product, variant);
+  if (!/^(?:станок ленточнопильный|ленточнопильный станок|ленточная пила|автоматизированная линия)/iu.test(String(product?.title ?? "").trim())) return [];
+  const type = /полуавтомат/iu.test(text)
+    ? "Полуавтоматический"
+    : /автоматическ/iu.test(text)
+      ? "Автоматический"
+      : /вертикальн/iu.test(text)
+        ? "Вертикальный"
+        : /ручн|маятников/iu.test(text)
+          ? "Ручной"
+          : undefined;
+  const parameters = type ? [{ name:"Тип исполнения", value:type, derivedFromTitle:true }] : [];
+  const voltage = text.match(/(?:^|\s)(220|230|380|400)\s*В(?:\s|$|[,;])/iu)?.[1];
+  if (voltage) parameters.push({ name:"Напряжение", value:voltage, unit:"В", derivedFromTitle:true });
+  return parameters;
 }
 
 function deriveDrillParameters(product, variant) {

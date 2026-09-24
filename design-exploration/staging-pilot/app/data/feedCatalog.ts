@@ -706,7 +706,7 @@ function buildCategoryFacets(slug: string, products: FeedProduct[]): CachedFeedF
   }
 
   const usedParameterNames = new Set<string>();
-  const technicalFacetLimit = Math.min(slug === "sverla-i-zenkovki" ? 8 : 5, categoryFacetKeywords.length);
+  const technicalFacetLimit = Math.min(slug === "sverla-i-zenkovki" ? 10 : 5, categoryFacetKeywords.length);
   for (const { keyword, names, values } of parameters) {
     if (facets.filter((facet) => facet.keyword).length >= technicalFacetLimit) break;
     const matchingNames = Array.from(names.entries())
