@@ -3,6 +3,7 @@
 - Исполнитель: Codex
 - Ветка: `codex/home-trust-launch`
 - База: `115b6f765b469863d8dfb359b75f806b03dcbeb9`
+- Коммит реализации: `af6cd0ade51e19c8c027a983e007fc4e3a7d7fa5`
 - Область владения: `design-exploration/staging-pilot/app/page.tsx`, homepage/trust UI и модели, относящиеся к ним стили и регрессионные тесты.
 
 ## Цель
