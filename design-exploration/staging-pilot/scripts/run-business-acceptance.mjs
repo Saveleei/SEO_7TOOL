@@ -8,6 +8,7 @@ import path from "node:path";
 import process from "node:process";
 import { spawn } from "node:child_process";
 import { pathToFileURL } from "node:url";
+import { PDFDocument, PDFName, PDFRawStream } from "pdf-lib";
 
 const SECURITY_HEADERS = Object.freeze({
   "permissions-policy":"camera=(), microphone=(), geolocation=()",
@@ -189,6 +190,12 @@ async function exerciseBusinessLoop({ baseUrl, dataDir, username, password }) {
   const pdfBytes = Buffer.from(await pdfResponse.arrayBuffer());
   assert.equal(pdfBytes.subarray(0, 5).toString("ascii"), "%PDF-");
   assert.ok(pdfBytes.length > 15_000);
+  const pdfDocument = await PDFDocument.load(pdfBytes);
+  assert.ok(pdfDocument.getPageCount() >= 2);
+  const pdfImageCount = pdfDocument.context.enumerateIndirectObjects().filter(([, object]) => (
+    object instanceof PDFRawStream && object.dict.get(PDFName.of("Subtype")) === PDFName.of("Image")
+  )).length;
+  assert.ok(pdfImageCount >= 1, "Approved quote PDF must contain the available exact-product image.");
 
   const prepared = await approvalAction(baseUrl, requestId, {
     type:"delivery_prepared",
@@ -248,6 +255,8 @@ async function exerciseBusinessLoop({ baseUrl, dataDir, username, password }) {
     itemQuantity:PRODUCT.quantity,
     vatRate:22,
     pdfBytes:pdfBytes.length,
+    pdfPages:pdfDocument.getPageCount(),
+    pdfImageCount,
     outboxStatus:delivery.workspace.outbox.status,
     externalDelivery:false,
     timings,
@@ -403,7 +412,7 @@ function containsAll(value, expected) {
 const entry = process.argv[1] ? pathToFileURL(process.argv[1]).href : "";
 if (entry === import.meta.url) {
   runIsolatedBusinessAcceptance().then((result) => {
-    console.log(`Business acceptance passed: ${result.requestId} → ${result.quoteId}, PDF ${result.pdfBytes} bytes, outbox ${result.outboxStatus}.`);
+    console.log(`Business acceptance passed: ${result.requestId} → ${result.quoteId}, PDF ${result.pdfPages} pages / ${result.pdfImageCount} product image / ${result.pdfBytes} bytes, outbox ${result.outboxStatus}.`);
     console.log(`Checks: ${result.timings.length}; slowest: ${Math.max(...result.timings.map((item) => item.durationMs))} ms; external delivery: disabled; isolated data: removed.`);
   }).catch((error) => {
     console.error(error instanceof Error ? error.message : "Business acceptance failed.");

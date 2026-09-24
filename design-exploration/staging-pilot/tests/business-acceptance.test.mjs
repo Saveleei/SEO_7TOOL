@@ -35,5 +35,7 @@ test("runner uses temporary storage and contains no live host or delivery transp
   assert.match(source, /rm\(dataDir, \{ recursive:true, force:true \}\)/u);
   assert.match(source, /deliveryEnabled, false/u);
   assert.match(source, /transport, "disabled-test-contour"/u);
+  assert.match(source, /pdfImageCount >= 1/u);
+  assert.match(source, /getPageCount\(\) >= 2/u);
   assert.doesNotMatch(source, /https:\/\/test\.7tool\.ru|https:\/\/7tool\.ru|sendMail\(|smtpTransport|api\.telegram|api\.max|crm\./iu);
 });
