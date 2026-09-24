@@ -3,7 +3,7 @@
 - Исполнитель: Codex
 - Ветка: `codex/readability-pass`
 - Базовый коммит: `332f0329db526f6d30d5a49c1c09c26bdd9cdcbe`
-- Область изменений: визуальная типографика тестового storefront в `design-exploration/staging-pilot`, без production-деплоя и без изменения данных каталога.
+- Область изменений: визуальная типографика storefront в `design-exploration/staging-pilot` и публикация проверенной сборки только на `test.7tool.ru`, без production-деплоя и без изменения данных каталога.
 
 ## Цель
 
@@ -39,10 +39,27 @@
 
 ## Ограничения и безопасность
 
-- Production и `test.7tool.ru` не изменялись.
-- Формы не отправлялись, внешние каналы не вызывались.
+- Production не изменялся. Публикация выполнена только на `test.7tool.ru`.
+- На активном тестовом домене формы не отправлялись, внешние каналы не вызывались. Полный бизнес-сценарий запускался изолированно с временными данными, отключённой внешней доставкой и удержанным outbox.
 - Фото и данные каталога не менялись; отсутствующие изображения в локальном headless-превью не заменялись предположениями.
+
+## Публикация на test.7tool.ru — 2026-09-25
+
+- Опубликован проверенный source head `47f7daa24655248d9234f34aefe94c5d25799608`.
+- Архив: SHA-256 `c97574d1e3f05ed388e49257b39c9d8589408911c422f602b72fae3e52b045ce`; локальный и серверный checksum совпали.
+- Активный release: `/var/www/7tool-release-20260924-readability-47f7daa/design-exploration/staging-pilot`.
+- Rollback сохранён: `/var/www/7tool-release-20260924-security-auth-9e6a7ca/design-exploration/staging-pilot`.
+- Перед переключением создан backup общих test-данных: `/var/backups/7tool-test-shared-20260925-readability-47f7daa.tar.gz`, 4.1 MB, SHA-256 `9f24220e59fd18fbdac57ec5c473da1a16f823fbcff6d20efc01597b066aded2`.
+- Lockfile совпал с активным проверенным dependency store: SHA-256 `7dacb299c62ff9ced4aea1053c45ef759f577ae512de57fa9526ea55b5056d1f`; кандидат использует тот же неизменяемый `node_modules`.
+- На серверном кандидате пройдены: `npm test` — 274/274, полный ESLint, production build Vinext.
+- Изолированная бизнес-приёмка — 19 проверок: заявка `7T-20260925-07D601` → КП → PDF на 3 страницы с 1 изображением; external delivery disabled, outbox held, временные данные удалены.
+- Изолированный release smoke на `127.0.0.1:3199` — 58/58 публичных, anonymous redirect и authenticated staff проверок; после проверки порт закрыт.
+- Первая попытка переключения не прошла: временный файл с именем `.cjs` PM2 интерпретировал как приложение. Два ошибочных временных процесса удалены, прежний test-процесс восстановлен из сохранённого PM2 dump и подтверждён `HTTP 200`; production оставался на PID `347912` и не менялся. После исправления имени на `*.config.js` повторное переключение прошло readiness и rollback-gate.
+- Финальный test-процесс: PID `359890`, status `online`, 0 рестартов, cwd нового release. Production: PID `347912`, прежний cwd `/var/www/7tool-release-20260911-trust-performance-029d3f3/7tool-source`, `HTTP 200`.
+- Внешняя проверка: корень `test.7tool.ru` возвращает `302` на локальный `/test/access?returnTo=%2F`; `/test/access` — `200`; присутствуют HSTS, `X-Content-Type-Options`, `X-Frame-Options`, `Permissions-Policy` и `Referrer-Policy`.
+- Текущие login/password hash сохранены из runtime окружения без вывода значений. PM2 state сохранён. Временные архивы, activation/smoke-скрипты и candidate-процесс удалены; свободно 6.0 GB.
 
 ## Commit
 
 - Реализация и проверки: `17d5e21` (`fix: improve storefront readability`).
+- Первый handoff: `47f7daa` (`docs: record readability verification`).
