@@ -46,6 +46,18 @@
 
 Встроенный браузер заблокировал доступ к локальному `127.0.0.1` своей URL-политикой, поэтому повторный интерактивный скриншот этой ветки не выполнялся через обходной браузер. До изменения были просмотрены существующие desktop/mobile снимки базовой версии; найденные на них обрезание CTA, тесная мобильная карточка доверия и битые изображения закрыты кодом и отдельными регрессионными проверками.
 
-### Публикация
+## Публикация на `test.7tool.ru` — 2026-09-25
 
-Не выполнялась. `test.7tool.ru`, production, DNS, данные и секреты не изменялись.
+- Пользователь продолжил заранее названный следующий этап публикации и визуальной приёмки. Изменялся только изолированный PM2-процесс `7tool-storefront-test`; production, DNS, Nginx, товарный фид, credentials и внешние каналы не менялись.
+- Опубликован source head `5be9eb5` (реализация `af6cd0a`). Ветка является прямым продолжением ранее активного readability-релиза `47f7daa`.
+- Commit-архив: SHA-256 `5775c2f3ea5621b6f8658818ff74eee724a8f015e8f7cbf3f4ae882c8d158c2d`; локальный и серверный checksum совпали.
+- Активный release: `/var/www/7tool-release-20260925-home-trust-5be9eb5/design-exploration/staging-pilot`.
+- Rollback сохранён: `/var/www/7tool-release-20260924-readability-47f7daa/design-exploration/staging-pilot`.
+- Перед переключением создан backup общих test-данных: `/var/backups/7tool-test-shared-20260925-home-trust-5be9eb5.tar.gz`; SHA-256 `9f24220e59fd18fbdac57ec5c473da1a16f823fbcff6d20efc01597b066aded2`.
+- Lockfile кандидата совпал с проверенным серверным dependency store: SHA-256 `7dacb299c62ff9ced4aea1053c45ef759f577ae512de57fa9526ea55b5056d1f`.
+- На серверном кандидате пройдены полный `node --test --test-reporter=dot tests/*.test.mjs` (`277/277`), полный ESLint и production build Vinext.
+- Изолированный кандидат на порту 3199 прошёл 11/11 GET-маршрутов. SSR главной содержит три launch path и новый блок доверия; четыре security header сохранены. POST, формы, email, Telegram, MAX и CRM не вызывались.
+- Переключение выполнено с автоматическим rollback-gate. Активный test PID `362322`, status `online`, restarts `0`, cwd совпадает с новым release. Production остался на PID `347912` и прежнем cwd `/var/www/7tool-release-20260911-trust-performance-029d3f3/7tool-source`.
+- После активации 10/10 основных loopback-маршрутов ответили `200`. Внешний `https://test.7tool.ru/` корректно возвращает `302` на локальный `/test/access?returnTo=%2F`, экран доступа — `200`, production `https://7tool.ru/` — `200`.
+- Встроенный браузер подтвердил штатный экран входа. В его текущей сессии нет авторизации, поэтому authenticated desktop/mobile скриншоты новой главной отложены до ручного входа владельца; пароль не извлекался и не менялся.
+- Временный кандидат, архив, activation-скрипт и smoke-артефакты удалены. На `/var/www` осталось около `5.8 GB`.
