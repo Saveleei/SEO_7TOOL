@@ -40,6 +40,20 @@
 ## Коммиты
 
 - Реализация: `f80839b` (`feat: prioritize core category decisions`).
-- Handoff: текущий документ.
+- Первый handoff: `5d0d98a` (`docs: record core category acceptance`).
 
-Деплой не выполнялся. `test.7tool.ru`, production, feed, DNS, секреты и внешние каналы не изменялись.
+## Публикация на `test.7tool.ru` — 2026-09-25
+
+- Пользователь продолжил заранее зафиксированный следующий этап публикации. Изменялся только изолированный PM2-процесс `7tool-storefront-test`; production, DNS, Nginx, товарный фид, credentials и внешние каналы не менялись.
+- Опубликован source head `5d0d98a387ae7f4e72ac2efae4f40dd83b6bc9bc` (реализация `f80839b`).
+- Commit-архив: SHA-256 `d5128ee803bdc3d901164addd758f6bc3e022e336db6dab72873f3433decbfb8`; локальный и серверный checksum совпали.
+- Активный release: `/var/www/7tool-release-20260925-core-categories-5d0d98a/design-exploration/staging-pilot`.
+- Rollback сохранён: `/var/www/7tool-release-20260925-home-trust-5be9eb5/design-exploration/staging-pilot`.
+- Перед переключением создан backup общих test-данных: `/var/backups/7tool-test-shared-20260925-core-categories-5d0d98a.tar.gz`; SHA-256 `9f24220e59fd18fbdac57ec5c473da1a16f823fbcff6d20efc01597b066aded2`.
+- Lockfile кандидата совпал с активным проверенным dependency store: SHA-256 `7dacb299c62ff9ced4aea1053c45ef759f577ae512de57fa9526ea55b5056d1f`.
+- На неизменяемом серверном кандидате пройдены полный `node --test --test-reporter=dot tests/*.test.mjs` (`278/278`), полный ESLint и production build Vinext.
+- Отдельный кандидат на `127.0.0.1:3199` прошёл 58/58 read-only проверок: все публичные маршруты и опубликованные категории, anonymous redirect и локальная авторизация защищённых staff-страниц. Одноразовые credentials и временное хранилище удалены вместе с candidate-процессом; customer/quote/delivery write actions и внешняя доставка не вызывались.
+- Переключение выполнено с автоматическим rollback-gate. После активации главная и восемь приоритетных категорий повторно ответили `200`; test-процесс `online`, 0 рестартов, cwd совпадает с новым release. Размер error-log не изменился: `3284 -> 3284` байта.
+- Production остался на PID `373675` и прежнем cwd `/var/www/7tool-release-20260911-trust-performance-029d3f3/7tool-source`; `https://7tool.ru/` ответил `200`.
+- Внешний `https://test.7tool.ru/` корректно возвращает `302` на локальный `/test/access?returnTo=%2F`, экран доступа — `200`; сохранены HSTS, `X-Content-Type-Options`, `X-Frame-Options`, `Permissions-Policy` и `Referrer-Policy`.
+- Встроенный браузер после перезапуска компьютера остался на штатном экране доступа. Неоднозначно переданный числовой секрет не вводился и не сохранялся. Визуальная desktop/mobile приёмка выполнена до публикации на том же commit; опубликованный артефакт дополнительно подтверждён серверной сборкой, изолированным smoke и live HTTP-gate без отправки форм.
