@@ -70,17 +70,23 @@ test("catalog finalization publishes data before matching completion metadata", 
 });
 
 test("scheduler scripts are Linux-safe and nightly refresh publishes freshness metadata", async () => {
-  const [attributes, hourly, nightly, queue] = await Promise.all([
+  const [attributes, hourly, nightly, storefront, queue] = await Promise.all([
     readFile(new URL("../../.gitattributes", import.meta.url), "utf8"),
     readFile(new URL("../scripts/hourly-refresh.sh", import.meta.url)),
     readFile(new URL("../scripts/nightly-rebuild.sh", import.meta.url)),
+    readFile(new URL("../scripts/storefront-snapshot-refresh.sh", import.meta.url)),
     readFile(new URL("../scripts/process-production-queues.sh", import.meta.url)),
   ]);
   assert.match(attributes, /\*\.sh text eol=lf/u);
-  for (const source of [hourly, nightly, queue]) assert.equal(source.includes(13), false, "shell scripts must not contain CRLF bytes");
+  for (const source of [hourly, nightly, storefront, queue]) assert.equal(source.includes(13), false, "shell scripts must not contain CRLF bytes");
   const nightlyText = nightly.toString("utf8");
   assert.match(nightlyText, /node scripts\/refresh-feed\.mts/u);
   assert.match(nightlyText, /node scripts\/finalize-catalog-snapshot\.mjs/u);
   assert.ok(nightlyText.indexOf("refresh-feed.mts") < nightlyText.indexOf("finalize-catalog-snapshot.mjs"));
   assert.ok(nightlyText.indexOf("finalize-catalog-snapshot.mjs") < nightlyText.indexOf("npm run build"));
+  const storefrontText = storefront.toString("utf8");
+  assert.match(storefrontText, /CATALOG_WORK_DIR=\$\{CATALOG_WORK_DIR:\?/u);
+  assert.match(storefrontText, /npm run db:backup/u);
+  assert.ok(storefrontText.indexOf("refresh-feed.mts") < storefrontText.indexOf("finalize-catalog-snapshot.mjs"));
+  assert.ok(storefrontText.indexOf("finalize-catalog-snapshot.mjs") < storefrontText.indexOf("pm2 reload"));
 });
