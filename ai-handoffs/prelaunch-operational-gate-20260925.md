@@ -67,4 +67,5 @@
 - Implementation: `2d88191` (`fix: restore reliable feed freshness`).
 - Test-only isolated refresh: `1778eff` (`feat: isolate nightly storefront feed refresh`).
 - Supplier category mapping: `bcf52a0` (`fix: map supplier pipe beveler category`).
+- Test storefront rebuild: `55ee372` (`fix: rebuild test storefront after feed refresh`).
 - Prepared release archive: `prelaunch-operational-gate-bcf52a0.tar.gz`, SHA-256 `EB748FA8301AD1B69DC1B1A8F8CF48AEBE14B8723F5E92635B90C65308BEBE5F`.
