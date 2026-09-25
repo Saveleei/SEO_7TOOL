@@ -90,3 +90,8 @@ test("scheduler scripts are Linux-safe and nightly refresh publishes freshness m
   assert.ok(storefrontText.indexOf("refresh-feed.mts") < storefrontText.indexOf("finalize-catalog-snapshot.mjs"));
   assert.ok(storefrontText.indexOf("finalize-catalog-snapshot.mjs") < storefrontText.indexOf("pm2 reload"));
 });
+
+test("supplier category for compact TVN pipe cutters stays in pipe beveling equipment", async () => {
+  const source = await readFile(new URL("../scripts/refresh-feed.mts", import.meta.url), "utf8");
+  assert.match(source, /"11":\s*"kromkorezy-dlya-trub"/u);
+});

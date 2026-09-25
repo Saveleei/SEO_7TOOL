@@ -30,6 +30,7 @@
 - Both hourly and nightly jobs now run the finalizer after all catalog-mutating generators. Nightly therefore publishes freshness metadata before build/reload.
 - Storefront runtime can consume a shared metadata path and compares its loaded catalog SHA-256 with the published snapshot. Mismatch fails closed until the process reloads the matching catalog.
 - Documented the `03:15` nightly schedule, hourly freshness cadence, PM2 reload contract and post-run control points.
+- The isolated real-feed gate found a new supplier category `11`. Its two published TVN-63/TVN-114 models match the existing portable pipe beveler/facer family, so the feed category is mapped to `kromkorezy-dlya-trub` instead of the split-frame `truborezy` family.
 
 ### Checks
 

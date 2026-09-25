@@ -29,6 +29,7 @@ const FEED_FETCH_TIMEOUT_MS = Number(process.env.FEED_FETCH_TIMEOUT_MS ?? 90_000
 const FEED_MAX_BYTES = Number(process.env.FEED_MAX_BYTES ?? 64 * 1024 * 1024);
 
 const CATEGORY_BY_FEED_ID: Record<string, string> = {
+  "11": "kromkorezy-dlya-trub",
   "22": "sverla-i-zenkovki",
   "23": "sverla-i-zenkovki",
   "25": "sverla-i-zenkovki",
