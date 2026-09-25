@@ -7,6 +7,11 @@ let cachedPath = "";
 let cachedMtime = -1;
 let cachedSettings = null;
 let cacheCheckedAt = 0;
+let registeredCatalogSha256 = "";
+let cachedMetadataPath = "";
+let cachedMetadataMtime = -1;
+let cachedMetadata = null;
+let metadataCheckedAt = 0;
 
 export function getRuntimeShippingSettings(env = process.env) {
   const defaults = settingsFromEnv(env);
@@ -37,8 +42,46 @@ export function invalidateShippingRuntimeSettingsCache() {
 }
 
 export function getCatalogSnapshotCompletedAt(env = process.env) {
-  const candidate = env.CATALOG_SNAPSHOT_UPDATED_AT || (snapshotMetaJson.status === "complete" ? snapshotMetaJson.completedAt : "");
+  const override = env.CATALOG_SNAPSHOT_UPDATED_AT;
+  if (typeof override === "string" && override.trim()) return override.trim();
+  const metadata = getCatalogSnapshotMetadata(env);
+  const identityMatches = !registeredCatalogSha256 || metadata?.catalogSha256 === registeredCatalogSha256;
+  const candidate = metadata?.status === "complete" && identityMatches ? metadata.completedAt : "";
   return typeof candidate === "string" && candidate.trim() ? candidate.trim() : "";
+}
+
+export function registerCatalogSnapshotSha256(value) {
+  registeredCatalogSha256 = typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+export function invalidateCatalogSnapshotMetadataCache() {
+  cachedMetadataPath = "";
+  cachedMetadataMtime = -1;
+  cachedMetadata = null;
+  metadataCheckedAt = 0;
+}
+
+function getCatalogSnapshotMetadata(env) {
+  const filePath = String(env.CATALOG_SNAPSHOT_META_PATH || "").trim();
+  if (!filePath) return snapshotMetaJson;
+  const checkedAt = Date.now();
+  if (cachedMetadataPath === filePath && checkedAt - metadataCheckedAt < 1_000) return cachedMetadata;
+  try {
+    const mtime = statSync(filePath).mtimeMs;
+    metadataCheckedAt = checkedAt;
+    if (cachedMetadataPath === filePath && cachedMetadataMtime === mtime) return cachedMetadata;
+    const parsed = JSON.parse(readFileSync(filePath, "utf8"));
+    cachedMetadataPath = filePath;
+    cachedMetadataMtime = mtime;
+    cachedMetadata = parsed;
+    return parsed;
+  } catch {
+    cachedMetadataPath = filePath;
+    cachedMetadataMtime = -1;
+    cachedMetadata = null;
+    metadataCheckedAt = checkedAt;
+    return null;
+  }
 }
 
 function cacheSettings(filePath, mtime, value, checkedAt) {
@@ -51,6 +94,7 @@ function cacheSettings(filePath, mtime, value, checkedAt) {
 
 export function getShippingRuntimeDiagnostic(now = new Date(), env = process.env) {
   const settings = getRuntimeShippingSettings(env);
+  const metadata = getCatalogSnapshotMetadata(env);
   const completedAt = getCatalogSnapshotCompletedAt(env);
   const parsed = Date.parse(completedAt);
   const ageMinutes = Number.isFinite(parsed) ? Math.floor((now.getTime() - parsed) / 60_000) : null;
@@ -61,6 +105,8 @@ export function getShippingRuntimeDiagnostic(now = new Date(), env = process.env
     ageMinutes,
     fresh,
     reason:!completedAt || ageMinutes == null ? "missing" : future ? "future" : fresh ? "fresh" : "stale",
+    snapshotIdentityMatches:!registeredCatalogSha256 || metadata?.catalogSha256 === registeredCatalogSha256,
+    catalogSha256:registeredCatalogSha256 || null,
     settings,
   };
 }

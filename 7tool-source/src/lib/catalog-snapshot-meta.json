@@ -1,5 +1,6 @@
 {
   "completedAt": null,
   "sourceId": "supplier-k2tool",
-  "status": "unknown"
+  "status": "unknown",
+  "catalogSha256": null
 }

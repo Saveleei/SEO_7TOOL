@@ -109,14 +109,20 @@ test("the quote cart refreshes persisted shipping copy from a no-store server en
 });
 
 test("the feed refresh publishes snapshot metadata only after the catalog rename", async () => {
-  const [source, hourly] = await Promise.all([
+  const [source, hourly, nightly, finalizer] = await Promise.all([
     readFile(new URL("../../../7tool-source/scripts/refresh-feed.mts", import.meta.url), "utf8"),
     readFile(new URL("../../../7tool-source/scripts/hourly-refresh.sh", import.meta.url), "utf8"),
+    readFile(new URL("../../../7tool-source/scripts/nightly-rebuild.sh", import.meta.url), "utf8"),
+    readFile(new URL("../../../7tool-source/scripts/finalize-catalog-snapshot.mjs", import.meta.url), "utf8"),
   ]);
   const catalogRename = source.indexOf("fs.renameSync(tmpPath, JSON_PATH)");
   const metadataRename = source.indexOf("fs.renameSync(snapshotMetaPath, SNAPSHOT_META_PATH)");
   assert.ok(catalogRename > 0);
   assert.ok(metadataRename > catalogRename);
   assert.match(source, /status:"complete"/u);
-  assert.match(hourly, /catalog-snapshot-meta\.json/u);
+  assert.match(source, /catalogSha256/u);
+  assert.match(hourly, /finalize-catalog-snapshot\.mjs/u);
+  assert.match(nightly, /finalize-catalog-snapshot\.mjs/u);
+  assert.match(finalizer, /atomicWrite\(publishedCatalogPath/u);
+  assert.match(finalizer, /atomicWrite\(publishedMetadataPath/u);
 });

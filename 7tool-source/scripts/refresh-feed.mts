@@ -3,10 +3,12 @@
 // публикует позиции со статусом «Опубликовано» и атомарно пишет JSON.
 // Запуск: node scripts/refresh-feed.mts [путь-к-локальному-фиду]
 import Database from "better-sqlite3";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { recordFeedObservation, safeSourceLabel } from "./lib/feed-provenance.mjs";
+import { loadSupplierFeed } from "./lib/feed-source.mjs";
 import { parseSupplierFeed } from "./lib/supplier-feed-parser.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -21,6 +23,10 @@ const LOCK_PATH = process.env.FEED_LOCK_PATH ?? `${DB_PATH}.feed.lock`;
 const MIN_EXPECTED_OFFERS = Number(process.env.FEED_MIN_OFFERS ?? 5_000);
 const PROVENANCE_ENABLED = process.env.FEED_PROVENANCE_ENABLED === "1";
 const FEED_SOURCE_ID = process.env.FEED_SOURCE_ID?.trim() || "supplier-k2tool";
+const FEED_ALLOW_LOCAL_FALLBACK = process.env.FEED_ALLOW_LOCAL_FALLBACK === "1";
+const FEED_FETCH_ATTEMPTS = Number(process.env.FEED_FETCH_ATTEMPTS ?? 2);
+const FEED_FETCH_TIMEOUT_MS = Number(process.env.FEED_FETCH_TIMEOUT_MS ?? 90_000);
+const FEED_MAX_BYTES = Number(process.env.FEED_MAX_BYTES ?? 64 * 1024 * 1024);
 
 const CATEGORY_BY_FEED_ID: Record<string, string> = {
   "22": "sverla-i-zenkovki",
@@ -252,27 +258,18 @@ function ensureFeedCategories(catalog: Catalog) {
 }
 
 async function loadFeed(): Promise<string> {
-  if (process.argv[2] && fs.existsSync(LOCAL_FEED)) {
-    console.log("feed: локальный файл", LOCAL_FEED);
-    return fs.readFileSync(LOCAL_FEED, "utf8");
-  }
-  if (!FEED_URL) {
-    if (fs.existsSync(LOCAL_FEED)) {
-      console.log("feed: локальный файл", LOCAL_FEED);
-      return fs.readFileSync(LOCAL_FEED, "utf8");
-    }
-    throw new Error("FEED_URL is required when no FEED_FILE/local feed is available");
-  }
-  try {
-    const res = await fetch(FEED_URL, { signal: AbortSignal.timeout(90_000) });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    console.log("feed: загружен с", safeSourceLabel(FEED_URL));
-    return await res.text();
-  } catch (error) {
-    if (!fs.existsSync(LOCAL_FEED)) throw error;
-    console.warn("feed: сеть недоступна, используем последний локальный файл", LOCAL_FEED);
-    return fs.readFileSync(LOCAL_FEED, "utf8");
-  }
+  const result = await loadSupplierFeed({
+    feedUrl:FEED_URL,
+    localFeed:LOCAL_FEED,
+    explicitLocalFile:Boolean(process.argv[2]),
+    allowLocalFallback:FEED_ALLOW_LOCAL_FALLBACK,
+    attempts:FEED_FETCH_ATTEMPTS,
+    timeoutMs:FEED_FETCH_TIMEOUT_MS,
+    maxBytes:FEED_MAX_BYTES,
+  });
+  if (result.source === "remote") console.log("feed: загружен с", safeSourceLabel(FEED_URL || ""), `attempt=${result.attempt}`);
+  else console.log("feed: локальный файл", LOCAL_FEED, `mode=${result.source}`);
+  return result.xml;
 }
 
 function decodeXml(value = ""): string {
@@ -728,8 +725,10 @@ async function main() {
 
     upsertDatabase(catalog);
     const completedAt = new Date().toISOString();
+    const catalogSource = JSON.stringify(catalog);
+    const catalogSha256 = createHash("sha256").update(catalogSource).digest("hex");
     const tmpPath = `${JSON_PATH}.${process.pid}.tmp`;
-    fs.writeFileSync(tmpPath, JSON.stringify(catalog), "utf8");
+    fs.writeFileSync(tmpPath, catalogSource, "utf8");
     fs.renameSync(tmpPath, JSON_PATH);
 
     // The storefront may consume this JSON snapshot without access to the
@@ -737,7 +736,7 @@ async function main() {
     // catalog rename succeeds so a failed refresh can never make old stock
     // look fresh.
     const snapshotMetaPath = `${SNAPSHOT_META_PATH}.${process.pid}.tmp`;
-    fs.writeFileSync(snapshotMetaPath, `${JSON.stringify({ completedAt, sourceId:FEED_SOURCE_ID, status:"complete" }, null, 2)}\n`, "utf8");
+    fs.writeFileSync(snapshotMetaPath, `${JSON.stringify({ completedAt, sourceId:FEED_SOURCE_ID, status:"complete", catalogSha256 }, null, 2)}\n`, "utf8");
     fs.renameSync(snapshotMetaPath, SNAPSHOT_META_PATH);
 
     const state = {

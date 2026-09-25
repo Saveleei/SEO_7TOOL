@@ -9,6 +9,7 @@ import { getCategoryExpertProfile, getCategoryFacetKeywords } from "./categoryEx
 import { getCategorySelectionRule } from "./categorySelection.mjs";
 import { selectComparableAlternatives, selectProductCompatibility } from "./productRecommendations.mjs";
 import { getProductShippingPromise, getVariantShippingPromise } from "./shippingPromise.mjs";
+import { registerCatalogSnapshotSha256 } from "./shippingRuntimeSettings.mjs";
 import { applyVerifiedProductMedia } from "./verifiedProductMedia.mjs";
 import { getRuntimeCatalogProductMediaUrl } from "./catalogProductMediaStore.ts";
 import { applyRuntimeCatalogParameterOverrides, applyRuntimeCatalogParameterOverridesToProducts, getRuntimeCatalogParameterOverrideRevision } from "./catalogParameterOverrideStore.ts";
@@ -210,6 +211,7 @@ type CachedFeedFacet = Omit<FeedFacet, "options"> & {
 // future immutable feed location; the release layout remains the safe default.
 const loadedFeedSnapshot = loadFeedSnapshot();
 const feedSnapshotSha256 = loadedFeedSnapshot.sha256;
+registerCatalogSnapshotSha256(feedSnapshotSha256);
 const feedSnapshot = applyVerifiedProductMedia(loadedFeedSnapshot.snapshot) as FeedSnapshot;
 
 function loadFeedSnapshot(): { snapshot: FeedSnapshot; sha256: string } {

@@ -6,7 +6,12 @@ import test from "node:test";
 import { GET as getSettingsApi, PUT as putSettingsApi } from "../app/api/shipping-settings/route.ts";
 import { getShippingSettings, saveShippingSettings } from "../app/data/shippingSettingsStore.ts";
 import { getVariantShippingPromise } from "../app/data/shippingPromise.mjs";
-import { getShippingRuntimeDiagnostic, invalidateShippingRuntimeSettingsCache } from "../app/data/shippingRuntimeSettings.mjs";
+import {
+  getShippingRuntimeDiagnostic,
+  invalidateCatalogSnapshotMetadataCache,
+  invalidateShippingRuntimeSettingsCache,
+  registerCatalogSnapshotSha256,
+} from "../app/data/shippingRuntimeSettings.mjs";
 import { validateShippingSettings } from "../app/data/shippingSettingsValidation.mjs";
 
 test("shipping settings validate cutoff, freshness window, calendar and work days", () => {
@@ -51,6 +56,33 @@ test("buyer promises read persisted administrator rules and fail closed on corru
     invalidateShippingRuntimeSettingsCache();
     restoreEnv(snapshot);
     await rm(dataDir, { recursive:true, force:true });
+  }
+});
+
+test("runtime metadata must identify the exact catalog loaded by the storefront", async () => {
+  const snapshot = snapshotEnv(["CATALOG_SNAPSHOT_META_PATH", "CATALOG_SNAPSHOT_UPDATED_AT"]);
+  const directory = await mkdtemp(path.join(os.tmpdir(), "7tool-shipping-identity-"));
+  const metadataPath = path.join(directory, "catalog-snapshot-meta.json");
+  try {
+    process.env.CATALOG_SNAPSHOT_META_PATH = metadataPath;
+    delete process.env.CATALOG_SNAPSHOT_UPDATED_AT;
+    registerCatalogSnapshotSha256("catalog-a");
+    await writeFile(metadataPath, JSON.stringify({ status:"complete", completedAt:"2026-09-14T14:45:00.000Z", catalogSha256:"catalog-a" }), "utf8");
+    invalidateCatalogSnapshotMetadataCache();
+    const matching = getShippingRuntimeDiagnostic(new Date("2026-09-14T14:59:00.000Z"));
+    assert.equal(matching.fresh, true);
+    assert.equal(matching.snapshotIdentityMatches, true);
+
+    await writeFile(metadataPath, JSON.stringify({ status:"complete", completedAt:"2026-09-14T14:50:00.000Z", catalogSha256:"catalog-b" }), "utf8");
+    invalidateCatalogSnapshotMetadataCache();
+    const mismatched = getShippingRuntimeDiagnostic(new Date("2026-09-14T14:59:00.000Z"));
+    assert.equal(mismatched.fresh, false);
+    assert.equal(mismatched.snapshotIdentityMatches, false);
+  } finally {
+    registerCatalogSnapshotSha256("");
+    invalidateCatalogSnapshotMetadataCache();
+    restoreEnv(snapshot);
+    await rm(directory, { recursive:true, force:true });
   }
 });
 

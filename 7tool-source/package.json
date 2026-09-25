@@ -10,6 +10,7 @@
     "test": "node --test tests/*.test.mjs",
     "check": "npm run lint && npm test && npm run build",
     "feed:sync": "node scripts/refresh-feed.mts",
+    "feed:finalize": "node scripts/finalize-catalog-snapshot.mjs",
     "seo:generate": "node scripts/generate-product-seo.mjs",
     "seo:fallback": "node scripts/generate-programmatic-seo.mjs",
     "seo:categories": "node scripts/sync-category-seo.mjs",
