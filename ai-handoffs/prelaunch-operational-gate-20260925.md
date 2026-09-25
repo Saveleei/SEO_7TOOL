@@ -48,7 +48,13 @@
 
 - This branch does not change live cron or production. The existing schedule can stay unchanged after a production release because it already calls the canonical scripts.
 - Activation requires a controlled release of these scripts and runtime files, then one successful refresh, verification of the shared catalog/metadata SHA pair, and PM2 reload. Do not manually forge `completedAt`.
+- A test-only runner now requires separate work and publish directories and reloads only the configured test PM2 process. The intended test cadence is `03:25` Moscow, after the existing production rebuild window, with a dedicated lock.
+- The first isolated supplier-feed run failed closed on the new category `11`; no catalog was published and no PM2 or cron state changed. The mapping was then added and covered by a focused regression.
+- After the workstation reboot, the SSH key was no longer present in the local agent. Upload of the corrected release was rejected with public-key authentication before any server mutation. Browser verification confirmed that the current test stand is still on the old fail-closed snapshot and displays “Наличие и срок уточняем”.
 
 ## Commit
 
 - Implementation: `2d88191` (`fix: restore reliable feed freshness`).
+- Test-only isolated refresh: `1778eff` (`feat: isolate nightly storefront feed refresh`).
+- Supplier category mapping: `bcf52a0` (`fix: map supplier pipe beveler category`).
+- Prepared release archive: `prelaunch-operational-gate-bcf52a0.tar.gz`, SHA-256 `EB748FA8301AD1B69DC1B1A8F8CF48AEBE14B8723F5E92635B90C65308BEBE5F`.
