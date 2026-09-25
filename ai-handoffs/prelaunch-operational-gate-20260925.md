@@ -52,6 +52,16 @@
 - The first isolated supplier-feed run failed closed on the new category `11`; no catalog was published and no PM2 or cron state changed. The mapping was then added and covered by a focused regression.
 - After the workstation reboot, the SSH key was no longer present in the local agent. Upload of the corrected release was rejected with public-key authentication before any server mutation. Browser verification confirmed that the current test stand is still on the old fail-closed snapshot and displays “Наличие и срок уточняем”.
 
+### Test activation — 2026-09-25
+
+- With explicit user approval, the VPS root password was reset and `Amicable Izolda` was rebooted. Production recovered with HTTP 200. A dedicated SSH public key was added through the Beget file manager; no mailbox or stored browser password was read.
+- Deployed test release: `/var/www/7tool-release-20260925-feed-freshness-bcf52a0`; `/var/www/7tool-test-current` points to this release. Production process `7tool-prod` was not restarted and retained PID `1065` throughout the test cutover.
+- The first full-app candidate exposed an auth-gateway incompatibility (public test returned 500 because `/api/manager-auth/check` was absent). It was rejected and rolled back before final activation. The final active process uses the current Vinext storefront plus its dedicated `ecosystem.test.config.cjs`; public test returns 302 to `/test/access`, the access page returns 200, and production returns 200.
+- One isolated real-feed refresh completed: 18,997 offers represented, 4,336 catalog products, 18,463 variants, 4,197 variants with confirmed positive stock, zero unsupported categories. Published catalog SHA-256: `84ebc929db17db7913e70e0f608e5d95078492aca57f8b45d66fb79a11ff94e4`.
+- Browser QA through an SSH tunnel confirmed fresh-stock filtering and after-cutoff wording: “Есть исполнения в наличии · Отгрузка в следующий рабочий день”, with the next planned date. Magnetic-drill cards separately label core-drill and twist-drill diameters.
+- Test cron is isolated from production and scheduled at `00:25` server UTC, equal to `03:25 Europe/Moscow`; backup: `/var/www/7tool-test-shared/backups/crontab-before-test-feed-20260925T1727Z.txt`. The runner now optionally rebuilds the Vinext storefront after atomic publication because its catalog presentation is generated at build time.
+- Post-deploy capacity: 4.7 GB free of 38 GB (88% used). Enough for the activated release, but old immutable releases should be pruned under a separate reviewed cleanup before several more deployments.
+
 ## Commit
 
 - Implementation: `2d88191` (`fix: restore reliable feed freshness`).

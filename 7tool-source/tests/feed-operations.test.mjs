@@ -86,9 +86,13 @@ test("scheduler scripts are Linux-safe and nightly refresh publishes freshness m
   assert.ok(nightlyText.indexOf("finalize-catalog-snapshot.mjs") < nightlyText.indexOf("npm run build"));
   const storefrontText = storefront.toString("utf8");
   assert.match(storefrontText, /CATALOG_WORK_DIR=\$\{CATALOG_WORK_DIR:\?/u);
+  assert.match(storefrontText, /STOREFRONT_BUILD_DIR=\$\{STOREFRONT_BUILD_DIR:-\}/u);
   assert.match(storefrontText, /npm run db:backup/u);
   assert.ok(storefrontText.indexOf("refresh-feed.mts") < storefrontText.indexOf("finalize-catalog-snapshot.mjs"));
+  assert.ok(storefrontText.indexOf("finalize-catalog-snapshot.mjs") < storefrontText.indexOf('if [ -n "$STOREFRONT_BUILD_DIR" ]'));
+  assert.ok(storefrontText.indexOf("npm run build") < storefrontText.indexOf('pm2 reload "$PM2_APP_NAME"'));
   assert.ok(storefrontText.indexOf("finalize-catalog-snapshot.mjs") < storefrontText.indexOf("pm2 reload"));
+  assert.doesNotMatch(storefrontText, /pm2 reload .*--update-env/u);
 });
 
 test("supplier category for compact TVN pipe cutters stays in pipe beveling equipment", async () => {

@@ -6,6 +6,7 @@ SHARED_ENV=${SHARED_ENV:-/var/www/7tool-shared/.env.production}
 CATALOG_WORK_DIR=${CATALOG_WORK_DIR:?CATALOG_WORK_DIR is required}
 CATALOG_PUBLISH_DIR=${CATALOG_PUBLISH_DIR:?CATALOG_PUBLISH_DIR is required}
 PM2_APP_NAME=${PM2_APP_NAME:-7tool-storefront-test}
+STOREFRONT_BUILD_DIR=${STOREFRONT_BUILD_DIR:-}
 
 set -a
 . "$SHARED_ENV"
@@ -35,4 +36,18 @@ export BACKUP_DIR="$CATALOG_WORK_DIR/backups"
 npm run db:backup
 node scripts/refresh-feed.mts
 CATALOG_PUBLISH_DIR="$CATALOG_PUBLISH_DIR" node scripts/finalize-catalog-snapshot.mjs
-pm2 reload "$PM2_APP_NAME" --update-env
+
+if [ -n "$STOREFRONT_BUILD_DIR" ]; then
+  if [ ! -f "$STOREFRONT_BUILD_DIR/package.json" ]; then
+    echo "Storefront build directory is invalid: $STOREFRONT_BUILD_DIR" >&2
+    exit 1
+  fi
+  export CATALOG_FEED_PATH="$CATALOG_PUBLISH_DIR/products.json"
+  export CATALOG_SNAPSHOT_META_PATH="$CATALOG_PUBLISH_DIR/catalog-snapshot-meta.json"
+  cd "$STOREFRONT_BUILD_DIR"
+  npm run build
+fi
+
+# Preserve the environment captured by the dedicated test ecosystem config.
+# Feed credentials loaded above belong to the refresh worker, not the storefront.
+pm2 reload "$PM2_APP_NAME"
