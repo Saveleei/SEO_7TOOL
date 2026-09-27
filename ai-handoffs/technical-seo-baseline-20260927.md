@@ -59,4 +59,4 @@ Implement the pre-launch technical SEO baseline for the staging-pilot storefront
 
 ## Commit
 
-- SHA: `PENDING`
+- Implementation commit: `0ce160b`
