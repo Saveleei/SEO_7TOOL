@@ -64,10 +64,21 @@
 - Test access was restored after the release exposed that the local username had previously existed only in the PM2 process environment. `MANAGER_AUTH_LOCAL_USERNAME=7tool-admin` and a newly generated PBKDF2 hash are now persisted in the protected shared env; backup: `/var/www/7tool-test-shared/backups/env-before-test-login-reset-20260925`. A real sign-in request returned `200`; the plaintext password is intentionally not recorded here.
 - Post-deploy capacity: 4.6 GB free of 38 GB (88% used). Enough for the activated release, but old immutable releases should be pruned under a separate reviewed cleanup before several more deployments.
 
+### Automatic cron acceptance — 2026-09-26/27
+
+- The first two unattended `03:25 Europe/Moscow` runs completed successfully on 26 and 27 September. The latest snapshot completed at `2026-09-27T00:25:14.393Z`; import, atomic publication, Vinext build and PM2 reload all completed without a logged error.
+- On 26 September the published file SHA-256 exactly matched metadata (`84ebc929db17db7913e70e0f608e5d95078492aca57f8b45d66fb79a11ff94e4`), all 18,997 feed offers were represented and unsupported categories remained zero. The 27 September run published a new matching identity (`eb9308752a22d689d0941ca3b9fbe5f126a603c31f8cf436c22875c7b5ae0079`).
+- Acceptance exposed a policy mismatch: the isolated test feed runs daily, while both its process config and runtime validator capped freshness at 180/1440 minutes. Availability therefore disappeared after three hours even after a successful cron. Test configuration, validation, promise normalization and the administrator form now allow exactly 26 hours (`1560` minutes): enough to bridge the next run plus a two-hour grace, while a missed run still fails closed.
+- Regression matrix: focused shipping/auth tests `19/19`, complete storefront tests `280/280`, changed-file ESLint passed, and a clean Vinext production build passed. Browser QA after test-only activation found 12/12 visible drilling-machine cards with confirmed stock and next-working-day shipment wording; zero cards fell back to “Наличие и срок уточняем”.
+- Test-only rollback copies: `/var/www/7tool-test-shared/backups/ecosystem.test.config.before-freshness-20260927.cjs` and `/var/www/7tool-test-shared/backups/freshness-runtime-before-68a624b`. Production was not rebuilt or restarted.
+- Final control: public test root `302` to authenticated access, access page `200`, production `200`; both PM2 processes online. Disk now has 4.5 GB free of 38 GB (89% used), so reviewed release cleanup remains the next operational prerequisite.
+
 ## Commit
 
 - Implementation: `2d88191` (`fix: restore reliable feed freshness`).
 - Test-only isolated refresh: `1778eff` (`feat: isolate nightly storefront feed refresh`).
 - Supplier category mapping: `bcf52a0` (`fix: map supplier pipe beveler category`).
 - Test storefront rebuild: `55ee372` (`fix: rebuild test storefront after feed refresh`).
+- Test daily freshness config: `5565e77` (`fix: align test feed freshness with nightly schedule`).
+- Runtime freshness validation: `68a624b` (`fix: permit nightly feed freshness grace`).
 - Prepared release archive: `prelaunch-operational-gate-bcf52a0.tar.gz`, SHA-256 `EB748FA8301AD1B69DC1B1A8F8CF48AEBE14B8723F5E92635B90C65308BEBE5F`.
