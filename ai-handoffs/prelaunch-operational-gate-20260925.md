@@ -95,6 +95,14 @@
 - Capacity is now the next operational P1: 4.3 GB free, 89% used. A read-only dependency/symlink audit identified six self-contained obsolete test releases with no inbound active/rollback/production dependency: `scenario-quality-d1868b3`, `selector-fit-6754db4`, `storefront-6adf5f7`, `proxy-origin-44e1962`, `product-recommendations-11d11a2`, and `product-hierarchy-5dc1d22`. Together they occupy about 5.4 GB. Nothing was deleted; explicit approval is required before removing these exact directories.
 - The next unattended cron run after this release remains a final control point: confirm matching catalog/metadata SHA, successful Vinext rebuild, PM2 online and visible availability after `03:25 Europe/Moscow`.
 
+### Reviewed release cleanup — 2026-09-27
+
+- With explicit user approval, the six previously audited obsolete test releases were removed: `/var/www/7tool-release-20260913-scenario-quality-d1868b3`, `/var/www/7tool-release-20260913-selector-fit-6754db4`, `/var/www/7tool-release-20260913-storefront-6adf5f7`, `/var/www/7tool-release-20260913-proxy-origin-44e1962`, `/var/www/7tool-release-20260914-product-recommendations-11d11a2`, and `/var/www/7tool-release-20260914-product-hierarchy-5dc1d22`.
+- A second immediately-before-delete gate verified that none of the targets was the active test release, rollback release, production release, a shared dependency root, a PM2 working directory, a cron reference or the destination of an inbound absolute symlink. The protected active, rollback, production and dependency releases were not modified.
+- The deletion manifest is `/var/www/7tool-test-shared/backups/release-cleanup-20260927.txt`. Deleted directories are not directly recoverable in place; their code can be reconstructed from the corresponding Git history and redeployed if ever required.
+- Capacity improved from 4.3 GB free / 89% used to 8.9 GB free / 77% used, reclaiming approximately 4.6 GB of filesystem space.
+- Post-cleanup verification found both active and rollback dependency links resolving correctly. Live loopback checks returned `200` for homepage, catalog, exact product and comparison. `7tool-storefront-test` remained online on PID `37600`, production remained online on PID `1065`; public test root returned `302` to the access gate, access returned `200`, and production returned `200`.
+
 ## Commit
 
 - Implementation: `2d88191` (`fix: restore reliable feed freshness`).
