@@ -38,6 +38,8 @@ test("critical catalog, product, contact, search and public-page text uses the s
   assert.match(contract, /\.public-info-card-grid p,[\s\S]*font-size:var\(--type-control\)/u);
   assert.match(contract, /\.public-direction-showcase span,\.public-direction-showcase small,[\s\S]*font-size:var\(--type-caption\)/u);
   assert.match(contract, /\.contact-dialog-panel input,\.contact-dialog-panel textarea \{ font-size:var\(--type-reading\)/u);
+  assert.match(contract, /\.comparison-table thead th:first-child,\.comparison-table tbody th \{ font-size:var\(--type-secondary\)/u);
+  assert.match(contract, /\.comparison-table td small \{ font:700 var\(--type-caption\)/u);
 });
 
 test("mobile dense controls retain readable targets and discoverable horizontal rails", async () => {
@@ -48,4 +50,6 @@ test("mobile dense controls retain readable targets and discoverable horizontal 
   assert.match(contract, /\.feed-mobile-series-commercial i \{ justify-content:center/u);
   assert.match(contract, /scroll-padding-inline:14px 38px/u);
   assert.match(contract, /\.product-jumpnav \.container \{ gap:24px; padding-right:38px/u);
+  assert.match(styles, /\.compare-scroll \{ overflow:auto;[\s\S]*scroll-padding-inline:14px 44px/u);
+  assert.match(styles, /\.compare-scroll-hint \{ display:block;[\s\S]*font-size:13px/u);
 });

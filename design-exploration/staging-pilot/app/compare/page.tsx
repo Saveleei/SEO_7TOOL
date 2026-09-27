@@ -18,10 +18,11 @@ export default function ComparePage() {
   return <div className="site-shell"><PilotHeader /><main className="inner-page">
     <div className="container"><Breadcrumbs items={[{label:"Главная",href:"/"},{label:"Магнитные станки",href:"/catalog/sverlenie/magnitnye-stanki"},{label:"Сравнение"}]} /></div>
     <section className="compare-hero"><div className="container compare-heading"><div><p className="eyebrow">Сравнение по решающим параметрам</p><h1>Три модели — одна таблица</h1><p>Сравнение помогает сузить выбор. Финальную применимость, цену, наличие и срок подтверждаем под конкретный запрос.</p></div><div><b>Нужен вывод специалиста?</b><span>Отправим рекомендацию с подтверждёнными условиями поставки.</span><a href="mailto:info@7tool.ru?subject=Сравнение%20магнитных%20станков">Получить сравнение на email</a></div></div></section>
-    <section className="compare-section"><div className="container compare-scroll"><table className="comparison-table">
+    <section className="compare-section"><div className="container"><p className="compare-scroll-hint" id="compare-scroll-hint">На узком экране проведите по таблице влево или вправо, чтобы увидеть все модели.</p><div className="compare-scroll" tabIndex={0} aria-describedby="compare-scroll-hint"><table className="comparison-table">
+      <caption className="visually-hidden">Сравнение трёх магнитных сверлильных станков по цене, наличию и рабочим характеристикам</caption>
       <thead><tr><th>Параметр</th>{models.map((model) => <th key={model.name}><Image src={model.image} alt={model.name} width={180} height={150} /><span>{model.best}</span><b>{model.name}</b><Link href={model.href}>Открыть модель →</Link></th>)}</tr></thead>
       <tbody>{rows.map(([label,key,bestIndex]) => <tr key={label}><th>{label}</th>{models.map((model,index) => <td className={bestIndex === index ? "best-value" : ""} key={model.name}>{model[key]}{bestIndex === index && <small>Преимущество</small>}</td>)}</tr>)}</tbody>
-    </table></div></section>
+    </table></div></div></section>
     <section className="compare-decision"><div className="container"><div><p className="eyebrow">Предварительный вывод</p><h2>Как сузить выбор</h2></div><div><b>Монтаж и отверстия до Ø35</b><span>STEYR-35 легче; применимость проверим по вашим условиям.</span></div><div><b>Ограниченный бюджет</b><span>DM-36K имеет более низкий ориентир цены; срок нужно подтвердить.</span></div><div><b>Нарезание резьбы</b><span>STEYR-35 MAX оснащён реверсом и шестью скоростями.</span></div></div></section>
   </main><PilotFooter /></div>;
 }
