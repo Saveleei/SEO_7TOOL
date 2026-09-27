@@ -33,4 +33,4 @@ Ready for review. Not deployed.
 
 ## Commit
 
-- `cb67786` (`fix: improve catalog card readability and trust`)
+- `d4562b7` (`fix: improve catalog card readability and trust`)
