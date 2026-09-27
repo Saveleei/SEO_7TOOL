@@ -1,0 +1,3259 @@
+{
+  "mode": "preview-only",
+  "publicationEnabled": false,
+  "generatedAt": "2026-09-27T19:45:59.145Z",
+  "commercialGate": {
+    "ready": false,
+    "requiredConfirmations": [
+      "Права на использование и локальное хранение фотографий, документов и описаний",
+      "Розничная цена в рублях, НДС и правила соблюдения РРЦ",
+      "Регламент остатков, резервирования и фактической даты отгрузки",
+      "Дилерская скидка, маржа, возвраты, сервис и пусконаладка"
+    ],
+    "warrantyConflict": false,
+    "warrantyOverrideMonths": 12,
+    "warrantyOverrideSource": "Подтверждено владельцем 7TOOL 2026-09-27",
+    "feedWarrantyValues": {
+      "unresolved": 392,
+      "12 месяцев": 432,
+      "6 месяцев": 4,
+      "нет": 39
+    },
+    "effectiveWarrantyValues": {
+      "12 месяцев": 867
+    }
+  },
+  "summary": {
+    "catalogOffers": 888,
+    "activeCatalogOffers": 867,
+    "modifications": 867,
+    "activeModifications": 863,
+    "groups": 212,
+    "topGroups": 39,
+    "withRublePrice": 824,
+    "supplierStockConfirmed": 389,
+    "missingCatalogLinks": 27,
+    "dataPilotReady": 188,
+    "storefrontPublishable": 0,
+    "issueCounts": {
+      "SOURCE_WARRANTY_OVERRIDDEN": 435,
+      "NON_RUB_BASE_PRICE": 817,
+      "STOCK_SIGNAL_CONFLICT": 354,
+      "MISSING_CATALOG_LINK": 27,
+      "UNMAPPED_TOP_GROUP": 28,
+      "MISSING_IMAGE": 27,
+      "CATEGORY_REQUIRES_REVIEW": 105,
+      "MISSING_RUB_PRICE": 43,
+      "INACTIVE_MODIFICATION": 4,
+      "SUPPLIER_CONTACT_IN_COPY": 17
+    }
+  },
+  "categories": [
+    {
+      "sourceCategory": "Без категории",
+      "decision": "unmapped",
+      "targetSlug": null,
+      "proposedSlug": null,
+      "rollout": "blocked",
+      "modifications": 28,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "РАСПРОДАЖА",
+      "decision": "attribute-only",
+      "targetSlug": null,
+      "proposedSlug": null,
+      "rollout": "metadata",
+      "modifications": 1,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Ленточнопильные станки по металлу",
+      "decision": "existing-category",
+      "targetSlug": "lentochnopilnye-stanki",
+      "proposedSlug": null,
+      "rollout": "P0",
+      "modifications": 138,
+      "dataPilotReady": 124
+    },
+    {
+      "sourceCategory": "Отрезные дисковые станки (пилы) по металлу",
+      "decision": "existing-category",
+      "targetSlug": "disko-otreznye-stanki",
+      "proposedSlug": null,
+      "rollout": "P0",
+      "modifications": 24,
+      "dataPilotReady": 24
+    },
+    {
+      "sourceCategory": "Сверлильные станки по металлу",
+      "decision": "existing-category",
+      "targetSlug": "stanki-sverlilnye",
+      "proposedSlug": null,
+      "rollout": "P0",
+      "modifications": 43,
+      "dataPilotReady": 40
+    },
+    {
+      "sourceCategory": "Вальцы (вальцовочные станки)",
+      "decision": "proposed-category",
+      "targetSlug": null,
+      "proposedSlug": "valtsovochnye-stanki",
+      "rollout": "P1",
+      "modifications": 49,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Гильотинные ножницы (гильотины)",
+      "decision": "proposed-category",
+      "targetSlug": null,
+      "proposedSlug": "gilotinnye-nozhnitsy",
+      "rollout": "P1",
+      "modifications": 60,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Дисковые ножницы (ножи) для резки листового металла",
+      "decision": "proposed-category",
+      "targetSlug": null,
+      "proposedSlug": "diskovye-nozhnitsy-po-metallu",
+      "rollout": "P1",
+      "modifications": 3,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Заточные станки (точило)",
+      "decision": "existing-category",
+      "targetSlug": "shlifovalnoe-i-zatochnoe-oborudovanie",
+      "proposedSlug": null,
+      "rollout": "P1",
+      "modifications": 19,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Зиговочные станки (зиг машины)",
+      "decision": "proposed-category",
+      "targetSlug": null,
+      "proposedSlug": "zigovochnye-stanki",
+      "rollout": "P1",
+      "modifications": 20,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Круглошлифовальные станки",
+      "decision": "existing-category",
+      "targetSlug": "shlifovalnoe-i-zatochnoe-oborudovanie",
+      "proposedSlug": null,
+      "rollout": "P1",
+      "modifications": 4,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Листогибы (листогибочные станки)",
+      "decision": "proposed-category",
+      "targetSlug": null,
+      "proposedSlug": "listogibochnye-stanki",
+      "rollout": "P1",
+      "modifications": 87,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Прессы",
+      "decision": "proposed-category",
+      "targetSlug": null,
+      "proposedSlug": "pressy",
+      "rollout": "P1",
+      "modifications": 18,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Профилегибы (трубогибы)",
+      "decision": "proposed-category",
+      "targetSlug": null,
+      "proposedSlug": "profilegiby-i-trubogiby",
+      "rollout": "P1",
+      "modifications": 27,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Ручные рычажные ножницы по металлу",
+      "decision": "proposed-category",
+      "targetSlug": null,
+      "proposedSlug": "ruchnye-nozhnitsy-po-metallu",
+      "rollout": "P1",
+      "modifications": 8,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Сварочные позиционеры",
+      "decision": "existing-category",
+      "targetSlug": "svarochnye-vrashchateli-i-pozitsionery",
+      "proposedSlug": null,
+      "rollout": "P1",
+      "modifications": 9,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Тиски и угловые зажимы",
+      "decision": "existing-category",
+      "targetSlug": "stanochnaya-osnastka",
+      "proposedSlug": null,
+      "rollout": "P1",
+      "modifications": 35,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Токарные станки по металлу",
+      "decision": "proposed-category",
+      "targetSlug": null,
+      "proposedSlug": "tokarnye-stanki",
+      "rollout": "P1",
+      "modifications": 77,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Угловысечные, угловырубные станки и прессы",
+      "decision": "proposed-category",
+      "targetSlug": null,
+      "proposedSlug": "uglovysechnye-stanki",
+      "rollout": "P1",
+      "modifications": 6,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Фрезерные станки по металлу",
+      "decision": "proposed-category",
+      "targetSlug": null,
+      "proposedSlug": "frezernye-stanki",
+      "rollout": "P1",
+      "modifications": 58,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Шлифовальные станки",
+      "decision": "existing-category",
+      "targetSlug": "shlifovalnoe-i-zatochnoe-oborudovanie",
+      "proposedSlug": null,
+      "rollout": "P1",
+      "modifications": 48,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Вытяжки для металлической и абразивной пыли",
+      "decision": "review-later",
+      "targetSlug": null,
+      "proposedSlug": "promyshlennye-vytyazhki",
+      "rollout": "P2",
+      "modifications": 2,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Долбежные станки",
+      "decision": "review-later",
+      "targetSlug": null,
+      "proposedSlug": "dolbezhnye-stanki",
+      "rollout": "P2",
+      "modifications": 3,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Инструменты для обработки труб",
+      "decision": "review-later",
+      "targetSlug": null,
+      "proposedSlug": "obrabotka-trub",
+      "rollout": "P2",
+      "modifications": 19,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Кровельные станки",
+      "decision": "review-later",
+      "targetSlug": null,
+      "proposedSlug": "krovelnye-stanki",
+      "rollout": "P2",
+      "modifications": 2,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Кузнечное оборудование",
+      "decision": "review-later",
+      "targetSlug": null,
+      "proposedSlug": "kuznechnoe-oborudovanie",
+      "rollout": "P2",
+      "modifications": 5,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Лазерная сварка",
+      "decision": "review-later",
+      "targetSlug": null,
+      "proposedSlug": "lazernaya-svarka",
+      "rollout": "P2",
+      "modifications": 3,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Многофункциональные станки",
+      "decision": "review-later",
+      "targetSlug": null,
+      "proposedSlug": "mnogofunktsionalnye-stanki",
+      "rollout": "P2",
+      "modifications": 7,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Оборудование с ЧПУ",
+      "decision": "review-later",
+      "targetSlug": null,
+      "proposedSlug": "stanki-s-chpu",
+      "rollout": "P2",
+      "modifications": 12,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Разматыватели металла",
+      "decision": "review-later",
+      "targetSlug": null,
+      "proposedSlug": "razmatyvateli-metalla",
+      "rollout": "P2",
+      "modifications": 12,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Станки для производства воздуховодов",
+      "decision": "review-later",
+      "targetSlug": null,
+      "proposedSlug": "stanki-dlya-vozduhovodov",
+      "rollout": "P2",
+      "modifications": 5,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Станки для работы с арматурой",
+      "decision": "review-later",
+      "targetSlug": null,
+      "proposedSlug": "stanki-dlya-armatury",
+      "rollout": "P2",
+      "modifications": 16,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Станки продольно-поперечной резки",
+      "decision": "review-later",
+      "targetSlug": null,
+      "proposedSlug": "stanki-prodolno-poperechnoy-rezki",
+      "rollout": "P2",
+      "modifications": 5,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Фальцепрокатные станки",
+      "decision": "review-later",
+      "targetSlug": null,
+      "proposedSlug": "faltseprokatnye-stanki",
+      "rollout": "P2",
+      "modifications": 2,
+      "dataPilotReady": 0
+    },
+    {
+      "sourceCategory": "Формовка листового металла",
+      "decision": "review-later",
+      "targetSlug": null,
+      "proposedSlug": "formovka-listovogo-metalla",
+      "rollout": "P2",
+      "modifications": 12,
+      "dataPilotReady": 0
+    }
+  ],
+  "samples": {
+    "ready": [
+      {
+        "id": "a7c4cbe1-ad3d-11e0-9587-001d096b3bae",
+        "catalogId": "a7c4cbe1-ad3d-11e0-9587-001d096b3bae",
+        "sku": "388005",
+        "name": "Станок ленточнопильный Stalex BS-128HDR",
+        "active": true,
+        "priceRub": 75525,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "supplier-stock-confirm",
+          "label": "На складе поставщика · дату отгрузки подтвердим",
+          "stock": 25,
+          "quantity": 25,
+          "enumPresent": true,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/ab0/8j2o1303hympcbrhqths23v11np2q9lb.jpg",
+        "category": {
+          "chosen": {
+            "id": "5",
+            "name": "Ленточнопильные станки по металлу",
+            "decision": "existing-category",
+            "targetSlug": "lentochnopilnye-stanki",
+            "rollout": "P0"
+          },
+          "topGroups": [
+            {
+              "id": "5",
+              "name": "Ленточнопильные станки по металлу",
+              "decision": "existing-category",
+              "targetSlug": "lentochnopilnye-stanki",
+              "rollout": "P0"
+            },
+            {
+              "id": "463",
+              "name": "РАСПРОДАЖА",
+              "decision": "attribute-only",
+              "rollout": "metadata",
+              "attribute": "sale"
+            }
+          ]
+        },
+        "descriptionPreview": "Модель Stalex BS-128HDR Вращение пилы -45° 0° +45°&nbsp;+60° в обе стороны при 90° 128 мм при 90° 128х150 мм при 45° 95 мм при 45° 75х95 мм при 60° 44 мм при 60° 44х56 мм при -45° 90 мм при -45° 75х90&nbsp;мм Скорость вращения полотна 3 скорости; 20-29-50 метр/мин Размер полотна 13х0.65х1640 мм Подача пильной рамы гидр",
+        "issues": [
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "NON_RUB_BASE_PRICE",
+            "severity": "P1",
+            "message": "Базовое поле цены имеет валюту CUN; используется только отдельное рублёвое поле."
+          }
+        ],
+        "dataPilotReady": true,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "a7c4cc03-ad3d-11e0-9587-001d096b3bae",
+        "catalogId": "a7c4cc03-ad3d-11e0-9587-001d096b3bae",
+        "sku": "388118",
+        "name": "Станок ленточнопильный Stalex BS-215G",
+        "active": true,
+        "priceRub": 157700,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "supplier-stock-confirm",
+          "label": "На складе поставщика · дату отгрузки подтвердим",
+          "stock": 1,
+          "quantity": 1,
+          "enumPresent": true,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/43f/0d52mfm6k9r113bbt7tz9ja7oxafopzg.jpg",
+        "category": {
+          "chosen": {
+            "id": "5",
+            "name": "Ленточнопильные станки по металлу",
+            "decision": "existing-category",
+            "targetSlug": "lentochnopilnye-stanki",
+            "rollout": "P0"
+          },
+          "topGroups": [
+            {
+              "id": "5",
+              "name": "Ленточнопильные станки по металлу",
+              "decision": "existing-category",
+              "targetSlug": "lentochnopilnye-stanki",
+              "rollout": "P0"
+            }
+          ]
+        },
+        "descriptionPreview": "Модель Stalex BS-215G Вращение пилы 0° до 45° в одну сторону при 90° 150 мм при 90° 200х120 мм. при 45° 120 мм. при 45° 130х90 мм. Скорость вращения полотна 40, 80 м/мин Размер полотна 20х0,9х2060 мм. Толщина реза (ленточнопильным полотном со стандартной разводкой режущих зубьев) 1,2 мм. Подача пильной рамы в ручном ре",
+        "issues": [
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "NON_RUB_BASE_PRICE",
+            "severity": "P1",
+            "message": "Базовое поле цены имеет валюту CUN; используется только отдельное рублёвое поле."
+          }
+        ],
+        "dataPilotReady": true,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "a7c4cc06-ad3d-11e0-9587-001d096b3bae",
+        "catalogId": "a7c4cc06-ad3d-11e0-9587-001d096b3bae",
+        "sku": "388119",
+        "name": "Станок ленточнопильный Stalex BS-280G",
+        "active": true,
+        "priceRub": 238450,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "supplier-stock-confirm",
+          "label": "На складе поставщика · дату отгрузки подтвердим",
+          "stock": 11,
+          "quantity": 11,
+          "enumPresent": true,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/6ce/u4wmtsqv9na6gzh23yqp7v8mdygmqcao.jpg",
+        "category": {
+          "chosen": {
+            "id": "5",
+            "name": "Ленточнопильные станки по металлу",
+            "decision": "existing-category",
+            "targetSlug": "lentochnopilnye-stanki",
+            "rollout": "P0"
+          },
+          "topGroups": [
+            {
+              "id": "5",
+              "name": "Ленточнопильные станки по металлу",
+              "decision": "existing-category",
+              "targetSlug": "lentochnopilnye-stanki",
+              "rollout": "P0"
+            }
+          ]
+        },
+        "descriptionPreview": "Stalex BS-280G Выходная мощность двухскоростного двигателя 0,75/1,1 кВт. (3-х фазный) Потребляемая мощность двухскоростного двигателя 1/1,5 кВт. (3-х фазный) Скорость резания 40 – 80 м/мин Привод зубчатый Рабочая зона +90° +45° +60° 220 160 110 250x155 160х110 80x95 Угол разворота рамы Размер полотна 27х0,9х2450 мм Под",
+        "issues": [
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "NON_RUB_BASE_PRICE",
+            "severity": "P1",
+            "message": "Базовое поле цены имеет валюту CUN; используется только отдельное рублёвое поле."
+          }
+        ],
+        "dataPilotReady": true,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "a7c4cc09-ad3d-11e0-9587-001d096b3bae",
+        "catalogId": "a7c4cc09-ad3d-11e0-9587-001d096b3bae",
+        "sku": "388122",
+        "name": "Станок ленточнопильный Stalex BS-315G",
+        "active": true,
+        "priceRub": 467100,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": 0,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/ae2/0zw0osoa27767himtoc4gj34i1sw0067.jpg",
+        "category": {
+          "chosen": {
+            "id": "5",
+            "name": "Ленточнопильные станки по металлу",
+            "decision": "existing-category",
+            "targetSlug": "lentochnopilnye-stanki",
+            "rollout": "P0"
+          },
+          "topGroups": [
+            {
+              "id": "5",
+              "name": "Ленточнопильные станки по металлу",
+              "decision": "existing-category",
+              "targetSlug": "lentochnopilnye-stanki",
+              "rollout": "P0"
+            }
+          ]
+        },
+        "descriptionPreview": "&nbsp; Stalex BS-315G Артикул 388122 Мощность двигателя 0,75/1,1 кВт. (3-х фазный) Привод зубчатый Скорость резания 40 – 80 м/мин Рабочая зона +90° -45° +45° +60° 230 210 210 130 315x170 210х170 210х170 130х130 Угол разворота рамы Размер полотна 27х0,9х2825 мм Подача пильной рамы собственный вес с гидрорегулировкой Заж",
+        "issues": [
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "NON_RUB_BASE_PRICE",
+            "severity": "P1",
+            "message": "Базовое поле цены имеет валюту CUN; используется только отдельное рублёвое поле."
+          }
+        ],
+        "dataPilotReady": true,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "a7c4cc0c-ad3d-11e0-9587-001d096b3bae",
+        "catalogId": "a7c4cc0c-ad3d-11e0-9587-001d096b3bae",
+        "sku": "388124",
+        "name": "Станок ленточнопильный Stalex BS-315GH",
+        "active": true,
+        "priceRub": 513950,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "supplier-stock-confirm",
+          "label": "На складе поставщика · дату отгрузки подтвердим",
+          "stock": 1,
+          "quantity": 1,
+          "enumPresent": true,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/e86/p3f1ivistz106ewh0dm24uzbkqmphdu4/BS-315GH_01.jpg",
+        "category": {
+          "chosen": {
+            "id": "5",
+            "name": "Ленточнопильные станки по металлу",
+            "decision": "existing-category",
+            "targetSlug": "lentochnopilnye-stanki",
+            "rollout": "P0"
+          },
+          "topGroups": [
+            {
+              "id": "5",
+              "name": "Ленточнопильные станки по металлу",
+              "decision": "existing-category",
+              "targetSlug": "lentochnopilnye-stanki",
+              "rollout": "P0"
+            }
+          ]
+        },
+        "descriptionPreview": "BS-315GH Модель Stalex BS-315GH является гидравлическим ленточнопильным станком, данная модель популярна среди станков Stalex серии консольных полуавтоматов. На полуавтоматических станках возможна работа как в ручном режиме, когда каждая операция выполняется вручную посредством нажатия соответствующей кнопки, так и в а",
+        "issues": [
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "NON_RUB_BASE_PRICE",
+            "severity": "P1",
+            "message": "Базовое поле цены имеет валюту CUN; используется только отдельное рублёвое поле."
+          }
+        ],
+        "dataPilotReady": true,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "a7c4cbe7-ad3d-11e0-9587-001d096b3bae",
+        "catalogId": "a7c4cbe7-ad3d-11e0-9587-001d096b3bae",
+        "sku": "388006",
+        "name": "Станок ленточнопильный Stalex BS-712N",
+        "active": true,
+        "priceRub": 135850,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "supplier-stock-confirm",
+          "label": "На складе поставщика · дату отгрузки подтвердим",
+          "stock": 9,
+          "quantity": 9,
+          "enumPresent": true,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/6de/cuobw64kiwy460y206ryl4zkafynw9d7.jpg",
+        "category": {
+          "chosen": {
+            "id": "5",
+            "name": "Ленточнопильные станки по металлу",
+            "decision": "existing-category",
+            "targetSlug": "lentochnopilnye-stanki",
+            "rollout": "P0"
+          },
+          "topGroups": [
+            {
+              "id": "5",
+              "name": "Ленточнопильные станки по металлу",
+              "decision": "existing-category",
+              "targetSlug": "lentochnopilnye-stanki",
+              "rollout": "P0"
+            }
+          ]
+        },
+        "descriptionPreview": "Модель Stalex BS-712N Артикул 388006 Резка под углом 0° до 45° в одну сторону при 90° 178 мм. при 90° 178х305 мм. при 45° 127 мм. при 45° 120х125 мм. Скорость вращения полотна 22, 34, 49, 64 м/мин Размер полотна 20х0,9х2362 мм. Подача пильной рамы собственный вес с гидрорегулировкой Зажим заготовки ручной Мощность двиг",
+        "issues": [
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "NON_RUB_BASE_PRICE",
+            "severity": "P1",
+            "message": "Базовое поле цены имеет валюту CUN; используется только отдельное рублёвое поле."
+          }
+        ],
+        "dataPilotReady": true,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "a7c4cbea-ad3d-11e0-9587-001d096b3bae",
+        "catalogId": "a7c4cbea-ad3d-11e0-9587-001d096b3bae",
+        "sku": "388008",
+        "name": "Станок ленточнопильный Stalex BS-712R",
+        "active": true,
+        "priceRub": 147250,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "supplier-stock-confirm",
+          "label": "На складе поставщика · дату отгрузки подтвердим",
+          "stock": 6,
+          "quantity": 6,
+          "enumPresent": true,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/838/yjjcigo3xtypyvzraw8gj00u63t0l4fl.jpg",
+        "category": {
+          "chosen": {
+            "id": "5",
+            "name": "Ленточнопильные станки по металлу",
+            "decision": "existing-category",
+            "targetSlug": "lentochnopilnye-stanki",
+            "rollout": "P0"
+          },
+          "topGroups": [
+            {
+              "id": "5",
+              "name": "Ленточнопильные станки по металлу",
+              "decision": "existing-category",
+              "targetSlug": "lentochnopilnye-stanki",
+              "rollout": "P0"
+            }
+          ]
+        },
+        "descriptionPreview": "Модель Stalex BS-712R Артикул 388008 Резка под углом 0° до 45° в одну сторону при 90° 178 мм. при 90° 178х210 мм. при 45° 127 мм. при 45° 85х140мм. Скорость вращения полотна 22, 34, 49, 64 м/мин Размер полотна 20х0,9х2362 мм. Подача пильной рамы собственный вес с гидрорегулировкой Зажим заготовки ручной (+ рычаг быстро",
+        "issues": [
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "NON_RUB_BASE_PRICE",
+            "severity": "P1",
+            "message": "Базовое поле цены имеет валюту CUN; используется только отдельное рублёвое поле."
+          }
+        ],
+        "dataPilotReady": true,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "a7c4cbf6-ad3d-11e0-9587-001d096b3bae",
+        "catalogId": "a7c4cbf6-ad3d-11e0-9587-001d096b3bae",
+        "sku": "388010",
+        "name": "Станок ленточнопильный Stalex BS-912B",
+        "active": true,
+        "priceRub": 165300,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "supplier-stock-confirm",
+          "label": "На складе поставщика · дату отгрузки подтвердим",
+          "stock": 12,
+          "quantity": 12,
+          "enumPresent": true,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/40f/q83o95pibl21fnc61rfbq6yi9cf6mk51.jpg",
+        "category": {
+          "chosen": {
+            "id": "5",
+            "name": "Ленточнопильные станки по металлу",
+            "decision": "existing-category",
+            "targetSlug": "lentochnopilnye-stanki",
+            "rollout": "P0"
+          },
+          "topGroups": [
+            {
+              "id": "5",
+              "name": "Ленточнопильные станки по металлу",
+              "decision": "existing-category",
+              "targetSlug": "lentochnopilnye-stanki",
+              "rollout": "P0"
+            }
+          ]
+        },
+        "descriptionPreview": "90° +45° Максимальное сечение круглого профиля, мм 229 150 Максимальное сечение квадратного профиля, мм 178х305 120х150 Мощность двигателя 1,1&nbsp;кВт. (3-х фазный) Скорость резания 26, 50, 73, 95 м/мин Размер полотна, мм 27х0,9х2655 мм Привод Клиноременной Габариты станка (ДхШхВ), мм 1540х590х1150 Масса нетто/брутто ",
+        "issues": [
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "NON_RUB_BASE_PRICE",
+            "severity": "P1",
+            "message": "Базовое поле цены имеет валюту CUN; используется только отдельное рублёвое поле."
+          }
+        ],
+        "dataPilotReady": true,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "a7c4cbf3-ad3d-11e0-9587-001d096b3bae",
+        "catalogId": "a7c4cbf3-ad3d-11e0-9587-001d096b3bae",
+        "sku": "388011",
+        "name": "Станок ленточнопильный Stalex BS-912G",
+        "active": true,
+        "priceRub": 177650,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": 0,
+          "enumPresent": true,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/c92/ub2fbot0el8f7n1kt487nh8kytjn5jau.jpg",
+        "category": {
+          "chosen": {
+            "id": "5",
+            "name": "Ленточнопильные станки по металлу",
+            "decision": "existing-category",
+            "targetSlug": "lentochnopilnye-stanki",
+            "rollout": "P0"
+          },
+          "topGroups": [
+            {
+              "id": "5",
+              "name": "Ленточнопильные станки по металлу",
+              "decision": "existing-category",
+              "targetSlug": "lentochnopilnye-stanki",
+              "rollout": "P0"
+            }
+          ]
+        },
+        "descriptionPreview": "90° +45° Максимальное сечение круглого профиля, мм 229 150 Максимальное сечение квадратного профиля, мм 178х305 120х150 Мощность двигателя 1,1 кВт. (3-х фазный) Скорость резания 31, 65, 95 м/мин Размер полотна, мм 27х0,9х2655 мм Привод Зубчатый Габариты станка (ДхШхВ), мм 1580х620х1150 Масса нетто/брутто 170/192 кг &nb",
+        "issues": [
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "NON_RUB_BASE_PRICE",
+            "severity": "P1",
+            "message": "Базовое поле цены имеет валюту CUN; используется только отдельное рублёвое поле."
+          },
+          {
+            "code": "STOCK_SIGNAL_CONFLICT",
+            "severity": "P1",
+            "message": "Текстовый статус «есть» не подтверждён положительным числовым остатком."
+          }
+        ],
+        "dataPilotReady": true,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "eea2dd05-ab7b-11e0-9587-001d096b3bae",
+        "catalogId": "eea2dd05-ab7b-11e0-9587-001d096b3bae",
+        "sku": "388016",
+        "name": "Станок ленточнопильный Stalex BS-170G",
+        "active": true,
+        "priceRub": 158650,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "supplier-stock-confirm",
+          "label": "На складе поставщика · дату отгрузки подтвердим",
+          "stock": 4,
+          "quantity": 4,
+          "enumPresent": true,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/f05/vctxl2to37anmc66kys4018f1pxcrons.jpg",
+        "category": {
+          "chosen": {
+            "id": "5",
+            "name": "Ленточнопильные станки по металлу",
+            "decision": "existing-category",
+            "targetSlug": "lentochnopilnye-stanki",
+            "rollout": "P0"
+          },
+          "topGroups": [
+            {
+              "id": "5",
+              "name": "Ленточнопильные станки по металлу",
+              "decision": "existing-category",
+              "targetSlug": "lentochnopilnye-stanki",
+              "rollout": "P0"
+            }
+          ]
+        },
+        "descriptionPreview": "Stalex BS-170G Мощность двигателя 0.75/1,1 кВт. (3-х фазный) Привод зубчатый Скорость резания 39 / 72 м/мин Рабочая зона +90° +45° +60° 170 120 70 170x200 110х110 60x60 Угол разворота рамы Размер полотна 20х0,9х2085 мм. Подача пильной рамы собственный вес с гидрорегулировкой Зажим заготовки ручной (+ рычаг быстрой дово",
+        "issues": [
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "NON_RUB_BASE_PRICE",
+            "severity": "P1",
+            "message": "Базовое поле цены имеет валюту CUN; используется только отдельное рублёвое поле."
+          }
+        ],
+        "dataPilotReady": true,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "eea2dd02-ab7b-11e0-9587-001d096b3bae",
+        "catalogId": "eea2dd02-ab7b-11e0-9587-001d096b3bae",
+        "sku": "388017",
+        "name": "Станок ленточнопильный BS 260 G",
+        "active": true,
+        "priceRub": 210900,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "supplier-stock-confirm",
+          "label": "На складе поставщика · дату отгрузки подтвердим",
+          "stock": 13,
+          "quantity": 13,
+          "enumPresent": true,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/110/cp5uyleetv79fqiva36u3wh67vd0jljm.jpg",
+        "category": {
+          "chosen": {
+            "id": "5",
+            "name": "Ленточнопильные станки по металлу",
+            "decision": "existing-category",
+            "targetSlug": "lentochnopilnye-stanki",
+            "rollout": "P0"
+          },
+          "topGroups": [
+            {
+              "id": "5",
+              "name": "Ленточнопильные станки по металлу",
+              "decision": "existing-category",
+              "targetSlug": "lentochnopilnye-stanki",
+              "rollout": "P0"
+            }
+          ]
+        },
+        "descriptionPreview": "Stalex BS-260G Выходная мощность двухскоростного двигателя 0,75/1,1 кВт. (3-х фазный) Потребляемая мощность двухскоростного двигателя 1/1,5 кВт. (3-х фазный) Скорость резания (2 режима) 36 – 72 м/мин Привод зубчатый Рабочая зона 90° +45° +60° 227 150 90 210 140 80 230x190 150х125 85x85 Угол разворота рамы Размер полотн",
+        "issues": [
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "NON_RUB_BASE_PRICE",
+            "severity": "P1",
+            "message": "Базовое поле цены имеет валюту CUN; используется только отдельное рублёвое поле."
+          }
+        ],
+        "dataPilotReady": true,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "a7c4cbed-ad3d-11e0-9587-001d096b3bae",
+        "catalogId": "a7c4cbed-ad3d-11e0-9587-001d096b3bae",
+        "sku": "388009",
+        "name": "Станок ленточнопильный Stalex  BS-712GR",
+        "active": true,
+        "priceRub": 169100,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "supplier-stock-confirm",
+          "label": "На складе поставщика · дату отгрузки подтвердим",
+          "stock": 4,
+          "quantity": 4,
+          "enumPresent": true,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/00f/9l7dlydxrchme9xk2yorvkkcqmq7cg3s.jpg",
+        "category": {
+          "chosen": {
+            "id": "5",
+            "name": "Ленточнопильные станки по металлу",
+            "decision": "existing-category",
+            "targetSlug": "lentochnopilnye-stanki",
+            "rollout": "P0"
+          },
+          "topGroups": [
+            {
+              "id": "5",
+              "name": "Ленточнопильные станки по металлу",
+              "decision": "existing-category",
+              "targetSlug": "lentochnopilnye-stanki",
+              "rollout": "P0"
+            }
+          ]
+        },
+        "descriptionPreview": "Модель Stalex BS-712GR Артикул 388009 Резка под углом 0° до 45° в одну сторону ⁠ при 90° 178 мм. при 90° 178х210 мм. при 45° 127 мм. при 45° 85х140мм. Скорость вращения полотна 29, 59, 87 м/мин Размер полотна 20х0,9х2362 мм. Подача пильной рамы собственный вес с гидрорегулировкой Зажим заготовки ручной (+ рычаг быстрой",
+        "issues": [
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "NON_RUB_BASE_PRICE",
+            "severity": "P1",
+            "message": "Базовое поле цены имеет валюту CUN; используется только отдельное рублёвое поле."
+          }
+        ],
+        "dataPilotReady": true,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "dcd3f8e6-03bc-11e2-8de5-001d096b3bae",
+        "catalogId": "dcd3f8e6-03bc-11e2-8de5-001d096b3bae",
+        "sku": "388125",
+        "name": "Станок ленточнопильный Stalex BS-460G",
+        "active": true,
+        "priceRub": 858800,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": 0,
+          "enumPresent": true,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/c34/i5ts23t3mjwkn9fwonpsgmax75rtvcs1.jpg",
+        "category": {
+          "chosen": {
+            "id": "5",
+            "name": "Ленточнопильные станки по металлу",
+            "decision": "existing-category",
+            "targetSlug": "lentochnopilnye-stanki",
+            "rollout": "P0"
+          },
+          "topGroups": [
+            {
+              "id": "5",
+              "name": "Ленточнопильные станки по металлу",
+              "decision": "existing-category",
+              "targetSlug": "lentochnopilnye-stanki",
+              "rollout": "P0"
+            }
+          ]
+        },
+        "descriptionPreview": "Наименование Stalex BS-460G Артикул 388125 Мощность двигателя 1,5/2,2 кВт (3-х фазный) термозащита перегрузки двигателя Мощность гидравлической станции 0,75 кВт Мощность охлаждающего насоса 45 Вт Вращение пилы От -45 до +60 градусов Привод зубчатый (червячная передача) Скорость резания 40, 80 м/мин Рабочая зона +90° ±4",
+        "issues": [
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "NON_RUB_BASE_PRICE",
+            "severity": "P1",
+            "message": "Базовое поле цены имеет валюту CUN; используется только отдельное рублёвое поле."
+          },
+          {
+            "code": "STOCK_SIGNAL_CONFLICT",
+            "severity": "P1",
+            "message": "Текстовый статус «есть» не подтверждён положительным числовым остатком."
+          }
+        ],
+        "dataPilotReady": true,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "7643e219-f622-11e0-985b-001d096b3bae",
+        "catalogId": "7643e219-f622-11e0-985b-001d096b3bae",
+        "sku": "388001",
+        "name": "Станок ленточнопильный Stalex BS-100",
+        "active": true,
+        "priceRub": 55100,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "supplier-stock-confirm",
+          "label": "На складе поставщика · дату отгрузки подтвердим",
+          "stock": 8,
+          "quantity": 8,
+          "enumPresent": true,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/5ed/dbvpi2w587in3lldwexiczwp3go97pj3.jpg",
+        "category": {
+          "chosen": {
+            "id": "5",
+            "name": "Ленточнопильные станки по металлу",
+            "decision": "existing-category",
+            "targetSlug": "lentochnopilnye-stanki",
+            "rollout": "P0"
+          },
+          "topGroups": [
+            {
+              "id": "5",
+              "name": "Ленточнопильные станки по металлу",
+              "decision": "existing-category",
+              "targetSlug": "lentochnopilnye-stanki",
+              "rollout": "P0"
+            }
+          ]
+        },
+        "descriptionPreview": "90° +45° Максимальное сечение круглого профиля, мм 100 60 Максимальное сечение квадратного профиля, мм 100х150 60х100 Мощность двигателя 0,375 кВт. (1 фазный) Скорость резания 45 м/мин Размер полотна, мм 13х0,65х1470 мм Привод Зубчатый Питание 1фаза, 220 вольт 50Гц Габариты станка (ДхШхВ), мм 720х370х460 мм Масса нетто",
+        "issues": [
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "NON_RUB_BASE_PRICE",
+            "severity": "P1",
+            "message": "Базовое поле цены имеет валюту CUN; используется только отдельное рублёвое поле."
+          }
+        ],
+        "dataPilotReady": true,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "8ff6878a-f8c8-11e0-985b-001d096b3bae",
+        "catalogId": "8ff6878a-f8c8-11e0-985b-001d096b3bae",
+        "sku": "388002",
+        "name": "Станок ленточнопильный Stalex BS-115",
+        "active": true,
+        "priceRub": 53200,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "supplier-stock-confirm",
+          "label": "На складе поставщика · дату отгрузки подтвердим",
+          "stock": 24,
+          "quantity": 24,
+          "enumPresent": true,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/006/ulafejyn8vimy4homiewuo5p4zu0ijaq.jpg",
+        "category": {
+          "chosen": {
+            "id": "5",
+            "name": "Ленточнопильные станки по металлу",
+            "decision": "existing-category",
+            "targetSlug": "lentochnopilnye-stanki",
+            "rollout": "P0"
+          },
+          "topGroups": [
+            {
+              "id": "5",
+              "name": "Ленточнопильные станки по металлу",
+              "decision": "existing-category",
+              "targetSlug": "lentochnopilnye-stanki",
+              "rollout": "P0"
+            }
+          ]
+        },
+        "descriptionPreview": "Угол резки от 0º до 45º в одну сторону при 90° 115 мм при 45° 100 мм при 90° 100x150 мм при 45° 60x100 мм Размер пильной ленты 13х0,6х1540 мм Скорость пильной ленты 3 скорости, 20-29-50 м/мин Питание 1 фаза, 220 вольт, 50Гц Мощность двигателя 0,375 кВт (1 фазный) Привод клиноременной Габариты (упаковка) 970х460х460 мм ",
+        "issues": [
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "NON_RUB_BASE_PRICE",
+            "severity": "P1",
+            "message": "Базовое поле цены имеет валюту CUN; используется только отдельное рублёвое поле."
+          }
+        ],
+        "dataPilotReady": true,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "769bc67b-89b8-11e4-9406-2c44fd8044c3",
+        "catalogId": "769bc67b-89b8-11e4-9406-2c44fd8044c3",
+        "sku": "100371",
+        "name": "СОЖ",
+        "active": true,
+        "priceRub": 6650,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "supplier-stock-confirm",
+          "label": "На складе поставщика · дату отгрузки подтвердим",
+          "stock": 2,
+          "quantity": 2,
+          "enumPresent": true,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/c15/s3ikk03lecq2trfbjx7h1cczfqzv9lkq.jpg",
+        "category": {
+          "chosen": {
+            "id": "5",
+            "name": "Ленточнопильные станки по металлу",
+            "decision": "existing-category",
+            "targetSlug": "lentochnopilnye-stanki",
+            "rollout": "P0"
+          },
+          "topGroups": [
+            {
+              "id": "5",
+              "name": "Ленточнопильные станки по металлу",
+              "decision": "existing-category",
+              "targetSlug": "lentochnopilnye-stanki",
+              "rollout": "P0"
+            }
+          ]
+        },
+        "descriptionPreview": "СОЖ Концентрат для быстрого приготовления эмульсии, используемой в процессе токарных, сверлильных и прочих работ на соответствующих станках. Отличается низким пенообразованием. Подходит для всех типов стали и чугуна.",
+        "issues": [
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "NON_RUB_BASE_PRICE",
+            "severity": "P1",
+            "message": "Базовое поле цены имеет валюту CUN; используется только отдельное рублёвое поле."
+          }
+        ],
+        "dataPilotReady": true,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "dcd3f8eb-03bc-11e2-8de5-001d096b3bae",
+        "catalogId": "dcd3f8eb-03bc-11e2-8de5-001d096b3bae",
+        "sku": "388025",
+        "name": "Дисковая пила Stalex CS-225",
+        "active": true,
+        "priceRub": 113050,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": 0,
+          "enumPresent": true,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/f59/s3bmq8e7melumiamf3c3bs1r1jgiv53t.jpg",
+        "category": {
+          "chosen": {
+            "id": "84",
+            "name": "Отрезные дисковые станки (пилы) по металлу",
+            "decision": "existing-category",
+            "targetSlug": "disko-otreznye-stanki",
+            "rollout": "P0"
+          },
+          "topGroups": [
+            {
+              "id": "84",
+              "name": "Отрезные дисковые станки (пилы) по металлу",
+              "decision": "existing-category",
+              "targetSlug": "disko-otreznye-stanki",
+              "rollout": "P0"
+            }
+          ]
+        },
+        "descriptionPreview": "90° +45° Максимальное сечение круглого профиля, мм 60 52 Максимальное сечение квадратного профиля, мм 50х50 50х50 Мощность двигателя 0,75 кВт. (1-фазный) Скорость резания 46 об/мин Диаметр пильного диска, мм 225 мм Привод Зубчатый Раскрыв тисков 70 мм Габариты станка (ДхШхВ), мм 640х390х720 Масса нетто/брутто 63/75 кг",
+        "issues": [
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "NON_RUB_BASE_PRICE",
+            "severity": "P1",
+            "message": "Базовое поле цены имеет валюту CUN; используется только отдельное рублёвое поле."
+          },
+          {
+            "code": "STOCK_SIGNAL_CONFLICT",
+            "severity": "P1",
+            "message": "Текстовый статус «есть» не подтверждён положительным числовым остатком."
+          }
+        ],
+        "dataPilotReady": true,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "dcd3f8ed-03bc-11e2-8de5-001d096b3bae",
+        "catalogId": "dcd3f8ed-03bc-11e2-8de5-001d096b3bae",
+        "sku": "388021",
+        "name": "Дисковая пила Stalex CS-250",
+        "active": true,
+        "priceRub": 120650,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "supplier-stock-confirm",
+          "label": "На складе поставщика · дату отгрузки подтвердим",
+          "stock": 3,
+          "quantity": 3,
+          "enumPresent": true,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/772/oobog69acefy3iebw2kt8toh6n9r8l5r.jpg",
+        "category": {
+          "chosen": {
+            "id": "84",
+            "name": "Отрезные дисковые станки (пилы) по металлу",
+            "decision": "existing-category",
+            "targetSlug": "disko-otreznye-stanki",
+            "rollout": "P0"
+          },
+          "topGroups": [
+            {
+              "id": "84",
+              "name": "Отрезные дисковые станки (пилы) по металлу",
+              "decision": "existing-category",
+              "targetSlug": "disko-otreznye-stanki",
+              "rollout": "P0"
+            }
+          ]
+        },
+        "descriptionPreview": "CS-250 90° ±45° Максимальное сечение круглого профиля, мм 60 55 Максимальное сечение квадратного профиля, мм 75х45 55x45 Мощность двигателя, кВт 1,1&nbsp;(3-х фазный) Скорость резания, об/мин 42 Диаметр пильного диска, мм 250 Привод Зубчатый Раскрыв тисков, мм 100 Габариты станка (ДхШхВ), мм корпус 890х580х740 стойка 7",
+        "issues": [
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "NON_RUB_BASE_PRICE",
+            "severity": "P1",
+            "message": "Базовое поле цены имеет валюту CUN; используется только отдельное рублёвое поле."
+          }
+        ],
+        "dataPilotReady": true,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "dcd3f8ef-03bc-11e2-8de5-001d096b3bae",
+        "catalogId": "dcd3f8ef-03bc-11e2-8de5-001d096b3bae",
+        "sku": "388022",
+        "name": "Дисковая пила Stalex CS-275",
+        "active": true,
+        "priceRub": 148200,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "supplier-stock-confirm",
+          "label": "На складе поставщика · дату отгрузки подтвердим",
+          "stock": 1,
+          "quantity": 1,
+          "enumPresent": true,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/d83/77fvbxern7enxw9zbh9jhe3n1se5ux26.jpg",
+        "category": {
+          "chosen": {
+            "id": "84",
+            "name": "Отрезные дисковые станки (пилы) по металлу",
+            "decision": "existing-category",
+            "targetSlug": "disko-otreznye-stanki",
+            "rollout": "P0"
+          },
+          "topGroups": [
+            {
+              "id": "84",
+              "name": "Отрезные дисковые станки (пилы) по металлу",
+              "decision": "existing-category",
+              "targetSlug": "disko-otreznye-stanki",
+              "rollout": "P0"
+            }
+          ]
+        },
+        "descriptionPreview": "CS-275 90° ±45° Максимальное сечение круглого профиля, мм 70 65 Максимальное сечение квадратного профиля, мм 90х45 70x45 Мощность двигателя, кВт 1,1&nbsp;(3-х фазный) Скорость резания, об/мин 42 Диаметр пильного диска, мм 275 Привод Зубчатый Раскрыв тисков, мм 100 Габариты станка (ДхШхВ), мм корпус 890х580х770 стойка 7",
+        "issues": [
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "NON_RUB_BASE_PRICE",
+            "severity": "P1",
+            "message": "Базовое поле цены имеет валюту CUN; используется только отдельное рублёвое поле."
+          }
+        ],
+        "dataPilotReady": true,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "dcd3f8f1-03bc-11e2-8de5-001d096b3bae",
+        "catalogId": "dcd3f8f1-03bc-11e2-8de5-001d096b3bae",
+        "sku": "388019",
+        "name": "Дисковая пила Stalex CS-315",
+        "active": true,
+        "priceRub": 184300,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "supplier-stock-confirm",
+          "label": "На складе поставщика · дату отгрузки подтвердим",
+          "stock": 1,
+          "quantity": 1,
+          "enumPresent": true,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/619/q3oglpxjzjom3m4bdmjr62on0p3nsvq4.jpg",
+        "category": {
+          "chosen": {
+            "id": "84",
+            "name": "Отрезные дисковые станки (пилы) по металлу",
+            "decision": "existing-category",
+            "targetSlug": "disko-otreznye-stanki",
+            "rollout": "P0"
+          },
+          "topGroups": [
+            {
+              "id": "84",
+              "name": "Отрезные дисковые станки (пилы) по металлу",
+              "decision": "existing-category",
+              "targetSlug": "disko-otreznye-stanki",
+              "rollout": "P0"
+            }
+          ]
+        },
+        "descriptionPreview": "CS-315 90° ±45° Максимальное сечение круглого профиля, мм 100 90 Максимальное сечение квадратного профиля, мм 140х90 100x90 Мощность двигателя, кВт 0,75/1,3&nbsp;(3-х фазный) Скорость резания, об/мин 18, 36 Диаметр пильного диска, мм 315 Привод Зубчатый Раскрыв тисков, мм 145 Габариты станка (ДхШхВ), мм 980х620х900 - к",
+        "issues": [
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "NON_RUB_BASE_PRICE",
+            "severity": "P1",
+            "message": "Базовое поле цены имеет валюту CUN; используется только отдельное рублёвое поле."
+          }
+        ],
+        "dataPilotReady": true,
+        "storefrontPublishable": false
+      }
+    ],
+    "blocked": [
+      {
+        "id": "a7c4cbd8-ad3d-11e0-9587-001d096b3bae",
+        "catalogId": "a7c4cbd8-ad3d-11e0-9587-001d096b3bae",
+        "sku": "386103",
+        "name": "Гильотина электромеханическая Stalex Q11-4x1300NC",
+        "active": true,
+        "priceRub": 571701.306,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 2,
+          "quantity": null,
+          "enumPresent": true,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "STOCK_SIGNAL_CONFLICT",
+            "severity": "P1",
+            "message": "Текстовый статус «есть» не подтверждён положительным числовым остатком."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "993",
+        "catalogId": "992",
+        "sku": "У13460",
+        "name": "Линия продольно поперечной резки Stalex СППР-А 1250/1,5",
+        "active": true,
+        "priceRub": null,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/745/bpqrhluh7ag80p58i2a90abevevwvyv0.jpg",
+        "category": {
+          "chosen": {
+            "id": "65",
+            "name": "Станки продольно-поперечной резки",
+            "decision": "review-later",
+            "proposedSlug": "stanki-prodolno-poperechnoy-rezki",
+            "rollout": "P2"
+          },
+          "topGroups": [
+            {
+              "id": "65",
+              "name": "Станки продольно-поперечной резки",
+              "decision": "review-later",
+              "proposedSlug": "stanki-prodolno-poperechnoy-rezki",
+              "rollout": "P2"
+            },
+            {
+              "id": "371",
+              "name": "Произведено в России",
+              "decision": "attribute-only",
+              "rollout": "metadata",
+              "attribute": "made-in-russia"
+            }
+          ]
+        },
+        "descriptionPreview": "Stalex СППР-А 1250/1,5 Это универсальная и производительная модель оборудования для работы с заготовками из тонколистового металла. STALEX СППР-А 1250/1,5 представляет собой целую линию продольно-поперечной резки, состоящую из валов, системы разрезания металла в продольном направлении, ножа роликового типа для резки в ",
+        "issues": [
+          {
+            "code": "MISSING_RUB_PRICE",
+            "severity": "P0",
+            "message": "Нет положительной розничной цены в рублях."
+          },
+          {
+            "code": "CATEGORY_REQUIRES_REVIEW",
+            "severity": "P1",
+            "message": "Направление отложено до экспертной настройки категории."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "9d88b26c-4a1f-11e0-add8-001d096b3bae",
+        "catalogId": "9d88b26c-4a1f-11e0-add8-001d096b3bae",
+        "sku": "100188",
+        "name": "Станок для поперечного раскроя рулонного металла Stalex–7 1250/0.7",
+        "active": true,
+        "priceRub": null,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "MISSING_RUB_PRICE",
+            "severity": "P0",
+            "message": "Нет положительной розничной цены в рублях."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "1023",
+        "catalogId": "1023",
+        "sku": "100188",
+        "name": "Stalex–7 2000/0.7",
+        "active": false,
+        "priceRub": null,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "INACTIVE_MODIFICATION",
+            "severity": "P0",
+            "message": "Модификация неактивна в источнике."
+          },
+          {
+            "code": "MISSING_RUB_PRICE",
+            "severity": "P0",
+            "message": "Нет положительной розничной цены в рублях."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "1024",
+        "catalogId": "1024",
+        "sku": "100188",
+        "name": "Stalex–7 2500/0.7",
+        "active": false,
+        "priceRub": null,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "INACTIVE_MODIFICATION",
+            "severity": "P0",
+            "message": "Модификация неактивна в источнике."
+          },
+          {
+            "code": "MISSING_RUB_PRICE",
+            "severity": "P0",
+            "message": "Нет положительной розничной цены в рублях."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "1054",
+        "catalogId": "1054",
+        "sku": "У14474",
+        "name": "Станок для заточки корончатых фрез СМ-101",
+        "active": true,
+        "priceRub": null,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "MISSING_RUB_PRICE",
+            "severity": "P0",
+            "message": "Нет положительной розничной цены в рублях."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "1056",
+        "catalogId": "1056",
+        "sku": "У14475",
+        "name": "Вакуумное крепление ZAV 300",
+        "active": true,
+        "priceRub": null,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "MISSING_RUB_PRICE",
+            "severity": "P0",
+            "message": "Нет положительной розничной цены в рублях."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "1058",
+        "catalogId": "1058",
+        "sku": "У14476",
+        "name": "Вакуумное крепление ZAV 400",
+        "active": true,
+        "priceRub": null,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "MISSING_RUB_PRICE",
+            "severity": "P0",
+            "message": "Нет положительной розничной цены в рублях."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "1078",
+        "catalogId": "1078",
+        "sku": "100037",
+        "name": "Рольганг универсальный, 3000 мм (подающий)",
+        "active": true,
+        "priceRub": null,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "MISSING_RUB_PRICE",
+            "severity": "P0",
+            "message": "Нет положительной розничной цены в рублях."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "1080",
+        "catalogId": "1080",
+        "sku": "100038",
+        "name": "Рольганг универсальный, 3000 мм (приёмный)",
+        "active": true,
+        "priceRub": null,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "MISSING_RUB_PRICE",
+            "severity": "P0",
+            "message": "Нет положительной розничной цены в рублях."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "bfdaa0f6-23f8-11e2-8f28-001d096b3bae",
+        "catalogId": "bfdaa0f6-23f8-11e2-8f28-001d096b3bae",
+        "sku": "100032",
+        "name": "Усиленный рольганг К400",
+        "active": true,
+        "priceRub": null,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": true,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "MISSING_RUB_PRICE",
+            "severity": "P0",
+            "message": "Нет положительной розничной цены в рублях."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "STOCK_SIGNAL_CONFLICT",
+            "severity": "P1",
+            "message": "Текстовый статус «есть» не подтверждён положительным числовым остатком."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "1084",
+        "catalogId": "1084",
+        "sku": null,
+        "name": "Полотна",
+        "active": true,
+        "priceRub": null,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "MISSING_RUB_PRICE",
+            "severity": "P0",
+            "message": "Нет положительной розничной цены в рублях."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "1110",
+        "catalogId": "1110",
+        "sku": "У14519",
+        "name": "Станок сверлильный на магнитной основе ВИТЯЗЬ 40",
+        "active": true,
+        "priceRub": null,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "MISSING_RUB_PRICE",
+            "severity": "P0",
+            "message": "Нет положительной розничной цены в рублях."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "1112",
+        "catalogId": "1112",
+        "sku": "У14398",
+        "name": "Станок сверлильный на магнитной основе ВИТЯЗЬ 40P",
+        "active": true,
+        "priceRub": null,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "MISSING_RUB_PRICE",
+            "severity": "P0",
+            "message": "Нет положительной розничной цены в рублях."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "1114",
+        "catalogId": "1114",
+        "sku": "У14517",
+        "name": "Станок сверлильный на магнитной основе ВИТЯЗЬ 55",
+        "active": true,
+        "priceRub": null,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "MISSING_RUB_PRICE",
+            "severity": "P0",
+            "message": "Нет положительной розничной цены в рублях."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "1116",
+        "catalogId": "1116",
+        "sku": "У14518",
+        "name": "Станок сверлильный на магнитной основе ВИТЯЗЬ 55P",
+        "active": true,
+        "priceRub": null,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "MISSING_RUB_PRICE",
+            "severity": "P0",
+            "message": "Нет положительной розничной цены в рублях."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "1118",
+        "catalogId": "1118",
+        "sku": "У14520",
+        "name": "Станок сверлильный на магнитной основе ВИТЯЗЬ 100P",
+        "active": true,
+        "priceRub": null,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "MISSING_RUB_PRICE",
+            "severity": "P0",
+            "message": "Нет положительной розничной цены в рублях."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "1120",
+        "catalogId": "1120",
+        "sku": "У14521",
+        "name": "Станок сверлильный на магнитной основе ВИТЯЗЬ 110P+",
+        "active": true,
+        "priceRub": null,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "MISSING_RUB_PRICE",
+            "severity": "P0",
+            "message": "Нет положительной розничной цены в рублях."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "d039a0d8-e80c-11e0-985b-001d096b3bae",
+        "catalogId": "d039a0d8-e80c-11e0-985b-001d096b3bae",
+        "sku": "100189",
+        "name": "Станок для поперечного раскроя рулонного металла Stalex 2000 мм",
+        "active": true,
+        "priceRub": 42000,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "d039a0da-e80c-11e0-985b-001d096b3bae",
+        "catalogId": "d039a0da-e80c-11e0-985b-001d096b3bae",
+        "sku": "100190",
+        "name": "Станок для поперечного раскроя рулонного металла Stalex 2500 мм",
+        "active": true,
+        "priceRub": 46500,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "1195",
+        "catalogId": "1195",
+        "sku": null,
+        "name": "Комплект заточ. кругов для СМ-101",
+        "active": true,
+        "priceRub": null,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "MISSING_RUB_PRICE",
+            "severity": "P0",
+            "message": "Нет положительной розничной цены в рублях."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "1338",
+        "catalogId": "1338",
+        "sku": null,
+        "name": "Станок фальцеосадочный Ф3 1250",
+        "active": false,
+        "priceRub": null,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "INACTIVE_MODIFICATION",
+            "severity": "P0",
+            "message": "Модификация неактивна в источнике."
+          },
+          {
+            "code": "MISSING_RUB_PRICE",
+            "severity": "P0",
+            "message": "Нет положительной розничной цены в рублях."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "1382",
+        "catalogId": "1382",
+        "sku": "100038",
+        "name": "Рольганг универсальный 3000мм(приёмный)",
+        "active": true,
+        "priceRub": null,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "MISSING_RUB_PRICE",
+            "severity": "P0",
+            "message": "Нет положительной розничной цены в рублях."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "1402",
+        "catalogId": "1402",
+        "sku": null,
+        "name": "Станок листогибочный ТАРСО МАХ-20 пневматический 2,2 метра",
+        "active": true,
+        "priceRub": null,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "MISSING_RUB_PRICE",
+            "severity": "P0",
+            "message": "Нет положительной розничной цены в рублях."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "1403",
+        "catalogId": "1403",
+        "sku": null,
+        "name": "Станок листогибочный МАХ 20 пневматический 3,2 метра",
+        "active": true,
+        "priceRub": null,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "MISSING_RUB_PRICE",
+            "severity": "P0",
+            "message": "Нет положительной розничной цены в рублях."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "efbe3f23-2907-11e4-9404-2c44fd8044c3",
+        "catalogId": "efbe3f23-2907-11e4-9404-2c44fd8044c3",
+        "sku": "382009",
+        "name": "Пресс гидравлический Stalex HPB-1500",
+        "active": true,
+        "priceRub": 925300,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "supplier-stock-confirm",
+          "label": "На складе поставщика · дату отгрузки подтвердим",
+          "stock": 2,
+          "quantity": 2,
+          "enumPresent": true,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/da3/73bmldzk30cp6k4biyptb57bk28ru5af.jpg",
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "Наименование Гидравлический пресс Stalex HPB-1500 Артикул 382001 Мощность 1500 кН Усилие в тоннах 150 тонн Номинальное давление 30 мПа Ход поршня 250 мм Скорость поршня Рабочая скорость 2,5 мм/с Скорость возврата 12 мм/c Ход стола &nbsp; 270 мм Производительность масляного насоса гидравлической станции Высокая скорость",
+        "issues": [
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "NON_RUB_BASE_PRICE",
+            "severity": "P1",
+            "message": "Базовое поле цены имеет валюту CUN; используется только отдельное рублёвое поле."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "0739c022-038a-11ee-80dd-2c768a5d7f1f",
+        "catalogId": "1586",
+        "sku": "X5032A",
+        "name": "Вертикально-фрезерный станок Stalex X5032A DRO",
+        "active": true,
+        "priceRub": 1919000,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "supplier-stock-confirm",
+          "label": "На складе поставщика · дату отгрузки подтвердим",
+          "stock": 1,
+          "quantity": 1,
+          "enumPresent": true,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/1f4/rypy0rbblrmla2q8pbcq5308uap1swkn/X5032A_01.jpg",
+        "category": {
+          "chosen": {
+            "id": "129",
+            "name": "Фрезерные станки по металлу",
+            "decision": "proposed-category",
+            "proposedSlug": "frezernye-stanki",
+            "rollout": "P1"
+          },
+          "topGroups": [
+            {
+              "id": "129",
+              "name": "Фрезерные станки по металлу",
+              "decision": "proposed-category",
+              "proposedSlug": "frezernye-stanki",
+              "rollout": "P1"
+            }
+          ]
+        },
+        "descriptionPreview": "STALEX X5032A Конус шпинделя ISO 50 (7:24) Частота вращения шпинделя, 1 об/мин Ход пиноли шпинделя 70 мм Диаметр отверстия шпинделя 29 мм Расстояние шпиндель-стол(мин/макс) 60/410 мм Расстояние шпиндель-стойка 350 мм Размер рабочего стола 1320х320 мм Перемещение стола по оси X, Y 700х255 мм Ускоренное перемещение стола",
+        "issues": [
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "SUPPLIER_CONTACT_IN_COPY",
+            "severity": "P0",
+            "message": "Описание содержит контакты или продающий текст поставщика."
+          },
+          {
+            "code": "NON_RUB_BASE_PRICE",
+            "severity": "P1",
+            "message": "Базовое поле цены имеет валюту CUN; используется только отдельное рублёвое поле."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "edb41c0a-8491-11e5-9416-2c44fd8044c2",
+        "catalogId": "edb41c0a-8491-11e5-9416-2c44fd8044c2",
+        "sku": "S/N10105",
+        "name": "Комплект прижимов для 8 мм Т-образного паза( 24 шт.)",
+        "active": true,
+        "priceRub": 4132.5245,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": null,
+          "enumPresent": true,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": null,
+        "warrantyOverrideApplied": true,
+        "image": null,
+        "category": {
+          "chosen": {
+            "decision": "unmapped",
+            "rollout": "blocked",
+            "name": "Без категории"
+          },
+          "topGroups": []
+        },
+        "descriptionPreview": "",
+        "issues": [
+          {
+            "code": "MISSING_CATALOG_LINK",
+            "severity": "P0",
+            "message": "Модификация не связана с полной карточкой товара."
+          },
+          {
+            "code": "UNMAPPED_TOP_GROUP",
+            "severity": "P0",
+            "message": "Раздел поставщика не сопоставлен с каталогом 7TOOL."
+          },
+          {
+            "code": "MISSING_IMAGE",
+            "severity": "P1",
+            "message": "У полной карточки отсутствует основное изображение."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «не указано» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          },
+          {
+            "code": "STOCK_SIGNAL_CONFLICT",
+            "severity": "P1",
+            "message": "Текстовый статус «есть» не подтверждён положительным числовым остатком."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "5909",
+        "catalogId": "5908",
+        "sku": null,
+        "name": "Ленточное полотно для STALEX BS-100",
+        "active": true,
+        "priceRub": null,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": 0,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": "нет",
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/8a1/r36pajx3e9l7rgm7lmsor1g03g0vf5sa.jpg",
+        "category": {
+          "chosen": {
+            "id": "5",
+            "name": "Ленточнопильные станки по металлу",
+            "decision": "existing-category",
+            "targetSlug": "lentochnopilnye-stanki",
+            "rollout": "P0"
+          },
+          "topGroups": [
+            {
+              "id": "5",
+              "name": "Ленточнопильные станки по металлу",
+              "decision": "existing-category",
+              "targetSlug": "lentochnopilnye-stanki",
+              "rollout": "P0"
+            }
+          ]
+        },
+        "descriptionPreview": "Биметаллические и твёрдосплавные ленточнопильные полотна по металлу с различными видами заточки производятся и поставляются для любых моделей станков. Режущей инструмент поставляется в бухтах из Германии, окончательное производство ленточнопильных колец в нужный размер производится на немецком и итальянском оборудовани",
+        "issues": [
+          {
+            "code": "MISSING_RUB_PRICE",
+            "severity": "P0",
+            "message": "Нет положительной розничной цены в рублях."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «нет» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      },
+      {
+        "id": "11391",
+        "catalogId": "11390",
+        "sku": null,
+        "name": "Ленточное полотно для STALEX SBS-150G",
+        "active": true,
+        "priceRub": null,
+        "oldPriceRub": null,
+        "availability": {
+          "code": "lead-time-request",
+          "label": "Под заказ · срок уточним",
+          "stock": 0,
+          "quantity": 0,
+          "enumPresent": false,
+          "canPromiseToday": false
+        },
+        "warranty": "12 месяцев",
+        "sourceWarranty": "нет",
+        "warrantyOverrideApplied": true,
+        "image": "catalog_files/iblock/91c/3lh5b4onuarm9zaafkj3cpyqpx7buoa2/keeoq8q5r8gn7it37yi9w237kaadckw0.jpg",
+        "category": {
+          "chosen": {
+            "id": "5",
+            "name": "Ленточнопильные станки по металлу",
+            "decision": "existing-category",
+            "targetSlug": "lentochnopilnye-stanki",
+            "rollout": "P0"
+          },
+          "topGroups": [
+            {
+              "id": "5",
+              "name": "Ленточнопильные станки по металлу",
+              "decision": "existing-category",
+              "targetSlug": "lentochnopilnye-stanki",
+              "rollout": "P0"
+            }
+          ]
+        },
+        "descriptionPreview": "Биметаллические и твёрдосплавные ленточнопильные полотна по металлу с различными видами заточки производятся и поставляются для любых моделей станков. Режущей инструмент поставляется в бухтах из Германии, окончательное производство ленточнопильных колец в нужный размер производится на немецком и итальянском оборудовани",
+        "issues": [
+          {
+            "code": "MISSING_RUB_PRICE",
+            "severity": "P0",
+            "message": "Нет положительной розничной цены в рублях."
+          },
+          {
+            "code": "SOURCE_WARRANTY_OVERRIDDEN",
+            "severity": "P2",
+            "message": "Исходное значение «нет» заменено подтверждённым правилом 7TOOL: 12 месяцев."
+          }
+        ],
+        "dataPilotReady": false,
+        "storefrontPublishable": false
+      }
+    ]
+  },
+  "sourceSchema": {
+    "catalogProperties": 265,
+    "modificationProperties": 28
+  },
+  "sources": {
+    "catalog": "https://stalex.ru/upload/catalog.xml",
+    "modifications": "https://stalex.ru/upload/modifications.xml",
+    "catalogLoadMode": "remote",
+    "modificationsLoadMode": "remote"
+  },
+  "safety": {
+    "writesCatalog": false,
+    "writesDatabase": false,
+    "publishesProducts": false,
+    "sendsExternalRequestsBeyondFeedDownload": false
+  }
+}

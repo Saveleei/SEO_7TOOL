@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "publicationEnabled": false,
+  "commercialGate": {
+    "warrantyOverrideMonths": 12,
+    "warrantyOverrideSource": "Подтверждено владельцем 7TOOL 2026-09-27",
+    "requiredConfirmations": [
+      "Права на использование и локальное хранение фотографий, документов и описаний",
+      "Розничная цена в рублях, НДС и правила соблюдения РРЦ",
+      "Регламент остатков, резервирования и фактической даты отгрузки",
+      "Дилерская скидка, маржа, возвраты, сервис и пусконаладка"
+    ]
+  },
+  "topGroups": {
+    "РАСПРОДАЖА": { "decision": "attribute-only", "rollout": "metadata", "attribute": "sale" },
+    "Произведено в России": { "decision": "attribute-only", "rollout": "metadata", "attribute": "made-in-russia" },
+
+    "Сверлильные станки по металлу": { "decision": "existing-category", "targetSlug": "stanki-sverlilnye", "rollout": "P0" },
+    "Ленточнопильные станки по металлу": { "decision": "existing-category", "targetSlug": "lentochnopilnye-stanki", "rollout": "P0" },
+    "Отрезные дисковые станки (пилы) по металлу": { "decision": "existing-category", "targetSlug": "disko-otreznye-stanki", "rollout": "P0" },
+    "Автоматические дисковые пилы": { "decision": "existing-category", "targetSlug": "disko-otreznye-stanki", "rollout": "P0" },
+    "Заточные станки (точило)": { "decision": "existing-category", "targetSlug": "shlifovalnoe-i-zatochnoe-oborudovanie", "rollout": "P1" },
+    "Шлифовальные станки": { "decision": "existing-category", "targetSlug": "shlifovalnoe-i-zatochnoe-oborudovanie", "rollout": "P1" },
+    "Плоскошлифовальные станки": { "decision": "existing-category", "targetSlug": "shlifovalnoe-i-zatochnoe-oborudovanie", "rollout": "P1" },
+    "Круглошлифовальные станки": { "decision": "existing-category", "targetSlug": "shlifovalnoe-i-zatochnoe-oborudovanie", "rollout": "P1" },
+    "Тиски и угловые зажимы": { "decision": "existing-category", "targetSlug": "stanochnaya-osnastka", "rollout": "P1" },
+    "Сварочные позиционеры": { "decision": "existing-category", "targetSlug": "svarochnye-vrashchateli-i-pozitsionery", "rollout": "P1" },
+
+    "Токарные станки по металлу": { "decision": "proposed-category", "proposedSlug": "tokarnye-stanki", "rollout": "P1" },
+    "Фрезерные станки по металлу": { "decision": "proposed-category", "proposedSlug": "frezernye-stanki", "rollout": "P1" },
+    "Листогибы (листогибочные станки)": { "decision": "proposed-category", "proposedSlug": "listogibochnye-stanki", "rollout": "P1" },
+    "Гильотинные ножницы (гильотины)": { "decision": "proposed-category", "proposedSlug": "gilotinnye-nozhnitsy", "rollout": "P1" },
+    "Вальцы (вальцовочные станки)": { "decision": "proposed-category", "proposedSlug": "valtsovochnye-stanki", "rollout": "P1" },
+    "Прессы": { "decision": "proposed-category", "proposedSlug": "pressy", "rollout": "P1" },
+    "Профилегибы (трубогибы)": { "decision": "proposed-category", "proposedSlug": "profilegiby-i-trubogiby", "rollout": "P1" },
+    "Зиговочные станки (зиг машины)": { "decision": "proposed-category", "proposedSlug": "zigovochnye-stanki", "rollout": "P1" },
+    "Угловысечные, угловырубные станки и прессы": { "decision": "proposed-category", "proposedSlug": "uglovysechnye-stanki", "rollout": "P1" },
+    "Ручные рычажные ножницы по металлу": { "decision": "proposed-category", "proposedSlug": "ruchnye-nozhnitsy-po-metallu", "rollout": "P1" },
+    "Дисковые ножницы (ножи) для резки листового металла": { "decision": "proposed-category", "proposedSlug": "diskovye-nozhnitsy-po-metallu", "rollout": "P1" },
+
+    "Оборудование с ЧПУ": { "decision": "review-later", "proposedSlug": "stanki-s-chpu", "rollout": "P2" },
+    "Многофункциональные станки": { "decision": "review-later", "proposedSlug": "mnogofunktsionalnye-stanki", "rollout": "P2" },
+    "Долбежные станки": { "decision": "review-later", "proposedSlug": "dolbezhnye-stanki", "rollout": "P2" },
+    "Станки для работы с арматурой": { "decision": "review-later", "proposedSlug": "stanki-dlya-armatury", "rollout": "P2" },
+    "Вытяжки для металлической и абразивной пыли": { "decision": "review-later", "proposedSlug": "promyshlennye-vytyazhki", "rollout": "P2" },
+    "Разматыватели металла": { "decision": "review-later", "proposedSlug": "razmatyvateli-metalla", "rollout": "P2" },
+    "Станки продольно-поперечной резки": { "decision": "review-later", "proposedSlug": "stanki-prodolno-poperechnoy-rezki", "rollout": "P2" },
+    "Кровельные станки": { "decision": "review-later", "proposedSlug": "krovelnye-stanki", "rollout": "P2" },
+    "Кузнечное оборудование": { "decision": "review-later", "proposedSlug": "kuznechnoe-oborudovanie", "rollout": "P2" },
+    "Инструменты для обработки труб": { "decision": "review-later", "proposedSlug": "obrabotka-trub", "rollout": "P2" },
+    "Оборудование для работы с металлом": { "decision": "review-later", "proposedSlug": "oborudovanie-dlya-raboty-s-metallom", "rollout": "P2" },
+    "Станки для производства воздуховодов": { "decision": "review-later", "proposedSlug": "stanki-dlya-vozduhovodov", "rollout": "P2" },
+    "Формовка листового металла": { "decision": "review-later", "proposedSlug": "formovka-listovogo-metalla", "rollout": "P2" },
+    "Лазерная сварка": { "decision": "review-later", "proposedSlug": "lazernaya-svarka", "rollout": "P2" },
+    "Фальцепрокатные станки": { "decision": "review-later", "proposedSlug": "faltseprokatnye-stanki", "rollout": "P2" },
+    "Комбинированные станки": { "decision": "review-later", "proposedSlug": "kombinirovannye-stanki", "rollout": "P2" }
+  }
+}
