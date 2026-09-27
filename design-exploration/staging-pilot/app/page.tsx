@@ -28,7 +28,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
     <div className="site-shell">
       <HomepageAnalytics />
       <PilotHeader />
-      <main>
+      <main className="homepage-main">
         <section className="hero" id="top">
           <div className="container hero-grid">
             <div className="hero-copy">
@@ -70,10 +70,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
 
         <section className="proof-strip" aria-label="Условия поставки">
           <div className="container proof-grid">
-            <div><strong>КП с НДС</strong><span>позиции, цена и комплектность</span></div>
-            <div><strong>Проверка инженером</strong><span>исполнение и совместимая оснастка</span></div>
-            <div><strong>Документы к позиции</strong><span>доступный пакет проверяется до оплаты</span></div>
-            <div><strong>Условия поставки</strong><span>подтверждённый срок фиксируется в КП</span></div>
+            <div><Link href="/delivery"><strong>Доставка по России</strong><span>стоимость и срок подтверждаем до оплаты</span></Link></div>
+            <div><Link href="/payment"><strong>Отсрочка платежа</strong><span>возможна для организаций после согласования</span></Link></div>
+            <div><Link href="/ordering"><strong>Счёт с НДС</strong><span>цена и комплектность указаны в КП</span></Link></div>
+            <div><Link href="/warranty"><strong>Гарантия</strong><span>условия и документы указываем до оплаты</span></Link></div>
           </div>
         </section>
 

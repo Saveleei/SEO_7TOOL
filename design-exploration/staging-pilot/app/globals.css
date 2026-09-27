@@ -5495,3 +5495,52 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
 @media (max-width:760px) {
   .feed-filter-actions--auto { bottom:62px; }
 }
+
+/* Homepage commercial trust and navigation scale: concrete buying conditions,
+   uncropped category media and a bounded ultrawide canvas. */
+.proof-strip { background:#f6f8f4; }
+.proof-grid { align-items:stretch; }
+.proof-grid>div { padding-block:12px; }
+.proof-grid>div>a { min-height:62px; display:flex; justify-content:center; flex-direction:column; border-radius:6px; }
+.proof-grid>div>a:hover strong { color:#87340f; }
+.proof-grid>div>a:focus-visible { outline:3px solid rgba(201,74,18,.28); outline-offset:4px; }
+.proof-grid>div>a strong { display:flex; align-items:center; gap:8px; font-size:var(--type-body); line-height:1.25; }
+.proof-grid>div>a strong::before { content:"✓"; width:22px; height:22px; flex:0 0 auto; display:grid; place-items:center; border-radius:50%; background:#e3f1e8; color:#1f7048; font-size:var(--type-secondary); }
+.proof-grid>div>a span { display:block; max-width:245px; margin:5px 0 0 30px; font-size:var(--type-secondary); line-height:1.4; }
+
+.homepage-category-tiles--hero .homepage-category-tile-media { display:grid; place-items:center; background:#fff; }
+.homepage-category-tiles--hero .homepage-category-tile-media img { position:absolute!important; inset:8px!important; width:calc(100% - 16px)!important; height:calc(100% - 16px)!important; padding:0!important; object-fit:contain!important; object-position:center!important; }
+.homepage-category-tiles--hero .homepage-category-tile:hover .homepage-category-tile-media img { transform:none; }
+
+.homepage-media-fit-note { min-height:58px; display:flex; justify-content:center; flex-direction:column; gap:3px; margin:0; padding:9px 11px; border:1px solid #d7ddd6; border-radius:5px; background:#f4f7f2; }
+.homepage-media-fit-note b,.homepage-media-fit-note span { display:block; }
+.homepage-media-fit-note b { color:#2e3c33; font-size:var(--type-secondary); }
+.homepage-media-fit-note span { color:#687169; font-size:var(--type-caption); line-height:1.35; }
+
+.header-catalog-group--desktop { grid-template-columns:28px minmax(0,1fr) 14px; }
+.header-catalog-grid nav>a { min-height:36px; font-size:var(--type-control); }
+.header-catalog-group>span:nth-child(2)>b { font-size:var(--type-body); }
+
+@media (min-width:761px) {
+  .header-catalog-panel { max-height:calc(100dvh - 112px); overflow-y:auto; overscroll-behavior:contain; }
+  .header-catalog-panel>header { position:sticky; z-index:3; top:0; }
+  .header-catalog-panel>footer { position:sticky; z-index:3; bottom:0; }
+}
+
+@media (min-width:1600px) {
+  .site-header .header-row,
+  .homepage-main .container { width:min(1560px,calc(100% - 96px)); max-width:none; }
+  .site-header .header-row { grid-template-columns:142px auto minmax(400px,1fr) auto auto auto auto; gap:14px; }
+  .homepage-main .hero-grid { min-height:620px; grid-template-columns:minmax(0,1.05fr) minmax(560px,.95fr); gap:58px; padding-block:42px; }
+  .homepage-main .hero h1 { max-width:850px; font-size:62px; }
+  .homepage-main .hero-catalog-card { min-height:520px; padding:28px; }
+  .homepage-main .homepage-category-tiles--hero { grid-auto-rows:126px; gap:10px; }
+}
+
+@media (max-width:760px) {
+  .proof-grid>div { padding:8px 10px; }
+  .proof-grid>div>a { min-height:78px; }
+  .proof-grid>div>a strong { align-items:flex-start; font-size:var(--type-control); }
+  .proof-grid>div>a strong::before { width:20px; height:20px; }
+  .proof-grid>div>a span { margin-left:28px; }
+}

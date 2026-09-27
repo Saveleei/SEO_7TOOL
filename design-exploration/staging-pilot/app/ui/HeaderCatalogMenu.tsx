@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -79,7 +78,6 @@ export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[
             <Link className="header-catalog-group header-catalog-group--desktop" href={group.href} onClick={closeMenu}>
               <span>{group.id}</span>
               <span><b>{group.title}</b><small>{formatCategoryCount(group.subcategories.length)}</small></span>
-              <Image src={group.representativeImage ?? group.image} alt="" width={58} height={44} unoptimized={Boolean(group.representativeImage)} />
               <i aria-hidden="true">→</i>
             </Link>
             <button

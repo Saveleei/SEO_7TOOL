@@ -17,7 +17,7 @@ export function HomepageCategoryTiles({ categories, compact = false }: { categor
         <b>{category.label}</b>
         <span>Перейти в раздел <i aria-hidden="true">↗</i></span>
       </span>
-      <span className="homepage-category-tile-media" data-fit={category.imageFit || "contain"} data-position={category.imagePosition || "center"}>
+      <span className="homepage-category-tile-media" data-fit={compact ? "contain" : category.imageFit || "contain"} data-position={compact ? "center" : category.imagePosition || "center"}>
         <HomepageCategoryMedia src={category.image} alt={category.imageAlt || category.label} />
       </span>
     </Link>)}

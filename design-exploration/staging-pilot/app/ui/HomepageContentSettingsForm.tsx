@@ -145,14 +145,18 @@ function MediaEditorList({ collection, items, references, uploading, imageUrl, o
   return <div className="homepage-media-editor-list">{items.map((item, index) => {
     const uploadKey = `${collection}:${item.id}`;
     const reference = references.get(item.id);
+    const imageFit = collection === "categoryItems" ? "contain" : item.imageFit;
+    const imagePosition = collection === "categoryItems" ? "center" : item.imagePosition;
     return <article className="homepage-media-editor" key={item.id}>
-      <div className="homepage-media-editor-image" data-fit={item.imageFit} data-position={item.imagePosition}><Image src={imageUrl(item)} alt={item.imageAlt} fill sizes="190px" unoptimized /></div>
+      <div className="homepage-media-editor-image" data-fit={imageFit} data-position={imagePosition}><Image src={imageUrl(item)} alt={item.imageAlt} fill sizes="190px" unoptimized /></div>
       <div className="homepage-media-editor-fields">
         <div className="homepage-media-editor-title"><b>{item.title}</b><small>{reference?.count ? formatProductCount(reference.count) : "Раздел каталога"} · ссылка фиксирована</small></div>
         <Field label="Название на главной" value={item.title} maxLength={90} onChange={(title) => onUpdate(collection, item.id, { title })} />
         <Field label="Описание изображения" value={item.imageAlt} maxLength={170} onChange={(imageAlt) => onUpdate(collection, item.id, { imageAlt })} />
-        <label><span>Как вписать фото</span><select value={item.imageFit} onChange={(event) => onUpdate(collection, item.id, { imageFit:event.target.value as HomepageImageFit })}><option value="contain">Показать товар целиком</option><option value="cover">Заполнить карточку</option></select></label>
-        <label><span>Положение в кадре</span><select value={item.imagePosition} onChange={(event) => onUpdate(collection, item.id, { imagePosition:event.target.value as HomepageImagePosition })}><option value="center">По центру</option><option value="top">Сверху</option><option value="bottom">Снизу</option><option value="left">Слева</option><option value="right">Справа</option></select></label>
+        {collection === "categoryItems" ? <p className="homepage-media-fit-note"><b>Товар показывается целиком</b><span>Для разделов первого экрана обрезка отключена.</span></p> : <>
+          <label><span>Как вписать фото</span><select value={item.imageFit} onChange={(event) => onUpdate(collection, item.id, { imageFit:event.target.value as HomepageImageFit })}><option value="contain">Показать товар целиком</option><option value="cover">Заполнить карточку</option></select></label>
+          <label><span>Положение в кадре</span><select value={item.imagePosition} onChange={(event) => onUpdate(collection, item.id, { imagePosition:event.target.value as HomepageImagePosition })}><option value="center">По центру</option><option value="top">Сверху</option><option value="bottom">Снизу</option><option value="left">Слева</option><option value="right">Справа</option></select></label>
+        </>}
       </div>
       <div className="homepage-media-editor-actions">
         <label className="homepage-media-upload"><input type="file" accept="image/png,image/jpeg,image/webp" disabled={uploading === uploadKey} onChange={(event) => void onUpload(collection, item, event.target.files?.[0])} /><span>{uploading === uploadKey ? "Загрузка…" : item.imageAssetId ? "Заменить фото" : "Загрузить фото"}</span></label>
@@ -164,7 +168,7 @@ function MediaEditorList({ collection, items, references, uploading, imageUrl, o
 }
 
 function PreviewGrid({ title, items, imageUrl, large = false }: { title: string; items: HomepageMediaItem[]; imageUrl: (item: HomepageMediaItem) => string; large?: boolean }) {
-  return <div className={`homepage-mini-grid${large ? " homepage-mini-grid--large" : ""}`}><b>{title}</b><div>{items.map((item) => <article key={item.id}><span data-fit={item.imageFit} data-position={item.imagePosition}><Image src={imageUrl(item)} alt="" fill sizes="100px" unoptimized /></span><small>{item.title}</small></article>)}</div></div>;
+  return <div className={`homepage-mini-grid${large ? " homepage-mini-grid--large" : ""}`}><b>{title}</b><div>{items.map((item) => <article key={item.id}><span data-fit={large ? "contain" : item.imageFit} data-position={large ? "center" : item.imagePosition}><Image src={imageUrl(item)} alt="" fill sizes="100px" unoptimized /></span><small>{item.title}</small></article>)}</div></div>;
 }
 
 function Field({ label, value, onChange, ...inputProps }: { label: string; value: string; onChange: (value: string) => void } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">) {
