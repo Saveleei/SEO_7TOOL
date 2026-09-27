@@ -139,7 +139,19 @@ async function main() {
   }, null, 2));
 }
 
-if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {
+export function isDirectExecution(argvPath, moduleUrl = import.meta.url) {
+  if (!argvPath) return false;
+  const resolvedPath = path.resolve(argvPath);
+  let canonicalPath = resolvedPath;
+  try {
+    canonicalPath = fs.realpathSync(resolvedPath);
+  } catch {
+    // Keep the resolved path so a normal missing-entrypoint error remains visible.
+  }
+  return pathToFileURL(canonicalPath).href === moduleUrl;
+}
+
+if (isDirectExecution(process.argv[1])) {
   main().catch((error) => {
     console.error("ОШИБКА ЕЖЕДНЕВНОГО ОБНОВЛЕНИЯ STALEX:", error);
     process.exitCode = 1;

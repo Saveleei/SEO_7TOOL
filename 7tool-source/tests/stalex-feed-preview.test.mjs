@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import test from "node:test";
 import {
   buildStalexPreview,
@@ -14,6 +15,23 @@ import {
   buildValidatedStalexSnapshot,
   persistValidatedStalexSnapshot,
 } from "../scripts/lib/stalex-feed-refresh.mjs";
+
+test("Stalex refresh CLI runs through a symlinked current-release path", () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "stalex-cli-link-"));
+  const linkedRoot = path.join(directory, "release-current");
+  try {
+    fs.symlinkSync(process.cwd(), linkedRoot, process.platform === "win32" ? "junction" : "dir");
+    const result = spawnSync(
+      process.execPath,
+      [path.join(linkedRoot, "scripts", "refresh-stalex-feed.mjs"), "--help"],
+      { encoding: "utf8" },
+    );
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /Daily Stalex feed refresh/u);
+  } finally {
+    fs.rmSync(directory, { force: true, recursive: true });
+  }
+});
 
 const policy = {
   publicationEnabled: false,
