@@ -45,7 +45,7 @@ test("homepage first viewport explains the assortment and separates search from 
   assert.match(DEFAULT_HOMEPAGE_CONTENT_SETTINGS.hero.title, /Промышленное оборудование и оснастка для металлообработки/u);
   assert.match(DEFAULT_HOMEPAGE_CONTENT_SETTINGS.hero.intro, /Сверление, резка, обработка кромки/u);
   assert.match(page, /Открыть каталог/u);
-  assert.match(DEFAULT_HOMEPAGE_CONTENT_SETTINGS.categories.title, /Основные разделы каталога/u);
+  assert.match(DEFAULT_HOMEPAGE_CONTENT_SETTINGS.categories.title, /Ключевые разделы каталога/u);
   assert.match(page, /hero-catalog-card/u);
   assert.match(page, /<HomepageCategoryTiles categories=\{homepageKeyCategories\} compact \/>/u);
   assert.match(page, /На главной — 6 основных разделов/u);
@@ -102,7 +102,7 @@ test("homepage catalog tiles lead to real categories without SKU noise", async (
     readFile(new URL("../app/ui/HomepageTaskPaths.tsx", import.meta.url), "utf8"),
   ]);
   assert.match(grid, /href=\{category\.href\}/u);
-  assert.match(grid, /Основные разделы каталога/u);
+  assert.match(grid, /Ключевые разделы каталога/u);
   assert.match(grid, /formatProductCount/u);
   assert.match(grid, /category\.image/u);
   assert.doesNotMatch(grid, /Артикул|sku|Добавить в КП/u);

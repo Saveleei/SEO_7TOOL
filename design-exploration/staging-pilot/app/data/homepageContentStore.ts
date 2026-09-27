@@ -22,7 +22,10 @@ export async function getHomepageContentSettings(options: Options = {}): Promise
     const dataDir = resolveDataDir(options.dataDir);
     const assortmentItems = await removeMissingAssets(validation.value.assortmentItems, dataDir);
     const categoryItems = await removeMissingAssets(validation.value.categoryItems, dataDir);
-    return { ...validation.value, assortmentItems, categoryItems, updatedAt:typeof stored.updatedAt === "string" ? stored.updatedAt : "" } as HomepageContentSettings;
+    const categories = validation.value.categories.title === "Основные разделы каталога"
+      ? { ...validation.value.categories, title:DEFAULT_HOMEPAGE_CONTENT_SETTINGS.categories.title }
+      : validation.value.categories;
+    return { ...validation.value, categories, assortmentItems, categoryItems, updatedAt:typeof stored.updatedAt === "string" ? stored.updatedAt : "" } as HomepageContentSettings;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT" || error instanceof SyntaxError) return cloneDefaults();
     throw error;

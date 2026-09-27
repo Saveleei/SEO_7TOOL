@@ -19,6 +19,7 @@ export function TrustSection({ content }: { content: TrustContentSettings }) {
         </article>;
       })}
     </div>
+    <p className="assurance-photo-note">Фотографии предоставлены владельцем сайта и показывают реальные процессы хранения, комплектации и отгрузки. Наличие конкретного артикула подтверждаем перед счётом.</p>
     <nav className="assurance-evidence-links" aria-label="Проверяемая информация о покупке">
       <div><span>Можно проверить до обращения</span><b>Компания, документы и порядок поставки</b></div>
       <Link href="/company">Как работает 7TOOL</Link>

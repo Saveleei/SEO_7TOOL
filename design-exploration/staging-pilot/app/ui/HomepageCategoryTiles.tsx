@@ -5,7 +5,7 @@ import { HomepageCategoryMedia } from "./HomepageCategoryMedia";
 type HomepageCategoryTile = ProductionSubcategory & { imageAlt?: string; imageFit?: "contain" | "cover"; imagePosition?: "center" | "top" | "bottom" | "left" | "right" };
 
 export function HomepageCategoryTiles({ categories, compact = false }: { categories: HomepageCategoryTile[]; compact?: boolean }) {
-  return <nav className={`homepage-category-tiles${compact ? " homepage-category-tiles--hero" : ""}`} aria-label="Основные разделы каталога">
+  return <nav className={`homepage-category-tiles${compact ? " homepage-category-tiles--hero" : ""}`} aria-label="Ключевые разделы каталога">
     {categories.map((category, index) => <Link
       className={`homepage-category-tile homepage-category-tile--${index + 1}`}
       href={category.href}

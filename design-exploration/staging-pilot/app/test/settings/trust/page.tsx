@@ -18,7 +18,7 @@ export default async function TrustSettingsPage() {
   const settings = await getTrustContentSettings();
   return <div className="site-shell"><PilotHeader managerMode managerActor={actor} /><main className="inner-page trust-settings-page">
     <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Заявки", href:"/test/requests" }, { label:"Блоки доверия" }]} /></div>
-    <section className="quote-settings-hero"><div className="container"><div><p className="eyebrow">Контент витрины</p><h1>Блоки доверия</h1><p>Редактируйте проверяемые формулировки и фотографии без изменения исходного кода. Одни настройки используются на главной и в каталоге.</p></div><div className="homepage-settings-hero-actions"><Link href="/#assurance-title">Открыть на главной →</Link><Link href="/catalog#catalog-evidence-title">Открыть в каталоге →</Link></div></div></section>
+    <section className="quote-settings-hero"><div className="container"><div><p className="eyebrow">Контент витрины</p><h1>Блоки доверия</h1><p>Редактируйте проверяемые формулировки и фотографии без изменения исходного кода. Одни настройки используются на главной, в каталоге и на странице компании.</p></div><div className="homepage-settings-hero-actions"><Link href="/#assurance-title">Открыть на главной →</Link><Link href="/catalog#catalog-evidence-title">Открыть в каталоге →</Link><Link href="/company#company-operations-title">Открыть о компании →</Link></div></div></section>
     <section className="section"><div className="container"><TrustContentSettingsForm initial={settings} /></div></section>
   </main><PilotFooter /></div>;
 }

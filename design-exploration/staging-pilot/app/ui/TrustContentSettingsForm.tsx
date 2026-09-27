@@ -71,7 +71,7 @@ export function TrustContentSettingsForm({ initial }: { initial: TrustContentSet
         <label className="wide"><span>Пояснение</span><textarea rows={3} maxLength={320} value={settings.sectionIntro} onChange={(event) => setSettings((current) => ({ ...current, sectionIntro:event.target.value }))} /></label>
       </div></section>
 
-      {settings.cards.map((card, index) => <section className="quote-settings-card trust-settings-card" key={card.id}><header><span>{String(index + 2).padStart(2, "0")}</span><div><h2>{card.title}</h2><p>Текст и фотография этой карточки на главной странице и в общем каталоге.</p></div></header><div className="trust-settings-card-body">
+      {settings.cards.map((card, index) => <section className="quote-settings-card trust-settings-card" key={card.id}><header><span>{String(index + 2).padStart(2, "0")}</span><div><h2>{card.title}</h2><p>Текст и фотография этой карточки на главной, в общем каталоге и на странице компании.</p></div></header><div className="trust-settings-card-body">
         <div className="trust-settings-photo">
           <div><Image src={trustCardImageUrl(card)} alt={card.imageAlt || card.title} width={420} height={240} unoptimized={Boolean(card.imageAssetId)} /></div>
           <label className="trust-photo-upload"><input type="file" accept="image/png,image/jpeg,image/webp" disabled={uploadingCard === card.id} onChange={(event) => void uploadPhoto(index, event.target.files?.[0])} /><span>{uploadingCard === card.id ? "Загружаем…" : card.imageAssetId ? "Заменить фотографию" : "Загрузить фотографию"}</span></label>

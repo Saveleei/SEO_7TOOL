@@ -1029,6 +1029,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .assurance-outcome small { color:#757c75; font-size:9px; font-weight:750; text-transform:uppercase; }
 .assurance-outcome b { margin-top:4px; font-size:12px; line-height:1.35; }
 .assurance-grid article>div>a { margin-top:auto; color:#8f360f; font-size:11px; font-weight:850; }
+.assurance-photo-note { margin:11px 0 0; color:#6c746d; font-size:10px; line-height:1.5; }
+#assurance-title,#catalog-evidence-title,#company-operations-title { scroll-margin-top:96px; }
 
 .procurement-workbench { overflow:hidden; border:1px solid #434744; border-radius:8px; background:#fff; color:var(--ink); box-shadow:0 25px 70px rgba(0,0,0,.28); }
 .workbench-tabs { display:grid; grid-template-columns:repeat(3,1fr); border-bottom:1px solid var(--line); background:var(--surface); }
@@ -4478,6 +4480,11 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
 .public-info-checklist p { display:grid; grid-template-columns:180px minmax(0,1fr); gap:20px; margin:0; padding:18px 0; border-bottom:1px solid #d9ddd6; }
 .public-info-checklist b { font-size:13px; }
 .public-info-checklist span { color:#616861; font-size:12px; line-height:1.55; }
+.company-operations-section { border-block:1px solid #dfe3dc; }
+.company-operations-grid article>img { height:230px; }
+.company-operations-grid article>div { min-height:182px; }
+.company-operations-actions { display:flex; justify-content:flex-end; gap:20px; margin-top:16px; }
+.company-operations-actions a { color:#8d350f; font-size:11px; font-weight:850; }
 .public-info-contact-section { padding-block:65px; background:#25302a; color:#fff; }
 .public-info-contact-grid { display:grid; grid-template-columns:minmax(0,1fr) 520px; align-items:center; gap:70px; }
 .public-info-contact-grid h2 { margin:9px 0 12px; }
@@ -4590,6 +4597,7 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
   .public-direction-showcase>a { min-height:132px; }
   .public-service-rail li { padding:18px 16px; }
   .public-info-checklist p { grid-template-columns:1fr; gap:5px; }
+  .company-operations-actions { align-items:flex-start; flex-direction:column; gap:10px; }
   .public-contact-channels>a { min-height:105px; }
   .public-company-card { padding:20px; }
   .public-company-card dl>div { grid-template-columns:110px minmax(0,1fr); }
@@ -5276,6 +5284,10 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
   .hero-primary-actions { grid-template-columns:1fr; }
   .hero-primary-actions .button { width:100%; min-height:50px; }
   .hero-specification-link { width:100%; min-height:44px; }
+  .homepage-category-tiles--hero { grid-template-columns:1fr; grid-auto-rows:112px; }
+  .homepage-category-tiles--hero .homepage-category-tile,.homepage-category-tiles--hero .homepage-category-tile--1,.homepage-category-tiles--hero .homepage-category-tile--2,.homepage-category-tiles--hero .homepage-category-tile--3,.homepage-category-tiles--hero .homepage-category-tile--4,.homepage-category-tiles--hero .homepage-category-tile--5,.homepage-category-tiles--hero .homepage-category-tile--6 { grid-template-columns:minmax(0,1fr) 104px; }
+  .homepage-category-tiles--hero .homepage-category-tile-copy { padding:11px 6px 11px 12px; }
+  .homepage-category-tiles--hero .homepage-category-tile-copy>b,.homepage-category-tiles--hero .homepage-category-tile--2 .homepage-category-tile-copy>b { max-width:none; font-size:15px; }
   .assurance-grid article { display:block; }
   .assurance-grid img { width:100%; height:178px; min-height:0; }
   .assurance-grid article>div { min-height:0; padding:18px; }

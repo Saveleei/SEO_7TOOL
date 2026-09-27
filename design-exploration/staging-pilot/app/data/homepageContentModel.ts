@@ -35,7 +35,7 @@ export const DEFAULT_HOMEPAGE_CONTENT_SETTINGS: HomepageContentSettings = Object
   },
   categories:{
     eyebrow:"Быстрый вход в каталог",
-    title:"Основные разделы каталога",
+    title:"Ключевые разделы каталога",
     intro:"Выберите тип оборудования или оснастки — внутри доступны характеристики, исполнения и подбор по параметрам.",
   },
   tasks:{

@@ -43,13 +43,32 @@ test("administrator editors control homepage merchandising photos and shared tru
   assert.match(homepageEditor, /collection="assortmentItems"/u);
   assert.match(homepageEditor, /Фотографии направлений общего каталога/u);
   assert.match(homepageSettings, /Открыть каталог/u);
-  assert.match(trustSettings, /Одни настройки используются на главной и в каталоге/u);
+  assert.match(trustSettings, /Одни настройки используются на главной, в каталоге и на странице компании/u);
   assert.match(trustSettings, /\/catalog#catalog-evidence-title/u);
+  assert.match(trustSettings, /\/company#company-operations-title/u);
 });
 
 test("homepage trust copy matches the real photos and stays evidence-led", () => {
-  assert.equal(DEFAULT_TRUST_CONTENT_SETTINGS.cards[1].title, "Состав позиции и документы");
-  assert.equal(DEFAULT_TRUST_CONTENT_SETTINGS.cards[2].title, "Подтверждённые условия поставки");
+  assert.equal(DEFAULT_TRUST_CONTENT_SETTINGS.cards[1].title, "Собираем и проверяем заказ");
+  assert.equal(DEFAULT_TRUST_CONTENT_SETTINGS.cards[2].title, "Фиксируем условия и отгружаем");
   assert.match(DEFAULT_TRUST_CONTENT_SETTINGS.sectionIntro, /коммерческом предложении/u);
   assert.doesNotMatch(JSON.stringify(DEFAULT_TRUST_CONTENT_SETTINGS), /собственный склад|всегда в наличии|официальный дилер/iu);
+});
+
+test("real warehouse evidence is shared across homepage, catalog and company page", async () => {
+  const [model, homepage, catalog, company, editor] = await Promise.all([
+    read("../app/data/trustContentModel.ts"),
+    read("../app/page.tsx"),
+    read("../app/catalog/page.tsx"),
+    read("../app/company/page.tsx"),
+    read("../app/ui/TrustContentSettingsForm.tsx"),
+  ]);
+  assert.match(model, /\/proof\/warehouse\/overview\.webp/u);
+  assert.match(model, /\/proof\/warehouse\/picking\.webp/u);
+  assert.match(model, /\/proof\/warehouse\/dispatch\.webp/u);
+  assert.match(homepage, /<TrustSection content=\{trustContent\}/u);
+  assert.match(catalog, /trustContent\.cards\.map/u);
+  assert.match(company, /company-operations-section/u);
+  assert.match(company, /trustContent\.cards\.map/u);
+  assert.match(editor, /на главной, в общем каталоге и на странице компании/u);
 });
