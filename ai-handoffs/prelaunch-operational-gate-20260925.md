@@ -79,6 +79,15 @@
 - Result: synthetic request `7T-20260927-FBED6B`, quote `КП-20260927-FBED6B`, PDF 173,878 bytes, 19 checked actions, slowest response 5,629 ms. Outbox status remained `held`, transport remained `disabled-test-contour`, external delivery was false, and the temporary request directory was removed after verification.
 - No public form, mailbox, messenger, CRM endpoint or real recipient was used. The test exercised only a temporary loopback server and synthetic `.example` contact data.
 
+### Desktop/mobile UX acceptance — 2026-09-27
+
+- Desktop and mobile browser checks covered the homepage, catalog, a filterable burr category, search for `STEYR-35`, the exact STEYR-35 product page, the request-for-quote drawer and comparison. Homepage, catalog, category, search, product and quote drawer had no document-level horizontal overflow, empty links or clipped primary actions. Confirmed availability/shipping, exact product links, product image, manager contacts and preselected consent were visible; no form was submitted.
+- The only launch-relevant defect found was the standalone comparison page: legacy table copy reached 6–10 px, and mobile users were not told that the table scrolls horizontally. Commit `52cf628` moves comparison copy onto the shared 12–15 px readability scale, adds an explicit mobile scroll hint, a focusable scroll region and an accessible table caption.
+- Verification: focused readability tests `3/3`, changed-file ESLint, complete storefront tests `280/280`, local Vinext production build and server-side Vinext production build passed. The isolated server candidate returned `200` for homepage, catalog, in-stock category, search, exact product and comparison; its comparison HTML contained the new scroll guidance. Customer write actions and external channels were not called.
+- Test-only release: `/var/www/7tool-release-20260927-ux-compare-52cf628`; rollback remains `/var/www/7tool-release-20260925-feed-freshness-bcf52a0`. Request-data backup: `/var/www/7tool-test-shared/backups/quote-requests-before-ux-compare-52cf628-20260927.tar.gz`. Archive SHA-256: `4ca6055a670d49d2ef9b071cc9718543fd3cd1423c7d8b63b633ee028ff3c0b3`.
+- The first PM2 reload attempt did not become ready inside the deliberately short 25-second gate and rolled back automatically. Recreating only `7tool-storefront-test` from the new immutable release succeeded; six live loopback routes returned `200`. Active test PID: `37600`, restart count `0`; production stayed online on PID `1065` and returned `200`.
+- Public controls: test root `302` to `/test/access`, access page `200`, production `200`; post-release free space is 4.3 GB of 38 GB. The in-app browser policy blocked reopening the authenticated public test origin after the switch, so the post-release gate used the exact server build plus live loopback/public HTTP checks rather than a second screenshot pass.
+
 ## Commit
 
 - Implementation: `2d88191` (`fix: restore reliable feed freshness`).
@@ -87,4 +96,6 @@
 - Test storefront rebuild: `55ee372` (`fix: rebuild test storefront after feed refresh`).
 - Test daily freshness config: `5565e77` (`fix: align test feed freshness with nightly schedule`).
 - Runtime freshness validation: `68a624b` (`fix: permit nightly feed freshness grace`).
+- Comparison readability and mobile scroll affordance: `52cf628` (`fix: keep comparison readable on narrow screens`).
 - Prepared release archive: `prelaunch-operational-gate-bcf52a0.tar.gz`, SHA-256 `EB748FA8301AD1B69DC1B1A8F8CF48AEBE14B8723F5E92635B90C65308BEBE5F`.
+- UX acceptance release archive: `prelaunch-operational-gate-52cf628.tar.gz`, SHA-256 `4CA6055A670D49D2EF9B071CC9718543FD3CD1423C7D8B63B633EE028FF3C0B3`.
