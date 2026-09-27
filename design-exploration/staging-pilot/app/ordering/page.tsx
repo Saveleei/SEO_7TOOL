@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PublicInfoContact, PublicInfoPage } from "../ui/PublicInfoPage";
+import { createPublicMetadata } from "../data/seo";
 
-export const metadata: Metadata = { title:"Как заказать — 7TOOL", description:"Путь от выбора промышленного оборудования до согласованного счёта и отгрузки." };
+export const metadata: Metadata = createPublicMetadata({ title:"Как заказать промышленное оборудование — 7TOOL", description:"Порядок заказа: подбор оборудования, проверка исполнения, коммерческое предложение, счёт с НДС и согласованная доставка.", path:"/ordering" });
 
 export default function OrderingPage() {
   return <PublicInfoPage currentPath="/ordering" eyebrow="Короткий путь к закупке" title="Как оформить заказ" intro="Можно начать с точного товара, списка позиций или обычного описания производственной задачи." asideTitle="Артикул не обязателен" asideText="Если нужной модели нет в витрине, менеджер проверит возможность поставки или предложит аналог по параметрам." heroVisual={<div className="public-flow-preview"><span>Маршрут закупки</span><ol><li><b>01</b>Товар или задача</li><li><b>02</b>Проверка менеджера</li><li><b>03</b>КП и счёт</li><li><b>04</b>Согласованная отгрузка</li></ol><Link href="/catalog">Начать с каталога →</Link></div>}>

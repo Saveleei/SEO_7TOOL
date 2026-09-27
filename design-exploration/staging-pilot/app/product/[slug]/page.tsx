@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { Breadcrumbs } from "../../ui/Breadcrumbs";
 import { ContactRequestDialog } from "../../ui/ContactRequestDialog";
 import { FeedProductGallery } from "../../ui/FeedProductGallery";
@@ -8,6 +9,7 @@ import { ManagerContactCard } from "../../ui/ManagerContactCard";
 import { PilotFooter } from "../../ui/PilotFooter";
 import { PilotHeader } from "../../ui/PilotHeader";
 import { ProductRecommendationSystem } from "../../ui/ProductRecommendationSystem";
+import { JsonLd } from "../../ui/JsonLd";
 import { AddRequestButton, RequestCartButton } from "../../ui/RequestCart";
 import { formatFeedPrice, getFeedCategory, getFeedParameterLabel, getFeedProductAlternatives, getFeedProductBySlug, getFeedProductImage, getFeedProductPriceLabel, getFeedVariantSpecs, type FeedParameter, type FeedVariant } from "../../data/feedCatalog";
 import { getProductionSubcategory } from "../../data/productionCategoryGroups";
@@ -15,6 +17,7 @@ import { getCategoryExpertProfile } from "../../data/categoryExpertProfiles.mjs"
 import { getProductPageArchetype } from "../../data/productPageArchetypes";
 import { getProductVariantChoices, getVariantChoicePresentation, sortVariantsForChoice } from "../../data/variantPresentation";
 import { getVariantShippingPromise } from "../../data/shippingPromise.mjs";
+import { canonicalUrl, createPublicMetadata, hasSearchParameters } from "../../data/seo";
 
 type RouteProps = { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> };
 
@@ -25,18 +28,20 @@ export async function generateMetadata({ params, searchParams }: RouteProps): Pr
   const selectedVariantId = typeof rawSearchParams.variant === "string" ? rawSearchParams.variant : "";
   const selectedVariant = product?.variants.find((variant) => variant.id === selectedVariantId);
   const selectedChoice = product && selectedVariant ? getVariantChoicePresentation(product, selectedVariant) : undefined;
-  return {
-    title: product ? `${product.title}${selectedChoice ? `, ${selectedChoice.label}` : ""} — тестовый каталог 7TOOL` : "Товар — 7TOOL",
-    description: product ? `${product.title}${selectedChoice ? `, ${selectedChoice.label}` : ""}. Характеристики из каталога поставщика; цену, наличие и срок подтверждаем в КП.` : undefined,
-    robots: { index:false, follow:false },
-  };
+  return createPublicMetadata({
+    title:product ? `${product.title}${selectedChoice ? `, ${selectedChoice.label}` : ""} — цена и характеристики | 7TOOL` : "Товар — 7TOOL",
+    description:product ? `${product.title}${selectedChoice ? `, ${selectedChoice.label}` : ""}. Характеристики выбранного исполнения, цена с НДС и запрос коммерческого предложения.` : "Карточка промышленного оборудования 7TOOL.",
+    path:`/product/${slug}`,
+    indexable:Boolean(product) && !hasSearchParameters(rawSearchParams),
+    image:product ? getFeedProductImage(product) : undefined,
+  });
 }
 
 export default async function FeedProductPage({ params, searchParams }: RouteProps) {
   const { slug } = await params;
   const rawSearchParams = await searchParams;
   const product = getFeedProductBySlug(slug);
-  if (!product) return <div className="site-shell"><PilotHeader /><main className="inner-page"><section className="section"><div className="container empty-result"><b>Товар не найден в тестовом каталоге</b><p>Вернитесь в каталог или опишите задачу менеджеру.</p><Link href="/catalog">Открыть каталог →</Link></div></section></main><PilotFooter /></div>;
+  if (!product) notFound();
 
   const category = getFeedCategory(product.category);
   const productionEntry = getProductionSubcategory(product.category);
@@ -60,8 +65,26 @@ export default async function FeedProductPage({ params, searchParams }: RoutePro
   const primaryChoice = primaryVariant ? getVariantChoicePresentation(product, primaryVariant) : undefined;
   const selectedProductContext = [product.title, primaryChoice?.label, primaryVariant?.sku ? `артикул ${primaryVariant.sku}` : ""].filter(Boolean).join(", ");
   const alternatives = primaryVariant ? getFeedProductAlternatives(product, primaryVariant, 3) : [];
+  const productUrl = canonicalUrl(`/product/${product.slug}`);
+  const verifiedOffer = primaryVariant && typeof primaryVariant.price === "number" && primaryVariant.price > 0 && primaryShipping.available
+    ? { "@type":"Offer", url:productUrl, priceCurrency:"RUB", price:primaryVariant.price, availability:"https://schema.org/InStock", seller:{ "@id":"https://7tool.ru/#organization" } }
+    : undefined;
+  const productStructuredData = {
+    "@context":"https://schema.org",
+    "@type":"Product",
+    "@id":`${productUrl}#product`,
+    name:product.title,
+    url:productUrl,
+    sku:primaryVariant?.sku || product.sku || undefined,
+    brand:{ "@type":"Brand", name:product.brand },
+    category:category?.title,
+    image:images,
+    description:(descriptionParagraphs[0] ?? `${product.title}. Характеристики выбранного исполнения из товарного каталога поставщика.`).slice(0, 500),
+    additionalProperty:keySpecs.map((spec) => ({ "@type":"PropertyValue", name:spec.label, value:spec.value })),
+    ...(verifiedOffer ? { offers:verifiedOffer } : {}),
+  };
 
-  return <div className="site-shell"><PilotHeader /><main className="inner-page feed-product-conversion-page" data-product-archetype={pageArchetype.id}>
+  return <div className="site-shell"><JsonLd data={productStructuredData} /><PilotHeader /><main className="inner-page feed-product-conversion-page" data-product-archetype={pageArchetype.id}>
     <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Каталог", href:"/catalog" }, ...(productionEntry ? [{ label:productionEntry.group.title, href:productionEntry.group.href }] : []), { label:category?.title ?? product.category, href:`/catalog/category/${product.category}` }, { label:product.brand }]} /></div>
 
     <section className="feed-conversion-main"><div className="container feed-conversion-layout">

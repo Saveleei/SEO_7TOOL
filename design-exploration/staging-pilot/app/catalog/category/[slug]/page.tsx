@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { Breadcrumbs } from "../../../ui/Breadcrumbs";
 import { BurrSelectionAssistant } from "../../../ui/BurrSelectionAssistant";
 import { BurrShapeMark } from "../../../ui/BurrShapeMark";
@@ -20,6 +21,7 @@ import { getCategoryExpertProfile, selectCategoryAssistantFacets, selectCategory
 import { getFeedCategory, getFeedCategoryPage, getFeedCategoryProductCountForQuery, getFeedCategoryProductType, getFeedCategoryRecoverySuggestions, getFeedTableColumns, getGuidedFacetOptions, getPromotedFacetOptions, prefersDenseFeedTable, type FeedCategoryQuery, type FeedCategorySegment, type FeedCategorySort, type FeedCategorySubsegment, type FeedFacet, type FeedProductType, type FeedVariantFilter, toFeedProductCardModel } from "../../../data/feedCatalog";
 import { getProductionSubcategory } from "../../../data/productionCategoryGroups";
 import { getShippingRuntimeDiagnostic } from "../../../data/shippingRuntimeSettings.mjs";
+import { createPublicMetadata, hasSearchParameters } from "../../../data/seo";
 
 type SearchValue = string | string[] | undefined;
 type SearchParams = Record<string, SearchValue>;
@@ -57,22 +59,19 @@ const sortOptions: Array<{ value: FeedCategorySort; label: string }> = [
 
 const drillAssortmentOrder = ["spiral", "taper-shank", "cylindrical-shank", "carbide", "replaceable", "range", "step", "countersink", "counterbore", "deep", "thermdrill", "sets", "unidentified", "special"];
 
-export async function generateMetadata({ params }: RouteProps): Promise<Metadata> {
-  const { slug } = await params;
+export async function generateMetadata({ params, searchParams }: RouteProps): Promise<Metadata> {
+  const [{ slug }, rawSearchParams] = await Promise.all([params, searchParams]);
   const entry = getProductionSubcategory(slug);
   const category = getFeedCategory(slug);
   const title = category?.h1 ?? entry?.subcategory.label;
-  return {
-    title: title ? `${title} — тестовый каталог 7TOOL` : "Категория — 7TOOL",
-    description: category?.intro ?? (entry ? `${entry.subcategory.label}: инженерный подбор, ориентиры цены и подтверждение срока поставки.` : undefined),
-    robots: { index: false, follow: false },
-  };
+  const description = category?.intro ?? (entry ? `${entry.subcategory.label}: инженерный подбор, характеристики, ориентиры цены и подтверждение условий поставки.` : "Категория промышленного оборудования 7TOOL.");
+  return createPublicMetadata({ title:title ? `${title} — купить с подбором и доставкой | 7TOOL` : "Категория оборудования — 7TOOL", description, path:`/catalog/category/${slug}`, indexable:Boolean(entry && category) && !hasSearchParameters(rawSearchParams), image:entry?.subcategory.image });
 }
 
 export default async function SubcategoryPage({ params, searchParams }: RouteProps) {
   const [{ slug }, rawSearchParams] = await Promise.all([params, searchParams]);
   const entry = getProductionSubcategory(slug);
-  if (!entry) return <div className="site-shell"><PilotHeader /><main className="inner-page"><section className="section"><div className="container empty-result"><b>Категория не найдена в текущем каталоге</b><p>Вернитесь в каталог или отправьте задачу инженеру.</p><Link href="/catalog">Открыть каталог →</Link></div></section></main><PilotFooter /></div>;
+  if (!entry) notFound();
 
   const { group, subcategory } = entry;
   const profile = getCategoryExpertProfile(slug);

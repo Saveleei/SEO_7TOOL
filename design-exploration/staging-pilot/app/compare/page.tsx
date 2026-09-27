@@ -1,8 +1,12 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Breadcrumbs } from "../ui/Breadcrumbs";
 import { PilotFooter } from "../ui/PilotFooter";
 import { PilotHeader } from "../ui/PilotHeader";
+import { createPublicMetadata } from "../data/seo";
+
+export const metadata: Metadata = createPublicMetadata({ title:"Сравнение оборудования — 7TOOL", description:"Сравнение выбранных моделей промышленного оборудования по рабочим характеристикам и условиям поставки.", path:"/compare", indexable:false });
 
 const models = [
   { name: "LENZ STEYR-35", image: "/products/lenz-steyr-35.jpg", price: "47 999 ₽", availability: "Уточняем", diameter: "35 мм", spiral: "13 мм", power: "1 100 Вт", spindle: "Weldon 19", speeds: "1", reverse: "Нет", weight: "10,5 кг", best: "Лёгкий для монтажа", href: "/product/magnitnyy-sverlilnyy-stanok-lenz-steyr-35" },

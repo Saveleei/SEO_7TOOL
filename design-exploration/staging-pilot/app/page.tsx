@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { PilotFooter } from "./ui/PilotFooter";
 import { PilotHeader } from "./ui/PilotHeader";
@@ -11,6 +12,13 @@ import { getHomepageContentSettings } from "./data/homepageContentStore";
 import { homepageAssetUrl } from "./data/homepageContentModel";
 import { getHomepageKeyCategories, getProductionCategoryGroups, pilotFeedCategorySlugs } from "./data/productionCategoryGroups";
 import { getTrustContentSettings } from "./data/trustContentStore";
+import { createPublicMetadata } from "./data/seo";
+
+export const metadata: Metadata = createPublicMetadata({
+  title:"Промышленное оборудование и оснастка для металлообработки — 7TOOL",
+  description:"Сверлильные станки, корончатые свёрла, кромкорезы, труборезы, сварочная автоматизация и оснастка. Подбор по задаче, КП с НДС и доставка по России.",
+  path:"/",
+});
 
 export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const rawSearchParams = await searchParams;

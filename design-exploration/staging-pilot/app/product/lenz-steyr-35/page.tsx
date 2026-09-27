@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 
 export default function LegacyLenzProductPage() {
-  redirect("/product/magnitnyy-sverlilnyy-stanok-lenz-steyr-35");
+  permanentRedirect("/product/magnitnyy-sverlilnyy-stanok-lenz-steyr-35");
 }

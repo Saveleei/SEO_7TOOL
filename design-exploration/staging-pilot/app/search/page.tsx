@@ -9,8 +9,9 @@ import { PilotFooter } from "../ui/PilotFooter";
 import { PilotHeader } from "../ui/PilotHeader";
 import { AddRequestButton } from "../ui/RequestCart";
 import { SmartSearch } from "../ui/SmartSearch";
+import { createPublicMetadata } from "../data/seo";
 
-export const metadata: Metadata = { title:"Поиск по каталогу — 7TOOL", description:"Поиск промышленного оборудования по модели, категории и производственной задаче." };
+export const metadata: Metadata = createPublicMetadata({ title:"Поиск по каталогу — 7TOOL", description:"Поиск промышленного оборудования по модели, категории и производственной задаче.", path:"/search", indexable:false });
 
 export default async function SearchPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const raw = await searchParams;

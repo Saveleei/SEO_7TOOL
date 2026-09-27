@@ -3,8 +3,9 @@ import { getQuoteTemplateSettings } from "../data/quoteTemplateStore";
 import { siteCompany, siteContact } from "../data/contactConfig";
 import { ManagerContactCard } from "../ui/ManagerContactCard";
 import { PublicInfoPage } from "../ui/PublicInfoPage";
+import { createPublicMetadata } from "../data/seo";
 
-export const metadata: Metadata = { title:"Контакты и реквизиты — 7TOOL", description:"Телефон, email, мессенджеры, адрес и реквизиты 7TOOL." };
+export const metadata: Metadata = createPublicMetadata({ title:"Контакты и реквизиты 7TOOL", description:"Телефон, email, Telegram, MAX, адрес и реквизиты 7TOOL. Связь по подбору оборудования, коммерческим предложениям и поставкам.", path:"/contacts" });
 export const dynamic = "force-dynamic";
 
 export default async function ContactsPage() {

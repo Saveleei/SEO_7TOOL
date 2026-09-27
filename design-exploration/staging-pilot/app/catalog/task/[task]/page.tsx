@@ -1,25 +1,33 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { Breadcrumbs } from "../../../ui/Breadcrumbs";
 import { PilotFooter } from "../../../ui/PilotFooter";
 import { PilotHeader } from "../../../ui/PilotHeader";
 import { ManagerContactCard } from "../../../ui/ManagerContactCard";
 import { getProductionCategoryGroup } from "../../../data/productionCategoryGroups";
 import { getCategoryLandingContent } from "../../../data/categoryLandingContent";
+import { createPublicMetadata } from "../../../data/seo";
 
 type RouteProps = { params: Promise<{ task: string }> };
 
 export async function generateMetadata({ params }: RouteProps): Promise<Metadata> {
   const { task } = await params;
   const group = getProductionCategoryGroup(task);
-  return { title: group ? `${group.title} — тестовый каталог 7TOOL` : "Раздел каталога — 7TOOL", robots:{ index:false, follow:false } };
+  return createPublicMetadata({
+    title:group ? `${group.title}: оборудование и оснастка — 7TOOL` : "Раздел каталога — 7TOOL",
+    description:group ? `${group.title}: оборудование и оснастка для производственной задачи. Выбор категории, подбор по параметрам и запрос коммерческого предложения.` : "Раздел промышленного каталога 7TOOL.",
+    path:`/catalog/task/${task}`,
+    indexable:Boolean(group),
+    image:group?.representativeImage ?? group?.image,
+  });
 }
 
 export default async function ProductionTaskPage({ params }: RouteProps) {
   const { task } = await params;
   const group = getProductionCategoryGroup(task);
-  if (!group) return <div className="site-shell"><PilotHeader /><main className="inner-page"><section className="section"><div className="container empty-result"><b>Такого направления нет в текущем каталоге</b><p>Вернитесь в каталог или опишите производственную задачу инженеру.</p><Link href="/catalog">Открыть каталог →</Link></div></section></main><PilotFooter /></div>;
+  if (!group) notFound();
   const landing = getCategoryLandingContent(group.slug);
   return <div className="site-shell"><PilotHeader /><main className="inner-page">
     <div className="container"><Breadcrumbs items={[{label:"Главная",href:"/"},{label:"Каталог",href:"/catalog"},{label:group.title}]} /></div>

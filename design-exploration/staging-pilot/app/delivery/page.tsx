@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { getShippingSettings } from "../data/shippingSettingsStore";
 import { PublicInfoContact, PublicInfoPage } from "../ui/PublicInfoPage";
+import { createPublicMetadata } from "../data/seo";
 
-export const metadata: Metadata = { title:"Доставка и отгрузка — 7TOOL", description:"Как 7TOOL подтверждает дату отгрузки и согласует доставку оборудования." };
+export const metadata: Metadata = createPublicMetadata({ title:"Доставка промышленного оборудования по России — 7TOOL", description:"Как 7TOOL подтверждает наличие, дату отгрузки и согласует доставку промышленного оборудования по России.", path:"/delivery" });
 export const dynamic = "force-dynamic";
 
 export default async function DeliveryPage() {

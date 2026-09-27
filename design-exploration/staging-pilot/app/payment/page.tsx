@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { getQuoteTemplateSettings } from "../data/quoteTemplateStore";
 import { PublicInfoContact, PublicInfoPage } from "../ui/PublicInfoPage";
+import { createPublicMetadata } from "../data/seo";
 
-export const metadata: Metadata = { title:"Оплата — 7TOOL", description:"Порядок выставления счёта и оплаты оборудования 7TOOL." };
+export const metadata: Metadata = createPublicMetadata({ title:"Оплата и счёт с НДС — 7TOOL", description:"Порядок согласования коммерческого предложения, выставления счёта с НДС и оплаты промышленного оборудования 7TOOL.", path:"/payment" });
 export const dynamic = "force-dynamic";
 
 export default async function PaymentPage() {

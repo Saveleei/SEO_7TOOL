@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { PublicInfoContact, PublicInfoPage } from "../ui/PublicInfoPage";
+import { createPublicMetadata } from "../data/seo";
 
-export const metadata: Metadata = { title:"Гарантия и документы — 7TOOL", description:"Порядок подтверждения гарантии и комплекта документов на товары 7TOOL." };
+export const metadata: Metadata = createPublicMetadata({ title:"Гарантия и документы на оборудование — 7TOOL", description:"Подтверждение гарантии, паспортов, руководств и сертификатов по выбранному промышленному оборудованию до оплаты.", path:"/warranty" });
 
 export default function WarrantyPage() {
   return <PublicInfoPage currentPath="/warranty" eyebrow="До и после поставки" title="Гарантия и документы" intro="Гарантийный срок и комплект документов зависят от производителя и конкретного артикула. Мы подтверждаем их до оплаты, а не заменяем общей фразой на сайте." asideTitle="Условия относятся к товару" asideText="Попросите менеджера указать гарантию и перечень документов в коммерческом предложении." heroVisual={<div className="public-document-stack"><span>По выбранной позиции</span><div><b>01</b><strong>Гарантийные условия</strong><small>срок и порядок обращения</small></div><div><b>02</b><strong>Эксплуатационные документы</strong><small>паспорт и руководство</small></div><div><b>03</b><strong>Сертификаты</strong><small>если применимы к товару</small></div></div>}>

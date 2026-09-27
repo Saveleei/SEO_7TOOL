@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Breadcrumbs } from "../ui/Breadcrumbs";
@@ -6,6 +7,13 @@ import { PilotHeader } from "../ui/PilotHeader";
 import { getCanonicalCatalogGroups, pilotFeedCategorySlugs } from "../data/productionCategoryGroups";
 import { trustCardImageUrl } from "../data/trustContentModel";
 import { getTrustContentSettings } from "../data/trustContentStore";
+import { createPublicMetadata } from "../data/seo";
+
+export const metadata: Metadata = createPublicMetadata({
+  title:"Каталог промышленного оборудования и оснастки — 7TOOL",
+  description:"Каталог оборудования для сверления, резки металла, обработки кромки, сварочной автоматизации и оснащения производства. Подбор по параметрам и задаче.",
+  path:"/catalog",
+});
 
 export default async function CatalogPage() {
   const groups = getCanonicalCatalogGroups(pilotFeedCategorySlugs);

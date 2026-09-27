@@ -5,8 +5,9 @@ import { getProductionCategoryGroups, pilotFeedCategorySlugs } from "../data/pro
 import { trustCardImageUrl } from "../data/trustContentModel";
 import { getTrustContentSettings } from "../data/trustContentStore";
 import { PublicInfoContact, PublicInfoPage } from "../ui/PublicInfoPage";
+import { createPublicMetadata } from "../data/seo";
 
-export const metadata: Metadata = { title:"О компании — 7TOOL", description:"7TOOL — промышленное оборудование и оснастка для задач металлообработки." };
+export const metadata: Metadata = createPublicMetadata({ title:"О компании 7TOOL — поставщик промышленного оборудования", description:"7TOOL поставляет промышленное оборудование и оснастку для металлообработки: инженерный подбор, проверка исполнения, КП с НДС и доставка по России.", path:"/company" });
 
 export default async function CompanyPage() {
   const groups = getProductionCategoryGroups(pilotFeedCategorySlugs);
