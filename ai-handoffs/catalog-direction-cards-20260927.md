@@ -42,3 +42,5 @@ Turn the six catalog directions from a schematic directory into a denser, more v
 ## Status
 
 Implementation complete and ready for review. Not deployed.
+
+- Implementation commit: `e648b18`
