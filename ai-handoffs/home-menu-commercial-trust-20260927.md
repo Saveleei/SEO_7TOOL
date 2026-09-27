@@ -5,6 +5,7 @@
 - Agent: Codex
 - Branch: `codex/home-menu-commercial-trust`
 - Base: `1598f66`
+- Implementation commit: `cd096bc`
 
 ## Goal
 
