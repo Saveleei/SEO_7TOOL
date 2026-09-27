@@ -5,6 +5,7 @@
 - Agent: Codex
 - Branch: `codex/instant-filters-subcategory-images`
 - Base: `e628f7b`
+- Implementation commit: `698eb19`
 
 ## Goal
 
