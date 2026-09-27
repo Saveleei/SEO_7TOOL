@@ -103,6 +103,12 @@
 - Capacity improved from 4.3 GB free / 89% used to 8.9 GB free / 77% used, reclaiming approximately 4.6 GB of filesystem space.
 - Post-cleanup verification found both active and rollback dependency links resolving correctly. Live loopback checks returned `200` for homepage, catalog, exact product and comparison. `7tool-storefront-test` remained online on PID `37600`, production remained online on PID `1065`; public test root returned `302` to the access gate, access returned `200`, and production returned `200`.
 
+### Scheduled final unattended control — 2026-09-28
+
+- A read-only preflight confirmed that the `03:25 Europe/Moscow` cron still resolves through `/var/www/7tool-test-current` to `/var/www/7tool-release-20260927-ux-compare-52cf628`, both PM2 processes are online without new restarts, and 8.9 GB remains free.
+- The last published catalog and metadata still match at SHA-256 `eb9308752a22d689d0941ca3b9fbe5f126a603c31f8cf436c22875c7b5ae0079`, with `status: complete`, 18,997 published offers and `completedAt: 2026-09-27T00:25:14.393Z`.
+- A one-run thread heartbeat, `Контроль ночного фида 7TOOL`, is scheduled for `03:45 Europe/Moscow` after the next cron. It is read-only and must not invoke the feed manually, mutate cron/production/DNS/secrets or submit a lead. The explicit dedicated key path is recorded in the heartbeat because the local SSH agent is not persistent across workstation restarts.
+
 ## Commit
 
 - Implementation: `2d88191` (`fix: restore reliable feed freshness`).
