@@ -92,7 +92,7 @@ export function HomepageContentSettingsForm({ initial, references }: { initial: 
         <TextSectionFields value={settings.hero} onChange={(patch) => updateSection("hero", patch)} introLabel="Пояснение под заголовком" />
       </EditorSection>
 
-      <EditorSection number="02" title="Разделы каталога в первом экране" description="Шесть конкретных товарных разделов вместо абстрактной карты ассортимента. Порядок и фотографии можно менять, ссылки и количество товаров остаются привязаны к каталогу.">
+      <EditorSection number="02" title="Разделы каталога в первом экране" description="Шесть конкретных товарных разделов вместо абстрактной карты ассортимента. Порядок и фотографии можно менять, ссылки и количество товарных серий остаются привязаны к каталогу.">
         <TextSectionFields value={settings.categories} onChange={(patch) => updateSection("categories", patch)} />
         <MediaEditorList collection="categoryItems" items={settings.categoryItems} references={referenceById} uploading={uploading} imageUrl={imageUrl} onUpdate={updateItem} onMove={moveItem} onUpload={uploadPhoto} />
       </EditorSection>
@@ -101,7 +101,7 @@ export function HomepageContentSettingsForm({ initial, references }: { initial: 
         <TextSectionFields value={settings.tasks} onChange={(patch) => updateSection("tasks", patch)} />
       </EditorSection>
 
-      <EditorSection number="04" title="Фотографии направлений общего каталога" description="Эти шесть фотографий используются в карточках направлений на странице каталога. Можно загрузить свои изображения и настроить кадрирование; ссылки, количество категорий и товаров остаются системными.">
+      <EditorSection number="04" title="Фотографии направлений общего каталога" description="Эти шесть фотографий используются в карточках направлений на странице каталога. Можно загрузить свои изображения и настроить кадрирование; ссылки, количество категорий и товарных серий остаются системными.">
         <TextSectionFields value={settings.assortment} onChange={(patch) => updateSection("assortment", patch)} />
         <MediaEditorList collection="assortmentItems" items={settings.assortmentItems} references={referenceById} uploading={uploading} imageUrl={imageUrl} onUpdate={updateItem} onMove={moveItem} onUpload={uploadPhoto} />
       </EditorSection>
@@ -174,6 +174,6 @@ function Field({ label, value, onChange, ...inputProps }: { label: string; value
 function formatProductCount(count: number): string {
   const mod100 = count % 100;
   const mod10 = count % 10;
-  const noun = mod100 >= 11 && mod100 <= 14 ? "товаров" : mod10 === 1 ? "товар" : mod10 >= 2 && mod10 <= 4 ? "товара" : "товаров";
+  const noun = mod100 >= 11 && mod100 <= 14 ? "товарных серий" : mod10 === 1 ? "товарная серия" : mod10 >= 2 && mod10 <= 4 ? "товарные серии" : "товарных серий";
   return `${count} ${noun}`;
 }

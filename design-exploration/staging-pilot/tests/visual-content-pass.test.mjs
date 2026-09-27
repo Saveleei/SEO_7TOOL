@@ -11,7 +11,7 @@ test("catalog directions use feed-grounded product imagery without inventing sto
   assert.match(catalog, /directionMedia\.get\(group\.slug\)/u);
   assert.match(catalog, /homepageAssetUrl\(media\.imageAssetId\)/u);
   assert.match(catalog, /className="catalog-direction-media"/u);
-  assert.match(catalog, /Товар из раздела/u);
+  assert.doesNotMatch(catalog, /Товар из раздела/u);
   assert.match(css, /\.catalog-direction-media/u);
   assert.doesNotMatch(catalog, /наш склад|собственный склад|всегда в наличии/iu);
 });

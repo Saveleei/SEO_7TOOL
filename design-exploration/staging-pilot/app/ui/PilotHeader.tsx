@@ -2,7 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { canManager, type ManagerActor } from "../data/managerAccess";
-import { getProductionCategoryGroups, pilotFeedCategorySlugs } from "../data/productionCategoryGroups";
+import { getCanonicalCatalogGroups, pilotFeedCategorySlugs } from "../data/productionCategoryGroups";
 import { HeaderCatalogMenu } from "./HeaderCatalogMenu";
 import { HeaderContactMenu } from "./HeaderContactMenu";
 import { HeaderSearch } from "./HeaderSearch";
@@ -10,7 +10,7 @@ import { ManagerSessionControl } from "./ManagerSessionControl";
 import { RequestCartButton } from "./RequestCart";
 
 export function PilotHeader({ managerMode = false, managerActor = null }: { managerMode?: boolean; managerActor?: ManagerActor | null }) {
-  const categoryGroups = managerMode ? [] : getProductionCategoryGroups(pilotFeedCategorySlugs);
+  const categoryGroups = managerMode ? [] : getCanonicalCatalogGroups(pilotFeedCategorySlugs);
   return (
     <>
       <div className="preview-banner"><span>Тестовый стенд</span><p>Локальное сохранение · внешняя отправка отключена · основной сайт не изменён</p></div>

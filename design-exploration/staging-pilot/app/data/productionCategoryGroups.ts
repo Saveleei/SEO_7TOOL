@@ -100,6 +100,38 @@ export function getProductionCategoryGroups(activeCategorySlugs: string[]): Prod
     .filter((group) => group.subcategories.length > 0);
 }
 
+const canonicalCategoryOwner: Record<string, string> = {
+  "koronchatye-sverla":"tooling",
+  "sverla-i-zenkovki":"tooling",
+  "metchiki":"tooling",
+};
+
+/**
+ * The task selector intentionally cross-lists products under every relevant job.
+ * The catalog itself needs a calmer, single-home taxonomy so buyers do not meet
+ * the same category in several columns and wonder which link is authoritative.
+ */
+export function getCanonicalCatalogGroups(activeCategorySlugs: string[]): ProductionCategoryGroup[] {
+  const seen = new Set<string>();
+  return getProductionCategoryGroups(activeCategorySlugs)
+    .map((group) => {
+      const subcategories = group.subcategories.filter((subcategory) => {
+        const explicitOwner = canonicalCategoryOwner[subcategory.slug];
+        if (explicitOwner) return explicitOwner === group.slug;
+        if (seen.has(subcategory.slug)) return false;
+        seen.add(subcategory.slug);
+        return true;
+      });
+      return {
+        ...group,
+        href:`/catalog#direction-${group.slug}`,
+        subcategories,
+        productCount:subcategories.reduce((total, subcategory) => total + (subcategory.count ?? 0), 0),
+      };
+    })
+    .filter((group) => group.subcategories.length > 0);
+}
+
 export function getHomepageKeyCategories(): ProductionSubcategory[] {
   const categories = new Map(
     getProductionCategoryGroups(pilotFeedCategorySlugs)

@@ -27,6 +27,6 @@ export function HomepageCategoryTiles({ categories, compact = false }: { categor
 function formatProductCount(count: number): string {
   const mod100 = count % 100;
   const mod10 = count % 10;
-  const noun = mod100 >= 11 && mod100 <= 14 ? "товаров" : mod10 === 1 ? "товар" : mod10 >= 2 && mod10 <= 4 ? "товара" : "товаров";
+  const noun = mod100 >= 11 && mod100 <= 14 ? "товарных серий" : mod10 === 1 ? "товарная серия" : mod10 >= 2 && mod10 <= 4 ? "товарные серии" : "товарных серий";
   return `${count} ${noun}`;
 }

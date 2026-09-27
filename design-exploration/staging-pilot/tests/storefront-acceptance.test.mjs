@@ -58,18 +58,22 @@ test("desktop and mobile navigation expose one reusable four-channel contact men
   assert.match(layout, /<ContactAnalytics \/>/u);
 });
 
-test("header catalog follows task intent and stays keyboard-dismissable", async () => {
+test("header catalog separates canonical browsing from task selection and stays keyboard-dismissable", async () => {
   const header = await readFile(new URL("../app/ui/PilotHeader.tsx", import.meta.url), "utf8");
   const catalogMenu = await readFile(new URL("../app/ui/HeaderCatalogMenu.tsx", import.meta.url), "utf8");
   const contacts = await readFile(new URL("../app/ui/HeaderContactMenu.tsx", import.meta.url), "utf8");
   const cart = await readFile(new URL("../app/ui/RequestCart.tsx", import.meta.url), "utf8");
   assert.match(header, /HeaderCatalogMenu groups=\{categoryGroups\}/u);
+  assert.match(header, /getCanonicalCatalogGroups/u);
   assert.match(header, /href="\/#production-categories"/u);
-  assert.match(catalogMenu, /group\.subcategories\.slice\(0, 3\)/u);
-  assert.match(catalogMenu, /Все категории направления/u);
+  assert.match(catalogMenu, /group\.subcategories\.map/u);
+  assert.doesNotMatch(catalogMenu, /slice\(0, 3\)|Все категории направления/u);
+  assert.match(catalogMenu, /expandedGroup/u);
+  assert.match(catalogMenu, /catalog-menu-open/u);
+  assert.match(catalogMenu, /setAttribute\("inert"/u);
   assert.match(catalogMenu, /document\.addEventListener\("pointerdown"/u);
   assert.match(catalogMenu, /event\.key !== "Escape"/u);
-  assert.match(catalogMenu, /href="\/#quick-order"/u);
+  assert.match(catalogMenu, /href="\/#production-categories"/u);
   assert.match(contacts, /<span>Связаться<\/span>/u);
   assert.match(cart, /<span>КП<\/span>/u);
   assert.doesNotMatch(catalogMenu, /артикул|sku/iu);

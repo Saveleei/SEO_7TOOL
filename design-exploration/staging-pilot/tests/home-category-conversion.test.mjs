@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { getFeedCategory, getPublishedFeedCategorySlugs } from "../app/data/feedCatalog.ts";
 import { DEFAULT_HOMEPAGE_CONTENT_SETTINGS } from "../app/data/homepageContentModel.ts";
-import { getHomepageKeyCategories, getProductionCategoryGroups, homepageKeyCategorySlugs } from "../app/data/productionCategoryGroups.ts";
+import { getCanonicalCatalogGroups, getHomepageKeyCategories, getProductionCategoryGroups, homepageKeyCategorySlugs } from "../app/data/productionCategoryGroups.ts";
 
 test("homepage production tasks expose every published category with feed-backed counts", () => {
   const published = getPublishedFeedCategorySlugs();
@@ -27,6 +27,17 @@ test("homepage production tasks expose every published category with feed-backed
     assert.ok((category.count ?? 0) > 0, `${category.slug}: homepage category has no products`);
     assert.equal(category.href, `/catalog/category/${category.slug}`);
   }
+});
+
+test("canonical catalog gives every category one authoritative home", () => {
+  const published = getPublishedFeedCategorySlugs();
+  const groups = getCanonicalCatalogGroups(published);
+  const slugs = groups.flatMap((group) => group.subcategories.map((subcategory) => subcategory.slug));
+  assert.equal(new Set(slugs).size, slugs.length);
+  assert.deepEqual(new Set(slugs), new Set(published));
+  assert.equal(groups.find((group) => group.slug === "tooling")?.subcategories.some((item) => item.slug === "koronchatye-sverla"), true);
+  assert.equal(groups.find((group) => group.slug === "drilling")?.subcategories.some((item) => item.slug === "koronchatye-sverla"), false);
+  for (const group of groups) assert.equal(group.href, `/catalog#direction-${group.slug}`);
 });
 
 test("homepage first viewport explains the assortment and separates search from task selection", async () => {
@@ -70,6 +81,9 @@ test("catalog and task pages lead with category identity instead of repeated tas
   ]);
   assert.match(catalogPage, /<article className="catalog-direction"/u);
   assert.match(catalogPage, /subcategory\.count/u);
+  assert.match(catalogPage, /getCanonicalCatalogGroups/u);
+  assert.match(catalogPage, /formatSeriesCount/u);
+  assert.doesNotMatch(catalogPage, /товарных групп/u);
   assert.match(taskPage, /subcategory\.image \?\? group\.image/u);
   assert.match(taskPage, /subcategory\.count/u);
   assert.match(grid, /production-category-card--featured/u);
