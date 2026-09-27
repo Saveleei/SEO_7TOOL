@@ -23,3 +23,12 @@ test("test process accepts login secrets only from its runtime environment", asy
   assert.match(ecosystem, /MANAGER_AUTH_LOCAL_PASSWORD_HASH: process\.env\.MANAGER_AUTH_LOCAL_PASSWORD_HASH/u);
   assert.doesNotMatch(ecosystem, /MANAGER_AUTH_LOCAL_PASSWORD_HASH:\s*["'][^"']{20,}["']/u);
 });
+
+test("daily test feed remains fresh through the next scheduled refresh and then fails closed", async () => {
+  const ecosystem = await readFile(new URL("../ecosystem.test.config.cjs", import.meta.url), "utf8");
+  const match = ecosystem.match(/SHIPPING_FEED_MAX_AGE_MINUTES:\s*["'](\d+)["']/u);
+  assert.ok(match, "test storefront must configure feed freshness explicitly");
+  const maxAgeMinutes = Number(match[1]);
+  assert.ok(maxAgeMinutes > 24 * 60, "daily refresh needs grace beyond the exact 24-hour boundary");
+  assert.ok(maxAgeMinutes <= 26 * 60, "a missed daily refresh must fail closed within two hours");
+});

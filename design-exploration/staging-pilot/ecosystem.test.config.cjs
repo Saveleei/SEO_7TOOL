@@ -19,7 +19,7 @@ module.exports = {
         SHIPPING_CUTOFF_HOUR: "18",
         SHIPPING_WORKING_DAYS: "1,2,3,4,5",
         SHIPPING_TODAY_ENABLED: "1",
-        SHIPPING_FEED_MAX_AGE_MINUTES: "180",
+        SHIPPING_FEED_MAX_AGE_MINUTES: "1560",
         CATALOG_FEED_PATH: process.env.CATALOG_FEED_PATH || "",
         CATALOG_SNAPSHOT_META_PATH: process.env.CATALOG_SNAPSHOT_META_PATH || "",
       },
