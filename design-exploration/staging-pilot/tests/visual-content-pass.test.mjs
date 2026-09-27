@@ -22,7 +22,8 @@ test("catalog evidence and product cards explain the verifiable buying process",
   assert.match(catalog, /trustContent\.cards\.map/u);
   assert.match(catalog, /trustCardImageUrl\(card\)/u);
   assert.match(card, /feed-product-assurance/u);
-  assert.match(card, /исполнение · комплектность · срок/u);
+  assert.match(card, /Проверим до оплаты/u);
+  assert.match(card, /Точное исполнение · комплектность и документы · остаток и дата отгрузки/u);
 });
 
 test("administrator editors control catalog direction photos and shared trust blocks", async () => {

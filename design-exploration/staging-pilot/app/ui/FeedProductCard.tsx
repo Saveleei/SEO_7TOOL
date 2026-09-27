@@ -45,7 +45,7 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
           {directVariant ? <AddRequestButton item={{ id:`variant:${directVariant.id}`, title:directVariant.title || product.title, article:variantArticle(directVariant.sku), price:directVariant.price, image:directVariant.image, href:directVariant.href, shippingLabel:directVariant.shippingPromise.label, shippingDetail:directVariant.shippingPromise.detail }}>{archetype.singleAction}</AddRequestButton> : <button type="button" aria-expanded={variantsOpen} aria-controls={`card-variants-${product.id}`} onClick={() => setVariantsOpen((open) => !open)}>{variantsOpen ? "Скрыть варианты" : `${archetype.multipleAction} · ${product.selectedVariantCount}`}</button>}
           <a className="feed-all-characteristics" href={`/product/${product.slug}`} aria-label={`${archetype.detailAction}: ${product.title}`}>{archetype.detailAction}</a>
         </div>
-        <div className="feed-product-assurance"><b>Проверим перед счётом</b><span>исполнение · комплектность · срок</span></div>
+        <div className="feed-product-assurance"><b>Проверим до оплаты</b><span>Точное исполнение · комплектность и документы · остаток и дата отгрузки</span></div>
       </div>
     </div>
     {!directVariant && variantsOpen && <section className="feed-card-variants" id={`card-variants-${product.id}`} aria-label={`Исполнения ${product.title}`}>

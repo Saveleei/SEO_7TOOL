@@ -5303,9 +5303,24 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
 .catalog-evidence-grid span { color:#994018; font-size:var(--type-caption); font-weight:850; letter-spacing:.04em; text-transform:uppercase; }
 .catalog-evidence-grid h3 { margin:8px 0; font-size:21px; line-height:1.18; }
 .catalog-evidence-grid p { margin:0; color:#586159; font-size:var(--type-control); line-height:1.5; }
-.feed-product-assurance { display:grid; gap:2px; margin-top:10px; padding-top:9px; border-top:1px solid #e2e5df; color:#566059; }
-.feed-product-assurance b { color:#315d49; font-size:var(--type-caption); line-height:1.3; }
-.feed-product-assurance span { font-size:var(--type-caption); line-height:1.35; }
+.feed-product-assurance { display:grid; gap:3px; margin-top:10px; padding:10px 11px; border:1px solid #d8e7dc; border-radius:5px; background:#f2f8f4; color:#46534b; }
+.feed-product-assurance b { color:#1f6744; font-size:var(--type-caption); line-height:1.3; }
+.feed-product-assurance span { font-size:var(--type-caption); line-height:1.45; }
+
+/* Product-list readability: commercial actions need the full card width, while
+   wide screens should use their available space instead of compressing copy. */
+.feed-product-actions { grid-template-columns:1fr; }
+.feed-product-actions button,.feed-product-actions>a { width:100%; padding-inline:12px; }
+.feed-product-conversion-page .request-unified-demo>b { color:#fff; }
+.feed-product-conversion-page .request-unified-demo>p { color:#d6ddd7; }
+
+@media (min-width:1380px) {
+  .feed-category-listing>.container { width:min(1600px,calc(100% - 64px)); }
+  .feed-catalog-layout { grid-template-columns:270px minmax(0,1fr); gap:22px; }
+  .feed-product-card--machine,.feed-product-card--project-system { grid-template-columns:240px minmax(0,1fr); }
+  .feed-product-card--precision-tooling,.feed-product-card--process-supply { grid-template-columns:200px minmax(0,1fr); }
+  .feed-product-copy { grid-template-columns:minmax(260px,1fr) minmax(270px,1fr) minmax(250px,.78fr); }
+}
 
 @media (max-width:980px) {
   .catalog-direction>header { grid-template-columns:30px minmax(0,1fr) 128px auto; }
