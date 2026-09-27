@@ -24,10 +24,12 @@ export default async function CatalogPage() {
           {groups.map((group) => {
             const media = directionMedia.get(group.slug);
             const mediaSrc = media?.imageAssetId ? homepageAssetUrl(media.imageAssetId) : group.representativeImage ?? group.image;
-            return <article className="catalog-direction" id={`direction-${group.slug}`} key={group.id}>
-            <header><span>{group.id}</span><div><p>{group.accent}</p><h2>{group.title}</h2></div><Link className="catalog-direction-media" data-fit={media?.imageFit ?? "contain"} data-position={media?.imagePosition ?? "center"} href={group.subcategories[0]?.href ?? "/catalog"} aria-label={`${group.title}: открыть первую категорию`}><Image src={mediaSrc} alt={media?.imageAlt || ""} width={220} height={140} unoptimized={Boolean(media?.imageAssetId || group.representativeImage)} /></Link><strong>{group.subcategories.length}<small>{categoryWord(group.subcategories.length)}</small></strong></header>
+            const taskHref = `/catalog/task/${group.slug}`;
+            const directionClassName = group.subcategories.length <= 3 ? "catalog-direction catalog-direction--compact" : "catalog-direction";
+            return <article className={directionClassName} id={`direction-${group.slug}`} key={group.id}>
+            <header><Link className="catalog-direction-overview" href={taskHref} aria-label={`Открыть направление «${group.title}»`}><span>{group.id}</span><div><p>{group.accent}</p><h2>{group.title}</h2></div><span className="catalog-direction-media" data-fit={media?.imageFit ?? "contain"} data-position={media?.imagePosition ?? "center"}><Image src={mediaSrc} alt={media?.imageAlt || ""} width={240} height={160} unoptimized={Boolean(media?.imageAssetId || group.representativeImage)} /></span></Link><strong>{group.subcategories.length}<small>{categoryWord(group.subcategories.length)}</small></strong></header>
             <nav aria-label={`Категории раздела «${group.title}»`}>{group.subcategories.map((subcategory) => <Link href={subcategory.href} key={subcategory.slug}><span>{subcategory.label}</span><small>{formatSeriesCount(subcategory.count ?? 0)}</small><b aria-hidden="true">→</b></Link>)}</nav>
-            <footer><span>В разделе: <b>{formatSeriesCount(group.productCount ?? 0)}</b></span><Link href={`/catalog/task/${group.slug}`}>Подбор в этом направлении →</Link></footer>
+            <footer><span>В разделе: <b>{formatSeriesCount(group.productCount ?? 0)}</b></span><Link href={taskHref} aria-label={`Подобрать по задаче в направлении «${group.title}»`}>Подобрать по задаче →</Link></footer>
           </article>})}
         </div></section>
         <section className="section catalog-evidence-section" aria-labelledby="catalog-evidence-title"><div className="container">

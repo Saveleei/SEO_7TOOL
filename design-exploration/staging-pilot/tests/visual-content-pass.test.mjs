@@ -11,8 +11,15 @@ test("catalog directions use feed-grounded product imagery without inventing sto
   assert.match(catalog, /directionMedia\.get\(group\.slug\)/u);
   assert.match(catalog, /homepageAssetUrl\(media\.imageAssetId\)/u);
   assert.match(catalog, /className="catalog-direction-media"/u);
+  assert.match(catalog, /const taskHref = `\/catalog\/task\/\$\{group\.slug\}`/u);
+  assert.match(catalog, /className="catalog-direction-overview" href=\{taskHref\}/u);
+  assert.match(catalog, /Подобрать по задаче →/u);
+  assert.match(catalog, /group\.subcategories\.length <= 3/u);
   assert.doesNotMatch(catalog, /Товар из раздела/u);
   assert.match(css, /\.catalog-direction-media/u);
+  assert.match(css, /\.catalog-direction--compact>nav \{ grid-template-columns:1fr; \}/u);
+  assert.match(css, /\.catalog-direction>nav \{ flex:1; grid-auto-rows:1fr; \}/u);
+  assert.match(css, /@media \(min-width:1800px\)[\s\S]*\.catalog-overview-page \.container \{ width:min\(1840px/u);
   assert.doesNotMatch(catalog, /наш склад|собственный склад|всегда в наличии/iu);
 });
 

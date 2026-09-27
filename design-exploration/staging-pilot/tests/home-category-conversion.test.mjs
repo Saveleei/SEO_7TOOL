@@ -79,7 +79,8 @@ test("catalog and task pages lead with category identity instead of repeated tas
     readFile(new URL("../app/catalog/task/[task]/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/ui/ProductionCategoryGrid.tsx", import.meta.url), "utf8"),
   ]);
-  assert.match(catalogPage, /<article className="catalog-direction"/u);
+  assert.match(catalogPage, /catalog-direction--compact/u);
+  assert.match(catalogPage, /className="catalog-direction-overview"/u);
   assert.match(catalogPage, /subcategory\.count/u);
   assert.match(catalogPage, /getCanonicalCatalogGroups/u);
   assert.match(catalogPage, /formatSeriesCount/u);
