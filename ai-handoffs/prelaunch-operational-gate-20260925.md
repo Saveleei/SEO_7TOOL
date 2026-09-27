@@ -88,6 +88,13 @@
 - The first PM2 reload attempt did not become ready inside the deliberately short 25-second gate and rolled back automatically. Recreating only `7tool-storefront-test` from the new immutable release succeeded; six live loopback routes returned `200`. Active test PID: `37600`, restart count `0`; production stayed online on PID `1065` and returned `200`.
 - Public controls: test root `302` to `/test/access`, access page `200`, production `200`; post-release free space is 4.3 GB of 38 GB. The in-app browser policy blocked reopening the authenticated public test origin after the switch, so the post-release gate used the exact server build plus live loopback/public HTTP checks rather than a second screenshot pass.
 
+### Operational follow-up — 2026-09-27
+
+- Test and production now both expose `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy` and HSTS. The earlier test-header parity P1 is closed.
+- `7tool-storefront-test` runs from the new release, production remains on `/var/www/7tool-release-20260911-trust-performance-029d3f3/7tool-source`, and the test error log contains zero references to the new release. The nightly `03:25 Europe/Moscow` cron still points through `/var/www/7tool-test-current` and the current shared feed SHA-256 remains `eb9308752a22d689d0941ca3b9fbe5f126a603c31f8cf436c22875c7b5ae0079`.
+- Capacity is now the next operational P1: 4.3 GB free, 89% used. A read-only dependency/symlink audit identified six self-contained obsolete test releases with no inbound active/rollback/production dependency: `scenario-quality-d1868b3`, `selector-fit-6754db4`, `storefront-6adf5f7`, `proxy-origin-44e1962`, `product-recommendations-11d11a2`, and `product-hierarchy-5dc1d22`. Together they occupy about 5.4 GB. Nothing was deleted; explicit approval is required before removing these exact directories.
+- The next unattended cron run after this release remains a final control point: confirm matching catalog/metadata SHA, successful Vinext rebuild, PM2 online and visible availability after `03:25 Europe/Moscow`.
+
 ## Commit
 
 - Implementation: `2d88191` (`fix: restore reliable feed freshness`).
