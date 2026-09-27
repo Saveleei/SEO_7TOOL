@@ -18,6 +18,8 @@ test("shipping settings validate cutoff, freshness window, calendar and work day
   assert.equal(validateShippingSettings(validInput()).ok, true);
   assert.equal(validateShippingSettings({ ...validInput(), cutoffHour:24 }).ok, false);
   assert.equal(validateShippingSettings({ ...validInput(), maxSnapshotAgeMinutes:5 }).ok, false);
+  assert.equal(validateShippingSettings({ ...validInput(), maxSnapshotAgeMinutes:1560 }).ok, true);
+  assert.equal(validateShippingSettings({ ...validInput(), maxSnapshotAgeMinutes:1561 }).ok, false);
   assert.equal(validateShippingSettings({ ...validInput(), workingDays:[] }).ok, false);
   assert.equal(validateShippingSettings({ ...validInput(), holidays:["04.11.2026"] }).ok, false);
 });

@@ -1,3 +1,5 @@
+export const MAX_SHIPPING_SNAPSHOT_AGE_MINUTES = 26 * 60;
+
 export const DEFAULT_SHIPPING_SETTINGS = Object.freeze({
   revision:0,
   todayShippingEnabled:true,
@@ -12,8 +14,8 @@ export function validateShippingSettings(input) {
   if (revision == null) return fail("Обновите страницу настроек и повторите сохранение.");
   const cutoffHour = integer(input?.cutoffHour, 0, 23);
   if (cutoffHour == null) return fail("Укажите час окончания приёма заказов от 0 до 23.");
-  const maxSnapshotAgeMinutes = integer(input?.maxSnapshotAgeMinutes, 15, 1440);
-  if (maxSnapshotAgeMinutes == null) return fail("Допустимый возраст данных должен быть от 15 минут до 24 часов.");
+  const maxSnapshotAgeMinutes = integer(input?.maxSnapshotAgeMinutes, 15, MAX_SHIPPING_SNAPSHOT_AGE_MINUTES);
+  if (maxSnapshotAgeMinutes == null) return fail("Допустимый возраст данных должен быть от 15 минут до 26 часов.");
   if (!Array.isArray(input?.workingDays)) return fail("Выберите рабочие дни.");
   const workingDays = Array.from(new Set(input.workingDays.map(Number).filter((day) => Number.isInteger(day) && day >= 0 && day <= 6))).sort((a, b) => a - b);
   if (workingDays.length === 0) return fail("Выберите хотя бы один рабочий день.");

@@ -8,6 +8,7 @@ import {
   hasConfirmedStock,
   resolveShippingConfig,
 } from "../app/data/shippingPromise.mjs";
+import { invalidateShippingRuntimeSettingsCache } from "../app/data/shippingRuntimeSettings.mjs";
 
 const mondayBeforeCutoff = new Date("2026-09-14T14:59:00.000Z"); // 17:59 Europe/Moscow
 const mondayAtCutoff = new Date("2026-09-14T15:00:00.000Z"); // 18:00 Europe/Moscow
@@ -57,10 +58,18 @@ test("product groups promise shipping only when at least one execution has confi
 });
 
 test("shipping configuration is adjustable and falls back safely", () => {
+  invalidateShippingRuntimeSettingsCache();
   assert.deepEqual(resolveShippingConfig({ env:{} }), { cutoffHour:18, workingDays:[1, 2, 3, 4, 5], holidays:[], timeZone:"Europe/Moscow", todayShippingEnabled:true, maxSnapshotAgeMinutes:180, feedUpdatedAt:"" });
+  invalidateShippingRuntimeSettingsCache();
   assert.deepEqual(resolveShippingConfig({ env:{ SHIPPING_CUTOFF_HOUR:"99", SHIPPING_WORKING_DAYS:"bad", SHIPPING_TIME_ZONE:"Mars/Olympus" } }), { cutoffHour:18, workingDays:[1, 2, 3, 4, 5], holidays:[], timeZone:"Europe/Moscow", todayShippingEnabled:true, maxSnapshotAgeMinutes:180, feedUpdatedAt:"" });
+  invalidateShippingRuntimeSettingsCache();
+  assert.equal(resolveShippingConfig({ env:{ SHIPPING_FEED_MAX_AGE_MINUTES:"1560" } }).maxSnapshotAgeMinutes, 1560);
+  invalidateShippingRuntimeSettingsCache();
+  assert.equal(resolveShippingConfig({ env:{ SHIPPING_FEED_MAX_AGE_MINUTES:"1561" } }).maxSnapshotAgeMinutes, 180);
+  invalidateShippingRuntimeSettingsCache();
   const custom = getVariantShippingPromise({ available:true, quantity:1 }, { now:mondayAtCutoff, cutoffHour:19, workingDays:"1,2,3,4,5", timeZone:"Europe/Moscow", feedUpdatedAt:freshFeed, env:{} });
   assert.equal(custom.state, "today");
+  invalidateShippingRuntimeSettingsCache();
 });
 
 test("missing, stale or future snapshot timestamps fail closed", () => {
@@ -72,6 +81,8 @@ test("missing, stale or future snapshot timestamps fail closed", () => {
     assert.doesNotMatch(result.label, /сегодня|в наличии/iu);
   }
   assert.deepEqual(getFeedFreshness(freshFeed, mondayBeforeCutoff, 180), { fresh:true, reason:"fresh", ageMinutes:14 });
+  assert.equal(getFeedFreshness("2026-09-13T13:59:00.000Z", mondayBeforeCutoff, 1560).fresh, true);
+  assert.equal(getFeedFreshness("2026-09-13T12:58:00.000Z", mondayBeforeCutoff, 1560).fresh, false);
 });
 
 test("administrator emergency switch and calendar exceptions suppress today", () => {

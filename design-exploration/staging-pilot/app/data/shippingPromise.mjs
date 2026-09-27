@@ -1,4 +1,5 @@
 import { getCatalogSnapshotCompletedAt, getRuntimeShippingSettings } from "./shippingRuntimeSettings.mjs";
+import { MAX_SHIPPING_SNAPSHOT_AGE_MINUTES } from "./shippingSettingsValidation.mjs";
 
 const DEFAULT_TIME_ZONE = "Europe/Moscow";
 
@@ -153,7 +154,7 @@ function normalizeCutoff(value) {
 
 function normalizeMaxAge(value) {
   const parsed = Number(value);
-  return Number.isInteger(parsed) && parsed >= 15 && parsed <= 1440 ? parsed : 180;
+  return Number.isInteger(parsed) && parsed >= 15 && parsed <= MAX_SHIPPING_SNAPSHOT_AGE_MINUTES ? parsed : 180;
 }
 
 function normalizeWorkingDays(value) {
