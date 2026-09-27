@@ -71,7 +71,7 @@ export function TrustContentSettingsForm({ initial }: { initial: TrustContentSet
         <label className="wide"><span>Пояснение</span><textarea rows={3} maxLength={320} value={settings.sectionIntro} onChange={(event) => setSettings((current) => ({ ...current, sectionIntro:event.target.value }))} /></label>
       </div></section>
 
-      {settings.cards.map((card, index) => <section className="quote-settings-card trust-settings-card" key={card.id}><header><span>{String(index + 2).padStart(2, "0")}</span><div><h2>{card.title}</h2><p>Текст и фотография этой карточки на главной странице.</p></div></header><div className="trust-settings-card-body">
+      {settings.cards.map((card, index) => <section className="quote-settings-card trust-settings-card" key={card.id}><header><span>{String(index + 2).padStart(2, "0")}</span><div><h2>{card.title}</h2><p>Текст и фотография этой карточки на главной странице и в общем каталоге.</p></div></header><div className="trust-settings-card-body">
         <div className="trust-settings-photo">
           <div><Image src={trustCardImageUrl(card)} alt={card.imageAlt || card.title} width={420} height={240} unoptimized={Boolean(card.imageAssetId)} /></div>
           <label className="trust-photo-upload"><input type="file" accept="image/png,image/jpeg,image/webp" disabled={uploadingCard === card.id} onChange={(event) => void uploadPhoto(index, event.target.files?.[0])} /><span>{uploadingCard === card.id ? "Загружаем…" : card.imageAssetId ? "Заменить фотографию" : "Загрузить фотографию"}</span></label>
@@ -90,7 +90,7 @@ export function TrustContentSettingsForm({ initial }: { initial: TrustContentSet
     <aside className="trust-settings-preview">
       <span>Предпросмотр блока</span><h2>{settings.sectionTitle}</h2><p>{settings.sectionIntro}</p>
       <div>{settings.cards.map((card) => <article key={card.id}><Image src={trustCardImageUrl(card)} alt="" width={96} height={72} unoptimized={Boolean(card.imageAssetId)} /><div><small>{card.kicker}</small><b>{card.title}</b><span>{card.outcome}</span></div></article>)}</div>
-      <button type="submit" disabled={pending || Boolean(uploadingCard)}>{pending ? "Сохраняем…" : "Сохранить и показать на главной"}</button>
+      <button type="submit" disabled={pending || Boolean(uploadingCard)}>{pending ? "Сохраняем…" : "Сохранить и показать на витрине"}</button>
       <button className="trust-settings-reset" type="button" disabled={pending} onClick={() => void resetDefaults()}>Вернуть стандартное содержимое</button>
       <div className="quote-settings-feedback" aria-live="polite">{error ? <p className="error">{error}</p> : message ? <p className="success">{message}</p> : null}</div>
       <small>Изменения видны после сохранения. Загруженные файлы хранятся локально и не отправляются во внешние сервисы.</small>

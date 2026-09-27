@@ -100,13 +100,19 @@ export function HomepageContentSettingsForm({ initial, references }: { initial: 
       <EditorSection number="03" title="Подбор по производственной задаче" description="Текст над автоматически сформированной картой задач. Состав категорий берётся из фида.">
         <TextSectionFields value={settings.tasks} onChange={(patch) => updateSection("tasks", patch)} />
       </EditorSection>
+
+      <EditorSection number="04" title="Фотографии направлений общего каталога" description="Эти шесть фотографий используются в карточках направлений на странице каталога. Можно загрузить свои изображения и настроить кадрирование; ссылки, количество категорий и товаров остаются системными.">
+        <TextSectionFields value={settings.assortment} onChange={(patch) => updateSection("assortment", patch)} />
+        <MediaEditorList collection="assortmentItems" items={settings.assortmentItems} references={referenceById} uploading={uploading} imageUrl={imageUrl} onUpdate={updateItem} onMove={moveItem} onUpload={uploadPhoto} />
+      </EditorSection>
     </div>
 
     <aside className="homepage-settings-preview">
       <div className="homepage-settings-preview-head"><span>Живой предпросмотр</span><a href="/" target="_blank" rel="noreferrer">Открыть главную ↗</a></div>
       <div className="homepage-mini-hero"><small>{settings.hero.eyebrow}</small><h2>{settings.hero.title}</h2><p>{settings.hero.intro}</p></div>
       <PreviewGrid title={settings.categories.title} items={settings.categoryItems} imageUrl={imageUrl} large />
-      <button className="homepage-settings-save" type="submit" disabled={pending || Boolean(uploading)}>{pending ? "Сохраняем…" : "Сохранить и показать на главной"}</button>
+      <PreviewGrid title="Направления каталога" items={settings.assortmentItems} imageUrl={imageUrl} />
+      <button className="homepage-settings-save" type="submit" disabled={pending || Boolean(uploading)}>{pending ? "Сохраняем…" : "Сохранить и показать на витрине"}</button>
       <button className="homepage-settings-reset" type="button" disabled={pending} onClick={() => void resetDefaults()}>Вернуть стандартное содержимое</button>
       <div className="quote-settings-feedback" aria-live="polite">{error ? <p className="error">{error}</p> : message ? <p className="success">{message}</p> : null}</div>
       <small>Сначала настройте кадрирование в предпросмотре, затем сохраните. Исходные пропорции файла не меняют высоту карточек.</small>
