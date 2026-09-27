@@ -18,6 +18,7 @@ backups/
 uploads/
 .media/
 .avito/
+.stalex/
 config/avito.local.json
 fixtures/avito/generated/*
 !fixtures/avito/generated/candidate-avito.xml

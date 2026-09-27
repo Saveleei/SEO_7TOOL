@@ -1,4 +1,7 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
 import {
   buildStalexPreview,
@@ -6,6 +9,11 @@ import {
   parseCommerceGroups,
   sanitizeStalexDescription,
 } from "../scripts/lib/stalex-feed-preview.mjs";
+import {
+  acquireStalexLock,
+  buildValidatedStalexSnapshot,
+  persistValidatedStalexSnapshot,
+} from "../scripts/lib/stalex-feed-refresh.mjs";
 
 const policy = {
   publicationEnabled: false,
@@ -45,6 +53,7 @@ const catalogXml = `<?xml version="1.0" encoding="utf-8"?>
     <ЗначенияСвойств>
       <ЗначенияСвойства><Ид>CML2_ACTIVE</Ид><Значение>true</Значение></ЗначенияСвойства>
       <ЗначенияСвойства><Ид>CML2_DETAIL_TEXT</Ид><Значение>&lt;p&gt;Станок для обработки отверстий в крупных деталях.&lt;/p&gt;</Значение></ЗначенияСвойства>
+      <ЗначенияСвойства><Ид>tech-1</Ид><Значение>400 В</Значение></ЗначенияСвойства>
       <ЗначенияСвойства><Ид>449</Ид><Значение>w12</Значение></ЗначенияСвойства>
     </ЗначенияСвойств>
   </Предложение></Предложения></ПакетПредложений>
@@ -131,4 +140,114 @@ test("publication cannot be enabled through a preview policy", () => {
     () => buildStalexPreview({ catalogXml, modificationsXml, policy: { ...policy, publicationEnabled: true } }),
     /explicitly disable publication/u,
   );
+});
+
+test("daily snapshot contains every parsed record while the audit preview stays compact", () => {
+  const preview = buildStalexPreview({ catalogXml, modificationsXml, policy });
+  const full = buildStalexPreview({ catalogXml, modificationsXml, policy, includeRecords: true });
+  assert.equal(Object.hasOwn(preview, "records"), false);
+  assert.equal(full.records.length, full.summary.modifications);
+  assert.equal(full.records[0].warranty, "12 месяцев");
+  assert.equal(full.records[0].storefrontPublishable, false);
+  assert.equal(full.records[0].sourceData.description, "Станок для обработки отверстий в крупных деталях.");
+  assert.deepEqual(full.records[0].sourceData.images, ["catalog_files/product-1.jpg"]);
+  assert.deepEqual(full.records[0].sourceData.groupIds, ["101", "2"]);
+  assert.ok(full.records[0].sourceData.catalogProperties.some((property) => property.value === "400 В"));
+});
+
+test("daily refresh atomically preserves the last good snapshot when validation fails", (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "stalex-refresh-"));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const outputPath = path.join(directory, "last-good.json");
+  const statusPath = path.join(directory, "status.json");
+  const lockPath = path.join(directory, "refresh.lock");
+
+  const first = persistValidatedStalexSnapshot({
+    catalogXml,
+    modificationsXml,
+    policy,
+    outputPath,
+    statusPath,
+    lockPath,
+    minModifications: 1,
+    refreshedAt: "2026-09-27T01:00:00.000Z",
+  });
+  const lastGood = fs.readFileSync(outputPath, "utf8");
+  assert.equal(first.status, "validated");
+  assert.equal(first.records.length, 1);
+  assert.equal(JSON.parse(fs.readFileSync(statusPath, "utf8")).status, "ok");
+
+  assert.throws(() => persistValidatedStalexSnapshot({
+    catalogXml,
+    modificationsXml,
+    policy,
+    outputPath,
+    statusPath,
+    lockPath,
+    minModifications: 2,
+  }), /minimum is 2/u);
+  assert.equal(fs.readFileSync(outputPath, "utf8"), lastGood);
+  assert.equal(fs.existsSync(lockPath), false);
+});
+
+test("daily refresh records price changes between validated snapshots", (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "stalex-diff-"));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const outputPath = path.join(directory, "last-good.json");
+
+  persistValidatedStalexSnapshot({
+    catalogXml,
+    modificationsXml,
+    policy,
+    outputPath,
+    minModifications: 1,
+  });
+  const changed = persistValidatedStalexSnapshot({
+    catalogXml,
+    modificationsXml: modificationsXml.replace("294500", "299000"),
+    policy,
+    outputPath,
+    minModifications: 1,
+  });
+  assert.equal(changed.changes.changed, 1);
+  assert.equal(changed.changes.priceChanged, 1);
+  assert.equal(changed.records[0].priceRub, 299000);
+});
+
+test("daily refresh rejects an implausible feed shrink and keeps it out of last-good", () => {
+  const previousSnapshot = {
+    records: Array.from({ length: 10 }, (_, index) => ({ id: `old-${index}` })),
+  };
+  assert.throws(() => buildValidatedStalexSnapshot({
+    catalogXml,
+    modificationsXml,
+    policy,
+    previousSnapshot,
+    minModifications: 1,
+    minRetainedRatio: 0.9,
+  }), /retained 1 of 10 previous records/u);
+});
+
+test("daily refresh lock blocks overlap and can be released", (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "stalex-lock-"));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const lockPath = path.join(directory, "refresh.lock");
+  const release = acquireStalexLock(lockPath);
+  assert.throws(() => acquireStalexLock(lockPath), (error) => error.code === "STALEX_LOCKED");
+  release();
+  const releaseAgain = acquireStalexLock(lockPath);
+  releaseAgain();
+  assert.equal(fs.existsSync(lockPath), false);
+});
+
+test("the existing nightly pipeline refreshes Stalex safely without blocking the main feed", () => {
+  const nightly = fs.readFileSync(path.resolve("scripts", "nightly-rebuild.sh"), "utf8");
+  const primaryRefresh = nightly.indexOf("node scripts/refresh-feed.mts");
+  const stalexRefresh = nightly.indexOf("node scripts/refresh-stalex-feed.mjs");
+  const catalogCheck = nightly.indexOf("npm run data:check");
+  assert.ok(primaryRefresh >= 0 && stalexRefresh > primaryRefresh && catalogCheck > stalexRefresh);
+  assert.match(nightly, /STALEX_DAILY_ENABLED:-1/u);
+  assert.match(nightly, /if ! node scripts\/refresh-stalex-feed\.mjs/u);
+  assert.match(nightly, /last-good Stalex snapshot was preserved/u);
+  assert.match(nightly, /STALEX_STATE_PATH=.*STALEX_DATA_DIR\/last-good-snapshot\.json/u);
 });

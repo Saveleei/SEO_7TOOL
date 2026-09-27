@@ -20,6 +20,17 @@ const RUB_PRICE_PROPERTY_ID = "184";
 const OLD_PRICE_PROPERTY_ID = "200";
 const STOCK_PROPERTY_ID = "171";
 const STOCK_ENUM_PROPERTY_ID = "13";
+const INTERNAL_PROPERTY_IDS = new Set([
+  "CML2_ACTIVE",
+  "CML2_PREVIEW_TEXT",
+  "CML2_DETAIL_TEXT",
+  "CML2_LINK",
+  WARRANTY_PROPERTY_ID,
+  RUB_PRICE_PROPERTY_ID,
+  OLD_PRICE_PROPERTY_ID,
+  STOCK_PROPERTY_ID,
+  STOCK_ENUM_PROPERTY_ID,
+]);
 
 function capture(body, tagName) {
   const match = new RegExp(`<${tagName}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tagName}>`, "iu").exec(body);
@@ -156,11 +167,15 @@ export function parseCommerceOffers(xml) {
     const preview = properties.get("CML2_PREVIEW_TEXT") || "";
     const detail = properties.get("CML2_DETAIL_TEXT") || "";
     const rawDescription = detail || preview;
+    const images = [...body.matchAll(/<Картинка(?:\s[^>]*)?>([\s\S]*?)<\/Картинка>/giu)]
+      .map((image) => decodeSupplierXml(image[1]).trim())
+      .filter(Boolean);
     offers.push({
       id,
       name: capture(body, "Наименование"),
       groupIds,
-      image: capture(body, "Картинка"),
+      image: images[0] || "",
+      images: [...new Set(images)],
       active: booleanValue(properties.get("CML2_ACTIVE")),
       properties,
       rawDescription,
@@ -172,6 +187,23 @@ export function parseCommerceOffers(xml) {
     });
   }
   return offers;
+}
+
+function normalizedSourceProperties(properties, definitions) {
+  const rows = [];
+  for (const [id, rawValue] of properties) {
+    if (INTERNAL_PROPERTY_IDS.has(id)) continue;
+    const definition = definitions.get(id);
+    const value = textOnly(enumValue(definitions, id, rawValue));
+    if (!value) continue;
+    rows.push({
+      id,
+      name: definition?.name || id,
+      code: definition?.code || null,
+      value,
+    });
+  }
+  return rows.sort((a, b) => a.name.localeCompare(b.name, "ru") || a.id.localeCompare(b.id, "ru"));
 }
 
 function enumValue(definitions, propertyId, rawValue) {
@@ -243,7 +275,7 @@ function countBy(items, selector) {
   return result;
 }
 
-export function buildStalexPreview({ catalogXml, modificationsXml, policy }) {
+export function buildStalexPreview({ catalogXml, modificationsXml, policy, includeRecords = false }) {
   if (!policy || policy.publicationEnabled !== false) {
     throw new Error("Stalex preview policy must explicitly disable publication");
   }
@@ -304,6 +336,15 @@ export function buildStalexPreview({ catalogXml, modificationsXml, policy }) {
       issues,
       dataPilotReady,
       storefrontPublishable: false,
+      ...(includeRecords ? {
+        sourceData: {
+          groupIds: catalogOffer?.groupIds || [],
+          images: catalogOffer?.images || [],
+          description: catalogOffer?.description || "",
+          catalogProperties: normalizedSourceProperties(catalogOffer?.properties || new Map(), catalogDefinitions),
+          modificationProperties: normalizedSourceProperties(modification.properties, modificationDefinitions),
+        },
+      } : {}),
     };
   });
 
@@ -371,5 +412,6 @@ export function buildStalexPreview({ catalogXml, modificationsXml, policy }) {
       catalogProperties: catalogDefinitions.size,
       modificationProperties: modificationDefinitions.size,
     },
+    ...(includeRecords ? { records } : {}),
   };
 }

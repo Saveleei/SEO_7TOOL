@@ -10,9 +10,24 @@ set -a
 . "$SHARED_ENV"
 set +a
 
+STALEX_DATA_DIR=${STALEX_DATA_DIR:-$CATALOG_PUBLISH_DIR/stalex}
+
 cd "$APP_DIR"
 npm run db:backup
 node scripts/refresh-feed.mts
+
+# Stalex хранится отдельным проверенным снимком и пока не публикуется в
+# действующий каталог. Сбой поставщика сохраняет последний корректный снимок
+# и не останавливает обновление основного ассортимента.
+if [ "${STALEX_DAILY_ENABLED:-1}" = "1" ]; then
+  export STALEX_STATE_PATH=${STALEX_STATE_PATH:-$STALEX_DATA_DIR/last-good-snapshot.json}
+  export STALEX_STATUS_PATH=${STALEX_STATUS_PATH:-$STALEX_DATA_DIR/refresh-status.json}
+  export STALEX_LOCK_PATH=${STALEX_LOCK_PATH:-$STALEX_DATA_DIR/refresh.lock}
+  if ! node scripts/refresh-stalex-feed.mjs; then
+    echo "WARNING: Stalex feed refresh failed; last-good Stalex snapshot was preserved" >&2
+  fi
+fi
+
 npm run data:check
 npm run ads:feed
 node scripts/generate-product-seo.mjs --if-configured --best-effort --limit "${SEO_AI_NIGHTLY_LIMIT:-100}"
