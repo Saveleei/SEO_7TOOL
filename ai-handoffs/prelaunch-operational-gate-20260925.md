@@ -73,6 +73,12 @@
 - Test-only rollback copies: `/var/www/7tool-test-shared/backups/ecosystem.test.config.before-freshness-20260927.cjs` and `/var/www/7tool-test-shared/backups/freshness-runtime-before-68a624b`. Production was not rebuilt or restarted.
 - Final control: public test root `302` to authenticated access, access page `200`, production `200`; both PM2 processes online. Disk now has 4.5 GB free of 38 GB (89% used), so reviewed release cleanup remains the next operational prerequisite.
 
+### Isolated business acceptance — 2026-09-27
+
+- The production build completed the full loopback-only B2B path: exact product → idempotent customer request → local administrator session → assignment/status → ready quote → submission/approval → three-page PDF with one exact-product image → delivery preparation → held outbox.
+- Result: synthetic request `7T-20260927-FBED6B`, quote `КП-20260927-FBED6B`, PDF 173,878 bytes, 19 checked actions, slowest response 5,629 ms. Outbox status remained `held`, transport remained `disabled-test-contour`, external delivery was false, and the temporary request directory was removed after verification.
+- No public form, mailbox, messenger, CRM endpoint or real recipient was used. The test exercised only a temporary loopback server and synthetic `.example` contact data.
+
 ## Commit
 
 - Implementation: `2d88191` (`fix: restore reliable feed freshness`).
