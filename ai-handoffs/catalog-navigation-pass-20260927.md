@@ -58,4 +58,4 @@ Implemented and verified locally. Not deployed.
 
 ## Commit
 
-- Pending final SHA.
+- `8208936` — `feat: simplify catalog navigation`
