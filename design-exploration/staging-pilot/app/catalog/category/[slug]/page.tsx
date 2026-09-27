@@ -14,6 +14,7 @@ import { PilotFooter } from "../../../ui/PilotFooter";
 import { PilotHeader } from "../../../ui/PilotHeader";
 import { SelectionConversionBlock } from "../../../ui/SelectionConversionBlock";
 import { TestRequestForm } from "../../../ui/TestRequestForm";
+import { AutoApplyFilterPanel, AutoApplySortForm } from "../../../ui/AutoApplyFilters";
 import { buildCategoryQueryContext, findCategorySelectionOption, getCategorySelectionRule } from "../../../data/categorySelection.mjs";
 import { getCategoryExpertProfile, selectCategoryAssistantFacets, selectCategoryFacets } from "../../../data/categoryExpertProfiles.mjs";
 import { getFeedCategory, getFeedCategoryPage, getFeedCategoryProductCountForQuery, getFeedCategoryProductType, getFeedCategoryRecoverySuggestions, getFeedTableColumns, getGuidedFacetOptions, getPromotedFacetOptions, prefersDenseFeedTable, type FeedCategoryQuery, type FeedCategorySegment, type FeedCategorySort, type FeedCategorySubsegment, type FeedFacet, type FeedProductType, type FeedVariantFilter, toFeedProductCardModel } from "../../../data/feedCatalog";
@@ -327,10 +328,13 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
       {!browsingAccessories && slug !== "stanki-sverlilnye" && engineerFirstSelection && <details className="burr-finder drill-engineer-request" id="category-selector" open><summary><span className="drill-finder-symbol" aria-hidden="true"><b>✓</b><i>↗</i></span><span><small>Инженерный подбор</small><b>{selectorTitle}</b><em>{selectorIntro}</em></span><i>Передать параметры <span aria-hidden="true">↓</span></i></summary><div className="burr-finder-body"><div className="drill-engineer-request-grid"><div><span>Чтобы не ошибиться с исполнением</span><h3>Опишите задачу — модель и артикул знать не обязательно</h3><p>Укажите известные размеры, материал, условия работы и требуемый результат. Инженер проверит конкретное исполнение по фактическому каталогу.</p><ul>{selectionCriteria.slice(0, 3).map((item) => <li key={item.title}><b>{item.title}</b><span>{item.copy}</span></li>)}</ul></div><TestRequestForm compact primaryContact="phone" context={activeQueryContext} buttonLabel="Заказать подбор инженера" /></div></div></details>}
 
       <div className="feed-catalog-layout">
-        <aside className="feed-filter-panel" id="feed-filter-panel">
-          <input className="feed-filter-toggle" type="checkbox" id={`feed-filters-${slug}`} aria-label="Показать или скрыть фильтры" />
-          <label className="feed-filter-summary" htmlFor={`feed-filters-${slug}`}><span><b>Фильтры</b><small>{activeFilterCount > 0 ? `Выбрано: ${activeFilterCount}` : "По характеристикам товаров"}</small></span><i aria-hidden="true">+</i></label>
-          <form method="get" action={`/catalog/category/${slug}#products`}>
+        <AutoApplyFilterPanel
+          action={`/catalog/category/${slug}`}
+          activeFilterCount={activeFilterCount}
+          resultCount={result.total}
+          resetHref={`/catalog/category/${slug}#products`}
+          slug={slug}
+        >
             {requestedView && <input type="hidden" name="view" value={requestedView} />}
             {requestedProductType && <input type="hidden" name="kind" value={requestedProductType} />}
             {segment && <input type="hidden" name="segment" value={segment} />}
@@ -345,14 +349,12 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
               maximum={numericMaximums[facet.key]}
               key={facet.key}
             />)}
-            <div className="feed-filter-actions"><button className="button button-orange" type="submit">Показать товары</button><Link href={`/catalog/category/${slug}#products`}>Сбросить</Link></div>
-          </form>
-        </aside>
+        </AutoApplyFilterPanel>
 
         <div className="feed-results" id="feed-results-list">
           <div className="feed-results-toolbar"><p><b>{result.total.toLocaleString("ru-RU")}</b> {pluralizeProductGroups(result.total)}{result.total > 0 && <span> · показаны {start}–{end}</span>}</p><div className="feed-toolbar-controls">
             {canUseTable && <nav className="feed-view-switch" aria-label="Вид списка"><a className={view === "table" ? "active" : undefined} href={categoryUrl(slug, rawSearchParams, { setKey:"view", setValue:"table" })}>Таблица</a><a className={view === "cards" ? "active" : undefined} href={categoryUrl(slug, rawSearchParams, { setKey:"view", setValue:"cards" })}>Карточки</a></nav>}
-            <form method="get" action={`/catalog/category/${slug}#products`}>
+            <AutoApplySortForm action={`/catalog/category/${slug}`}>
               {requestedView && <input type="hidden" name="view" value={requestedView} />}
               {requestedProductType && <input type="hidden" name="kind" value={requestedProductType} />}
               {segment && <input type="hidden" name="segment" value={segment} />}
@@ -363,8 +365,8 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
               {Object.entries(filters).flatMap(([key, values]) => values.map((value) => <input type="hidden" name={`f_${key}`} value={value} key={`${key}-${value}`} />))}
               {Object.entries(numericMinimums).map(([key, value]) => <input type="hidden" name={`min_${key}`} value={value} key={`sort-minimum-${key}`} />)}
               {Object.entries(numericMaximums).map(([key, value]) => <input type="hidden" name={`max_${key}`} value={value} key={`sort-maximum-${key}`} />)}
-              <label><span>Сортировка</span><select name="sort" defaultValue={sort}>{sortOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label><button type="submit">Применить</button>
-            </form>
+              <label><span>Сортировка</span><select name="sort" defaultValue={sort}>{sortOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label>
+            </AutoApplySortForm>
           </div></div>
 
           {activeFilterCount > 0 && <nav className="feed-applied-filters" aria-label="Применённые фильтры"><span>Вы выбрали:</span>

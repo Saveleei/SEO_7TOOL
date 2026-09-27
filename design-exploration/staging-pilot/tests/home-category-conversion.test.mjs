@@ -82,6 +82,8 @@ test("catalog and task pages lead with category identity instead of repeated tas
   assert.match(catalogPage, /catalog-direction--compact/u);
   assert.match(catalogPage, /className="catalog-direction-overview"/u);
   assert.match(catalogPage, /subcategory\.count/u);
+  assert.match(catalogPage, /subcategory\.image/u);
+  assert.match(catalogPage, /catalog-subcategory-media/u);
   assert.match(catalogPage, /getCanonicalCatalogGroups/u);
   assert.match(catalogPage, /formatSeriesCount/u);
   assert.doesNotMatch(catalogPage, /товарных групп/u);

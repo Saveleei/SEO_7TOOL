@@ -5,20 +5,21 @@ import { DEFAULT_TRUST_CONTENT_SETTINGS } from "../app/data/trustContentModel.ts
 
 const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
 
-test("catalog directions use feed-grounded product imagery without inventing stock claims", async () => {
+test("catalog subcategories use their own feed-grounded imagery without inventing stock claims", async () => {
   const [catalog, css] = await Promise.all([read("../app/catalog/page.tsx"), read("../app/globals.css")]);
-  assert.match(catalog, /group\.representativeImage \?\? group\.image/u);
-  assert.match(catalog, /directionMedia\.get\(group\.slug\)/u);
-  assert.match(catalog, /homepageAssetUrl\(media\.imageAssetId\)/u);
-  assert.match(catalog, /className="catalog-direction-media"/u);
+  assert.match(catalog, /subcategory\.image &&/u);
+  assert.match(catalog, /className="catalog-subcategory-media"/u);
+  assert.match(catalog, /src=\{subcategory\.image\}/u);
+  assert.doesNotMatch(catalog, /directionMedia|catalog-direction-media|homepageAssetUrl/u);
   assert.match(catalog, /const taskHref = `\/catalog\/task\/\$\{group\.slug\}`/u);
   assert.match(catalog, /className="catalog-direction-overview" href=\{taskHref\}/u);
   assert.match(catalog, /Подобрать по задаче →/u);
   assert.match(catalog, /group\.subcategories\.length <= 3/u);
   assert.doesNotMatch(catalog, /Товар из раздела/u);
-  assert.match(css, /\.catalog-direction-media/u);
+  assert.match(css, /\.catalog-subcategory-media img \{[^}]*object-fit:contain/u);
   assert.match(css, /\.catalog-direction--compact>nav \{ grid-template-columns:1fr; \}/u);
   assert.match(css, /\.catalog-direction>nav \{ flex:1; grid-auto-rows:1fr; \}/u);
+  assert.match(css, /\.catalog-overview-page \.container \{ max-width:none; \}/u);
   assert.match(css, /@media \(min-width:1800px\)[\s\S]*\.catalog-overview-page \.container \{ width:min\(1840px/u);
   assert.doesNotMatch(catalog, /наш склад|собственный склад|всегда в наличии/iu);
 });
@@ -33,7 +34,7 @@ test("catalog evidence and product cards explain the verifiable buying process",
   assert.match(card, /Точное исполнение · комплектность и документы · остаток и дата отгрузки/u);
 });
 
-test("administrator editors control catalog direction photos and shared trust blocks", async () => {
+test("administrator editors control homepage merchandising photos and shared trust blocks", async () => {
   const [homepageEditor, homepageSettings, trustSettings] = await Promise.all([
     read("../app/ui/HomepageContentSettingsForm.tsx"),
     read("../app/test/settings/homepage/page.tsx"),
