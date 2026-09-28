@@ -89,6 +89,10 @@ test("scheduler scripts are Linux-safe and nightly refresh publishes freshness m
   assert.match(storefrontText, /CATALOG_WORK_DIR=\$\{CATALOG_WORK_DIR:\?/u);
   assert.match(storefrontText, /STOREFRONT_BUILD_DIR=\$\{STOREFRONT_BUILD_DIR:-\}/u);
   assert.match(storefrontText, /npm run db:backup/u);
+  assert.match(storefrontText, /test-feed-runtime-guard\.mjs check/u);
+  assert.match(storefrontText, /FEED_REFRESH_STATUS_PATH/u);
+  assert.match(storefrontText, /record_status failed/u);
+  assert.match(storefrontText, /record_status complete/u);
   assert.match(storefrontText, /REQUESTED_PM2_APP_NAME/u);
   assert.match(storefrontText, /Refusing to reload a non-test PM2 process/u);
   assert.ok(storefrontText.indexOf("refresh-feed.mts") < storefrontText.indexOf("finalize-catalog-snapshot.mjs"));
