@@ -89,6 +89,8 @@ test("scheduler scripts are Linux-safe and nightly refresh publishes freshness m
   assert.match(storefrontText, /CATALOG_WORK_DIR=\$\{CATALOG_WORK_DIR:\?/u);
   assert.match(storefrontText, /STOREFRONT_BUILD_DIR=\$\{STOREFRONT_BUILD_DIR:-\}/u);
   assert.match(storefrontText, /npm run db:backup/u);
+  assert.match(storefrontText, /REQUESTED_PM2_APP_NAME/u);
+  assert.match(storefrontText, /Refusing to reload a non-test PM2 process/u);
   assert.ok(storefrontText.indexOf("refresh-feed.mts") < storefrontText.indexOf("finalize-catalog-snapshot.mjs"));
   assert.ok(storefrontText.indexOf("finalize-catalog-snapshot.mjs") < storefrontText.indexOf('if [ -n "$STOREFRONT_BUILD_DIR" ]'));
   assert.ok(storefrontText.indexOf("npm run build") < storefrontText.indexOf('pm2 reload "$PM2_APP_NAME"'));
@@ -97,10 +99,13 @@ test("scheduler scripts are Linux-safe and nightly refresh publishes freshness m
   const stalexPilotText = stalexPilot.toString("utf8");
   assert.match(stalexPilotText, /node scripts\/refresh-stalex-feed\.mjs/u);
   assert.match(stalexPilotText, /node scripts\/build-stalex-test-catalog\.mjs/u);
+  assert.match(stalexPilotText, /node scripts\/validate-stalex-test-catalog-candidate\.mjs/u);
   assert.ok(stalexPilotText.indexOf("refresh-stalex-feed.mjs") < stalexPilotText.indexOf("build-stalex-test-catalog.mjs"));
-  assert.ok(stalexPilotText.indexOf("build-stalex-test-catalog.mjs") < stalexPilotText.indexOf("npm run build"));
-  assert.ok(stalexPilotText.indexOf("npm run build") < stalexPilotText.indexOf('pm2 reload "$PM2_APP_NAME"'));
-  assert.match(stalexPilotText, /CATALOG_FEED_PATH="\$candidate_dir\/products\.json"/u);
+  assert.ok(stalexPilotText.indexOf("build-stalex-test-catalog.mjs") < stalexPilotText.indexOf("validate-stalex-test-catalog-candidate.mjs"));
+  assert.ok(stalexPilotText.indexOf("validate-stalex-test-catalog-candidate.mjs") < stalexPilotText.indexOf('pm2 reload "$PM2_APP_NAME"'));
+  assert.doesNotMatch(stalexPilotText, /npm run build/u);
+  assert.match(stalexPilotText, /REQUESTED_PM2_APP_NAME/u);
+  assert.match(stalexPilotText, /Refusing to reload a non-test PM2 process/u);
   assert.match(stalexPilotText, /PILOT_PUBLISH_DIR\/products\.json/u);
   assert.doesNotMatch(stalexPilotText, /7tool-prod/u);
 });

@@ -6,6 +6,7 @@ import path from "node:path";
 import test from "node:test";
 import { runStalexTestCatalogBuild } from "../scripts/build-stalex-test-catalog.mjs";
 import { buildStalexTestCatalog } from "../scripts/lib/stalex-test-catalog.mjs";
+import { validateStalexTestCatalogCandidate } from "../scripts/validate-stalex-test-catalog-candidate.mjs";
 
 function category(slug, count = 10) {
   return { slug, title: slug, count, published: true, icon: "machine" };
@@ -196,6 +197,36 @@ test("CLI builder writes freshness metadata for the exact combined catalog", asy
     assert.equal(metadata.stalexRefreshedAt, "2026-09-28T00:35:00.000Z");
     assert.equal(metadata.publicationScope, "test-only");
     assert.equal(report.catalogSha256, metadata.catalogSha256);
+  } finally {
+    await rm(directory, { recursive:true, force:true });
+  }
+});
+
+test("nightly candidate guard accepts price refreshes but blocks an unreviewed product-set change", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "stalex-test-catalog-guard-"));
+  const catalogPath = path.join(directory, "products.json");
+  const metadataPath = path.join(directory, "catalog-snapshot-meta.json");
+  const reportPath = path.join(directory, "pilot-report.json");
+  const currentReportPath = path.join(directory, "current-report.json");
+  try {
+    const product = { id:"STALEX-approved", sourceSupplier:"stalex", publicationScope:"test-only", variants:[{ id:"variant" }] };
+    const catalogSource = `${JSON.stringify({ categories:[], products:[product] }, null, 2)}\n`;
+    const catalogSha256 = createHash("sha256").update(catalogSource).digest("hex");
+    const report = { mode:"test-only", selected:1, productIds:[product.id], catalogSha256 };
+    await writeFile(catalogPath, catalogSource, "utf8");
+    await writeFile(metadataPath, JSON.stringify({ status:"complete", sourceId:"test-stalex-pilot", publicationScope:"test-only", catalogSha256 }), "utf8");
+    await writeFile(reportPath, JSON.stringify(report), "utf8");
+    await writeFile(currentReportPath, JSON.stringify({ ...report, catalogSha256:"older-price-snapshot" }), "utf8");
+
+    const accepted = validateStalexTestCatalogCandidate({ catalogPath, metadataPath, reportPath, currentReportPath });
+    assert.equal(accepted.catalogSha256, catalogSha256);
+    assert.deepEqual(accepted.productIds, [product.id]);
+
+    await writeFile(currentReportPath, JSON.stringify({ mode:"test-only", selected:1, productIds:["STALEX-other"] }), "utf8");
+    assert.throws(
+      () => validateStalexTestCatalogCandidate({ catalogPath, metadataPath, reportPath, currentReportPath }),
+      /состав Stalex-пилота изменился/iu,
+    );
   } finally {
     await rm(directory, { recursive:true, force:true });
   }

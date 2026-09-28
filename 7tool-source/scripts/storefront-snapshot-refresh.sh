@@ -5,12 +5,18 @@ APP_DIR=${APP_DIR:-/var/www/7tool-test-current/7tool-source}
 SHARED_ENV=${SHARED_ENV:-/var/www/7tool-shared/.env.production}
 CATALOG_WORK_DIR=${CATALOG_WORK_DIR:?CATALOG_WORK_DIR is required}
 CATALOG_PUBLISH_DIR=${CATALOG_PUBLISH_DIR:?CATALOG_PUBLISH_DIR is required}
-PM2_APP_NAME=${PM2_APP_NAME:-7tool-storefront-test}
+REQUESTED_PM2_APP_NAME=${PM2_APP_NAME:-7tool-storefront-test}
 STOREFRONT_BUILD_DIR=${STOREFRONT_BUILD_DIR:-}
 
 set -a
 . "$SHARED_ENV"
 set +a
+PM2_APP_NAME=$REQUESTED_PM2_APP_NAME
+
+if [ "$PM2_APP_NAME" != "7tool-storefront-test" ]; then
+  echo "Refusing to reload a non-test PM2 process: $PM2_APP_NAME" >&2
+  exit 1
+fi
 
 mkdir -p "$CATALOG_WORK_DIR" "$CATALOG_PUBLISH_DIR" "$CATALOG_WORK_DIR/backups"
 cd "$APP_DIR"
