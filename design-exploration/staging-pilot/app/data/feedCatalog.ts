@@ -14,6 +14,7 @@ import { applyVerifiedProductMedia } from "./verifiedProductMedia.mjs";
 import { getRuntimeCatalogProductMediaUrl } from "./catalogProductMediaStore.ts";
 import { applyRuntimeCatalogParameterOverrides, applyRuntimeCatalogParameterOverridesToProducts, getRuntimeCatalogParameterOverrideRevision } from "./catalogParameterOverrideStore.ts";
 import { getFeedDecisionParameters } from "./feedDecisionParameters.mjs";
+import { applySupplierImageProxy } from "./supplierImageProxy.mjs";
 
 export type FeedParameter = {
   name: string;
@@ -49,6 +50,7 @@ export type FeedProduct = {
   priceTo?: number;
   manualSortOrder?: number;
   description?: string;
+  sourceSupplier?: string;
 };
 
 export type FeedCompatibilityRecommendation = {
@@ -212,7 +214,7 @@ type CachedFeedFacet = Omit<FeedFacet, "options"> & {
 const loadedFeedSnapshot = loadFeedSnapshot();
 const feedSnapshotSha256 = loadedFeedSnapshot.sha256;
 registerCatalogSnapshotSha256(feedSnapshotSha256);
-const feedSnapshot = applyVerifiedProductMedia(loadedFeedSnapshot.snapshot) as FeedSnapshot;
+const feedSnapshot = applyVerifiedProductMedia(applySupplierImageProxy(loadedFeedSnapshot.snapshot)) as FeedSnapshot;
 
 function loadFeedSnapshot(): { snapshot: FeedSnapshot; sha256: string } {
   const configuredPath = process.env.CATALOG_FEED_PATH?.trim();
