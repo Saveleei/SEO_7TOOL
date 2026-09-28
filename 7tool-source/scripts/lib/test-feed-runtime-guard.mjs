@@ -39,7 +39,11 @@ export function validateTestFeedRuntime({ appDir, storefrontBuildDir = "" }) {
   let vinextModule = null;
   if (String(storefrontBuildDir || "").trim()) {
     resolvedBuildDir = path.resolve(storefrontBuildDir);
-    vinextModule = resolveDependency(resolvedBuildDir, "vinext", "Storefront build");
+    requiredFile(path.join(resolvedBuildDir, "package.json"), "Storefront build: package.json");
+    vinextModule = requiredFile(
+      path.join(resolvedBuildDir, "node_modules", "vinext", "dist", "cli.js"),
+      "Storefront build: Vinext CLI",
+    );
   }
 
   return { appDir:resolvedAppDir, databaseModule, storefrontBuildDir:resolvedBuildDir, vinextModule };

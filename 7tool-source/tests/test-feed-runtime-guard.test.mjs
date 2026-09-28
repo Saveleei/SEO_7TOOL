@@ -30,9 +30,11 @@ test("runtime guard resolves database and Vinext dependencies before refresh", a
       "scripts/test-feed-runtime-guard.mjs",
     ]);
     await createRuntime(buildDir, "vinext");
+    await mkdir(path.join(buildDir, "node_modules", "vinext", "dist"), { recursive:true });
+    await writeFile(path.join(buildDir, "node_modules", "vinext", "dist", "cli.js"), "// fixture\n", "utf8");
     const result = validateTestFeedRuntime({ appDir, storefrontBuildDir:buildDir });
     assert.match(result.databaseModule, /better-sqlite3[\\/]index\.js$/u);
-    assert.match(result.vinextModule, /vinext[\\/]index\.js$/u);
+    assert.match(result.vinextModule, /vinext[\\/]dist[\\/]cli\.js$/u);
 
     await rm(path.join(appDir, "node_modules", "better-sqlite3"), { recursive:true, force:true });
     assert.throws(() => validateTestFeedRuntime({ appDir, storefrontBuildDir:buildDir }), /better-sqlite3 недоступна/u);
