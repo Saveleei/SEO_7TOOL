@@ -178,6 +178,7 @@ test("CLI builder writes freshness metadata for the exact combined catalog", asy
   const stalexPath = path.join(directory, "stalex.json");
   const baseMetadataPath = path.join(directory, "base-meta.json");
   const outputPath = path.join(directory, "products.json");
+  const reportPath = path.join(directory, "pilot-report.json");
   const metadataOutputPath = path.join(directory, "catalog-snapshot-meta.json");
   try {
     await writeFile(basePath, JSON.stringify(baseCatalog), "utf8");
@@ -187,16 +188,19 @@ test("CLI builder writes freshness metadata for the exact combined catalog", asy
       basePath,
       stalexPath,
       outputPath,
+      reportPath,
       baseMetadataPath,
       metadataOutputPath,
     });
     const catalogSource = await readFile(outputPath, "utf8");
     const metadata = JSON.parse(await readFile(metadataOutputPath, "utf8"));
+    const persistedReport = JSON.parse(await readFile(reportPath, "utf8"));
     assert.equal(metadata.catalogSha256, createHash("sha256").update(catalogSource).digest("hex"));
     assert.equal(metadata.completedAt, "2026-09-28T00:25:00.000Z");
     assert.equal(metadata.stalexRefreshedAt, "2026-09-28T00:35:00.000Z");
     assert.equal(metadata.publicationScope, "test-only");
     assert.equal(report.catalogSha256, metadata.catalogSha256);
+    assert.equal(persistedReport.catalogSha256, metadata.catalogSha256);
   } finally {
     await rm(directory, { recursive:true, force:true });
   }
