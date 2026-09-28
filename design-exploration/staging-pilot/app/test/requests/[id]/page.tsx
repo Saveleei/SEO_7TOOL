@@ -29,12 +29,12 @@ export default async function TestRequestDetailPage({ params }: { params: Promis
   return <div className="site-shell"><PilotHeader managerMode managerActor={actor} /><main className="inner-page manager-request-page">
     <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Журнал заявок", href:"/test/requests" }, { label:request.id }]} /></div>
     <section className="manager-request-hero"><div className="container">
-      <div className="manager-request-hero-main"><span className={`manager-status manager-status--${request.status}`}>{request.statusLabel}</span><h1>{request.id}</h1><p>{request.requestType === "selection" ? "Подбор по производственной задаче" : "Запрос коммерческого предложения"} · получена {formatDate(request.createdAt)}</p></div>
+      <div className="manager-request-hero-main"><span className={`manager-status manager-status--${request.status}`}>{request.statusLabel}</span><h1>{request.id}</h1><p>{requestTypeLabel(request.requestType)} · получена {formatDate(request.createdAt)}</p></div>
       <SlaState request={request} />
     </div></section>
     <section className="section"><div className="container manager-request-layout">
       <div className="manager-request-content">
-        <section className="manager-detail-card manager-detail-items"><header><span>01</span><div><h2>{request.requestType === "selection" ? "Задача и исходные данные" : "Состав запроса"}</h2><p>{request.requestType === "selection" ? "Клиент начал без артикула: используйте описание задачи и предварительное направление." : "Именно эти исполнения и количество клиент добавил в КП."}</p></div></header><div className="manager-item-table">
+        <section className="manager-detail-card manager-detail-items"><header><span>01</span><div><h2>{request.requestType === "selection" ? "Задача и исходные данные" : "Состав запроса"}</h2><p>{request.requestType === "selection" ? "Клиент начал без артикула: используйте описание задачи и предварительное направление." : request.requestType === "quick_order" ? "Клиент выбрал точное исполнение и ждёт подтверждения по телефону." : "Именно эти исполнения и количество клиент добавил в КП."}</p></div></header><div className="manager-item-table">
           {request.items.map((item) => <article key={item.id}><div><small>{item.article || "Без артикула"}</small><h3>{item.href?.startsWith("/") ? <a href={item.href}>{item.title}</a> : item.title}</h3></div><dl><div><dt>Количество</dt><dd>{item.quantity} шт.</dd></div><div><dt>Цена на момент запроса</dt><dd>{item.price || "По запросу"}</dd></div></dl></article>)}
         </div></section>
         <section className="manager-detail-card"><header><span>02</span><div><h2>Что нужно проверить</h2><p>Чек-лист менеджера сформирован из выбора клиента.</p></div></header><div className="manager-check-grid"><Check active={request.requestedChecks.availability}>Наличие и срок</Check><Check active={request.requestedChecks.compatibility}>Комплектность и совместимость</Check><Check active={request.requestedChecks.documents}>Документы для закупки</Check><Check active={request.alternatives}>Допустимы аналоги</Check></div>{request.comment ? <div className="manager-client-comment"><span>Комментарий клиента</span><p>{request.comment}</p></div> : <p className="manager-empty-value">Комментарий к заявке не добавлен.</p>}</section>
@@ -70,6 +70,12 @@ function managerRoleLabel(role?: string) {
   if (role === "admin") return "администратор";
   if (role === "approver") return "согласующий";
   return "менеджер";
+}
+
+function requestTypeLabel(requestType: QuoteRequestDetail["requestType"]): string {
+  if (requestType === "selection") return "Подбор по производственной задаче";
+  if (requestType === "quick_order") return "Быстрый заказ";
+  return "Запрос коммерческого предложения";
 }
 
 function statusLabel(status?: string) {

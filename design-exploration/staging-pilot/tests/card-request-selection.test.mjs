@@ -25,6 +25,8 @@ test("card view requires an exact variant before adding to the quote request", a
 
 test("table view carries exact variant media and links into the quote request", async () => {
   const source = await readFile(new URL("../app/ui/FeedProductTable.tsx", import.meta.url), "utf8");
-  assert.equal(source.match(/image:variant\.image, href:variant\.href/gu)?.length, 2);
-  assert.equal(source.match(/image:directVariant\.image, href:directVariant\.href/gu)?.length, 2);
+  assert.ok((source.match(/image:variant\.image, href:variant\.href/gu)?.length ?? 0) >= 2);
+  assert.ok((source.match(/image:directVariant\.image, href:directVariant\.href/gu)?.length ?? 0) >= 2);
+  assert.match(source, /<QuickOrderDialog[\s\S]*id:`variant:\$\{directVariant\.id\}`/u);
+  assert.match(source, /<QuickOrderDialog[\s\S]*id:`variant:\$\{variant\.id\}`/u);
 });

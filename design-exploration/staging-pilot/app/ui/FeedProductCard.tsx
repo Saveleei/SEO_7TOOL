@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { pluralizeCardVariants } from "../data/categoryCardArchetypes.mjs";
 import type { FeedProductCardModel } from "../data/feedCatalog";
+import { QuickOrderDialog } from "./QuickOrderDialog";
 import { AddRequestButton } from "./RequestCart";
 import { FeedAvailability } from "./FeedAvailability";
 
@@ -43,6 +44,7 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
         <FeedAvailability shippingPromise={product.shippingPromise} />
         <div className="feed-product-actions">
           {directVariant ? <AddRequestButton item={{ id:`variant:${directVariant.id}`, title:directVariant.title || product.title, article:variantArticle(directVariant.sku), price:directVariant.price, image:directVariant.image, href:directVariant.href, shippingLabel:directVariant.shippingPromise.label, shippingDetail:directVariant.shippingPromise.detail }}>{archetype.singleAction}</AddRequestButton> : <button type="button" aria-expanded={variantsOpen} aria-controls={`card-variants-${product.id}`} onClick={() => setVariantsOpen((open) => !open)}>{variantsOpen ? "Скрыть варианты" : `${archetype.multipleAction} · ${product.selectedVariantCount}`}</button>}
+          {directVariant && <QuickOrderDialog item={{ id:`variant:${directVariant.id}`, title:directVariant.title || product.title, article:variantArticle(directVariant.sku), price:directVariant.price, image:directVariant.image, href:directVariant.href, shippingLabel:directVariant.shippingPromise.label, shippingDetail:directVariant.shippingPromise.detail }} available={directVariant.shippingPromise.available} productId={product.id} variantId={directVariant.id} category={product.categorySlug} placement="category_card" pageType="category" />}
           <a className="feed-all-characteristics" href={`/product/${product.slug}`} aria-label={`${archetype.detailAction}: ${product.title}`}>{archetype.detailAction}</a>
         </div>
         <div className="feed-product-assurance"><b>Проверим до оплаты</b><span>Точное исполнение · комплектность и документы · остаток и дата отгрузки</span></div>
@@ -53,7 +55,7 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
       <div>{product.variants.map((variant) => <article className={variant.matchesSelection ? "feed-card-variant feed-card-variant--match" : "feed-card-variant"} key={variant.id}>
         <div><span>{variant.matchesSelection ? "Соответствует фильтрам" : capitalize(archetype.variantForms[0])}</span><a className="feed-variant-sku-link" href={`/product/${product.slug}?variant=${encodeURIComponent(variant.id)}#variants`}>{variant.sku || "Без артикула в фиде"}</a><small>{variant.specs.slice(0, 3).map((spec) => `${spec.label}: ${spec.value}`).join(" · ")}</small></div>
         <div><b>{variant.price}</b><FeedAvailability shippingPromise={variant.shippingPromise} exact /></div>
-        <AddRequestButton item={{ id:`variant:${variant.id}`, title:variant.title || product.title, article:variantArticle(variant.sku), price:variant.price, image:variant.image, href:variant.href, shippingLabel:variant.shippingPromise.label, shippingDetail:variant.shippingPromise.detail }}>{archetype.singleAction}</AddRequestButton>
+        <div className="feed-variant-order-actions"><AddRequestButton item={{ id:`variant:${variant.id}`, title:variant.title || product.title, article:variantArticle(variant.sku), price:variant.price, image:variant.image, href:variant.href, shippingLabel:variant.shippingPromise.label, shippingDetail:variant.shippingPromise.detail }}>{archetype.singleAction}</AddRequestButton><QuickOrderDialog item={{ id:`variant:${variant.id}`, title:variant.title || product.title, article:variantArticle(variant.sku), price:variant.price, image:variant.image, href:variant.href, shippingLabel:variant.shippingPromise.label, shippingDetail:variant.shippingPromise.detail }} available={variant.shippingPromise.available} productId={product.id} variantId={variant.id} category={product.categorySlug} placement="category_card_variant" pageType="category" /></div>
       </article>)}</div>
     </section>}
   </article>;

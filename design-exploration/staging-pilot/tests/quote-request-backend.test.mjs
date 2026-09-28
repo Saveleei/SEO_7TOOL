@@ -43,6 +43,15 @@ test("selection requests require a phone but do not invent an email address", ()
   assert.equal(validateQuoteRequest({ ...validInput, requestType:"selection", email:"bad" }).ok, false);
 });
 
+test("quick orders accept a phone-only contact but keep server validation", () => {
+  const quickOrder = validateQuoteRequest({ ...validInput, requestType:"quick_order", email:"", company:"", city:"" });
+  assert.equal(quickOrder.ok, true);
+  assert.equal(quickOrder.value.requestType, "quick_order");
+  assert.equal(quickOrder.value.email, "");
+  assert.equal(validateQuoteRequest({ ...validInput, requestType:"quick_order", email:"", phone:"123" }).ok, false);
+  assert.equal(validateQuoteRequest({ ...validInput, requestType:"quick_order", email:"bad" }).ok, false);
+});
+
 test("Russian INN checksum is validated instead of accepting digit count only", () => {
   assert.equal(isValidRussianInn("7707083893"), true);
   assert.equal(isValidRussianInn("7707083894"), false);

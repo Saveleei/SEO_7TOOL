@@ -8,7 +8,7 @@ type QuoteStatus = "received" | "checking" | "quote_ready" | "sent";
 type StoredAttachment = { relativePath: string; mime: string; size: number; kind: "billing" | "specification"; originalName: string };
 type AttachmentInput = { bytes: Buffer; extension: string; mime: string; size: number; kind: "billing" | "specification"; originalName: string } | null;
 type ValidatedQuote = {
-  requestType: "quote" | "selection";
+  requestType: "quote" | "selection" | "quick_order";
   email: string;
   phone: string;
   company: string;
@@ -25,7 +25,7 @@ type ValidatedQuote = {
 
 export type QuoteRequestSummary = {
   id: string;
-  requestType: "quote" | "selection";
+  requestType: "quote" | "selection" | "quick_order";
   createdAt: string;
   status: QuoteStatus;
   statusLabel: string;
@@ -274,7 +274,7 @@ function toSummary(record: StoredQuote, events: StoredEvent[], options: StoreOpt
   const assigneeName = QUOTE_ASSIGNEES.find((manager: { id: string; name: string }) => manager.id === workflow.assignee)?.name ?? null;
   return {
     id:record.id,
-    requestType:record.requestType === "selection" ? "selection" : "quote",
+    requestType:record.requestType === "selection" ? "selection" : record.requestType === "quick_order" ? "quick_order" : "quote",
     createdAt:record.createdAt,
     status:workflow.status,
     statusLabel:getStatusLabel(workflow.status),

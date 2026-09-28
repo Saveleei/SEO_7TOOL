@@ -6,6 +6,7 @@ import { PRODUCT_COMPARISON_EVENT } from "./ProductComparisonDialog";
 import { useRequestCart } from "./RequestCart";
 import { getProductPageArchetype } from "../data/productPageArchetypes";
 import type { FeedShippingPromise } from "../data/feedCatalog";
+import { QuickOrderDialog } from "./QuickOrderDialog";
 
 type PurchaseVariant = {
   id: string;
@@ -110,7 +111,8 @@ export function FeedProductPurchase({ productId, productTitle, categorySlug, var
     <div className="feed-conversion-purchase-actions">
       <div className="quantity-control" aria-label="Количество"><button type="button" aria-label="Уменьшить количество" onClick={() => setQuantity((value) => Math.max(1, value - 1))}>−</button><b>{quantity}</b><button type="button" aria-label="Увеличить количество" onClick={() => setQuantity((value) => value + 1)}>+</button></div>
       <button className={added ? "added" : undefined} type="button" onClick={addSelected}>{added ? "Добавлено в КП" : pageArchetype.primaryAction}</button>
-      <button className="feed-open-quote" type="button" onClick={() => { track("open_quote", "product_buybox"); open(); }}>{pageArchetype.requestAction}</button>
+      <QuickOrderDialog item={{ id:`variant:${selected.id}`, title:selected.title || productTitle, article:selected.sku ? `Артикул ${selected.sku}` : "Артикул не указан в фиде", price:selected.price, quantity, image:selected.image, href:selected.href, shippingLabel:selected.shippingPromise.label, shippingDetail:selected.shippingPromise.detail }} available={selected.shippingPromise.available} productId={productId} variantId={selected.id} category={categorySlug} placement="product_buybox" pageType="product" quantity={quantity} />
+      {items.length > 0 && <button className="feed-open-quote" type="button" onClick={() => { track("open_quote", "product_buybox"); open(); }}>Открыть КП · {items.length}</button>}
     </div>
 
     <div className="feed-conversion-secondary-actions">
