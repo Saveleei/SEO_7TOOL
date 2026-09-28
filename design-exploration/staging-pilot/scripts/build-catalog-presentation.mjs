@@ -21,7 +21,10 @@ const FEATURED_PRODUCT_SLUGS = [
   "porshnevoy-bezmaslyanyy-2-v-1-kompressor-dc990ad-10l",
 ];
 
-const feedPath = path.resolve(process.cwd(), "../../7tool-source/src/lib/products.json");
+const configuredFeedPath = process.env.CATALOG_FEED_PATH?.trim();
+const feedPath = configuredFeedPath
+  ? path.resolve(configuredFeedPath)
+  : path.resolve(process.cwd(), "../../7tool-source/src/lib/products.json");
 const destination = path.resolve(process.cwd(), "app/data/generatedCatalogPresentation.json");
 const facetsDestination = path.resolve(process.cwd(), "app/data/generatedCatalogFacets.json");
 const qualityDestination = path.resolve(process.cwd(), "app/data/generatedCatalogQuality.json");

@@ -70,15 +70,16 @@ test("catalog finalization publishes data before matching completion metadata", 
 });
 
 test("scheduler scripts are Linux-safe and nightly refresh publishes freshness metadata", async () => {
-  const [attributes, hourly, nightly, storefront, queue] = await Promise.all([
+  const [attributes, hourly, nightly, storefront, stalexPilot, queue] = await Promise.all([
     readFile(new URL("../../.gitattributes", import.meta.url), "utf8"),
     readFile(new URL("../scripts/hourly-refresh.sh", import.meta.url)),
     readFile(new URL("../scripts/nightly-rebuild.sh", import.meta.url)),
     readFile(new URL("../scripts/storefront-snapshot-refresh.sh", import.meta.url)),
+    readFile(new URL("../scripts/stalex-test-catalog-refresh.sh", import.meta.url)),
     readFile(new URL("../scripts/process-production-queues.sh", import.meta.url)),
   ]);
   assert.match(attributes, /\*\.sh text eol=lf/u);
-  for (const source of [hourly, nightly, storefront, queue]) assert.equal(source.includes(13), false, "shell scripts must not contain CRLF bytes");
+  for (const source of [hourly, nightly, storefront, stalexPilot, queue]) assert.equal(source.includes(13), false, "shell scripts must not contain CRLF bytes");
   const nightlyText = nightly.toString("utf8");
   assert.match(nightlyText, /node scripts\/refresh-feed\.mts/u);
   assert.match(nightlyText, /node scripts\/finalize-catalog-snapshot\.mjs/u);
@@ -93,6 +94,15 @@ test("scheduler scripts are Linux-safe and nightly refresh publishes freshness m
   assert.ok(storefrontText.indexOf("npm run build") < storefrontText.indexOf('pm2 reload "$PM2_APP_NAME"'));
   assert.ok(storefrontText.indexOf("finalize-catalog-snapshot.mjs") < storefrontText.indexOf("pm2 reload"));
   assert.doesNotMatch(storefrontText, /pm2 reload .*--update-env/u);
+  const stalexPilotText = stalexPilot.toString("utf8");
+  assert.match(stalexPilotText, /node scripts\/refresh-stalex-feed\.mjs/u);
+  assert.match(stalexPilotText, /node scripts\/build-stalex-test-catalog\.mjs/u);
+  assert.ok(stalexPilotText.indexOf("refresh-stalex-feed.mjs") < stalexPilotText.indexOf("build-stalex-test-catalog.mjs"));
+  assert.ok(stalexPilotText.indexOf("build-stalex-test-catalog.mjs") < stalexPilotText.indexOf("npm run build"));
+  assert.ok(stalexPilotText.indexOf("npm run build") < stalexPilotText.indexOf('pm2 reload "$PM2_APP_NAME"'));
+  assert.match(stalexPilotText, /CATALOG_FEED_PATH="\$candidate_dir\/products\.json"/u);
+  assert.match(stalexPilotText, /PILOT_PUBLISH_DIR\/products\.json/u);
+  assert.doesNotMatch(stalexPilotText, /7tool-prod/u);
 });
 
 test("supplier category for compact TVN pipe cutters stays in pipe beveling equipment", async () => {

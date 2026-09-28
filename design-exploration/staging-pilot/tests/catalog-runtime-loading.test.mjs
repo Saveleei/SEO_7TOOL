@@ -17,6 +17,13 @@ test("catalog snapshot is loaded once at runtime instead of embedded in the serv
   assert.ok(getFeedProductBySlug("magnitnyy-sverlilnyy-stanok-lenz-steyr-35"));
 });
 
+test("catalog presentation generator follows the same operator-selected feed as runtime", async () => {
+  const source = await readFile(new URL("../scripts/build-catalog-presentation.mjs", import.meta.url), "utf8");
+  assert.match(source, /process\.env\.CATALOG_FEED_PATH/u);
+  assert.match(source, /path\.resolve\(configuredFeedPath\)/u);
+  assert.match(source, /createHash\("sha256"\)\.update\(feedBytes\)/u);
+});
+
 test("base facets are precomputed from the exact feed while runtime overrides remain dynamic", async () => {
   const [feed, generatedSource, catalogSource] = await Promise.all([
     readFile(new URL("../../../7tool-source/src/lib/products.json", import.meta.url)),
