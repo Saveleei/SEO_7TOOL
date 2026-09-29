@@ -38,9 +38,27 @@ The user explicitly authorized deployment to `new.7tool.ru` while requiring the 
 - `https://7tool.ru/` remained HTTP `200`.
 - Production DNS, certificate, process, feed cron and application data were not changed.
 
-## Remaining external gate
+## Public hostname and HTTPS completed
 
-- `new.7tool.ru` has no DNS record yet; Beget is authoritative for `7tool.ru`.
-- Add only `A new.7tool.ru -> 159.194.235.32` in Beget DNS.
-- After propagation, issue a certificate dedicated to `new.7tool.ru`, enable HTTPS redirect, run external desktop/mobile smoke and then record the final deployment state.
-- The Browser plugin could not connect because its local kernel assets were unavailable; no Beget API credentials were stored on the VPS, so DNS was not changed programmatically.
+- Beget DNS now contains exactly one `A` record for `new.7tool.ru` pointing to `159.194.235.32`.
+- The root `7tool.ru` zone still contains exactly one `A` record pointing to the same existing production server address.
+- Authoritative Beget DNS and independent Google and Cloudflare resolvers returned only `159.194.235.32` for `new.7tool.ru`.
+- A dedicated Let's Encrypt certificate was issued for `new.7tool.ru`; it expires on `2026-12-28` and Certbot installed automatic renewal.
+- Plain HTTP redirects to HTTPS. Public HTTPS returned `200`, valid TLS and `X-Robots-Tag: noindex, nofollow, noarchive`.
+
+## Final external acceptance
+
+- Desktop and `390 x 844` mobile checks passed for the home page.
+- Catalog navigation opened `/catalog`; the drilling category displayed product series, availability and `Быстрый заказ` actions.
+- The LENZ STEYR-35 product page displayed availability, quote action, quick order and manager contacts.
+- Forms were not submitted during acceptance.
+- `7tool-storefront-new` remained `online` on PID `112568` with restart count `0`.
+- `7tool-prod` remained `online` on PID `100870` with restart count `3`; `https://7tool.ru/` continued to return `200`.
+- Nginx configuration validation passed. Approximately `6.1 GiB` remained free on the root filesystem.
+
+## Public preview
+
+- URL: `https://new.7tool.ru/`
+- Release commit: `49ee8f8`
+- Release path: `/var/www/7tool-release-20260929-new-preview-49ee8f8-feed8413cf1`
+- Rollback remains the existing production runtime; no production symlink, process or application data was changed.
