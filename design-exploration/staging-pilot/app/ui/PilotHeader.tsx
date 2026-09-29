@@ -24,9 +24,9 @@ export function PilotHeader({ managerMode = false, managerActor = null }: { mana
         </div>
       </header>
       {!managerMode && <nav className="mobile-action-bar" aria-label="Быстрые действия">
-        <HeaderContactMenu compact placement="mobile_action_bar" />
         <RequestCartButton compact />
       </nav>}
+      {!managerMode && <div className="mobile-manager-bubble"><HeaderContactMenu compact placement="mobile_manager_bubble" /></div>}
     </>
   );
 }

@@ -45,12 +45,18 @@ test("all four contact channels emit only allowlisted non-personal context", () 
   assert.deepEqual(productDetail, { event:"click_messenger", channel:"telegram", page_type:"product", product_id:"test-product", variant_id:"A9409", placement:"product_manager" });
 });
 
-test("desktop and mobile navigation expose one reusable four-channel contact menu", async () => {
+test("desktop navigation and mobile manager bubble expose one reusable four-channel contact menu", async () => {
   const header = await readFile(new URL("../app/ui/PilotHeader.tsx", import.meta.url), "utf8");
   const menu = await readFile(new URL("../app/ui/HeaderContactMenu.tsx", import.meta.url), "utf8");
   const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
   assert.match(header, /HeaderContactMenu placement="desktop_header"/u);
-  assert.match(header, /HeaderContactMenu compact placement="mobile_action_bar"/u);
+  assert.match(header, /mobile-manager-bubble/u);
+  assert.match(header, /HeaderContactMenu compact placement="mobile_manager_bubble"/u);
+  assert.match(menu, /mobile-manager-avatar/u);
+  assert.match(menu, /siteContact\.photo/u);
+  assert.match(menu, /viewBox="0 0 128 128"/u);
+  assert.match(menu, /viewBox="0 0 100 100"/u);
+  assert.doesNotMatch(menu, /<i aria-hidden="true">[TM]<\/i>/u);
   assert.match(menu, /siteContact\.phoneHref/u);
   assert.match(menu, /mailto:\$\{siteContact\.email\}/u);
   assert.match(menu, /siteContact\.telegramUrl/u);

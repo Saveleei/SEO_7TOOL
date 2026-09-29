@@ -1,6 +1,6 @@
 export const siteContact = {
   managerName: "Евгений Савельев",
-  managerRole: "Специалист отдела сварочного оборудования",
+  managerRole: "Специалист по промышленному оборудованию",
   phone: "+7 (962) 611-24-19",
   phoneHref: "tel:+79626112419",
   email: "info@7tool.ru",

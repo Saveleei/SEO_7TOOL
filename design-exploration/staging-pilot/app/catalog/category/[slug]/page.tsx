@@ -244,7 +244,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     ? getFeedCategoryProductCountForQuery(slug, { productType })
     : feedCategory?.count ?? result.total;
 
-  return <div className="site-shell"><PilotHeader /><main className="inner-page">
+  return <div className="site-shell category-page-shell"><PilotHeader /><main className="inner-page">
     <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Каталог", href:"/catalog" }, { label:group.title, href:group.href }, { label:subcategory.label }]} /></div>
 
     <section className="page-hero page-hero--category"><div className="container page-hero-grid"><div className="category-hero-copy">
@@ -252,17 +252,18 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
       <h1>{categoryTitle}</h1>
       <p>{categoryIntro}</p>
       <div className="category-hero-facts"><span><b>{categoryHeroCount.toLocaleString("ru-RU")}</b> {pluralizeProductGroups(categoryHeroCount)}</span><span>Цена — по данным поставщика</span><span>Наличие и срок — после проверки</span></div>
-    </div>{categoryHeroImage && <figure className="category-hero-media">
-      <div className="category-hero-media-visual"><HomepageCategoryMedia src={categoryHeroImage} alt={categoryHeroAlt} sizes="(max-width: 760px) calc(100vw - 56px), (max-width: 1180px) 240px, 270px" /></div>
+    </div><div className="category-hero-decision">{categoryHeroImage && <figure className="category-hero-media">
+      <div className="category-hero-media-visual"><HomepageCategoryMedia src={categoryHeroImage} alt={categoryHeroAlt} sizes="(max-width: 760px) 96px, (max-width: 1180px) 150px, 180px" /></div>
       <figcaption><span>{scopedHeroProduct ? "Пример выбранного вида" : "Пример оборудования раздела"}</span><b>{categoryHeroLabel}</b></figcaption>
     </figure>}<aside>
       <b>{selectorTitle}</b>
       <p>{selectorIntro}</p>
       <a href={activeSelectorHref}>{browsingAccessories ? "Проверить совместимость →" : engineerFirstSelection ? "Передать задачу инженеру →" : "Ответить на несколько вопросов →"}</a>
-    </aside></div></section>
+    </aside></div></div></section>
 
     <nav className="category-sibling-navigation" aria-label={`Категории направления «${group.title}»`}>
-      <div className="container"><header><span>В составе задачи</span><b>{group.title}</b><Link href={group.href}>Обзор направления →</Link></header><div>{group.subcategories.map((item) => <Link className={item.slug === slug ? "active" : undefined} aria-current={item.slug === slug ? "page" : undefined} href={item.href} key={item.slug}><span>{item.label}</span><small>{(item.count ?? 0).toLocaleString("ru-RU")}</small></Link>)}</div></div>
+      <div className="container category-sibling-navigation-desktop"><header><span>В составе задачи</span><b>{group.title}</b><Link href={group.href}>Обзор направления →</Link></header><div>{group.subcategories.map((item) => <Link className={item.slug === slug ? "active" : undefined} aria-current={item.slug === slug ? "page" : undefined} href={item.href} key={item.slug}><span>{item.label}</span><small>{(item.count ?? 0).toLocaleString("ru-RU")}</small></Link>)}</div></div>
+      <details className="container category-sibling-navigation-mobile"><summary><span>Другие категории направления</span><b>{group.title}</b><i aria-hidden="true">+</i></summary><div><Link className="category-sibling-overview" href={group.href}>Обзор направления</Link>{group.subcategories.map((item) => <Link className={item.slug === slug ? "active" : undefined} aria-current={item.slug === slug ? "page" : undefined} href={item.href} key={item.slug}><span>{item.label}</span><small>{(item.count ?? 0).toLocaleString("ru-RU")}</small></Link>)}</div></details>
     </nav>
 
     {assortmentShortcuts.length > 0 && <nav className={`category-assortment-shortcuts${supportedSegments.size > 0 || supportedFamilies.size > 0 ? " category-assortment-shortcuts--segments" : ""}`} aria-label="Разделы текущей категории"><div className="container"><header><div><span>Шаг 1 · тип или задача</span><b>{profile.assortmentPrompt ?? (supportedSegments.size > 0 ? "Сначала выберите тип заготовки" : "Сначала выберите тип товара")}</b></div><Link className={assortmentOverviewActive ? "active" : undefined} aria-current={assortmentOverviewActive ? "page" : undefined} href={assortmentAllHref}>{defaultProductType ? "Все станки" : "Весь ассортимент"}</Link></header><div>{primaryAssortmentShortcuts.map((shortcut) => {
