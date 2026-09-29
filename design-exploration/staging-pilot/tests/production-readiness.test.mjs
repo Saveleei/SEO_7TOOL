@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -9,6 +10,8 @@ import { isTestManagerHostname } from "../app/data/managerAccess.ts";
 import { isQuoteTestContour, isQuoteWorkspaceEnabled, saveQuoteRequest } from "../app/data/quoteRequestStore.ts";
 import { validateQuoteRequest } from "../app/data/quoteRequestValidation.mjs";
 import { validateProductionConfig } from "../scripts/validate-production-config.mjs";
+
+const require = createRequire(import.meta.url);
 
 test("production preflight accepts only a complete live configuration and matching fresh catalog", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "7tool-production-ready-"));
@@ -158,6 +161,21 @@ test("production entrypoints enforce preflight, exec Vinext directly and contain
   assert.match(productionShell, /exec node node_modules\/vinext\/dist\/cli\.js start/u);
   assert.doesNotMatch(`${ecosystem}\n${preflight}\n${productionShell}`, /MANAGER_AUTH_LOCAL_PASSWORD_HASH:\s*["'][^"']+/u);
   assert.doesNotMatch(`${preflight}\n${productionShell}`, /sendMail|smtp|telegram\.org|api\.max|crm\./iu);
+});
+
+test("production PM2 process name follows the production feed reload target", () => {
+  const configPath = require.resolve("../ecosystem.production.config.cjs");
+  const previous = process.env.PM2_APP_NAME;
+  try {
+    process.env.PM2_APP_NAME = "7tool-prod";
+    delete require.cache[configPath];
+    const config = require(configPath);
+    assert.equal(config.apps[0].name, "7tool-prod");
+  } finally {
+    if (previous === undefined) delete process.env.PM2_APP_NAME;
+    else process.env.PM2_APP_NAME = previous;
+    delete require.cache[configPath];
+  }
 });
 
 function productionEnv({ quoteDir, catalogPath, metadataPath }) {

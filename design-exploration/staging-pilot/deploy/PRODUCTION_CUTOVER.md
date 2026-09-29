@@ -21,6 +21,7 @@ Keep the values in the protected server environment. Never commit credentials.
 ```text
 NODE_ENV=production
 PORT=<candidate port>
+PM2_APP_NAME=7tool-prod
 QUOTE_WORKSPACE_ENABLED=1
 QUOTE_TEST_MODE=0
 QUOTE_DATA_DIR=<absolute shared request directory>
@@ -39,7 +40,7 @@ CATALOG_SNAPSHOT_META_PATH=<absolute published metadata path>
 
 Both catalog paths must point through `/var/www/7tool-production-shared/catalog-current`. Never point production at `/var/www/7tool-test-*`. The feed runner is dry-run by default; publication requires `PRODUCTION_FEED_MODE=publish`, a reviewed Stalex `productIds` baseline and the exact production PM2 process `7tool-prod`.
 
-The production scheduler should invoke the stable `/var/www/7tool-production-feed-runtime-current/7tool-source/scripts/production-feed-refresh.sh` once per night after copying the reviewed runtime into an immutable directory. Do not schedule the active storefront release itself: feed behavior must not change when the UI release changes.
+The production scheduler should invoke the stable `/var/www/7tool-production-feed-runtime-current/7tool-source/scripts/production-feed-refresh.sh` once per night after copying the reviewed runtime into an immutable directory. `PM2_APP_NAME` must stay `7tool-prod` in both the storefront and feed environments so the atomic catalog publication reloads the process that actually serves production. Do not schedule the active storefront release itself: feed behavior must not change when the UI release changes.
 
 Run `npm run validate:production` before the process starts. The preflight blocks test mode, disabled lead capture or shipping promises, non-production administrator hosts, missing or unwritable storage, stale catalog metadata and checksum divergence.
 

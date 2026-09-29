@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: "7tool-storefront-vinext",
+      name: process.env.PM2_APP_NAME || "7tool-storefront-vinext",
       cwd: __dirname,
       script: "scripts/start-production.sh",
       interpreter: "/bin/sh",
