@@ -21,7 +21,7 @@ export type ManagerActor = {
   name: string;
   role: ManagerRole;
   roleLabel: string;
-  source: "local-demo" | "platform";
+  source: "local-password" | "platform";
 };
 
 const capabilitiesByRole: Record<ManagerRole, readonly ManagerCapability[]> = {
@@ -91,7 +91,7 @@ export function isLoopbackHostname(value: string): boolean {
 export function isTestManagerHostname(value: string, env: NodeJS.ProcessEnv = process.env): boolean {
   const hostname = normalizeHostname(value);
   if (isLoopbackHostname(hostname)) return true;
-  return new Set(String(env.MANAGER_AUTH_TEST_HOSTS || "")
+  return new Set(`${env.MANAGER_AUTH_LOCAL_HOSTS || ""},${env.MANAGER_AUTH_TEST_HOSTS || ""}`
     .split(",")
     .map(normalizeHostname)
     .filter(Boolean))

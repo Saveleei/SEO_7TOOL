@@ -1,11 +1,11 @@
-import { isQuoteTestModeEnabled, saveQuoteRequest } from "../../data/quoteRequestStore.ts";
+import { isQuoteWorkspaceEnabled, saveQuoteRequest } from "../../data/quoteRequestStore.ts";
 import { createMemoryRateLimiter, validateQuoteAttachment, validateQuoteRequest, validateSpecificationAttachment } from "../../data/quoteRequestValidation.mjs";
 import { isSameOriginRequest } from "../../data/requestOrigin.ts";
 
 const limiter = createMemoryRateLimiter({ limit:8, windowMs:10 * 60 * 1000 });
 
 export async function POST(request: Request) {
-  if (!isQuoteTestModeEnabled()) return Response.json({ ok:false, message:"Тестовый контур заявок отключён." }, { status:503 });
+  if (!isQuoteWorkspaceEnabled()) return Response.json({ ok:false, message:"Приём заявок временно недоступен." }, { status:503 });
   if (!isSameOriginRequest(request)) return Response.json({ ok:false, message:"Запрос отклонён проверкой источника." }, { status:403 });
   const contentLength = Number(request.headers.get("content-length") ?? 0);
   if (contentLength > 12 * 1024 * 1024) return Response.json({ ok:false, message:"Общий размер запроса слишком большой." }, { status:413 });
@@ -47,9 +47,9 @@ export async function POST(request: Request) {
     if (!attachmentValidation.ok) return Response.json({ ok:false, message:attachmentValidation.message }, { status:400 });
 
     const saved = await saveQuoteRequest(validation.value, attachmentValidation.value);
-    return Response.json({ ok:true, requestNumber:saved.id, createdAt:saved.createdAt, duplicate:saved.duplicate, billingProvided:saved.billingProvided, delivery:"disabled-test-contour" }, { status:saved.duplicate ? 200 : 201, headers:{ "Cache-Control":"no-store" } });
+    return Response.json({ ok:true, requestNumber:saved.id, createdAt:saved.createdAt, duplicate:saved.duplicate, billingProvided:saved.billingProvided, delivery:saved.deliveryMode }, { status:saved.duplicate ? 200 : 201, headers:{ "Cache-Control":"no-store" } });
   } catch (error) {
-    console.error("[quote-test] request could not be saved", error instanceof Error ? error.message : "unknown error");
+    console.error("[quote-workspace] request could not be saved", error instanceof Error ? error.message : "unknown error");
     return Response.json({ ok:false, message:"Не удалось сохранить заявку. Попробуйте ещё раз." }, { status:500 });
   }
 }

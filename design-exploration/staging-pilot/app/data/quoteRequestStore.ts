@@ -78,20 +78,41 @@ type StoredQuote = Omit<ValidatedQuote, "idempotencyKey"> & {
   status: "received";
   idempotencyHash: string;
   attachment: StoredAttachment | null;
-  delivery: { mode: "disabled-test-contour"; email: false; max: false; crm: false };
+  delivery: { mode: "disabled-test-contour" | "held-internal-outbox"; email: false; max: false; crm: false };
 };
 
 type StoredEvent = QuoteRequestEvent & { idempotencyHash: string };
+type IntakeOutboxRecord = {
+  id: string;
+  requestId: string;
+  createdAt: string;
+  requestType: StoredQuote["requestType"];
+  status: "held";
+  transport: "pending-production-adapter";
+  channels: ["email", "max", "crm"];
+  deliveryEnabled: false;
+  attempts: 0;
+};
 type StoreOptions = { dataDir?: string; now?: string | Date; responseMinutes?: number };
 type ManagerEventInput = { requestId: string; idempotencyKey: string; type: string; status?: string; assignee?: string; note?: string; actorId?: string; actorName?: string; actorRole?: ManagerRole };
 
 let writeQueue: Promise<unknown> = Promise.resolve();
 
-export function isQuoteTestModeEnabled(): boolean {
-  return process.env.QUOTE_TEST_MODE === "1";
+export function isQuoteTestContour(env: NodeJS.ProcessEnv = process.env): boolean {
+  return env.QUOTE_TEST_MODE === "1";
 }
 
-export function saveQuoteRequest(input: ValidatedQuote, attachment: AttachmentInput, options: { dataDir?: string } = {}): Promise<{ id: string; createdAt: string; duplicate: boolean; billingProvided: boolean }> {
+export function isQuoteWorkspaceEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+  return env.QUOTE_WORKSPACE_ENABLED === "1" || isQuoteTestContour(env);
+}
+
+// Backward-compatible name used by existing staff routes. The workspace can
+// now run in production without pretending that the whole site is a test.
+export function isQuoteTestModeEnabled(): boolean {
+  return isQuoteWorkspaceEnabled();
+}
+
+export function saveQuoteRequest(input: ValidatedQuote, attachment: AttachmentInput, options: { dataDir?: string } = {}): Promise<{ id: string; createdAt: string; duplicate: boolean; billingProvided: boolean; deliveryMode: StoredQuote["delivery"]["mode"] }> {
   const task = writeQueue.then(() => saveQuoteRequestSerial(input, attachment, options));
   writeQueue = task.catch(() => undefined);
   return task;
@@ -185,7 +206,11 @@ async function saveQuoteRequestSerial(input: ValidatedQuote, attachment: Attachm
   await mkdir(dataDir, { recursive:true });
   const idempotencyHash = createHash("sha256").update(input.idempotencyKey).digest("hex");
   const existing = (await readRecords(dataDir)).find((record) => record.idempotencyHash === idempotencyHash);
-  if (existing) return { id:existing.id, createdAt:existing.createdAt, duplicate:true, billingProvided:hasBillingDetails(existing) };
+  if (existing) {
+    const deliveryMode = existing.delivery?.mode ?? (isQuoteTestContour() ? "disabled-test-contour" : "held-internal-outbox");
+    if (deliveryMode === "held-internal-outbox") await ensureIntakeOutboxRecord(dataDir, existing);
+    return { id:existing.id, createdAt:existing.createdAt, duplicate:true, billingProvided:hasBillingDetails(existing), deliveryMode };
+  }
 
   const createdAt = new Date().toISOString();
   const id = createRequestNumber(createdAt);
@@ -202,6 +227,7 @@ async function saveQuoteRequestSerial(input: ValidatedQuote, attachment: Attachm
     storedAttachment = { relativePath:`uploads/${fileName}`, mime:attachment.mime, size:attachment.size, kind:attachment.kind, originalName:attachment.originalName };
   }
 
+  const deliveryMode = isQuoteTestContour() ? "disabled-test-contour" : "held-internal-outbox";
   const record: StoredQuote = {
     ...toStoredInput(input),
     id,
@@ -209,7 +235,7 @@ async function saveQuoteRequestSerial(input: ValidatedQuote, attachment: Attachm
     status:"received",
     idempotencyHash,
     attachment:storedAttachment,
-    delivery:{ mode:"disabled-test-contour", email:false, max:false, crm:false },
+    delivery:{ mode:deliveryMode, email:false, max:false, crm:false },
   };
 
   try {
@@ -218,7 +244,26 @@ async function saveQuoteRequestSerial(input: ValidatedQuote, attachment: Attachm
     if (storedAttachmentPath) await rm(storedAttachmentPath, { force:true });
     throw error;
   }
-  return { id, createdAt, duplicate:false, billingProvided:Boolean(input.billingInn || storedAttachment?.kind === "billing") };
+  if (deliveryMode === "held-internal-outbox") await ensureIntakeOutboxRecord(dataDir, record);
+  return { id, createdAt, duplicate:false, billingProvided:Boolean(input.billingInn || storedAttachment?.kind === "billing"), deliveryMode };
+}
+
+async function ensureIntakeOutboxRecord(dataDir: string, request: StoredQuote): Promise<void> {
+  const filePath = path.join(dataDir, "request-intake-outbox.jsonl");
+  const existing = await readJsonLines<IntakeOutboxRecord>(filePath);
+  if (existing.some((record) => record.requestId === request.id)) return;
+  const record: IntakeOutboxRecord = {
+    id:`INTAKE-${request.id}`,
+    requestId:request.id,
+    createdAt:request.createdAt,
+    requestType:request.requestType,
+    status:"held",
+    transport:"pending-production-adapter",
+    channels:["email", "max", "crm"],
+    deliveryEnabled:false,
+    attempts:0,
+  };
+  await appendJsonLine(filePath, record);
 }
 
 async function appendJsonLine(filePath: string, value: unknown) {
@@ -252,7 +297,7 @@ async function readJsonLines<T>(filePath: string): Promise<T[]> {
 }
 
 function resolveDataDir(override?: string): string {
-  return override || process.env.QUOTE_TEST_DATA_DIR || path.join(process.cwd(), "work", "quote-requests");
+  return override || process.env.QUOTE_DATA_DIR || process.env.QUOTE_TEST_DATA_DIR || path.join(process.cwd(), "work", "quote-requests");
 }
 
 function responseMinutes(override?: number): number {

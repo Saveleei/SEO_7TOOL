@@ -172,7 +172,7 @@ async function readDrafts(dataDir: string): Promise<StoredQuoteDraft[]> {
 }
 
 function resolveDataDir(override?: string) {
-  return override || process.env.QUOTE_TEST_DATA_DIR || path.join(process.cwd(), "work", "quote-requests");
+  return override || process.env.QUOTE_DATA_DIR || process.env.QUOTE_TEST_DATA_DIR || path.join(process.cwd(), "work", "quote-requests");
 }
 
 function withoutHash(draft: StoredQuoteDraft): QuoteDraft {

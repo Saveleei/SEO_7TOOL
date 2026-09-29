@@ -16,7 +16,8 @@ test("homepage selection journey is explicit, phone-first and backed by the requ
   assert.match(workbench, /PDF, DOCX, XLSX, JPG или PNG/u);
   assert.doesNotMatch(workbench, /Открыть почту для файла/u);
   assert.match(workbench, /Заявка № \{requestNumber\}/u);
-  assert.match(workbench, /\/test\/requests\/\$\{encodeURIComponent\(requestNumber\)\}/u);
+  assert.match(workbench, /href="\/contacts">Как связаться по заявке/u);
+  assert.doesNotMatch(workbench, /\/test\/requests/u);
   assert.doesNotMatch(workbench, /Запрос понятен для предварительного подбора/u);
   assert.doesNotMatch(workbench, /ничего не отправляет/u);
 });

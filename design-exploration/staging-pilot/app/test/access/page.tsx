@@ -15,5 +15,5 @@ export default async function ManagerAccessPage({ searchParams }: { searchParams
   const returnTo = safePreviewReturnTo(params.returnTo);
   const actor = await getManagerPageActor();
   if (actor && canManager(actor, "requests:view") && params.denied !== "1") redirect(returnTo);
-  return <main className="manager-access-page"><div className="manager-access-brand"><Link href="/" aria-label="Вернуться на главную 7TOOL">7TOOL</Link><span>Тестовый стенд · внешняя отправка отключена</span></div><ManagerAccessForm returnTo={returnTo} denied={params.denied === "1"} /></main>;
+  return <main className="manager-access-page"><div className="manager-access-brand"><Link href="/" aria-label="Вернуться на главную 7TOOL">7TOOL</Link><span>Закрытое рабочее место сотрудников</span></div><ManagerAccessForm returnTo={returnTo} denied={params.denied === "1"} /></main>;
 }

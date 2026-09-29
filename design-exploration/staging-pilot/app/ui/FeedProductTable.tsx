@@ -38,7 +38,7 @@ export function FeedProductTable({ products, columns }: { products: FeedProductC
           </Fragment>;
         })}</tbody>
       </table>
-      <p className="feed-table-note">Цена указана по тестовым данным поставщика. Наличие, срок и совместимость подтверждаем для выбранного исполнения в КП.</p>
+      <p className="feed-table-note">Цена указана по данным поставщика. Наличие, срок и совместимость подтверждаем для выбранного исполнения в КП.</p>
     </div>
     <div className="feed-product-table-mobile">{products.map((product) => <MobileSeries product={product} columns={columns} key={product.id} />)}</div>
   </>;

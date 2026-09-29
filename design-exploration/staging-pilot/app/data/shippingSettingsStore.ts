@@ -68,7 +68,7 @@ export function shippingSettingsPath(dataDir?: string): string {
 }
 
 function resolveDataDir(): string {
-  return process.env.QUOTE_TEST_DATA_DIR || path.join(process.cwd(), "work", "quote-requests");
+  return process.env.QUOTE_DATA_DIR || process.env.QUOTE_TEST_DATA_DIR || path.join(process.cwd(), "work", "quote-requests");
 }
 
 function cloneDefaults(): ShippingSettings {

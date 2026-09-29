@@ -92,7 +92,7 @@ export function verifyLocalSession(token: string, secret: Buffer, nowMs = Date.n
 }
 
 function localAdminActor(): ManagerActor {
-  return { id:"local-admin", email:"", name:"Локальный администратор", role:"admin", roleLabel:managerRoleLabel("admin"), source:"local-demo" };
+  return { id:"local-admin", email:"", name:"Локальный администратор", role:"admin", roleLabel:managerRoleLabel("admin"), source:"local-password" };
 }
 
 async function getOrCreateLocalSecret(dataDir?: string): Promise<Buffer> {
@@ -123,7 +123,7 @@ async function readLocalSecret(dataDir?: string): Promise<Buffer | null> {
 }
 
 function localSecretPath(dataDir?: string): string {
-  const root = dataDir || process.env.QUOTE_TEST_DATA_DIR || path.join(process.cwd(), "work", "quote-requests");
+  const root = dataDir || process.env.QUOTE_DATA_DIR || process.env.QUOTE_TEST_DATA_DIR || path.join(process.cwd(), "work", "quote-requests");
   return path.join(root, "settings", SECRET_FILE_NAME);
 }
 

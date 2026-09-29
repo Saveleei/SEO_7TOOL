@@ -169,9 +169,10 @@ test("only an authorized employee can download the stored specification", async 
 test("the API is opt-in and contains no external delivery call", async () => {
   const api = await readFile(new URL("../app/api/quote-requests/route.ts", import.meta.url), "utf8");
   const store = await readFile(new URL("../app/data/quoteRequestStore.ts", import.meta.url), "utf8");
-  assert.match(api, /isQuoteTestModeEnabled\(\)/u);
+  assert.match(api, /isQuoteWorkspaceEnabled\(\)/u);
   assert.match(api, /isSameOriginRequest\(request\)/u);
   assert.match(api, /status:429/u);
   assert.match(store, /mode: "disabled-test-contour"/u);
+  assert.match(store, /"held-internal-outbox"/u);
   assert.doesNotMatch(`${api}\n${store}`, /https?:\/\/|mailto:|t\.me|max\.ru/u);
 });

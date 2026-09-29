@@ -117,7 +117,7 @@ function templateAssetDirectory(dataDir: string) {
 }
 
 function resolveDataDir(override?: string) {
-  return override || process.env.QUOTE_TEST_DATA_DIR || path.join(process.cwd(), "work", "quote-requests");
+  return override || process.env.QUOTE_DATA_DIR || process.env.QUOTE_TEST_DATA_DIR || path.join(process.cwd(), "work", "quote-requests");
 }
 
 function detectImageFormat(bytes: Buffer): { extension: "png" | "jpg" | "webp"; mime: string } | null {

@@ -33,16 +33,16 @@ export function ManagerAccessForm({ returnTo, denied = false }: { returnTo: stri
     <div className="manager-access-mark" aria-hidden="true">A</div>
     <p className="eyebrow">Закрытый рабочий контур</p>
     <h1 id="manager-access-title">Вход для сотрудников 7TOOL</h1>
-    <p>{denied ? "Текущей роли недостаточно для этого раздела. Войдите под учётной записью администратора." : "Введите данные тестового стенда. Пароль проверяется на сервере и не сохраняется в браузере."}</p>
+    <p>{denied ? "Текущей роли недостаточно для этого раздела. Войдите под учётной записью администратора." : "Введите данные сотрудника. Пароль проверяется на сервере и не сохраняется в браузере."}</p>
     <div className="manager-access-permissions" aria-label="Права администратора">
       <span>Все заявки и контакты</span><span>Редактирование и согласование КП</span><span>Реквизиты и печать</span><span>Подготовка пакета отправки</span>
     </div>
     <form className="manager-access-form" onSubmit={signIn}>
       <label><span>Логин</span><input type="text" name="username" autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} required maxLength={120} disabled={pending} /></label>
       <label><span>Пароль</span><input type="password" name="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required maxLength={512} disabled={pending} /></label>
-      <button type="submit" disabled={pending}>{pending ? "Проверяем доступ…" : "Войти на тестовый стенд"}</button>
+      <button type="submit" disabled={pending}>{pending ? "Проверяем доступ…" : "Войти в рабочее место"}</button>
     </form>
-    <small>После входа создаётся защищённая HttpOnly-сессия на 8 часов. Production использует отдельный контур доступа.</small>
+    <small>После входа создаётся защищённая HttpOnly-сессия на 8 часов. Доступ ограничен точным доменом и серверной конфигурацией.</small>
     <div className="manager-access-feedback" role="status" aria-live="polite">{error && <p>{error}</p>}</div>
   </section>;
 }

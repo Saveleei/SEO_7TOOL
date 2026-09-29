@@ -15,7 +15,7 @@ let metadataCheckedAt = 0;
 
 export function getRuntimeShippingSettings(env = process.env) {
   const defaults = settingsFromEnv(env);
-  const filePath = env.SHIPPING_SETTINGS_PATH || path.join(env.QUOTE_TEST_DATA_DIR || path.join(process.cwd(), "work", "quote-requests"), "settings", "shipping.json");
+  const filePath = env.SHIPPING_SETTINGS_PATH || path.join(env.QUOTE_DATA_DIR || env.QUOTE_TEST_DATA_DIR || path.join(process.cwd(), "work", "quote-requests"), "settings", "shipping.json");
   const checkedAt = Date.now();
   if (cachedPath === filePath && cachedSettings && checkedAt - cacheCheckedAt < 1_000) return cachedSettings;
   try {

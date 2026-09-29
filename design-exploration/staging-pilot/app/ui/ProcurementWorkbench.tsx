@@ -154,11 +154,11 @@ export function ProcurementWorkbench({ initialTask, initialTool }: { initialTask
         <label>Имя или компания<input name="company" type="text" autoComplete="organization" maxLength={160} placeholder="Необязательно" /></label>
         <label className="workbench-contact-consent"><input name="consent" type="checkbox" defaultChecked required /> Я согласен на обработку персональных данных</label>
         {formError && <div className="workbench-contact-error" role="alert">{formError}</div>}
-        <div className="workbench-contact-submit"><button type="submit" disabled={submitting}>{submitting ? "Сохраняем задачу…" : "Отправить задачу менеджеру"}</button><small>Тестовый стенд: заявка сохранится в журнале, внешние email/MAX/CRM пока отключены.</small></div>
+        <div className="workbench-contact-submit"><button type="submit" disabled={submitting}>{submitting ? "Сохраняем задачу…" : "Отправить задачу менеджеру"}</button><small>Задача надёжно сохранится с номером заявки и будет доступна менеджеру вместе с выбранными параметрами.</small></div>
       </form>}
 
       {requestNumber && <div className="workbench-success" role="status">
-        <span>Задача сохранена</span><h4>Заявка № {requestNumber}</h4><p>Она уже доступна менеджеру в тестовом журнале вместе с описанием задачи, контактным телефоном{tool === "spec" ? " и приложенным ТЗ" : ""}.</p><strong>На тестовом стенде внешнее уведомление менеджеру не отправляется.</strong><div><a href={`/test/requests/${encodeURIComponent(requestNumber)}`}>Проверить заявку в журнале</a><button type="button" onClick={resetJourney}>Создать ещё одну</button></div>
+        <span>Задача сохранена</span><h4>Заявка № {requestNumber}</h4><p>Она уже доступна менеджеру вместе с описанием задачи, контактным телефоном{tool === "spec" ? " и приложенным ТЗ" : ""}.</p><strong>Сохраните номер заявки — менеджер использует его при уточнении задачи.</strong><div><a href="/contacts">Как связаться по заявке</a><button type="button" onClick={resetJourney}>Создать ещё одну</button></div>
       </div>}
     </div>
   );

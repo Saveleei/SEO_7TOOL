@@ -187,7 +187,7 @@ test("every staff API is server-protected while customer quote submission stays 
 });
 
 function actor(role) {
-  return { id:`test-${role}`, email:"", name:"Тест", role, roleLabel:role, source:"local-demo" };
+  return { id:`test-${role}`, email:"", name:"Тест", role, roleLabel:role, source:"local-password" };
 }
 
 function adminActionRequest(requestId, body) {

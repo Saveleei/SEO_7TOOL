@@ -352,7 +352,7 @@ function assetDirectory(dataDir: string): string {
 }
 
 function resolveDataDir(override?: string): string {
-  return override || process.env.QUOTE_TEST_DATA_DIR || path.join(process.cwd(), "work", "quote-requests");
+  return override || process.env.QUOTE_DATA_DIR || process.env.QUOTE_TEST_DATA_DIR || path.join(process.cwd(), "work", "quote-requests");
 }
 
 function nowIso(value?: string | Date): string {

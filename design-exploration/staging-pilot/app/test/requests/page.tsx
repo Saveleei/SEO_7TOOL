@@ -27,7 +27,7 @@ export default async function TestRequestsPage({ searchParams }: { searchParams:
   };
   return <div className="site-shell"><PilotHeader managerMode managerActor={actor} /><main className="inner-page quote-journal-page">
     <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Рабочее место менеджера" }]} /></div>
-    <section className="quote-journal-hero"><div className="container"><p className="eyebrow">Локальный тестовый контур</p><h1>Заявки покупателей</h1><p>В одной очереди собраны запросы КП, подбор по задаче и поиск аналогов: сначала реакция менеджера, затем проверка поставки и подготовка предложения. Внешняя отправка пока отключена.</p></div></section>
+    <section className="quote-journal-hero"><div className="container"><p className="eyebrow">Защищённое рабочее место</p><h1>Заявки покупателей</h1><p>В одной очереди собраны запросы КП, подбор по задаче и поиск аналогов: сначала реакция менеджера, затем проверка поставки и подготовка предложения.</p></div></section>
     <section className="section"><div className="container">
       {!enabled ? <Disabled /> : requests.length === 0 ? <Empty /> : <>
         <div className="manager-queue-summary" aria-label="Сводка по очереди"><div><span>Всего</span><b>{counts.all}</b></div><div><span>Новые</span><b>{counts.new}</b></div><div className={counts.attention ? "attention" : ""}><span>Требуют реакции</span><b>{counts.attention}</b></div><div><span>Готовятся</span><b>{counts.work}</b></div></div>
@@ -53,11 +53,11 @@ function FilterLink({ value, current, count, children }: { value: Filter; curren
 }
 
 function Disabled() {
-  return <div className="quote-journal-disabled"><b>Приём заявок отключён</b><p>Запустите локальное превью с `QUOTE_TEST_MODE=1`. Без явного флага API возвращает 503 и ничего не сохраняет.</p><Link href="/" prefetch={false}>Вернуться на главную</Link></div>;
+  return <div className="quote-journal-disabled"><b>Приём заявок отключён</b><p>Администратор должен включить рабочее место и настроить защищённое хранилище.</p><Link href="/" prefetch={false}>Вернуться на главную</Link></div>;
 }
 
 function Empty() {
-  return <div className="quote-journal-empty"><b>Сохранённых заявок пока нет</b><p>Добавьте точное исполнение в КП и отправьте форму с вымышленными тестовыми контактами.</p><a href="/search?q=STEYR-35">Открыть тестовый товар</a></div>;
+  return <div className="quote-journal-empty"><b>Сохранённых заявок пока нет</b><p>Новые запросы покупателей появятся здесь сразу после надёжного сохранения.</p><a href="/catalog">Открыть каталог</a></div>;
 }
 
 function normalizeFilter(value?: string): Filter {
