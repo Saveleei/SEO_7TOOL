@@ -7,11 +7,12 @@ This runbook prepares the approved Vinext storefront for `7tool.ru`. It does not
 Do not switch traffic until all gates are green:
 
 1. The scheduled test feed refresh has completed successfully without a manual run.
-2. `products.json` and `catalog-snapshot-meta.json` have the same SHA-256 and a fresh `completedAt`.
-3. Full tests, lint, production build, business acceptance and the loopback release smoke pass from the immutable release.
-4. The shared request directory exists, is writable by the application user and has a verified backup.
-5. The administrator can sign in on the exact production host and anonymous visitors cannot open staff routes.
-6. Rollback points to the current production release and has been checked without modifying it.
+2. The production-owned feed pipeline has completed an isolated dry-run from its immutable runtime.
+3. `catalog-current/products.json` and `catalog-current/catalog-snapshot-meta.json` resolve through one atomic symlink, have the same SHA-256 and a fresh `completedAt`.
+4. Full tests, lint, production build, business acceptance and the loopback release smoke pass from the immutable release.
+5. The shared request directory exists, is writable by the application user and has a verified backup.
+6. The administrator can sign in on the exact production host and anonymous visitors cannot open staff routes.
+7. Rollback points to the current production release and has been checked without modifying it.
 
 ## Required runtime configuration
 
@@ -35,6 +36,10 @@ SHIPPING_FEED_MAX_AGE_MINUTES=1560
 CATALOG_FEED_PATH=<absolute published catalog path>
 CATALOG_SNAPSHOT_META_PATH=<absolute published metadata path>
 ```
+
+Both catalog paths must point through `/var/www/7tool-production-shared/catalog-current`. Never point production at `/var/www/7tool-test-*`. The feed runner is dry-run by default; publication requires `PRODUCTION_FEED_MODE=publish`, a reviewed Stalex `productIds` baseline and the exact production PM2 process `7tool-prod`.
+
+The production scheduler should invoke the stable `/var/www/7tool-production-feed-runtime-current/7tool-source/scripts/production-feed-refresh.sh` once per night after copying the reviewed runtime into an immutable directory. Do not schedule the active storefront release itself: feed behavior must not change when the UI release changes.
 
 Run `npm run validate:production` before the process starts. The preflight blocks test mode, disabled lead capture or shipping promises, non-production administrator hosts, missing or unwritable storage, stale catalog metadata and checksum divergence.
 

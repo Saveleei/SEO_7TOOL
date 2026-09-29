@@ -235,7 +235,7 @@ function uniqueSlug(title, sku, used) {
   return candidate;
 }
 
-function buildProduct(record, identity) {
+function buildProduct(record, identity, publicationScope) {
   const title = normalizeTitle(record.name);
   const brand = inferBrand(title);
   const category = record.category.chosen.targetSlug;
@@ -290,7 +290,7 @@ function buildProduct(record, identity) {
     feedCategoryId: `stalex:${record.category.chosen.id}`,
     sourceSupplier: "stalex",
     sourceRecordId: record.id,
-    publicationScope: "test-only",
+    publicationScope,
   };
 }
 
@@ -303,7 +303,10 @@ function incrementCategoryCounts(categories, products) {
   }));
 }
 
-export function buildStalexTestCatalog({ baseCatalog, stalexSnapshot, limit = 24 }) {
+export function buildStalexCatalog({ baseCatalog, stalexSnapshot, limit = 24, publicationScope = "test-only" }) {
+  if (!["test-only", "production"].includes(publicationScope)) {
+    throw new Error(`Неподдерживаемая область публикации Stalex: ${publicationScope}`);
+  }
   if (!baseCatalog || !Array.isArray(baseCatalog.products) || !Array.isArray(baseCatalog.categories)) {
     throw new Error("Базовый каталог имеет неподдерживаемую структуру.");
   }
@@ -331,7 +334,9 @@ export function buildStalexTestCatalog({ baseCatalog, stalexSnapshot, limit = 24
       || Number(second.availability?.quantity > 0) - Number(first.availability?.quantity > 0)
       || normalizeTitle(first.name).localeCompare(normalizeTitle(second.name), "ru-RU");
   });
-  const selected = candidates.slice(0, Math.max(0, Number(limit) || 0)).map((record) => buildProduct(record, identity));
+  const selected = candidates
+    .slice(0, Math.max(0, Number(limit) || 0))
+    .map((record) => buildProduct(record, identity, publicationScope));
   for (const product of selected) {
     const descriptionLeaks = findSupplierContactLeaks(product.description ?? "");
     if (descriptionLeaks.length > 0) throw new Error(`В описании ${product.id} остались контакты поставщика.`);
@@ -353,7 +358,7 @@ export function buildStalexTestCatalog({ baseCatalog, stalexSnapshot, limit = 24
       products: [...baseCatalog.products, ...selected],
     },
     report: {
-      mode: "test-only",
+      mode: publicationScope,
       baseProducts: baseCatalog.products.length,
       sourceRecords: stalexSnapshot.records?.length ?? 0,
       eligibleAfterGuards: candidates.length,
@@ -364,4 +369,8 @@ export function buildStalexTestCatalog({ baseCatalog, stalexSnapshot, limit = 24
       productIds: selected.map((product) => product.id),
     },
   };
+}
+
+export function buildStalexTestCatalog(options) {
+  return buildStalexCatalog({ ...options, publicationScope:"test-only" });
 }

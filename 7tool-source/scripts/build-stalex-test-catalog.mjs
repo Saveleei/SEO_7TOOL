@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { buildStalexTestCatalog } from "./lib/stalex-test-catalog.mjs";
+import { buildStalexCatalog } from "./lib/stalex-test-catalog.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -45,7 +45,17 @@ function help() {
   ].join("\n");
 }
 
-export function runStalexTestCatalogBuild({ basePath, stalexPath, outputPath, reportPath, baseMetadataPath, metadataOutputPath, limit = 24 }) {
+export function runStalexCatalogBuild({
+  basePath,
+  stalexPath,
+  outputPath,
+  reportPath,
+  baseMetadataPath,
+  metadataOutputPath,
+  limit = 24,
+  publicationScope = "test-only",
+  sourceId = publicationScope === "production" ? "production-stalex-catalog" : "test-stalex-pilot",
+}) {
   const resolvedBase = path.resolve(basePath);
   const resolvedStalex = path.resolve(stalexPath);
   const resolvedOutput = path.resolve(outputPath);
@@ -54,7 +64,7 @@ export function runStalexTestCatalogBuild({ basePath, stalexPath, outputPath, re
   }
   const baseCatalog = JSON.parse(fs.readFileSync(resolvedBase, "utf8"));
   const stalexSnapshot = JSON.parse(fs.readFileSync(resolvedStalex, "utf8"));
-  const result = buildStalexTestCatalog({ baseCatalog, stalexSnapshot, limit });
+  const result = buildStalexCatalog({ baseCatalog, stalexSnapshot, limit, publicationScope });
   const catalogSource = writeJsonAtomic(resolvedOutput, result.catalog);
   const catalogSha256 = createHash("sha256").update(catalogSource).digest("hex");
   const report = { ...result.report, catalogSha256 };
@@ -63,18 +73,19 @@ export function runStalexTestCatalogBuild({ basePath, stalexPath, outputPath, re
   if (metadataOutputPath) {
     if (!baseMetadataPath) throw new Error("Для метаданных пилота требуется --base-meta.");
     const baseMetadata = JSON.parse(fs.readFileSync(path.resolve(baseMetadataPath), "utf8"));
+    const baseCatalogSha256 = createHash("sha256").update(fs.readFileSync(resolvedBase)).digest("hex");
     const completedAt = oldestTimestamp(baseMetadata.completedAt, stalexSnapshot.refreshedAt);
-    if (baseMetadata.status !== "complete" || !completedAt) {
+    if (baseMetadata.status !== "complete" || baseMetadata.catalogSha256 !== baseCatalogSha256 || !completedAt) {
       throw new Error("Базовые метаданные или время Stalex snapshot не подтверждены.");
     }
     metadata = {
       status:"complete",
       completedAt,
-      sourceId:"test-stalex-pilot",
+      sourceId,
       catalogSha256,
-      baseCatalogSha256:baseMetadata.catalogSha256 ?? null,
+      baseCatalogSha256,
       stalexRefreshedAt:stalexSnapshot.refreshedAt,
-      publicationScope:"test-only",
+      publicationScope,
     };
     writeJsonAtomic(path.resolve(metadataOutputPath), metadata);
   }
@@ -85,6 +96,14 @@ export function runStalexTestCatalogBuild({ basePath, stalexPath, outputPath, re
     metadataOutputPath:metadataOutputPath ? path.resolve(metadataOutputPath) : null,
     catalogSha256:metadata?.catalogSha256 ?? catalogSha256,
   };
+}
+
+export function runStalexTestCatalogBuild(options) {
+  return runStalexCatalogBuild({
+    ...options,
+    publicationScope:"test-only",
+    sourceId:"test-stalex-pilot",
+  });
 }
 
 function main() {

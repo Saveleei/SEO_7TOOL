@@ -181,9 +181,10 @@ test("CLI builder writes freshness metadata for the exact combined catalog", asy
   const reportPath = path.join(directory, "pilot-report.json");
   const metadataOutputPath = path.join(directory, "catalog-snapshot-meta.json");
   try {
-    await writeFile(basePath, JSON.stringify(baseCatalog), "utf8");
+    const baseSource = JSON.stringify(baseCatalog);
+    await writeFile(basePath, baseSource, "utf8");
     await writeFile(stalexPath, JSON.stringify({ ...snapshot([record()]), refreshedAt:"2026-09-28T00:35:00.000Z" }), "utf8");
-    await writeFile(baseMetadataPath, JSON.stringify({ status:"complete", completedAt:"2026-09-28T00:25:00.000Z", catalogSha256:"base-sha" }), "utf8");
+    await writeFile(baseMetadataPath, JSON.stringify({ status:"complete", completedAt:"2026-09-28T00:25:00.000Z", catalogSha256:createHash("sha256").update(baseSource).digest("hex") }), "utf8");
     const report = runStalexTestCatalogBuild({
       basePath,
       stalexPath,
@@ -229,7 +230,7 @@ test("nightly candidate guard accepts price refreshes but blocks an unreviewed p
     await writeFile(currentReportPath, JSON.stringify({ mode:"test-only", selected:1, productIds:["STALEX-other"] }), "utf8");
     assert.throws(
       () => validateStalexTestCatalogCandidate({ catalogPath, metadataPath, reportPath, currentReportPath }),
-      /состав Stalex-пилота изменился/iu,
+      /состав Stalex-каталога изменился/iu,
     );
   } finally {
     await rm(directory, { recursive:true, force:true });

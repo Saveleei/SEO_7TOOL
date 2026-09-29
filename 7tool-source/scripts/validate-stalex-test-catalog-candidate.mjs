@@ -26,7 +26,16 @@ function exactProductIds(report) {
   return ids;
 }
 
-export function validateStalexTestCatalogCandidate({ catalogPath, metadataPath, reportPath, currentReportPath, allowProductSetChange = false }) {
+export function validateStalexCatalogCandidate({
+  catalogPath,
+  metadataPath,
+  reportPath,
+  currentReportPath,
+  allowProductSetChange = false,
+  expectedScope = "test-only",
+  expectedSourceId = expectedScope === "production" ? "production-stalex-catalog" : "test-stalex-pilot",
+  requireReviewedProductSet = false,
+}) {
   const catalogFile = readJson(catalogPath, "Каталог-кандидат");
   const metadataFile = readJson(metadataPath, "Метаданные кандидата");
   const reportFile = readJson(reportPath, "Отчёт кандидата");
@@ -34,35 +43,47 @@ export function validateStalexTestCatalogCandidate({ catalogPath, metadataPath, 
   const metadata = JSON.parse(metadataFile.source);
   const report = JSON.parse(reportFile.source);
 
-  if (metadata.status !== "complete" || metadata.sourceId !== "test-stalex-pilot" || metadata.publicationScope !== "test-only") {
-    throw new Error("Метаданные кандидата не подтверждают test-only публикацию.");
+  if (metadata.status !== "complete" || metadata.sourceId !== expectedSourceId || metadata.publicationScope !== expectedScope) {
+    throw new Error(`Метаданные кандидата не подтверждают публикацию ${expectedScope}.`);
   }
   const catalogSha256 = createHash("sha256").update(catalogFile.source).digest("hex");
   if (metadata.catalogSha256 !== catalogSha256 || report.catalogSha256 !== catalogSha256) {
     throw new Error("SHA-256 кандидата не совпадает с метаданными и отчётом.");
   }
-  if (report.mode !== "test-only" || !Array.isArray(catalog.products)) {
-    throw new Error("Кандидат не является тестовым каталогом ожидаемой структуры.");
+  if (report.mode !== expectedScope || !Array.isArray(catalog.products)) {
+    throw new Error(`Кандидат не является каталогом ${expectedScope} ожидаемой структуры.`);
   }
 
   const ids = exactProductIds(report);
   const productsById = new Map(catalog.products.map((product) => [product.id, product]));
   for (const id of ids) {
     const product = productsById.get(id);
-    if (!product || product.sourceSupplier !== "stalex" || product.publicationScope !== "test-only" || !Array.isArray(product.variants) || product.variants.length === 0) {
-      throw new Error(`Товар ${id} не прошёл test-only проверку публикации.`);
+    if (!product || product.sourceSupplier !== "stalex" || product.publicationScope !== expectedScope || !Array.isArray(product.variants) || product.variants.length === 0) {
+      throw new Error(`Товар ${id} не прошёл проверку публикации ${expectedScope}.`);
     }
   }
 
-  if (currentReportPath && fs.existsSync(path.resolve(currentReportPath))) {
-    const currentReport = JSON.parse(fs.readFileSync(path.resolve(currentReportPath), "utf8"));
+  const resolvedCurrentReport = currentReportPath ? path.resolve(currentReportPath) : null;
+  if (requireReviewedProductSet && (!resolvedCurrentReport || !fs.existsSync(resolvedCurrentReport))) {
+    throw new Error("Для production требуется рассмотренный список Stalex productIds.");
+  }
+  if (resolvedCurrentReport && fs.existsSync(resolvedCurrentReport)) {
+    const currentReport = JSON.parse(fs.readFileSync(resolvedCurrentReport, "utf8"));
     const currentIds = exactProductIds(currentReport);
     if (!allowProductSetChange && JSON.stringify(currentIds) !== JSON.stringify(ids)) {
-      throw new Error("Состав Stalex-пилота изменился; требуется ручная проверка и новая сборка test-релиза.");
+      throw new Error("Состав Stalex-каталога изменился; требуется ручная проверка productIds.");
     }
   }
 
   return { catalogSha256, selected:ids.length, productIds:ids };
+}
+
+export function validateStalexTestCatalogCandidate(options) {
+  return validateStalexCatalogCandidate({
+    ...options,
+    expectedScope:"test-only",
+    expectedSourceId:"test-stalex-pilot",
+  });
 }
 
 function help() {
@@ -89,7 +110,19 @@ async function main() {
   console.log(JSON.stringify(result, null, 2));
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+export function isDirectExecution(argvPath, moduleUrl = import.meta.url) {
+  if (!argvPath) return false;
+  const resolvedPath = path.resolve(argvPath);
+  let canonicalPath = resolvedPath;
+  try {
+    canonicalPath = fs.realpathSync(resolvedPath);
+  } catch {
+    // Keep the resolved path so a normal missing-entrypoint error remains visible.
+  }
+  return pathToFileURL(canonicalPath).href === moduleUrl;
+}
+
+if (isDirectExecution(process.argv[1])) {
   main().catch((error) => {
     console.error(error instanceof Error ? error.message : String(error));
     process.exitCode = 1;
