@@ -54,7 +54,7 @@
 
 ## Commit
 
-- `683aa65` — `feat: improve category responsive conversion UX`
+- Implementation: `5feea57` — `feat: improve category responsive conversion UX`
 
 ## Review focus
 
