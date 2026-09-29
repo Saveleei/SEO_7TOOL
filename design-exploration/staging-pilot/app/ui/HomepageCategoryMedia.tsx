@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 
-export function HomepageCategoryMedia({ src, alt }: { src?: string; alt: string }) {
+export function HomepageCategoryMedia({ src, alt, sizes = "(max-width: 760px) 42vw, (max-width: 1050px) 34vw, 420px" }: { src?: string; alt: string; sizes?: string }) {
   const [failed, setFailed] = useState(false);
   if (!src || failed) return <CategoryMediaFallback />;
 
@@ -11,7 +11,7 @@ export function HomepageCategoryMedia({ src, alt }: { src?: string; alt: string 
     src={src}
     alt={alt}
     fill
-    sizes="(max-width: 760px) 42vw, (max-width: 1050px) 34vw, 420px"
+    sizes={sizes}
     unoptimized
     onError={() => setFailed(true)}
   />;

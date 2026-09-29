@@ -9,6 +9,7 @@ import { CategoryResultGuidance } from "../../../ui/CategoryResultGuidance";
 import { DrillSelectionAssistant } from "../../../ui/DrillSelectionAssistant";
 import { FeedProductList } from "../../../ui/FeedProductList";
 import { FeedProductTable } from "../../../ui/FeedProductTable";
+import { HomepageCategoryMedia } from "../../../ui/HomepageCategoryMedia";
 import { ManagerContactCard } from "../../../ui/ManagerContactCard";
 import { OpenFullFiltersLink, PromotedFilterLink } from "../../../ui/PromotedFilterControls";
 import { PilotFooter } from "../../../ui/PilotFooter";
@@ -18,7 +19,9 @@ import { TestRequestForm } from "../../../ui/TestRequestForm";
 import { AutoApplyFilterPanel, AutoApplySortForm } from "../../../ui/AutoApplyFilters";
 import { buildCategoryQueryContext, findCategorySelectionOption, getCategorySelectionRule } from "../../../data/categorySelection.mjs";
 import { getCategoryExpertProfile, selectCategoryAssistantFacets, selectCategoryFacets } from "../../../data/categoryExpertProfiles.mjs";
-import { getFeedCategory, getFeedCategoryPage, getFeedCategoryProductCountForQuery, getFeedCategoryProductType, getFeedCategoryRecoverySuggestions, getFeedTableColumns, getGuidedFacetOptions, getPromotedFacetOptions, prefersDenseFeedTable, type FeedCategoryQuery, type FeedCategorySegment, type FeedCategorySort, type FeedCategorySubsegment, type FeedFacet, type FeedProductType, type FeedVariantFilter, toFeedProductCardModel } from "../../../data/feedCatalog";
+import { getFeedCategory, getFeedCategoryPage, getFeedCategoryProductCountForQuery, getFeedCategoryProductType, getFeedCategoryRecoverySuggestions, getFeedProductImage, getFeedTableColumns, getGuidedFacetOptions, getPromotedFacetOptions, prefersDenseFeedTable, type FeedCategoryQuery, type FeedCategorySegment, type FeedCategorySort, type FeedCategorySubsegment, type FeedFacet, type FeedProductType, type FeedVariantFilter, toFeedProductCardModel } from "../../../data/feedCatalog";
+import { homepageAssetUrl } from "../../../data/homepageContentModel";
+import { getHomepageContentSettings } from "../../../data/homepageContentStore";
 import { getProductionSubcategory } from "../../../data/productionCategoryGroups";
 import { getShippingRuntimeDiagnostic } from "../../../data/shippingRuntimeSettings.mjs";
 import { createPublicMetadata, hasSearchParameters } from "../../../data/seo";
@@ -69,7 +72,7 @@ export async function generateMetadata({ params, searchParams }: RouteProps): Pr
 }
 
 export default async function SubcategoryPage({ params, searchParams }: RouteProps) {
-  const [{ slug }, rawSearchParams] = await Promise.all([params, searchParams]);
+  const [{ slug }, rawSearchParams, homepageContent] = await Promise.all([params, searchParams, getHomepageContentSettings()]);
   const entry = getProductionSubcategory(slug);
   if (!entry) notFound();
 
@@ -174,6 +177,18 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     && !(facet.minimumFacetKey && Number.isFinite(numericMaximums[facet.minimumFacetKey])));
   const categoryTitle = activeSubsegment?.heroTitle ?? activeShortcut?.heroTitle ?? feedCategory?.h1 ?? subcategory.label;
   const categoryIntro = activeSubsegment?.heroIntro ?? activeShortcut?.heroIntro ?? profile.heroIntro;
+  const manualHeroMedia = homepageContent.categoryItems.find((item) => item.id === slug && item.imageAssetId);
+  const scopedHeroProduct = activeShortcut || activeSubsegment
+    ? result.products.find((product) => getFeedProductImage(product))
+    : undefined;
+  const scopedHeroImage = scopedHeroProduct ? getFeedProductImage(scopedHeroProduct) : undefined;
+  const categoryHeroImage = scopedHeroImage
+    ?? (manualHeroMedia ? homepageAssetUrl(manualHeroMedia.imageAssetId) : undefined)
+    ?? subcategory.image;
+  const categoryHeroAlt = scopedHeroProduct?.title
+    ?? manualHeroMedia?.imageAlt
+    ?? `${subcategory.label} — пример оборудования из каталога`;
+  const categoryHeroLabel = activeSubsegment?.label ?? activeShortcut?.label ?? manualHeroMedia?.title ?? subcategory.label;
   const activeQueryContext = buildCategoryQueryContext(categoryTitle, result.facets, categoryQuery);
   const shapeFacet = technicalFacets.find((facet) => facet.keyword === "форма");
   const shankFacet = technicalFacets.find((facet) => facet.keyword === "диаметр хвостовика");
@@ -232,12 +247,15 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   return <div className="site-shell"><PilotHeader /><main className="inner-page">
     <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Каталог", href:"/catalog" }, { label:group.title, href:group.href }, { label:subcategory.label }]} /></div>
 
-    <section className="page-hero page-hero--category"><div className="container page-hero-grid"><div>
+    <section className="page-hero page-hero--category"><div className="container page-hero-grid"><div className="category-hero-copy">
       <p className="eyebrow">{group.title}</p>
       <h1>{categoryTitle}</h1>
       <p>{categoryIntro}</p>
       <div className="category-hero-facts"><span><b>{categoryHeroCount.toLocaleString("ru-RU")}</b> {pluralizeProductGroups(categoryHeroCount)}</span><span>Цена — по данным поставщика</span><span>Наличие и срок — после проверки</span></div>
-    </div><aside>
+    </div>{categoryHeroImage && <figure className="category-hero-media">
+      <div className="category-hero-media-visual"><HomepageCategoryMedia src={categoryHeroImage} alt={categoryHeroAlt} sizes="(max-width: 760px) calc(100vw - 56px), (max-width: 1180px) 240px, 270px" /></div>
+      <figcaption><span>{scopedHeroProduct ? "Пример выбранного вида" : "Пример оборудования раздела"}</span><b>{categoryHeroLabel}</b></figcaption>
+    </figure>}<aside>
       <b>{selectorTitle}</b>
       <p>{selectorIntro}</p>
       <a href={activeSelectorHref}>{browsingAccessories ? "Проверить совместимость →" : engineerFirstSelection ? "Передать задачу инженеру →" : "Ответить на несколько вопросов →"}</a>

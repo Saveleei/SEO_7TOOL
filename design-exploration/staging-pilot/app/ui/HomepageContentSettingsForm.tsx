@@ -153,7 +153,7 @@ function MediaEditorList({ collection, items, references, uploading, imageUrl, o
         <div className="homepage-media-editor-title"><b>{item.title}</b><small>{reference?.count ? formatProductCount(reference.count) : "Раздел каталога"} · ссылка фиксирована</small></div>
         <Field label="Название на главной" value={item.title} maxLength={90} onChange={(title) => onUpdate(collection, item.id, { title })} />
         <Field label="Описание изображения" value={item.imageAlt} maxLength={170} onChange={(imageAlt) => onUpdate(collection, item.id, { imageAlt })} />
-        {collection === "categoryItems" ? <p className="homepage-media-fit-note"><b>Товар показывается целиком</b><span>Для разделов первого экрана обрезка отключена.</span></p> : <>
+        {collection === "categoryItems" ? <p className="homepage-media-fit-note"><b>Фото используется на главной и в категории</b><span>Для разделов первого экрана обрезка отключена. Товар показывается целиком, без обрезки.</span></p> : <>
           <label><span>Как вписать фото</span><select value={item.imageFit} onChange={(event) => onUpdate(collection, item.id, { imageFit:event.target.value as HomepageImageFit })}><option value="contain">Показать товар целиком</option><option value="cover">Заполнить карточку</option></select></label>
           <label><span>Положение в кадре</span><select value={item.imagePosition} onChange={(event) => onUpdate(collection, item.id, { imagePosition:event.target.value as HomepageImagePosition })}><option value="center">По центру</option><option value="top">Сверху</option><option value="bottom">Снизу</option><option value="left">Слева</option><option value="right">Справа</option></select></label>
         </>}
