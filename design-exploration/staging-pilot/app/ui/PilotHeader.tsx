@@ -2,7 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { canManager, type ManagerActor } from "../data/managerAccess";
-import { isQuoteTestContour } from "../data/quoteRequestStore";
+import { isQuoteIntakeDeliveryEnabled, isQuoteTestContour } from "../data/quoteRequestStore";
 import { getCanonicalCatalogGroups, pilotFeedCategorySlugs } from "../data/productionCategoryGroups";
 import { HeaderCatalogMenu } from "./HeaderCatalogMenu";
 import { HeaderContactMenu } from "./HeaderContactMenu";
@@ -13,9 +13,10 @@ import { RequestCartButton } from "./RequestCart";
 export function PilotHeader({ managerMode = false, managerActor = null }: { managerMode?: boolean; managerActor?: ManagerActor | null }) {
   const categoryGroups = managerMode ? [] : getCanonicalCatalogGroups(pilotFeedCategorySlugs);
   const testContour = isQuoteTestContour();
+  const intakeDelivery = isQuoteIntakeDeliveryEnabled();
   return (
     <>
-      {testContour && <div className="preview-banner"><span>Тестовый стенд</span><p>Локальное сохранение · внешняя отправка отключена · основной сайт не изменён</p></div>}
+      {testContour && <div className="preview-banner"><span>Новая версия</span><p>{intakeDelivery ? "Заявки сохраняются и передаются менеджеру · основной сайт не изменён" : "Локальное сохранение · внешняя отправка отключена · основной сайт не изменён"}</p></div>}
       <header className="site-header">
         <div className="container header-row">
           <Link className="brand" href="/" aria-label="7TOOL — главная"><Image src="/brand/7tool-primary.svg" alt="7TOOL" width={142} height={44} priority /></Link>

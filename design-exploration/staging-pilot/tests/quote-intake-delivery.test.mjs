@@ -39,6 +39,25 @@ test("enabled production intake creates a privacy-safe pending bridge record", a
   }
 });
 
+test("the named new-version contour can keep staff access while explicitly enabling intake delivery", async () => {
+  const dataDir = await mkdtemp(path.join(os.tmpdir(), "7tool-intake-preview-"));
+  const previous = snapshotEnv(envNames);
+  try {
+    process.env.QUOTE_WORKSPACE_ENABLED = "1";
+    process.env.QUOTE_TEST_MODE = "1";
+    process.env.QUOTE_TEST_DATA_DIR = dataDir;
+    delete process.env.QUOTE_DATA_DIR;
+    process.env.QUOTE_INTAKE_DELIVERY_ENABLED = "1";
+    assert.equal(isQuoteIntakeDeliveryEnabled(), true);
+    const validation = validateQuoteRequest(validRequest());
+    const saved = await saveQuoteRequest(validation.value, null);
+    assert.equal(saved.deliveryMode, "queued-production-outbox");
+  } finally {
+    restoreEnv(previous);
+    await rm(dataDir, { recursive:true, force:true });
+  }
+});
+
 test("bridge forwards once with a stable submission id and records a PII-free receipt", async () => {
   const dataDir = await mkdtemp(path.join(os.tmpdir(), "7tool-intake-delivery-"));
   const previous = snapshotEnv(envNames);

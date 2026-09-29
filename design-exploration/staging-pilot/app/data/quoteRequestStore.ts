@@ -107,7 +107,7 @@ export function isQuoteWorkspaceEnabled(env: NodeJS.ProcessEnv = process.env): b
 }
 
 export function isQuoteIntakeDeliveryEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
-  return env.QUOTE_INTAKE_DELIVERY_ENABLED === "1" && env.QUOTE_WORKSPACE_ENABLED === "1" && !isQuoteTestContour(env);
+  return env.QUOTE_INTAKE_DELIVERY_ENABLED === "1" && env.QUOTE_WORKSPACE_ENABLED === "1";
 }
 
 // Backward-compatible name used by existing staff routes. The workspace can
@@ -273,8 +273,9 @@ async function ensureIntakeOutboxRecord(dataDir: string, request: StoredQuote): 
 }
 
 function resolveIntakeDeliveryMode(): StoredQuote["delivery"]["mode"] {
+  if (isQuoteIntakeDeliveryEnabled()) return "queued-production-outbox";
   if (isQuoteTestContour()) return "disabled-test-contour";
-  return isQuoteIntakeDeliveryEnabled() ? "queued-production-outbox" : "held-internal-outbox";
+  return "held-internal-outbox";
 }
 
 async function appendJsonLine(filePath: string, value: unknown) {
