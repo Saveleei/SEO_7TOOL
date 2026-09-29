@@ -44,6 +44,8 @@
 
 - Implementation commit: `49ee8f8` (`fix: align production storefront process name`).
 - Branch: `codex/production-process-alignment-20260929`.
+- Immutable local source archive: `C:\Users\user\Documents\ChatGPT\7TOOL\.codex-tmp\production-process-alignment-49ee8f8.tar.gz` (`40 592 591` bytes).
+- Archive SHA-256: `c7128c1c9544ebf3a31813989fab08ab1dac3ccb47583e37531f9a2ee3a3cacb`.
 - The Vinext PM2 config now honours `PM2_APP_NAME`; production is explicitly configured as `7tool-prod`.
 - This matches the exact process name accepted by the production feed runner, so a successful atomic nightly publication reloads the process that serves the live storefront.
 - The cutover runbook now requires the same process name in both storefront and feed environments.
