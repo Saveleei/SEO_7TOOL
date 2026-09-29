@@ -77,6 +77,7 @@ function main() {
       status:process.env.PRODUCTION_FEED_STATUS,
       stage:process.env.PRODUCTION_FEED_STAGE,
       mode:process.env.PRODUCTION_FEED_MODE,
+      target:process.env.PRODUCTION_FEED_TARGET,
       exitCode:process.env.PRODUCTION_FEED_EXIT_CODE,
       message:process.env.PRODUCTION_FEED_MESSAGE,
       catalogSha256:process.env.PRODUCTION_FEED_CATALOG_SHA,

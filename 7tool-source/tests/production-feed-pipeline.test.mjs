@@ -266,7 +266,7 @@ test("dry-run status is atomic and candidate freshness fails closed", async () =
   }
 });
 
-test("production runner is dry-run by default and gates publication before one exact reload", async () => {
+test("production runner is dry-run by default and gates each target before one exact reload", async () => {
   const source = await readFile(new URL("../scripts/production-feed-refresh.sh", import.meta.url));
   const text = source.toString("utf8");
   assert.equal(source.includes(13), false, "production feed shell must use LF line endings");
@@ -276,9 +276,13 @@ test("production runner is dry-run by default and gates publication before one e
   assert.match(text, /build-stalex-production-catalog\.mjs/u);
   assert.match(text, /validate-stalex-production-catalog-candidate\.mjs/u);
   assert.match(text, /production-feed-runtime\.mjs publish/u);
-  assert.match(text, /Refusing to reload an unexpected production PM2 process/u);
+  assert.match(text, /PRODUCTION_FEED_TARGET:-production/u);
+  assert.match(text, /production\)\s+expected_pm2_app_name=7tool-prod/u);
+  assert.match(text, /new-preview\)\s+expected_pm2_app_name=7tool-storefront-new/u);
+  assert.match(text, /new-preview feed must use \/var\/www\/7tool-new-shared/u);
+  assert.match(text, /Refusing to reload an unexpected \$PRODUCTION_FEED_TARGET PM2 process/u);
   assert.match(text, /REQUESTED_PM2_APP_NAME=\$\{PM2_APP_NAME:-7tool-prod\}/u);
-  assert.match(text, /\[ "\$PM2_APP_NAME" != "7tool-prod" \]/u);
+  assert.match(text, /\[ "\$PM2_APP_NAME" != "\$expected_pm2_app_name" \]/u);
   assert.match(text, /pm2 reload "\$PM2_APP_NAME"/u);
   assert.match(text, /PRODUCTION_STOREFRONT_HEALTH_URL must use loopback HTTP/u);
   assert.ok(text.indexOf("validate-stalex-production-catalog-candidate.mjs") < text.indexOf("production-feed-runtime.mjs publish"));

@@ -78,7 +78,7 @@ type StoredQuote = Omit<ValidatedQuote, "idempotencyKey"> & {
   status: "received";
   idempotencyHash: string;
   attachment: StoredAttachment | null;
-  delivery: { mode: "disabled-test-contour" | "held-internal-outbox"; email: false; max: false; crm: false };
+  delivery: { mode: "disabled-test-contour" | "held-internal-outbox" | "queued-production-outbox"; email: false; max: false; crm: false };
 };
 
 type StoredEvent = QuoteRequestEvent & { idempotencyHash: string };
@@ -87,10 +87,10 @@ type IntakeOutboxRecord = {
   requestId: string;
   createdAt: string;
   requestType: StoredQuote["requestType"];
-  status: "held";
-  transport: "pending-production-adapter";
+  status: "held" | "pending";
+  transport: "pending-production-adapter" | "production-lead-bridge";
   channels: ["email", "max", "crm"];
-  deliveryEnabled: false;
+  deliveryEnabled: boolean;
   attempts: 0;
 };
 type StoreOptions = { dataDir?: string; now?: string | Date; responseMinutes?: number };
@@ -104,6 +104,10 @@ export function isQuoteTestContour(env: NodeJS.ProcessEnv = process.env): boolea
 
 export function isQuoteWorkspaceEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
   return env.QUOTE_WORKSPACE_ENABLED === "1" || isQuoteTestContour(env);
+}
+
+export function isQuoteIntakeDeliveryEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+  return env.QUOTE_INTAKE_DELIVERY_ENABLED === "1" && env.QUOTE_WORKSPACE_ENABLED === "1" && !isQuoteTestContour(env);
 }
 
 // Backward-compatible name used by existing staff routes. The workspace can
@@ -207,8 +211,8 @@ async function saveQuoteRequestSerial(input: ValidatedQuote, attachment: Attachm
   const idempotencyHash = createHash("sha256").update(input.idempotencyKey).digest("hex");
   const existing = (await readRecords(dataDir)).find((record) => record.idempotencyHash === idempotencyHash);
   if (existing) {
-    const deliveryMode = existing.delivery?.mode ?? (isQuoteTestContour() ? "disabled-test-contour" : "held-internal-outbox");
-    if (deliveryMode === "held-internal-outbox") await ensureIntakeOutboxRecord(dataDir, existing);
+    const deliveryMode = existing.delivery?.mode ?? resolveIntakeDeliveryMode();
+    if (deliveryMode !== "disabled-test-contour") await ensureIntakeOutboxRecord(dataDir, existing);
     return { id:existing.id, createdAt:existing.createdAt, duplicate:true, billingProvided:hasBillingDetails(existing), deliveryMode };
   }
 
@@ -227,7 +231,7 @@ async function saveQuoteRequestSerial(input: ValidatedQuote, attachment: Attachm
     storedAttachment = { relativePath:`uploads/${fileName}`, mime:attachment.mime, size:attachment.size, kind:attachment.kind, originalName:attachment.originalName };
   }
 
-  const deliveryMode = isQuoteTestContour() ? "disabled-test-contour" : "held-internal-outbox";
+  const deliveryMode = resolveIntakeDeliveryMode();
   const record: StoredQuote = {
     ...toStoredInput(input),
     id,
@@ -244,26 +248,33 @@ async function saveQuoteRequestSerial(input: ValidatedQuote, attachment: Attachm
     if (storedAttachmentPath) await rm(storedAttachmentPath, { force:true });
     throw error;
   }
-  if (deliveryMode === "held-internal-outbox") await ensureIntakeOutboxRecord(dataDir, record);
+  if (deliveryMode !== "disabled-test-contour") await ensureIntakeOutboxRecord(dataDir, record);
   return { id, createdAt, duplicate:false, billingProvided:Boolean(input.billingInn || storedAttachment?.kind === "billing"), deliveryMode };
 }
 
 async function ensureIntakeOutboxRecord(dataDir: string, request: StoredQuote): Promise<void> {
   const filePath = path.join(dataDir, "request-intake-outbox.jsonl");
   const existing = await readJsonLines<IntakeOutboxRecord>(filePath);
-  if (existing.some((record) => record.requestId === request.id)) return;
+  const deliveryEnabled = isQuoteIntakeDeliveryEnabled();
+  const previous = existing.filter((record) => record.requestId === request.id).at(-1);
+  if (previous && previous.deliveryEnabled === deliveryEnabled) return;
   const record: IntakeOutboxRecord = {
     id:`INTAKE-${request.id}`,
     requestId:request.id,
     createdAt:request.createdAt,
     requestType:request.requestType,
-    status:"held",
-    transport:"pending-production-adapter",
+    status:deliveryEnabled ? "pending" : "held",
+    transport:deliveryEnabled ? "production-lead-bridge" : "pending-production-adapter",
     channels:["email", "max", "crm"],
-    deliveryEnabled:false,
+    deliveryEnabled,
     attempts:0,
   };
   await appendJsonLine(filePath, record);
+}
+
+function resolveIntakeDeliveryMode(): StoredQuote["delivery"]["mode"] {
+  if (isQuoteTestContour()) return "disabled-test-contour";
+  return isQuoteIntakeDeliveryEnabled() ? "queued-production-outbox" : "held-internal-outbox";
 }
 
 async function appendJsonLine(filePath: string, value: unknown) {

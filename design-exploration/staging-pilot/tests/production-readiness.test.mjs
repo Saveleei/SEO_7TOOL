@@ -7,7 +7,7 @@ import path from "node:path";
 import test from "node:test";
 import { POST as createQuoteRequest } from "../app/api/quote-requests/route.ts";
 import { isTestManagerHostname } from "../app/data/managerAccess.ts";
-import { isQuoteTestContour, isQuoteWorkspaceEnabled, saveQuoteRequest } from "../app/data/quoteRequestStore.ts";
+import { isQuoteIntakeDeliveryEnabled, isQuoteTestContour, isQuoteWorkspaceEnabled, saveQuoteRequest } from "../app/data/quoteRequestStore.ts";
 import { validateQuoteRequest } from "../app/data/quoteRequestValidation.mjs";
 import { validateProductionConfig } from "../scripts/validate-production-config.mjs";
 
@@ -48,14 +48,16 @@ test("production preflight accepts only a complete live configuration and matchi
 
 test("production workspace stores a request durably without enabling an external transport", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "7tool-production-request-"));
-  const previous = snapshotEnv(["QUOTE_WORKSPACE_ENABLED", "QUOTE_TEST_MODE", "QUOTE_DATA_DIR", "QUOTE_TEST_DATA_DIR"]);
+  const previous = snapshotEnv(["QUOTE_WORKSPACE_ENABLED", "QUOTE_TEST_MODE", "QUOTE_DATA_DIR", "QUOTE_TEST_DATA_DIR", "QUOTE_INTAKE_DELIVERY_ENABLED"]);
   try {
     process.env.QUOTE_WORKSPACE_ENABLED = "1";
     process.env.QUOTE_TEST_MODE = "0";
     process.env.QUOTE_DATA_DIR = root;
     delete process.env.QUOTE_TEST_DATA_DIR;
+    delete process.env.QUOTE_INTAKE_DELIVERY_ENABLED;
     assert.equal(isQuoteWorkspaceEnabled(), true);
     assert.equal(isQuoteTestContour(), false);
+    assert.equal(isQuoteIntakeDeliveryEnabled(), false);
     const validation = validateQuoteRequest(validRequest());
     assert.equal(validation.ok, true);
     const saved = await saveQuoteRequest(validation.value, null);
@@ -89,12 +91,13 @@ test("production workspace stores a request durably without enabling an external
 
 test("production request API accepts a same-origin form without enabling the test contour", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "7tool-production-api-"));
-  const previous = snapshotEnv(["QUOTE_WORKSPACE_ENABLED", "QUOTE_TEST_MODE", "QUOTE_DATA_DIR", "QUOTE_TEST_DATA_DIR"]);
+  const previous = snapshotEnv(["QUOTE_WORKSPACE_ENABLED", "QUOTE_TEST_MODE", "QUOTE_DATA_DIR", "QUOTE_TEST_DATA_DIR", "QUOTE_INTAKE_DELIVERY_ENABLED"]);
   try {
     process.env.QUOTE_WORKSPACE_ENABLED = "1";
     process.env.QUOTE_TEST_MODE = "0";
     process.env.QUOTE_DATA_DIR = root;
     delete process.env.QUOTE_TEST_DATA_DIR;
+    delete process.env.QUOTE_INTAKE_DELIVERY_ENABLED;
     const form = new FormData();
     const input = validRequest();
     form.set("request_type", input.requestType);
@@ -127,14 +130,16 @@ test("production request API accepts a same-origin form without enabling the tes
 
 test("legacy isolated test contour remains compatible and explicit", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "7tool-test-request-"));
-  const previous = snapshotEnv(["QUOTE_WORKSPACE_ENABLED", "QUOTE_TEST_MODE", "QUOTE_DATA_DIR", "QUOTE_TEST_DATA_DIR"]);
+  const previous = snapshotEnv(["QUOTE_WORKSPACE_ENABLED", "QUOTE_TEST_MODE", "QUOTE_DATA_DIR", "QUOTE_TEST_DATA_DIR", "QUOTE_INTAKE_DELIVERY_ENABLED"]);
   try {
     delete process.env.QUOTE_WORKSPACE_ENABLED;
     process.env.QUOTE_TEST_MODE = "1";
     delete process.env.QUOTE_DATA_DIR;
     process.env.QUOTE_TEST_DATA_DIR = root;
+    process.env.QUOTE_INTAKE_DELIVERY_ENABLED = "1";
     assert.equal(isQuoteWorkspaceEnabled(), true);
     assert.equal(isQuoteTestContour(), true);
+    assert.equal(isQuoteIntakeDeliveryEnabled(), false);
     const validation = validateQuoteRequest(validRequest());
     assert.equal(validation.ok, true);
     const saved = await saveQuoteRequest(validation.value, null);

@@ -7,6 +7,7 @@ SHARED_ENV=${SHARED_ENV:-$PRODUCTION_SHARED_ROOT/.env.feed-production}
 REQUESTED_MODE=${PRODUCTION_FEED_MODE:-dry-run}
 REQUESTED_OFFLINE_INPUTS=${PRODUCTION_FEED_OFFLINE_INPUTS:-0}
 REQUESTED_PM2_APP_NAME=${PM2_APP_NAME:-7tool-prod}
+REQUESTED_TARGET=${PRODUCTION_FEED_TARGET:-production}
 
 if [ -f "$SHARED_ENV" ]; then
   set -a
@@ -20,6 +21,7 @@ fi
 PRODUCTION_FEED_MODE=$REQUESTED_MODE
 PRODUCTION_FEED_OFFLINE_INPUTS=$REQUESTED_OFFLINE_INPUTS
 PM2_APP_NAME=$REQUESTED_PM2_APP_NAME
+PRODUCTION_FEED_TARGET=$REQUESTED_TARGET
 PRODUCTION_FEED_WORK_DIR=${PRODUCTION_FEED_WORK_DIR:-$PRODUCTION_SHARED_ROOT/feed-work}
 PRODUCTION_CATALOG_RELEASES_DIR=${PRODUCTION_CATALOG_RELEASES_DIR:-$PRODUCTION_SHARED_ROOT/catalog-releases}
 PRODUCTION_CATALOG_CURRENT_LINK=${PRODUCTION_CATALOG_CURRENT_LINK:-$PRODUCTION_SHARED_ROOT/catalog-current}
@@ -44,8 +46,28 @@ if [ "$PRODUCTION_FEED_OFFLINE_INPUTS" != "0" ] && [ "$PRODUCTION_FEED_OFFLINE_I
   echo "PRODUCTION_FEED_OFFLINE_INPUTS must be 0 or 1" >&2
   exit 1
 fi
-if [ "$PRODUCTION_FEED_MODE" = "publish" ] && [ "$PM2_APP_NAME" != "7tool-prod" ]; then
-  echo "Refusing to reload an unexpected production PM2 process: $PM2_APP_NAME" >&2
+case "$PRODUCTION_FEED_TARGET" in
+  production)
+    expected_pm2_app_name=7tool-prod
+    ;;
+  new-preview)
+    expected_pm2_app_name=7tool-storefront-new
+    if [ "$PRODUCTION_SHARED_ROOT" != "/var/www/7tool-new-shared" ]; then
+      echo "new-preview feed must use /var/www/7tool-new-shared" >&2
+      exit 1
+    fi
+    case "$APP_DIR" in
+      /var/www/7tool-new-feed-runtime-current/7tool-source|/var/www/7tool-new-feed-runtime-*/7tool-source) ;;
+      *) echo "new-preview feed must use its dedicated runtime" >&2; exit 1 ;;
+    esac
+    ;;
+  *)
+    echo "PRODUCTION_FEED_TARGET must be production or new-preview" >&2
+    exit 1
+    ;;
+esac
+if [ "$PRODUCTION_FEED_MODE" = "publish" ] && [ "$PM2_APP_NAME" != "$expected_pm2_app_name" ]; then
+  echo "Refusing to reload an unexpected $PRODUCTION_FEED_TARGET PM2 process: $PM2_APP_NAME" >&2
   exit 1
 fi
 
@@ -109,6 +131,7 @@ record_status() {
   PRODUCTION_FEED_STATUS="$status_value" \
   PRODUCTION_FEED_STAGE="$current_stage" \
   PRODUCTION_FEED_MODE="$PRODUCTION_FEED_MODE" \
+  PRODUCTION_FEED_TARGET="$PRODUCTION_FEED_TARGET" \
   PRODUCTION_FEED_EXIT_CODE="$exit_code_value" \
   PRODUCTION_FEED_MESSAGE="$message_value" \
   PRODUCTION_FEED_CATALOG_SHA="$catalog_sha" \

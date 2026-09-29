@@ -12,6 +12,7 @@
     "build": "vinext build",
     "catalog:build-presentation": "node scripts/build-catalog-presentation.mjs",
     "acceptance:business": "node scripts/run-business-acceptance.mjs",
+    "intake:process": "node scripts/process-quote-intake-outbox.mjs",
     "start": "vinext start",
     "start:production": "sh scripts/start-production.sh",
     "validate:production": "node scripts/validate-production-config.mjs",
