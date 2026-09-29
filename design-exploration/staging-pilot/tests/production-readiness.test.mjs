@@ -153,7 +153,7 @@ test("production entrypoints enforce preflight, exec Vinext directly and contain
   assert.equal(packageJson.scripts["start:production"], "sh scripts/start-production.sh");
   assert.match(ecosystem, /script: "scripts\/start-production\.sh"/u);
   assert.match(ecosystem, /interpreter: "\/bin\/sh"/u);
-  assert.match(ecosystem, /max_memory_restart: "1024M"/u);
+  assert.match(ecosystem, /max_memory_restart: "1280M"/u);
   assert.match(productionShell, /node scripts\/validate-production-config\.mjs/u);
   assert.match(productionShell, /exec node node_modules\/vinext\/dist\/cli\.js start/u);
   assert.doesNotMatch(`${ecosystem}\n${preflight}\n${productionShell}`, /MANAGER_AUTH_LOCAL_PASSWORD_HASH:\s*["'][^"']+/u);
