@@ -28,11 +28,19 @@
 
 ## Остаточные launch-gates
 
-1. Дождаться успешного штатного ночного запуска фида в 03:25 Europe/Moscow и сверить SHA-256/`completedAt`/PM2 без ручного запуска.
-2. Провести финальную визуальную приёмку approved Vinext на desktop/mobile.
-3. Создать immutable production release, настроить защищённый env и backup для `QUOTE_DATA_DIR`.
-4. Запустить кандидата на loopback-порту, выполнить read-only smoke и только затем отдельно согласовать переключение Nginx/PM2.
-5. До подключения проверенных email/MAX/CRM adapters назначить сотрудника, который контролирует защищённый журнал заявок.
+1. Провести финальную визуальную приёмку approved Vinext на desktop/mobile.
+2. Создать immutable production release, настроить защищённый env и backup для `QUOTE_DATA_DIR`.
+3. Запустить кандидата на loopback-порту, выполнить read-only smoke и только затем отдельно согласовать переключение Nginx/PM2.
+4. До подключения проверенных email/MAX/CRM adapters назначить сотрудника, который контролирует защищённый журнал заявок.
+
+## Операционный гейт фида — закрыт 2026-09-29
+
+- Штатный cron 03:25 Europe/Moscow завершился в 03:26:03 с `exitCode: 0`; ручной запуск не выполнялся.
+- Основной snapshot: `completedAt=2026-09-29T00:25:14.061Z`, SHA-256 `6d494b66ce923ec927dab4e0981adf9e9271e753fa7c91c8f80995affff60b80`, metadata `status=complete`, checksum совпадает.
+- Stalex pilot: 21 допущенная позиция, 13 с подтверждённым положительным остатком; итоговый SHA-256 `db0af739e373a3a95717e5068366b6a29d05c05a7f77ab0529a5e72028f9aae4`, checksum совпадает.
+- Активный test использует Stalex pilot snapshot; в нём 4 357 товарных групп, 18 484 исполнения и 4 200 исполнений с `available=true` и `quantity>0`.
+- Vinext build прошёл в штатном задании, `7tool-storefront-test` online, `unstable restarts=0`; `7tool-prod` online, `unstable restarts=0` и не затрагивался заданием.
+- `https://test.7tool.ru/` корректно отвечает 302 на application login; `https://7tool.ru/` отвечает 200.
 
 ## Ограничения этого этапа
 
