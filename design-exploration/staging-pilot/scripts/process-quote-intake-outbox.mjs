@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import { open, readFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -218,8 +219,19 @@ class DeliveryError extends Error {
   }
 }
 
-const entry = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : "";
-if (entry === import.meta.url) {
+export function isDirectExecution(argvPath, moduleUrl = import.meta.url) {
+  if (!argvPath) return false;
+  const resolvedPath = path.resolve(argvPath);
+  let canonicalPath = resolvedPath;
+  try {
+    canonicalPath = fs.realpathSync(resolvedPath);
+  } catch {
+    // Preserve the resolved path so ordinary missing-entrypoint errors stay visible.
+  }
+  return pathToFileURL(canonicalPath).href === moduleUrl;
+}
+
+if (isDirectExecution(process.argv[1])) {
   processQuoteIntakeOutbox().then((result) => {
     console.log(JSON.stringify(result));
     if (result.failed > 0) process.exitCode = 1;

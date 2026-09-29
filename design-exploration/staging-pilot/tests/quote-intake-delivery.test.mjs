@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, symlink } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { isQuoteIntakeDeliveryEnabled, saveQuoteRequest } from "../app/data/quoteRequestStore.ts";
 import { validateQuoteRequest } from "../app/data/quoteRequestValidation.mjs";
-import { processQuoteIntakeOutbox, toProductionLeadPayload } from "../scripts/process-quote-intake-outbox.mjs";
+import { isDirectExecution, processQuoteIntakeOutbox, toProductionLeadPayload } from "../scripts/process-quote-intake-outbox.mjs";
 
 const envNames = ["QUOTE_WORKSPACE_ENABLED", "QUOTE_TEST_MODE", "QUOTE_DATA_DIR", "QUOTE_TEST_DATA_DIR", "QUOTE_INTAKE_DELIVERY_ENABLED"];
 
@@ -140,6 +140,18 @@ test("bridge is fail-closed for disabled delivery and any non-production endpoin
     assert.equal(toProductionLeadPayload({ ...validStored(saved.id), requestType:"selection" }).type, "equipment_selection");
   } finally {
     restoreEnv(previous);
+    await rm(dataDir, { recursive:true, force:true });
+  }
+});
+
+test("worker recognizes direct execution through a stable release symlink", async () => {
+  const dataDir = await mkdtemp(path.join(os.tmpdir(), "7tool-intake-entrypoint-"));
+  try {
+    const linkDir = path.join(dataDir, "scripts-current");
+    await symlink(path.resolve("scripts"), linkDir, process.platform === "win32" ? "junction" : "dir");
+    assert.equal(isDirectExecution(path.join(linkDir, "process-quote-intake-outbox.mjs")), true);
+    assert.equal(isDirectExecution(path.join(linkDir, "missing.mjs")), false);
+  } finally {
     await rm(dataDir, { recursive:true, force:true });
   }
 });
