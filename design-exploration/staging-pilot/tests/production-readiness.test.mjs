@@ -142,20 +142,22 @@ test("legacy isolated test contour remains compatible and explicit", async () =>
   }
 });
 
-test("production entrypoints enforce preflight and contain no embedded credentials", async () => {
-  const [packageJson, ecosystem, preflight, starter] = await Promise.all([
+test("production entrypoints enforce preflight, exec Vinext directly and contain no embedded credentials", async () => {
+  const [packageJson, ecosystem, preflight, productionShell] = await Promise.all([
     readFile(new URL("../package.json", import.meta.url), "utf8").then(JSON.parse),
     readFile(new URL("../ecosystem.production.config.cjs", import.meta.url), "utf8"),
     readFile(new URL("../scripts/validate-production-config.mjs", import.meta.url), "utf8"),
-    readFile(new URL("../scripts/start-production.mjs", import.meta.url), "utf8"),
+    readFile(new URL("../scripts/start-production.sh", import.meta.url), "utf8"),
   ]);
   assert.equal(packageJson.scripts["validate:production"], "node scripts/validate-production-config.mjs");
-  assert.equal(packageJson.scripts["start:production"], "node scripts/start-production.mjs");
-  assert.match(ecosystem, /max_memory_restart: "768M"/u);
-  assert.match(starter, /validateProductionConfig\(\)/u);
-  assert.match(starter, /node_modules["], ["']vinext/u);
-  assert.doesNotMatch(`${ecosystem}\n${preflight}\n${starter}`, /MANAGER_AUTH_LOCAL_PASSWORD_HASH:\s*["'][^"']+/u);
-  assert.doesNotMatch(`${preflight}\n${starter}`, /sendMail|smtp|telegram\.org|api\.max|crm\./iu);
+  assert.equal(packageJson.scripts["start:production"], "sh scripts/start-production.sh");
+  assert.match(ecosystem, /script: "scripts\/start-production\.sh"/u);
+  assert.match(ecosystem, /interpreter: "\/bin\/sh"/u);
+  assert.match(ecosystem, /max_memory_restart: "1024M"/u);
+  assert.match(productionShell, /node scripts\/validate-production-config\.mjs/u);
+  assert.match(productionShell, /exec node node_modules\/vinext\/dist\/cli\.js start/u);
+  assert.doesNotMatch(`${ecosystem}\n${preflight}\n${productionShell}`, /MANAGER_AUTH_LOCAL_PASSWORD_HASH:\s*["'][^"']+/u);
+  assert.doesNotMatch(`${preflight}\n${productionShell}`, /sendMail|smtp|telegram\.org|api\.max|crm\./iu);
 });
 
 function productionEnv({ quoteDir, catalogPath, metadataPath }) {

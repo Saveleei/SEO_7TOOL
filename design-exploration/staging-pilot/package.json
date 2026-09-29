@@ -13,7 +13,7 @@
     "catalog:build-presentation": "node scripts/build-catalog-presentation.mjs",
     "acceptance:business": "node scripts/run-business-acceptance.mjs",
     "start": "vinext start",
-    "start:production": "node scripts/start-production.mjs",
+    "start:production": "sh scripts/start-production.sh",
     "validate:production": "node scripts/validate-production-config.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "test": "node --test tests/*.test.mjs",
