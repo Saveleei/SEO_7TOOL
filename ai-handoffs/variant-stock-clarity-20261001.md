@@ -32,5 +32,24 @@
 
 ## Safety
 
-- No deployment, DNS, feed, cron, credential, production, `test.7tool.ru`, or `new.7tool.ru` change was made.
+- The user subsequently authorized deployment of this exact verified version to `new.7tool.ru`.
+- No DNS, feed, cron, credential, production, `test.7tool.ru`, or `7tool.ru` change was made.
 - No form or external delivery was triggered.
+
+## New storefront release
+
+- Published branch head `02bb46c`; implementation remains `9e19b1a`.
+- Immutable application: `/var/www/7tool-release-20261001-variant-stock-02bb46c-r2/design-exploration/staging-pilot`.
+- Stable pointer: `/var/www/7tool-new-current`.
+- Retained rollback: `/var/www/7tool-release-20260930-catalog-trust-11a9217/design-exploration/staging-pilot`.
+- Release archive SHA-256: `994b52f908fd011f999eac3d577f8cd383dcb329d265c9ddd3a0b3f60238eebc`.
+- Server gate: full ESLint passed; 335/335 tests passed; feed-backed presentation regeneration and Vinext production build passed; a separate port-3259 candidate passed 50 read-only public/anonymous-access checks and the exact 49-size product assertion before cutover.
+- The stored automation credential no longer matches the current manager password hash, so the authenticated portion of the route smoke was not bypassed or weakened. Administrator access remains covered by the full regression suite; the live check verified all anonymous staff redirects. No credential was changed.
+- `7tool-storefront-new` is online with one deliberate release restart (`3` total historical restarts, `0` unstable restarts) and remained stable for nine minutes after cutover.
+- `new.7tool.ru` returns `200`, keeps duplicate `X-Robots-Tag: noindex, nofollow, noarchive`, and `robots.txt` disallows crawling.
+- Desktop browser QA at 1440×900: no horizontal overflow; six production-task cards expose 25 direct category links; six distinct trust photographs load at their real dimensions.
+- Mobile browser QA at 390×844: no horizontal overflow; all 49 size tiles render, with 27 feed-confirmed available variants and 22 neutral unconfirmed variants; visible `Добавить в КП` controls have 46–49 px targets and no text overflow.
+- Quick-order dialog opened on the live product page with required phone and default consent, then closed without submission.
+- The existing Vinext `Premature close` static-stream warning was reproduced by aborted browser/curl asset reads; the process remained online without an unstable restart.
+- Production `7tool-prod` remains online on `/var/www/7tool-release-20260911-trust-performance-029d3f3/7tool-source`, with its pre-existing restart count `4`; `https://7tool.ru/` returns `200`.
+- Approximately `4.4 GiB` remained free after deployment.
