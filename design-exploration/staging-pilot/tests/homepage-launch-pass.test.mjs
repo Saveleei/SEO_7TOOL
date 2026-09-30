@@ -39,6 +39,20 @@ test("homepage category media replaces failed supplier images without layout shi
   assert.match(css, /\.homepage-category-tile-placeholder \{[\s\S]*?width:100%;[\s\S]*?height:100%;/u);
 });
 
+test("homepage production tasks expose direct category paths without cropping equipment imagery", async () => {
+  const [paths, css] = await Promise.all([
+    read("../app/ui/HomepageTaskPaths.tsx"),
+    read("../app/globals.css"),
+  ]);
+
+  assert.match(paths, /homepage-task-path__subcategories/u);
+  assert.match(paths, /group\.subcategories\.slice\(0, 4\)/u);
+  assert.match(paths, /category\.href/u);
+  assert.match(paths, /homepage-task-path__action/u);
+  assert.match(css, /\.homepage-task-path>img \{[\s\S]*?object-fit:contain/u);
+  assert.match(css, /\.homepage-task-path__subcategories \{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/u);
+});
+
 test("trust section exposes verifiable evidence instead of unsupported claims", async () => {
   const [section, css] = await Promise.all([
     read("../app/ui/TrustSection.tsx"),

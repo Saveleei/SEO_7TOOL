@@ -6909,3 +6909,70 @@ body:has(.request-cart-dock) .mobile-manager-bubble { bottom:88px; }
   .homepage-task-path { grid-template-columns:27px minmax(0,1fr) 92px; }
   .homepage-task-path>img { width:92px; height:78px; }
 }
+
+/* Exact size and stock clarity: keep the full range visible without turning SKU data into the primary label. */
+.feed-variant-availability-legend { display:flex; flex-wrap:wrap; gap:7px 16px; margin:9px 0; padding:8px 10px; border:1px solid #dfe4dd; border-radius:6px; background:#f7f9f6; }
+.feed-variant-availability-legend>span { display:inline-flex; align-items:center; gap:6px; color:#555d56; font-size:var(--type-caption); font-weight:750; }
+.feed-variant-availability-legend i,.feed-variant-option-status i { width:8px; height:8px; flex:0 0 auto; border-radius:50%; background:#a4aaa4; }
+.feed-variant-availability-legend i.is-available,.feed-variant-options--sizes>a.is-available .feed-variant-option-status i { background:#17945c; box-shadow:0 0 0 3px #def2e7; }
+.feed-variant-availability-legend i.is-unconfirmed { border:1px solid #958c80; background:#fff; }
+.feed-variant-options--sizes { grid-template-columns:repeat(auto-fill,minmax(104px,1fr)); }
+.feed-variant-options--sizes>a { min-height:58px; position:relative; align-content:center; justify-items:start; gap:4px; padding:7px 9px; text-align:left; }
+.feed-variant-options--sizes>a.is-available { border-color:#8bc5a6; background:#f2faf5; }
+.feed-variant-options--sizes>a.is-unconfirmed { border-style:dashed; border-color:#bbb7ae; background:#fbfaf7; }
+.feed-variant-options--sizes>a.active { border-style:solid; border-color:#252925; background:#252925; color:#fff; }
+.feed-variant-options--sizes>a b { font-size:13px; }
+.feed-variant-options--sizes>a .feed-variant-option-copy { opacity:1; }
+.feed-variant-options--sizes>a .feed-variant-option-status { width:auto; display:inline-flex; align-items:center; gap:6px; overflow:visible; color:#087044; font-size:var(--type-caption); font-weight:800; line-height:1.2; opacity:1; white-space:nowrap; }
+.feed-variant-options--sizes>a.is-unconfirmed .feed-variant-option-status { color:#71665b; }
+.feed-variant-options--sizes>a.is-unconfirmed .feed-variant-option-status i { border:1px solid #958c80; background:#fff; }
+.feed-variant-options--sizes>a.active .feed-variant-option-status { color:#fff; }
+.feed-variant-options--sizes>a.active .feed-variant-option-status i { border-color:#fff; box-shadow:none; }
+
+.feed-inline-variant--available,.feed-mobile-variant--available { border-left:4px solid #20945f; background:#fbfefc; }
+.feed-inline-variant--unconfirmed,.feed-mobile-variant--unconfirmed { border-left:4px solid #c6b39d; background:#fdfbf8; }
+.feed-inline-variant--match,.feed-mobile-variant--match { box-shadow:inset 0 0 0 1px #d45a1c; }
+.feed-inline-variant-id,.feed-mobile-variant>div:first-child { min-width:0; }
+.feed-variant-choice-link { display:block; margin-top:3px; color:#1f2521; text-decoration:none; }
+.feed-variant-choice-link b { display:block; font-size:14px; line-height:1.2; }
+.feed-variant-choice-link small { display:block; margin-top:3px; overflow:hidden; color:#687069; font-size:var(--type-caption); font-weight:650; line-height:1.3; text-overflow:ellipsis; white-space:nowrap; }
+.feed-variant-choice-link:hover b { color:#8d350f; }
+.feed-variant-order-actions>button,.feed-mobile-order-actions>button { min-width:0; height:auto; min-height:44px; overflow:visible; padding:8px; line-height:1.2; overflow-wrap:anywhere; white-space:normal; }
+
+/* Homepage task cards are a navigation layer, not decorative banners: expose
+   the closest product categories while keeping the equipment cutout intact. */
+.homepage-task-path { min-height:248px; grid-template-rows:1fr auto; }
+.homepage-task-path__copy h3 a { color:inherit; text-decoration:none; }
+.homepage-task-path__copy h3 a:hover { color:#8b340f; }
+.homepage-task-path__subcategories { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; margin-top:12px; }
+.homepage-task-path__subcategories>a { min-width:0; min-height:38px; display:flex; align-items:center; justify-content:space-between; gap:7px; padding:7px 9px; border:1px solid #e0e4df; border-radius:5px; background:#f8faf7; color:#293029; font-size:13px; font-weight:720; line-height:1.25; text-decoration:none; }
+.homepage-task-path__subcategories>a:hover { border-color:#b4beb5; background:#fff; color:#8b340f; }
+.homepage-task-path__subcategories>a>span { flex:0 0 auto; color:#b8420f; }
+.homepage-task-path__subcategories>a.homepage-task-path__more { border-style:dashed; color:#7c340f; }
+.homepage-task-path__action { grid-column:2/4; align-self:end; color:#84320f; font-size:13px; font-weight:850; text-decoration:none; }
+.homepage-task-path__action span { margin-left:4px; }
+.feed-card-variant--available { border-left:4px solid #20945f; background:#fbfefc; }
+.feed-card-variant--unconfirmed { border-left:4px solid #c6b39d; background:#fdfbf8; }
+.feed-card-variant--match { box-shadow:inset 0 0 0 1px #d45a1c; }
+
+@media (max-width:760px) {
+  .feed-variant-options--sizes { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .feed-variant-options--sizes>a { min-height:59px; padding:7px 6px; }
+  .feed-variant-options--sizes>a b { font-size:12px; }
+  .feed-variant-options--sizes>a .feed-variant-option-status { gap:4px; font-size:var(--type-caption); }
+  .feed-variant-availability-legend { gap:7px 12px; }
+  .feed-variant-availability-legend>span { font-size:var(--type-caption); }
+  .feed-conversion-purchase-actions { grid-template-columns:82px minmax(0,1fr); }
+  .feed-conversion-purchase-actions>button { min-width:0; padding-inline:8px; overflow:visible; white-space:normal; }
+  .feed-add-label--mobile { line-height:1.2; white-space:normal; }
+  .feed-mobile-variant-action { align-items:stretch; flex-direction:column; }
+  .feed-mobile-order-actions { width:100%; min-width:0; grid-template-columns:1fr 1fr; }
+  .feed-mobile-order-actions>button { width:100%; min-height:48px; }
+  .feed-variant-choice-link b { font-size:16px; }
+  .feed-variant-choice-link small { font-size:var(--type-caption); }
+  .homepage-task-path { min-height:194px; }
+  .homepage-task-path__subcategories { grid-template-columns:1fr; gap:5px; margin-top:9px; }
+  .homepage-task-path__subcategories>a { min-height:32px; font-size:12px; }
+  .homepage-task-path__subcategories>a:nth-child(n+3) { display:none; }
+  .homepage-task-path__action { font-size:12px; }
+}

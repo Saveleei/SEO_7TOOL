@@ -107,7 +107,9 @@ test("homepage catalog tiles lead to real categories without SKU noise", async (
   assert.match(grid, /category\.image/u);
   assert.doesNotMatch(grid, /Артикул|sku|Добавить в КП/u);
   assert.match(tasks, /group\.representativeImage/u);
-  assert.match(tasks, /group\.subcategories\.slice\(0, 2\)/u);
+  assert.match(tasks, /group\.subcategories\.slice\(0, 4\)/u);
+  assert.match(tasks, /href=\{category\.href\}/u);
+  assert.match(tasks, /homepage-task-path__subcategories/u);
   assert.match(tasks, /Подобрать по задаче/u);
   assert.doesNotMatch(tasks, /details|Артикул|Добавить в КП/u);
 });

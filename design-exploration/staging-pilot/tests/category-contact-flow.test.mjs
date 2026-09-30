@@ -208,5 +208,5 @@ test("an exact category result can be added without an extra reveal", async () =
   assert.match(page, /<FeedProductList products=\{productCards\} \/>/u);
   assert.doesNotMatch(list, /directSingleVariant/u);
   assert.match(card, /product\.selectedVariantCount === 1 \? product\.variants\[0\]/u);
-  assert.match(card, /<AddRequestButton[^>]*directVariant\.id[\s\S]*archetype\.singleAction/u);
+  assert.match(card, /<AddRequestButton[^>]*directVariant\.id[\s\S]*>Добавить в КП<\/AddRequestButton>/u);
 });

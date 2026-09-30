@@ -50,8 +50,8 @@ test("administrator editors control homepage merchandising photos and shared tru
 
 test("homepage trust copy matches the real photos and stays evidence-led", () => {
   assert.equal(DEFAULT_TRUST_CONTENT_SETTINGS.cards.length, 6);
-  assert.equal(DEFAULT_TRUST_CONTENT_SETTINGS.cards[3].title, "Сотрудник сверяет состав заказа");
-  assert.equal(DEFAULT_TRUST_CONTENT_SETTINGS.cards[4].title, "Люди готовят груз к отправке");
+  assert.equal(DEFAULT_TRUST_CONTENT_SETTINGS.cards[3].title, "Подбираем позиции по складским ячейкам");
+  assert.equal(DEFAULT_TRUST_CONTENT_SETTINGS.cards[4].title, "Передаём груз транспортной компании");
   assert.deepEqual(orderTrustCardsForDisplay(DEFAULT_TRUST_CONTENT_SETTINGS.cards).map((card) => card.id), ["applicability", "picking", "dispatch", "documents", "terms", "selection"]);
   assert.match(DEFAULT_TRUST_CONTENT_SETTINGS.sectionIntro, /коммерческом предложении/u);
   assert.match(DEFAULT_TRUST_CONTENT_SETTINGS.sectionIntro, /работу сотрудников/u);
@@ -82,7 +82,8 @@ test("real warehouse evidence is shared across homepage, catalog and company pag
     read("../app/company/page.tsx"),
     read("../app/ui/TrustContentSettingsForm.tsx"),
   ]);
-  for (const image of ["01", "02", "04", "06", "07", "08"]) assert.match(model, new RegExp(`/warehouse/${image}\\.webp`, "u"));
+  for (const image of ["overview", "picking", "dispatch", "tooling-stock"]) assert.match(model, new RegExp(`/proof/warehouse/${image}\\.webp`, "u"));
+  for (const image of ["01", "04"]) assert.match(model, new RegExp(`/warehouse/${image}\\.webp`, "u"));
   assert.match(homepage, /<TrustSection content=\{trustContent\}/u);
   assert.match(catalog, /orderTrustCardsForDisplay\(trustContent\.cards\)\.map/u);
   assert.match(company, /company-operations-section/u);

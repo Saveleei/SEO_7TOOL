@@ -32,13 +32,14 @@ test("product selector exposes the full searchable size range and keeps SKU seco
   assert.match(page, /sortVariantsForChoice\(product,/u);
   assert.doesNotMatch(page, /allVariants\.filter[\s\S]{0,200}\.slice\(0, 12\)/u);
   assert.match(page, /getProductVariantChoices\(product\)/u);
-  assert.match(page, /variantsEndpoint=\{`\/api\/catalog-product-variants/u);
-  assert.match(purchase, /Сейчас показано \$\{collapsedVariantCount\} из \$\{totalVariantCount\}/u);
-  assert.match(purchase, /`Все \$\{totalVariantCount\} \$\{variantWord/u);
-  assert.match(purchase, /Есть ещё \{hiddenVariantCount\}/u);
-  assert.match(purchase, /Выбрать из всех \{totalVariantCount\}/u);
-  assert.match(purchase, /className="feed-variant-reveal"/u);
-  assert.match(purchase, /track\("open_variant_list", "product_buybox"\)/u);
+  assert.match(page, /variants=\{allPurchaseVariants\}/u);
+  assert.doesNotMatch(page, /variantsEndpoint=/u);
+  assert.match(purchase, /sizeOnlySelector \? matchingVariants\.length/u);
+  assert.match(purchase, /`Показаны все \$\{totalVariantCount\}/u);
+  assert.match(purchase, /feed-variant-availability-legend/u);
+  assert.match(purchase, /confirmedAvailable \? "В наличии" : "Наличие и срок уточним"/u);
+  assert.match(purchase, /confirmedAvailable \? "is-available" : "is-unconfirmed"/u);
+  assert.match(purchase, /!sizeOnlySelector && totalVariantCount > INITIAL_VARIANTS/u);
   assert.match(purchase, /Найти по размеру или артикулу/u);
   assert.match(purchase, /sizeOnlySelector \? "feed-variant-options--sizes"/u);
   assert.match(purchase, /!sizeOnlySelector && <small>\{variant\.price\}<\/small>/u);
@@ -70,6 +71,23 @@ test("compatible accessory cards lead with working size and keep article as refe
   assert.match(recommendations, /className="feed-recommendation-choice">\{choice\.label\}/u);
   assert.match(recommendations, /variant\.sku \? `Артикул \$\{variant\.sku\}`/u);
   assert.doesNotMatch(recommendations, /<h4><a[^>]*>\{variant\.name/u);
+});
+
+test("category card variants show the buyer size first and keep actions readable", async () => {
+  const [card, table, styles] = await Promise.all([
+    readFile(new URL("../app/ui/FeedProductCard.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/ui/FeedProductTable.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+  ]);
+  for (const source of [card, table]) {
+    assert.match(source, /feed-variant-choice-link/u);
+    assert.match(source, /Арт\. \$\{variant\.sku\}/u);
+    assert.match(source, /Добавить в КП/u);
+  }
+  assert.doesNotMatch(card, /feed-variant-sku-link/u);
+  assert.match(card, /feed-card-variant--available/u);
+  assert.match(card, /feed-card-variant--unconfirmed/u);
+  assert.match(styles, /feed-mobile-order-actions>button[^}]*white-space:normal/u);
 });
 
 test("every feed category has a buyer-first variant presentation rule", () => {
