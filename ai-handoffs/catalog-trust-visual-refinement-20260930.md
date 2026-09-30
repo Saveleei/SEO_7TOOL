@@ -5,7 +5,7 @@
 - Base commit: `b45f8cc`
 - Scope: `design-exploration/staging-pilot/` homepage, catalog menu, production-task cards, shared trust section, compact product-size selector, mobile purchase actions, responsive styles, and focused regression tests.
 - Goal: make catalog imagery informative rather than cropped, separate trust copy from busy photos, represent distinct storage/picking/dispatch processes with real uploaded photos, and remove mobile overlap without changing catalog, lead, feed, or production behavior.
-- Completion criteria: desktop/mobile browser QA; relevant tests, full tests, lint, and production build pass; immutable release is deployed only to `new.7tool.ru`; `7tool.ru` remains untouched and its process identity/restart count is verified unchanged.
+- Completion criteria: desktop/mobile browser QA; relevant tests, full tests, lint, and production build pass; immutable release is deployed only to `new.7tool.ru`; `7tool.ru` code and release target remain untouched and its availability is verified.
 - Constraints: no production, DNS, feed, cron, credential, or external-form changes.
 - Implementation:
   - Catalog and production-task cutouts use larger contained media frames instead of cropped thumbnails.
@@ -17,7 +17,14 @@
   - Targeted regression: 23/23 passed, then 21/21 passed after final selector/readability updates.
   - Full `node --test tests\\*.test.mjs`: 333/333 passed.
   - Full ESLint: passed.
-  - Vinext production build: passed; final post-readability build pending before commit.
+  - Vinext production build: passed after the final selector/readability changes.
   - Browser QA: 1440×1000 and 390×844; no horizontal overflow. Mobile size grid is three columns, 46 px targets; quick request is full width.
+  - Live browser QA on `new.7tool.ru`: six trust cards render as distinct storage, picking, dispatch, pallet, large-equipment, and tooling scenes; trust media and text do not overlap at 390×844; product size tiles render as a three-column grid and mobile purchase actions remain stable.
   - Known baseline: Vinext may log the existing RSC-prefetch `TypeError: f is not a function`; navigation remained functional and the change did not add it.
-- Status: implementation verified locally; commit and immutable `new.7tool.ru` deployment pending.
+- Release:
+  - Implementation commit: `11a9217` (`feat: refine catalog and operational evidence visuals`).
+  - Immutable target: `/var/www/7tool-release-20260930-catalog-trust-11a9217/design-exploration/staging-pilot`.
+  - Previous rollback target: `/var/www/7tool-release-20260930-mobile-trust-836cab6/design-exploration/staging-pilot`.
+  - `7tool-storefront-new` is online; `new.7tool.ru` home and product pages return 200 and retain `X-Robots-Tag: noindex, nofollow, noarchive`; `robots.txt` disallows crawling.
+  - Production `7tool.ru` still points to `/var/www/7tool-release-20260911-trust-performance-029d3f3/7tool-source` and returns 200. During the verification window its existing PM2 memory guard independently restarted it once (`current_memory=1496006656`, `max_memory_limit=1468006400`); this release did not reload, deploy, or change production.
+- Status: implementation, verification, immutable deployment, and live QA complete.
