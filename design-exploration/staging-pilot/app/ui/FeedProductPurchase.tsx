@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import { ContactRequestDialog } from "./ContactRequestDialog";
 import { PRODUCT_COMPARISON_EVENT } from "./ProductComparisonDialog";
@@ -20,6 +21,7 @@ type PurchaseVariant = {
   choiceContext: string;
   selectorLabel: "Размер" | "Параметры исполнения";
   image?: string;
+  selectorImage?: string;
   href: string;
 };
 
@@ -59,8 +61,7 @@ export function FeedProductPurchase({ productId, productTitle, categorySlug, var
 
   function addSelected() {
     if (!selected) return;
-    addItem({ id:`variant:${selected.id}`, title:selected.title || productTitle, article:selected.sku ? `Артикул ${selected.sku}` : "Артикул не указан в фиде", price:selected.price, quantity, image:selected.image, href:selected.href, shippingLabel:selected.shippingPromise.label, shippingDetail:selected.shippingPromise.detail });
-    track("add_to_quote", "product_buybox");
+    addItem({ id:`variant:${selected.id}`, title:selected.title || productTitle, article:selected.sku ? `Артикул ${selected.sku}` : "Артикул не указан в фиде", price:selected.price, quantity, image:selected.image, href:selected.href, shippingLabel:selected.shippingPromise.label, shippingDetail:selected.shippingPromise.detail }, { placement:"product_buybox", page_type:"product", product_id:productId, variant_id:selected.id, category:categorySlug });
   }
 
   async function toggleAllVariants() {
@@ -93,13 +94,13 @@ export function FeedProductPurchase({ productId, productTitle, categorySlug, var
   return <div className="feed-conversion-buybox" id="purchase">
       {totalVariantCount > 1 && <div className="feed-conversion-variants"><div className="feed-variant-selector-head"><div><span>Выберите {selected.selectorLabel.toLocaleLowerCase("ru-RU")}</span><small>{variantsOpen ? `Доступен полный список: ${totalVariantCount} ${variantWord(totalVariantCount, selected.selectorLabel)}` : `Сейчас показано ${collapsedVariantCount} из ${totalVariantCount}`}</small></div>{totalVariantCount > INITIAL_VARIANTS && <button type="button" aria-expanded={variantsOpen} aria-controls="feed-product-variant-options" onClick={() => void toggleAllVariants()} disabled={variantsLoading}>{variantsLoading ? "Загружаем…" : variantsOpen ? "Свернуть" : `Все ${totalVariantCount} ${variantWord(totalVariantCount, selected.selectorLabel)}`}</button>}</div>
         {totalVariantCount > INITIAL_VARIANTS && variantsOpen && <label className="feed-variant-search"><span>Найти по размеру или артикулу</span><input type="search" value={variantQuery} disabled={variantsLoading} onChange={(event) => { setVariantQuery(event.target.value); setVisibleVariantCount(INITIAL_VARIANTS + VARIANT_PAGE_SIZE); }} placeholder="Например: 35 × 30" /></label>}
-        <div className="feed-variant-options" id="feed-product-variant-options">{visibleVariants.map((variant) => <a className={variant.id === selected.id ? "active" : undefined} href={variant.href} aria-current={variant.id === selected.id ? "true" : undefined} aria-label={`Открыть ${variant.choiceLabel}${variant.sku ? `, артикул ${variant.sku}` : ""}, ${variant.price}`} onClick={() => track("select_variant", "product_buybox", variant.id)} key={variant.id}><b>{variant.choiceLabel}</b>{variant.choiceContext && <span>{variant.choiceContext}</span>}<small>{variant.price}</small></a>)}</div>
+        <div className="feed-variant-options" id="feed-product-variant-options">{visibleVariants.map((variant) => <a className={[variant.id === selected.id ? "active" : "", variant.selectorImage ? "has-media" : ""].filter(Boolean).join(" ") || undefined} href={variant.href} aria-current={variant.id === selected.id ? "true" : undefined} aria-label={`Открыть ${variant.choiceLabel}${variant.sku ? `, артикул ${variant.sku}` : ""}, ${variant.price}`} onClick={() => track("select_variant", "product_buybox", variant.id)} key={variant.id}>{variant.selectorImage && <Image className="feed-variant-option-image" src={variant.selectorImage} alt="" width={52} height={52} unoptimized />}<span className="feed-variant-option-copy"><b>{variant.choiceLabel}</b>{variant.choiceContext && <span>{variant.choiceContext}</span>}<small>{variant.price}</small></span></a>)}</div>
         {totalVariantCount > INITIAL_VARIANTS && !variantsOpen && <button className="feed-variant-reveal" type="button" aria-expanded="false" aria-controls="feed-product-variant-options" onClick={() => void toggleAllVariants()}><span><b>Есть ещё {hiddenVariantCount} {variantWord(hiddenVariantCount, selected.selectorLabel)}</b><small>Откройте полный ряд и найдите нужный параметр без перехода в каталог.</small></span><strong>Выбрать из всех {totalVariantCount} →</strong></button>}
         {variantsError && <p className="feed-variant-load-error" role="status">{variantsError}</p>}
         {matchingVariants.length === 0 && <div className="feed-variant-empty"><b>Такого размера в этой группе нет</b><span>Измените запрос или передайте параметры менеджеру.</span></div>}
         {(variantsOpen || variantQuery) && visibleVariants.length < matchingVariants.length && <button className="feed-variant-more" type="button" onClick={() => setVisibleVariantCount((count) => count + VARIANT_PAGE_SIZE)}>Показать ещё {Math.min(VARIANT_PAGE_SIZE, matchingVariants.length - visibleVariants.length)}</button>}
         <div className="feed-selected-variant"><span>Выбрано</span><b>{selected.choiceLabel}</b><small>{selected.choiceContext ? `${selected.choiceContext} · ` : ""}{selected.sku ? `артикул ${selected.sku}` : "артикул не указан в фиде"}</small></div>
-        <small className="feed-variant-help">Выбор обновляет всю карточку: фото, характеристики, цену, наличие и позицию в КП. Артикул служит для точной фиксации.</small></div>}
+        <small className="feed-variant-help">Выбор обновляет всю карточку: фото, характеристики, цену, наличие и позицию в КП. Миниатюра показана только у исполнения с отличающимся фото поставщика.</small></div>}
 
     <div className={selected.shippingPromise.available ? "feed-conversion-stock feed-conversion-stock--positive" : "feed-conversion-stock"}>
       <span>{selected.shippingPromise.label}</span>
@@ -151,6 +152,7 @@ function isPurchaseVariant(value: unknown): value is PurchaseVariant {
     && Array.isArray(variant.keySpecs)
     && typeof variant.choiceLabel === "string"
     && typeof variant.choiceContext === "string"
+    && (variant.selectorImage === undefined || typeof variant.selectorImage === "string")
     && (variant.selectorLabel === "Размер" || variant.selectorLabel === "Параметры исполнения");
 }
 

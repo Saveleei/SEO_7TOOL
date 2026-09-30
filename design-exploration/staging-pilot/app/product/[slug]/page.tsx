@@ -50,6 +50,7 @@ export default async function FeedProductPage({ params, searchParams }: RoutePro
   const selectedVariantId = typeof rawSearchParams.variant === "string" ? rawSearchParams.variant : "";
   const allVariants = sortVariantsForChoice(product, product.variants.filter((variant) => variant.name || variant.sku));
   const primaryVariant = allVariants.find((variant) => variant.id === selectedVariantId) ?? allVariants[0];
+  const hasExactVariantImage = Boolean(primaryVariant && primaryVariant.images?.[0]);
   const images = Array.from(new Set([...(primaryVariant?.images ?? []), ...product.images, getFeedProductImage(product)].filter((image): image is string => Boolean(image))));
   const keySpecs = primaryVariant ? getFeedVariantSpecs(product, primaryVariant).slice(0, 4) : [];
   const fullSpecs = primaryVariant?.params.filter((parameter) => !/^(бренд|производитель)$/i.test(parameter.name)) ?? [];
@@ -88,7 +89,7 @@ export default async function FeedProductPage({ params, searchParams }: RoutePro
     <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Каталог", href:"/catalog" }, ...(productionEntry ? [{ label:productionEntry.group.title, href:productionEntry.group.href }] : []), { label:category?.title ?? product.category, href:`/catalog/category/${product.category}` }, { label:product.brand }]} /></div>
 
     <section className="feed-conversion-main"><div className="container feed-conversion-layout">
-      <FeedProductGallery images={images} title={product.title} />
+      <FeedProductGallery images={images} title={product.title} exactVariantImage={hasExactVariantImage} selectedVariantLabel={primaryChoice?.label} />
       <div className="feed-conversion-summary"><p className="product-code">{product.brand}{primaryChoice ? ` · ${primaryChoice.label}` : ""}{primaryVariant?.sku ? ` · Артикул ${primaryVariant.sku}` : ""}</p><h1>{product.title}</h1><p className="feed-conversion-intro">{descriptionParagraphs[0] ?? "Параметры товара получены из фактического каталога поставщика. Точное исполнение, комплектацию и срок поставки подтвердит менеджер."}</p><div className="feed-product-buying-route" aria-label={pageArchetype.routeTitle}><div><span>{pageArchetype.badge}</span><b>{pageArchetype.routeTitle}</b><small>{pageArchetype.routeLead}</small></div><ol>{expertProfile.criteria.slice(0, 3).map((criterion: { title: string }, index: number) => <li key={criterion.title}><span>0{index + 1}</span>{criterion.title}</li>)}</ol><a href="#decision">Как проверить →</a></div><div id="variants" className="feed-variant-card--selected"><FeedProductPurchase productId={product.id} productTitle={product.title} categorySlug={product.category} variants={purchaseVariants} totalVariantCount={allPurchaseVariants.length} variantsEndpoint={`/api/catalog-product-variants?product=${encodeURIComponent(product.slug)}`} selectedVariantId={primaryVariant?.id} hasComparableAlternatives={alternatives.length > 0} /></div><ManagerContactCard compact placement="product_manager" productId={product.id} /></div>
     </div></section>
 

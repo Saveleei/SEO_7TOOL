@@ -49,10 +49,13 @@ test("desktop navigation and mobile manager bubble expose one reusable four-chan
   const header = await readFile(new URL("../app/ui/PilotHeader.tsx", import.meta.url), "utf8");
   const menu = await readFile(new URL("../app/ui/HeaderContactMenu.tsx", import.meta.url), "utf8");
   const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
+  const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
   assert.match(header, /HeaderContactMenu placement="desktop_header"/u);
   assert.match(header, /mobile-manager-bubble/u);
   assert.match(header, /HeaderContactMenu compact placement="mobile_manager_bubble"/u);
   assert.match(menu, /mobile-manager-avatar/u);
+  assert.match(menu, /desktop-manager-label/u);
+  assert.match(menu, /Менеджер 7TOOL/u);
   assert.match(menu, /siteContact\.photo/u);
   assert.match(menu, /viewBox="0 0 128 128"/u);
   assert.match(menu, /viewBox="0 0 100 100"/u);
@@ -62,6 +65,10 @@ test("desktop navigation and mobile manager bubble expose one reusable four-chan
   assert.match(menu, /siteContact\.telegramUrl/u);
   assert.match(menu, /siteContact\.maxUrl/u);
   assert.match(layout, /<ContactAnalytics \/>/u);
+  assert.match(styles, /header-contact-messenger-icon--max[^}]*#00bfff[^}]*#6e1aff[^}]*#9500ff/u);
+  assert.match(styles, /header-contact-messenger-icon svg \{ width:24px; height:24px; display:block; \}/u);
+  assert.match(styles, /\.mobile-manager-bubble \{[\s\S]{0,180}position:fixed[\s\S]{0,180}display:block/u);
+  assert.match(styles, /\.mobile-manager-online \{[\s\S]{0,220}background:#169b5f/u);
 });
 
 test("header catalog separates canonical browsing from task selection and stays keyboard-dismissable", async () => {

@@ -16,6 +16,8 @@ export function PromotedFilterLink({
   function navigate(event: MouseEvent<HTMLAnchorElement>) {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
+    const category = window.location.pathname.match(/^\/catalog\/category\/([^/]+)/u)?.[1];
+    window.dispatchEvent(new CustomEvent("7tool:prototype-event", { detail:{ event:"apply_filter", placement:"promoted_filters", page_type:"category", category, filter_kind:"promoted" } }));
     window.location.assign(href);
   }
 

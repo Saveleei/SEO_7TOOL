@@ -12,7 +12,7 @@ function MaxIcon() {
 export function HeaderContactMenu({ compact = false, placement }: { compact?: boolean; placement: string }) {
   return <details className={`header-contact-menu${compact ? " header-contact-menu--compact" : ""}`} data-contact-placement={placement}>
     <summary aria-label={`Связаться с 7TOOL, телефон ${siteContact.phone}`}>
-      {compact ? <><span className="mobile-manager-avatar"><Image src={siteContact.photo} alt="" width={52} height={52} /></span><i className="mobile-manager-online" aria-hidden="true" /></> : <><span>Связаться</span><b>{siteContact.phone}</b></>}
+      {compact ? <><span className="mobile-manager-avatar"><Image src={siteContact.photo} alt="" width={52} height={52} /></span><span className="desktop-manager-label"><b>Менеджер 7TOOL</b><small>Телефон и мессенджеры</small></span><i className="mobile-manager-online" aria-hidden="true" /></> : <><span>Связаться</span><b>{siteContact.phone}</b></>}
     </summary>
     <div className="header-contact-panel">
       <header><span>Персональный менеджер</span><b>{siteContact.managerName}</b><small>{siteContact.managerRole}</small></header>

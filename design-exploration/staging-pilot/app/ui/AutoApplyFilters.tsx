@@ -37,6 +37,7 @@ export function AutoApplyFilterPanel({
     const params = serializeForm(form);
     const hash = window.matchMedia("(max-width: 1180px)").matches ? "#feed-filter-panel" : "#products";
     const href = `${action}${params.size > 0 ? `?${params.toString()}` : ""}${hash}`;
+    trackFilterChange("full_filter", activeFilterCount);
     startTransition(() => router.replace(href, { scroll:false }));
   }
 
@@ -85,6 +86,7 @@ export function AutoApplySortForm({ action, children }: SharedFormProps) {
     if (!form) return;
     const params = serializeForm(form);
     const href = `${action}${params.size > 0 ? `?${params.toString()}` : ""}#products`;
+    trackFilterChange("sort", 0);
     startTransition(() => router.replace(href, { scroll:false }));
   }
 
@@ -92,6 +94,11 @@ export function AutoApplySortForm({ action, children }: SharedFormProps) {
     {children}
     <span className="feed-sort-live-status" aria-live="polite">{isPending ? "Обновляем…" : "Сразу"}</span>
   </form>;
+}
+
+function trackFilterChange(filterKind: string, activeFilterCount: number) {
+  const category = window.location.pathname.match(/^\/catalog\/category\/([^/]+)/u)?.[1];
+  window.dispatchEvent(new CustomEvent("7tool:prototype-event", { detail:{ event:"apply_filter", placement:"category_filters", page_type:"category", category, filter_kind:filterKind, active_filter_count:activeFilterCount } }));
 }
 
 function serializeForm(form: HTMLFormElement): URLSearchParams {

@@ -22,6 +22,7 @@ export type ProductVariantChoice = {
   choiceContext: string;
   selectorLabel: "Размер" | "Параметры исполнения";
   image?: string;
+  selectorImage?: string;
   href: string;
 };
 
@@ -112,9 +113,13 @@ export function sortVariantsForChoice(product: FeedProduct, variants: FeedVarian
 
 export function getProductVariantChoices(product: FeedProduct): ProductVariantChoice[] {
   const variants = sortVariantsForChoice(product, product.variants.filter((variant) => variant.name || variant.sku));
+  const exactVariantImageCounts = countVariantImages(variants);
+  const productImage = firstImage(product.images);
   const choices = variants.map((variant) => {
     const choice = getVariantChoicePresentation(product, variant);
     const shippingPromise = getVariantShippingPromise(variant);
+    const exactImage = variant.images?.[0] || firstImage(variant.images);
+    const selectorImage = getSelectorImage(exactImage, productImage, exactVariantImageCounts);
     return {
       id:variant.id,
       sku:variant.sku,
@@ -126,7 +131,8 @@ export function getProductVariantChoices(product: FeedProduct): ProductVariantCh
       choiceLabel:choice.label,
       choiceContext:choice.context,
       selectorLabel:choice.selectorLabel,
-      image:variant.images?.[0] ?? getFeedProductImage(product),
+      image:exactImage ?? getFeedProductImage(product),
+      selectorImage,
       href:`/product/${product.slug}?variant=${encodeURIComponent(variant.id)}#variants`,
     };
   });
@@ -140,6 +146,34 @@ export function getProductVariantChoices(product: FeedProduct): ProductVariantCh
     if ((duplicateCounts.get(signature) ?? 0) < 2 || !choice.sku) return choice;
     return { ...choice, choiceContext:appendSecondaryReference(choice.choiceContext, choice.sku) };
   });
+}
+
+function firstImage(images: string[] | undefined): string | undefined {
+  return images?.find((image) => Boolean(String(image).trim()));
+}
+
+function normalizeImageUrl(value: string): string {
+  return value.trim().replace(/\?.*$/u, "").replace(/\/$/u, "").toLocaleLowerCase("en-US");
+}
+
+function countVariantImages(variants: FeedVariant[]): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const variant of variants) {
+    const image = firstImage(variant.images);
+    if (!image) continue;
+    const key = normalizeImageUrl(image);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return counts;
+}
+
+function getSelectorImage(exactImage: string | undefined, productImage: string | undefined, counts: Map<string, number>): string | undefined {
+  if (!exactImage) return undefined;
+  const imageKey = normalizeImageUrl(exactImage);
+  const productImageKey = productImage ? normalizeImageUrl(productImage) : "";
+  if (counts.size <= 1) return productImageKey && imageKey !== productImageKey ? exactImage : undefined;
+  if ((counts.get(imageKey) ?? 0) > 1 && (!productImageKey || imageKey === productImageKey)) return undefined;
+  return imageKey === productImageKey ? undefined : exactImage;
 }
 
 function buildCategoryChoice(rule: CategoryPresentationRule, variant: FeedVariant): VariantChoicePresentation | undefined {

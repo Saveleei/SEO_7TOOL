@@ -141,6 +141,41 @@ test("every variant deep link preserves the exact selection and returns to the s
   }
 });
 
+test("variant thumbnails appear only for exact visually distinct supplier images", () => {
+  const sameImageProduct = structuredClone(annularCutters);
+  sameImageProduct.images = ["https://cdn.example.test/group.webp"];
+  sameImageProduct.variants = sameImageProduct.variants.slice(0, 3).map((variant) => ({ ...variant, images:["https://cdn.example.test/group.webp"] }));
+  const repeatedChoices = getProductVariantChoices(sameImageProduct);
+  assert.ok(repeatedChoices.every((choice) => choice.image === "https://cdn.example.test/group.webp"));
+  assert.ok(repeatedChoices.every((choice) => choice.selectorImage === undefined));
+
+  const distinctImageProduct = structuredClone(sameImageProduct);
+  distinctImageProduct.variants[1].images = ["https://cdn.example.test/execution-b.webp"];
+  const distinctChoices = getProductVariantChoices(distinctImageProduct);
+  assert.equal(distinctChoices[0].selectorImage, undefined);
+  assert.equal(distinctChoices[1].selectorImage, "https://cdn.example.test/execution-b.webp");
+  assert.equal(distinctChoices[2].selectorImage, undefined);
+  assert.equal(distinctChoices[1].image, "https://cdn.example.test/execution-b.webp");
+});
+
+test("product selector explains exact media without filling every size with a duplicate thumbnail", async () => {
+  const purchase = await readFile(new URL("../app/ui/FeedProductPurchase.tsx", import.meta.url), "utf8");
+  const gallery = await readFile(new URL("../app/ui/FeedProductGallery.tsx", import.meta.url), "utf8");
+  assert.match(purchase, /variant\.selectorImage && <Image/u);
+  assert.match(purchase, /Миниатюра показана только у исполнения с отличающимся фото поставщика/u);
+  assert.match(gallery, /Фото выбранного исполнения/u);
+  assert.match(gallery, /Проверенное фото товара из товарной группы — исполнение сверяем по параметрам/u);
+});
+
+test("product comparison keeps price columns stable", async () => {
+  const comparison = await readFile(new URL("../app/ui/ProductComparisonDialog.tsx", import.meta.url), "utf8");
+  const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(comparison, /className="product-comparison-commercial"/u);
+  assert.match(styles, /product-comparison-scroll table[^}]*table-layout:fixed/u);
+  assert.match(styles, /product-comparison-commercial>b[^}]*white-space:nowrap/u);
+  assert.doesNotMatch(styles, /product-comparison-commercial-row td \{ display:grid/u);
+});
+
 test("selected execution drives every server-rendered product area", async () => {
   const page = await readFile(new URL("../app/product/[slug]/page.tsx", import.meta.url), "utf8");
   assert.match(page, /const primaryVariant = allVariants\.find\(\(variant\) => variant\.id === selectedVariantId\)/u);

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ContactAnalytics } from "./ui/ContactAnalytics";
+import { ConversionAnalytics } from "./ui/ConversionAnalytics";
 import { DocumentNavigationFallback } from "./ui/DocumentNavigationFallback";
 import { JsonLd } from "./ui/JsonLd";
 import { RequestCartProvider } from "./ui/RequestCart";
@@ -32,5 +33,5 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       { "@type":"WebSite", "@id":"https://7tool.ru/#website", url:"https://7tool.ru/", name:siteCompany.brandName, publisher:{ "@id":"https://7tool.ru/#organization" }, inLanguage:"ru-RU" },
     ],
   };
-  return <html lang="ru" data-scroll-behavior="smooth" data-document-navigation={forceDocumentNavigation ? "true" : undefined}><body><JsonLd data={structuredData} />{forceDocumentNavigation && <DocumentNavigationFallback />}<ContactAnalytics /><RequestCartProvider>{children}</RequestCartProvider></body></html>;
+  return <html lang="ru" data-scroll-behavior="smooth" data-document-navigation={forceDocumentNavigation ? "true" : undefined}><body><JsonLd data={structuredData} />{forceDocumentNavigation && <DocumentNavigationFallback />}<ConversionAnalytics /><ContactAnalytics /><RequestCartProvider>{children}</RequestCartProvider></body></html>;
 }

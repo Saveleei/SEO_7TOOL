@@ -20,12 +20,20 @@ export type RequestItem = {
 
 type RequestCartValue = {
   items: RequestItem[];
-  addItem: (item: RequestItem) => void;
+  addItem: (item: RequestItem, analytics?: QuoteItemAnalytics) => void;
   open: () => void;
   close: () => void;
   updateQuantity: (id: string, quantity: number) => void;
   remove: (id: string) => void;
   isOpen: boolean;
+};
+
+type QuoteItemAnalytics = {
+  placement?: string;
+  page_type?: string;
+  product_id?: string;
+  variant_id?: string;
+  category?: string;
 };
 
 const STORAGE_KEY = "7tool:quote-draft:v1";
@@ -56,14 +64,14 @@ export function RequestCartProvider({ children }: { children: ReactNode }) {
     if (restored) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }, [items, restored]);
 
-  function addItem(item: RequestItem) {
+  function addItem(item: RequestItem, analytics: QuoteItemAnalytics = {}) {
     setItems((current) => {
       const existing = current.find((currentItem) => currentItem.id === item.id);
       return existing
         ? current.map((currentItem) => currentItem.id === item.id ? { ...currentItem, ...item, quantity:Math.min(999, (currentItem.quantity ?? 1) + (item.quantity ?? 1)) } : currentItem)
         : [...current, { ...item, quantity:item.quantity ?? 1 }];
     });
-    trackQuote("add_to_quote", { placement:"product_action" });
+    trackQuote("add_to_quote", { ...inferQuoteItemAnalytics(item), ...analytics });
   }
 
   function updateQuantity(id: string, quantity: number) {
@@ -127,6 +135,18 @@ export function AddRequestButton({ item, className, children, openWhenAdded = fa
   const addedLabel = added ? "Добавлено · ещё +1" : children ?? "В запрос";
   const buttonLabel = added && openWhenAdded ? "Открыть КП" : addedLabel;
   return <button className={buttonClassName} type="button" onClick={activate} aria-live="polite">{buttonLabel}</button>;
+}
+
+function inferQuoteItemAnalytics(item: RequestItem): QuoteItemAnalytics {
+  const productId = item.href?.match(/^\/product\/([^?#/]+)/u)?.[1];
+  const category = window.location.pathname.match(/^\/catalog\/category\/([^/]+)/u)?.[1];
+  return {
+    placement:category ? "category_product_action" : "product_action",
+    page_type:category ? "category" : window.location.pathname.startsWith("/product/") ? "product" : "other",
+    product_id:productId,
+    variant_id:item.id.startsWith("variant:") ? item.id.slice("variant:".length) : undefined,
+    category,
+  };
 }
 
 function RequestCartDock() {
@@ -271,7 +291,7 @@ function QuoteSuccess({ draftNumber, itemCount, totalQuantity, billingProvided, 
 }
 
 function formatMoney(value: number): string { return `${new Intl.NumberFormat("ru-RU").format(value)} ₽`; }
-function trackQuote(event: string, detail: Record<string, string | number>) { window.dispatchEvent(new CustomEvent("7tool:prototype-event", { detail:{ event, page_type:"quote_request", ...detail } })); }
+function trackQuote(event: string, detail: Record<string, string | number | undefined>) { window.dispatchEvent(new CustomEvent("7tool:prototype-event", { detail:{ event, page_type:"quote_request", ...detail } })); }
 function isCartShippingPromise(value: unknown): value is { label: string; detail: string } {
   if (!value || typeof value !== "object") return false;
   const promise = value as { label?: unknown; detail?: unknown };
