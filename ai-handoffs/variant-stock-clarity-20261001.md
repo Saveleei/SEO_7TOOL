@@ -7,7 +7,8 @@
 - Goal: expose every product size immediately, distinguish confirmed in-stock variants from order/unknown variants without false promises, make category size choices scannable, and prevent mobile action labels from clipping.
 - Completion criteria: truthful availability state derived from existing feed data; desktop/mobile browser QA; targeted tests, full tests, lint, and production build pass; commit and handoff SHA recorded.
 - Constraints: do not change production, `new.7tool.ru`, DNS, feeds, cron, credentials, or send external forms without a separate explicit deployment authorization.
-- Status: complete; commit SHA to be recorded after commit.
+- Status: complete.
+- Commit: `9e19b1a` (`feat: clarify catalog sizes and trust imagery`).
 
 ## Implemented
 
