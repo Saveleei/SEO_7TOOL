@@ -27,4 +27,14 @@
 
 ## Commit
 
-Implementation commit: `713cb28` (`feat: improve mobile navigation and trust evidence`). Isolated `new.7tool.ru` deployment record will be appended after remote verification. Production `7tool.ru`, DNS, feeds and cron remain untouched.
+Implementation commit: `836cab6` (`feat: improve mobile navigation and trust evidence`).
+
+## Deployment
+
+- Active app: `/var/www/7tool-release-20260930-mobile-trust-836cab6/design-exploration/staging-pilot` via `/var/www/7tool-new-current`.
+- Rollback app: `/var/www/7tool-release-20260930-home-mobile-0b863cd/design-exploration/staging-pilot`.
+- Candidate passed loopback checks before switch; `7tool-storefront-new` is online at port 3243 with one deliberate reload and no restart loop.
+- HTTPS `https://new.7tool.ru/` and its six warehouse assets return 200; mobile catalog uses the full viewport; live manager card opens with the manager photo and both close affordances work.
+- `new.7tool.ru` remains closed to indexing by duplicate `X-Robots-Tag: noindex, nofollow, noarchive` headers and `robots.txt` with `Disallow: /`.
+- Local admin credentials were rotated for `new.7tool.ru`; the replacement was verified against the live HTTPS session API with status 200. The previous environment file is retained at `/var/www/7tool-new-shared/new.env.before-836cab6`.
+- Production `7tool-prod` remained online with PID 100870 and restart counter 3 throughout; production `7tool.ru`, DNS, feeds and cron were not changed.
