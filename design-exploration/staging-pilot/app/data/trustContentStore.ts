@@ -19,7 +19,7 @@ export async function getTrustContentSettings(options: Options = {}): Promise<Tr
     const stored = JSON.parse(await readFile(settingsPath(resolveDataDir(options.dataDir)), "utf8")) as TrustContentSettings;
     const validation = validateTrustContentSettings(stored);
     if (!validation.ok) return cloneDefaults();
-    const cards = await Promise.all(validation.value.cards.map(async (card: TrustCard) => card.imageAssetId && !(await trustAssetExists(card.imageAssetId, { dataDir:resolveDataDir(options.dataDir) })) ? { ...card, imageAssetId:"" } : card));
+    const cards = await Promise.all(completeTrustCards(validation.value.cards).map(async (card: TrustCard) => card.imageAssetId && !(await trustAssetExists(card.imageAssetId, { dataDir:resolveDataDir(options.dataDir) })) ? { ...card, imageAssetId:"" } : card));
     return { ...validation.value, cards, updatedAt:typeof stored.updatedAt === "string" ? stored.updatedAt : "" } as TrustContentSettings;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT" || error instanceof SyntaxError) return cloneDefaults();
@@ -43,10 +43,11 @@ async function saveTrustContentSettingsSerial(input: SaveInput, options: Options
   const dataDir = resolveDataDir(options.dataDir);
   const current = await getTrustContentSettings({ dataDir });
   if (validation.value.revision !== current.revision) throw new QuoteWorkflowError("Содержимое уже изменено в другой вкладке. Обновите страницу.", 409);
-  for (const card of validation.value.cards) {
+  const cards = completeTrustCards(validation.value.cards);
+  for (const card of cards) {
     if (card.imageAssetId && !(await trustAssetExists(card.imageAssetId, { dataDir }))) throw new QuoteWorkflowError(`Фотография карточки «${card.title}» не найдена. Загрузите её повторно.`, 400);
   }
-  const next: TrustContentSettings = { ...validation.value, revision:current.revision + 1, updatedAt:new Date(options.now || Date.now()).toISOString() } as TrustContentSettings;
+  const next: TrustContentSettings = { ...validation.value, cards, revision:current.revision + 1, updatedAt:new Date(options.now || Date.now()).toISOString() } as TrustContentSettings;
   const destination = settingsPath(dataDir);
   const directory = path.dirname(destination);
   const temporary = `${destination}.${randomUUID()}.tmp`;
@@ -77,4 +78,8 @@ function resolveDataDir(override?: string) {
 
 function cloneDefaults(): TrustContentSettings {
   return JSON.parse(JSON.stringify(DEFAULT_TRUST_CONTENT_SETTINGS)) as TrustContentSettings;
+}
+
+function completeTrustCards(cards: TrustCard[]): TrustCard[] {
+  return DEFAULT_TRUST_CONTENT_SETTINGS.cards.map((fallback) => cards.find((card) => card.id === fallback.id) || { ...fallback });
 }

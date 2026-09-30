@@ -67,7 +67,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
                 <a href={`mailto:${siteContact.email}?subject=Запрос%20с%20сайта%207TOOL`}><small>Отправить запрос</small><b>{siteContact.email}</b></a>
               </div>
               <a className="hero-evidence-link" href="#assurance-title">
-                <span className="hero-evidence-link__photos" aria-hidden="true">{trustContent.cards.map((card) => <Image key={card.id} src={trustCardImageUrl(card)} alt="" width={52} height={52} unoptimized={Boolean(card.imageAssetId)} />)}</span>
+                <span className="hero-evidence-link__photos" aria-hidden="true">{trustContent.cards.slice(0, 4).map((card) => <Image key={card.id} src={trustCardImageUrl(card)} alt="" width={52} height={52} unoptimized={Boolean(card.imageAssetId)} />)}</span>
                 <span><b>Реальные склад, комплектация и отгрузка</b><small>Посмотреть фотографии и порядок проверки поставки →</small></span>
               </a>
             </div>

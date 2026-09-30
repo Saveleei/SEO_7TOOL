@@ -1,4 +1,5 @@
-const CARD_IDS = ["applicability", "documents", "terms"];
+const CARD_IDS = ["applicability", "documents", "terms", "picking", "dispatch", "selection"];
+const LEGACY_CARD_IDS = CARD_IDS.slice(0, 3);
 const ASSET_PATTERN = /^trust-[0-9a-f]{64}\.(?:png|jpg|webp)$/u;
 
 export function validateTrustContentSettings(input) {
@@ -10,12 +11,13 @@ export function validateTrustContentSettings(input) {
   const sectionIntro = text(input?.sectionIntro, 320);
   if (sectionEyebrow.length < 3 || sectionTitle.length < 5 || sectionIntro.length < 10) return fail("Заполните заголовок и пояснение блока доверия.");
 
-  if (!Array.isArray(input?.cards) || input.cards.length !== CARD_IDS.length) return fail("Блок доверия должен содержать три карточки.");
+  if (!Array.isArray(input?.cards) || (input.cards.length !== CARD_IDS.length && input.cards.length !== LEGACY_CARD_IDS.length)) return fail("Блок доверия должен содержать шесть фотосюжетов.");
+  const expectedIds = input.cards.length === LEGACY_CARD_IDS.length ? LEGACY_CARD_IDS : CARD_IDS;
   const cards = [];
-  for (let index = 0; index < CARD_IDS.length; index += 1) {
+  for (let index = 0; index < expectedIds.length; index += 1) {
     const raw = input.cards[index];
     const id = text(raw?.id, 30).toLocaleLowerCase("ru-RU");
-    if (id !== CARD_IDS[index]) return fail("Состав и порядок карточек доверия изменены. Обновите страницу.");
+    if (id !== expectedIds[index]) return fail("Состав и порядок карточек доверия изменены. Обновите страницу.");
     const card = {
       id,
       kicker:text(raw?.kicker, 60),

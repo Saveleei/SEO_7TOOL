@@ -15,7 +15,7 @@ test("homepage presents the four commercial trust conditions with honest qualifi
   assert.match(page, /возможна для организаций после согласования/u);
 });
 
-test("header menu stays text-led and homepage quick-category media cannot crop", async () => {
+test("header menu uses one representative image per direction while homepage quick-category media cannot crop", async () => {
   const [menu, tiles, settings, css] = await Promise.all([
     read("../app/ui/HeaderCatalogMenu.tsx"),
     read("../app/ui/HomepageCategoryTiles.tsx"),
@@ -23,7 +23,10 @@ test("header menu stays text-led and homepage quick-category media cannot crop",
     read("../app/globals.css"),
   ]);
 
-  assert.doesNotMatch(menu, /next\/image|representativeImage/u);
+  assert.match(menu, /next\/image/u);
+  assert.match(menu, /header-catalog-group-media/u);
+  assert.match(menu, /group\.representativeImage \|\| group\.image/u);
+  assert.doesNotMatch(menu, /subcategory\.image/u);
   assert.match(tiles, /compact \? "contain"/u);
   assert.match(tiles, /compact \? "center"/u);
   assert.match(settings, /Для разделов первого экрана обрезка отключена/u);

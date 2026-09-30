@@ -50,11 +50,13 @@ test("trust section exposes verifiable evidence instead of unsupported claims", 
   assert.doesNotMatch(JSON.stringify(DEFAULT_TRUST_CONTENT_SETTINGS), /официальный дилер|всегда в наличии|лет на рынке/iu);
   for (const presentation of Object.values(TRUST_CARD_PRESENTATION)) {
     assert.equal(presentation.proofs.length, 2);
-    assert.match(presentation.href, /^\/(company|warranty|delivery)$/u);
+    assert.match(presentation.href, /^\/(company|warranty|delivery|ordering|catalog)$/u);
   }
-  assert.match(section, /presentation\.proofs\.map/u);
+  assert.equal(DEFAULT_TRUST_CONTENT_SETTINGS.cards.length, 6);
+  assert.match(section, /6 реальных фотосюжетов/u);
+  assert.match(section, /assurance-photo-card/u);
   for (const href of ["/company", "/warranty", "/delivery", "/ordering"]) assert.match(section, new RegExp(`href="${href}"`, "u"));
-  assert.match(css, /\.assurance-proof-list/u);
+  assert.match(css, /grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/u);
   assert.match(css, /\.assurance-evidence-links/u);
-  assert.match(css, /@media \(max-width:520px\)[\s\S]*?\.assurance-grid article \{ display:block; \}/u);
+  assert.match(css, /@media \(max-width:760px\)[\s\S]*?scroll-snap-type:x mandatory/u);
 });

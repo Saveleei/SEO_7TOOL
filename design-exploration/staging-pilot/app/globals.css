@@ -6534,3 +6534,141 @@ body:has(.request-cart-dock) .mobile-manager-bubble { bottom:88px; }
   .header-catalog-mobile-top { grid-template-columns:82px minmax(0,1fr) 42px; padding-inline:10px; }
   .header-catalog-mobile-brand>span { width:82px; }
 }
+
+/* Final UX pass: fixed mobile search, scannable catalog imagery and six factual
+   trust photos. These rules intentionally sit last to win over legacy prototype
+   layers while the design is being consolidated. */
+.header-catalog-group-media {
+  width:56px;
+  height:44px;
+  display:grid!important;
+  place-items:center;
+  overflow:hidden;
+  padding:3px!important;
+  border:1px solid #e0e4de;
+  border-radius:6px;
+  background:#fff;
+}
+.header-catalog-group-media img { width:100%; height:100%; display:block; object-fit:contain; mix-blend-mode:multiply; }
+.header-catalog-group--desktop { grid-template-columns:28px 58px minmax(0,1fr) 14px; gap:9px; }
+.header-catalog-group--desktop>span:nth-child(3) { min-width:0; }
+.header-catalog-group--desktop>span:nth-child(3)>b,
+.header-catalog-group--desktop>span:nth-child(3)>small { display:block; }
+.header-catalog-group--desktop>span:nth-child(3)>b { color:var(--ink); font:800 var(--type-body)/1.2 Inter,Arial,sans-serif; }
+.header-catalog-group--desktop>span:nth-child(3)>small { margin-top:4px; color:#737a73; font:500 var(--type-caption)/1.2 Inter,Arial,sans-serif; }
+
+.header-contact-close-indicator { display:none; }
+.header-contact-menu[open]>summary::after { display:none; }
+.header-contact-menu[open]>summary .header-contact-close-indicator {
+  width:26px;
+  height:26px;
+  position:absolute;
+  z-index:2;
+  top:50%;
+  right:7px;
+  display:grid;
+  place-items:center;
+  padding:0;
+  border-radius:50%;
+  background:#202621;
+  color:#fff;
+  font:500 20px/1 Arial,sans-serif;
+  transform:translateY(-50%);
+}
+.header-contact-panel>header { display:grid; grid-template-columns:58px minmax(0,1fr) 34px; align-items:center; gap:11px; }
+.header-contact-manager-photo { width:58px; height:58px; display:block; border:2px solid #fff; border-radius:50%; object-fit:cover; box-shadow:0 2px 10px rgba(20,26,22,.14); }
+.header-contact-panel>header>div { min-width:0; }
+.header-contact-panel>header>div>span,
+.header-contact-panel>header>div>b,
+.header-contact-panel>header>div>small { display:block; }
+.header-contact-panel>header>div>span { color:#a93c00; font-size:var(--type-caption); font-weight:850; text-transform:uppercase; }
+.header-contact-panel>header>div>b { margin-top:4px; font-size:16px; }
+.header-contact-panel>header>div>small { margin-top:3px; color:#626862; font-size:var(--type-caption); line-height:1.3; }
+.header-contact-panel>header>button { width:34px; height:34px; display:grid; place-items:center; padding:0; border:1px solid #cfd5ce; border-radius:50%; background:#fff; color:#252b27; font-size:22px; line-height:1; cursor:pointer; }
+.header-contact-panel>header>button:hover { border-color:#8d978f; background:#eef1ed; }
+.header-contact-panel>header>button:focus-visible { outline:3px solid rgba(201,74,18,.24); outline-offset:2px; }
+
+.assurance-gallery-meta { display:flex; align-items:center; justify-content:space-between; gap:20px; margin:-4px 0 12px; color:#626b64; font-size:var(--type-secondary); }
+.assurance-gallery-meta b { color:#263029; font-size:var(--type-body); }
+.assurance-gallery-meta span { display:none; }
+.assurance-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+.assurance-grid .assurance-photo-card {
+  min-height:340px;
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  border:1px solid #cfd6cf;
+  border-radius:11px;
+  background:#1e2520;
+  box-shadow:0 12px 34px rgba(22,29,24,.09);
+}
+.assurance-grid .assurance-photo-card>img,
+.assurance-grid .assurance-photo-card:first-child>img { width:100%; height:100%; position:absolute; inset:0; object-fit:cover; transition:transform .25s ease; }
+.assurance-grid .assurance-photo-card:hover>img { transform:scale(1.018); }
+.assurance-grid .assurance-photo-card>.assurance-photo-card__content,
+.assurance-grid .assurance-photo-card:first-child>.assurance-photo-card__content {
+  min-height:340px;
+  position:relative;
+  z-index:1;
+  display:flex;
+  align-items:flex-start;
+  justify-content:flex-end;
+  flex-direction:column;
+  padding:22px;
+  background:linear-gradient(180deg,rgba(12,17,13,.03) 20%,rgba(12,17,13,.42) 52%,rgba(12,17,13,.94) 100%);
+  color:#fff;
+}
+.assurance-photo-card__content>span { color:#ffb184!important; font-size:var(--type-caption)!important; letter-spacing:.04em; }
+.assurance-grid .assurance-photo-card h3 { max-width:360px; margin:7px 0 5px; color:#fff; font-size:23px; line-height:1.06; text-wrap:balance; }
+.assurance-grid .assurance-photo-card p { max-width:390px; display:-webkit-box; overflow:hidden; color:#eef2ed; font-size:var(--type-secondary); line-height:1.42; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
+.assurance-grid .assurance-photo-card .assurance-outcome { width:auto; max-width:100%; margin:12px 0 0; padding:8px 10px; border:1px solid rgba(255,255,255,.2); border-radius:6px; background:rgba(15,22,17,.56); }
+.assurance-grid .assurance-photo-card .assurance-outcome small { color:#cdd6cf; }
+.assurance-grid .assurance-photo-card .assurance-outcome b { margin-top:3px; color:#fff; font-size:var(--type-secondary); line-height:1.35; }
+.assurance-grid .assurance-photo-card a { min-height:38px; display:inline-flex; align-items:center; margin-top:11px; color:#ffb184; font-size:var(--type-secondary); font-weight:850; }
+.assurance-grid .assurance-photo-card a:focus-visible { outline:3px solid rgba(255,177,132,.7); outline-offset:3px; }
+
+@media (max-width:1180px) and (min-width:761px) {
+  .assurance-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+
+@media (max-width:760px) {
+  .site-header { position:sticky; top:0; z-index:120; background:#fff; box-shadow:0 7px 24px rgba(18,25,20,.12); backdrop-filter:none; }
+  .site-header .header-search-form { border-color:#bfc7bf; background:#fff; box-shadow:0 2px 8px rgba(23,31,25,.04); }
+  .header-catalog-group--mobile { grid-template-columns:28px 48px minmax(0,1fr) 32px; gap:8px; }
+  .header-catalog-group--mobile .header-catalog-group-media { width:48px; height:42px; }
+  .header-catalog-group--mobile>span:nth-child(3)>b,
+  .header-catalog-group--mobile>span:nth-child(3)>small { display:block; }
+  .header-catalog-group--mobile>span:nth-child(3)>b { color:var(--ink); font:800 15px/1.22 Inter,Arial,sans-serif; }
+  .header-catalog-group--mobile>span:nth-child(3)>small { margin-top:3px; color:#737a73; font:500 var(--type-caption)/1.2 Inter,Arial,sans-serif; }
+  .header-catalog-grid>section[data-expanded="true"]>nav { padding-left:98px; }
+  .header-catalog-grid>section[data-expanded="true"]>.header-catalog-overview { padding-left:98px; }
+
+  .header-contact-menu[open]>summary .mobile-manager-avatar img { opacity:.16; }
+  .header-contact-menu[open]>summary .mobile-manager-online { display:none; }
+  .mobile-action-bar .header-contact-menu[open]>summary .header-contact-close-indicator,
+  .mobile-manager-bubble .header-contact-menu[open]>summary .header-contact-close-indicator { width:30px; height:30px; top:50%; right:50%; display:grid!important; transform:translate(50%,-50%); }
+  .header-contact-panel>header { grid-template-columns:58px minmax(0,1fr) 38px; padding:14px; }
+  .header-contact-panel>header>button { width:38px; height:38px; }
+
+  .assurance-gallery-meta { align-items:flex-end; margin-bottom:10px; }
+  .assurance-gallery-meta b { font-size:var(--type-control); }
+  .assurance-gallery-meta span { display:block; max-width:150px; text-align:right; font-size:var(--type-caption); line-height:1.3; }
+  .assurance-grid {
+    width:calc(100% + 28px);
+    max-width:none;
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    margin-inline:-14px;
+    padding:0 14px 12px;
+    scroll-padding-inline:14px;
+    scroll-snap-type:x mandatory;
+    scrollbar-width:none;
+  }
+  .assurance-grid::-webkit-scrollbar { display:none; }
+  .assurance-grid .assurance-photo-card { min-width:min(84vw,340px); min-height:380px; flex:0 0 min(84vw,340px); scroll-snap-align:start; }
+  .assurance-grid .assurance-photo-card>.assurance-photo-card__content,
+  .assurance-grid .assurance-photo-card:first-child>.assurance-photo-card__content { min-height:380px; padding:20px; }
+  .assurance-grid .assurance-photo-card h3 { font-size:22px; }
+  .assurance-photo-note { margin-top:7px; }
+}

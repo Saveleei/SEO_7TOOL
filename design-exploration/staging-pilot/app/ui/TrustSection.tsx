@@ -10,16 +10,17 @@ export function TrustSection({ content }: { content: TrustContentSettings }) {
       <li><span>02</span><div><b>Проверка</b><small>исполнение, комплектность и доступные документы</small></div></li>
       <li><span>03</span><div><b>Зафиксированный результат</b><small>позиции, цена и срок в коммерческом предложении</small></div></li>
     </ol>
-    <div className="assurance-grid">
+    <div className="assurance-gallery-meta"><b>6 реальных фотосюжетов</b><span>На телефоне листайте фотографии в сторону →</span></div>
+    <div className="assurance-grid" aria-label="Фотографии склада, комплектации, подбора и отгрузки">
       {content.cards.map((card) => {
         const presentation = TRUST_CARD_PRESENTATION[card.id];
-        return <article key={card.id}>
+        return <article className="assurance-photo-card" key={card.id}>
           <Image src={trustCardImageUrl(card)} alt={card.imageAlt} width={520} height={300} unoptimized={Boolean(card.imageAssetId)} />
-          <div><span>{card.kicker}</span><h3>{card.title}</h3><p>{card.text}</p><ul className="assurance-proof-list">{presentation.proofs.map((proof) => <li key={proof}>{proof}</li>)}</ul><div className="assurance-outcome"><small>Результат для согласования</small><b>{card.outcome}</b></div><Link href={presentation.href}>{presentation.linkLabel} →</Link></div>
+          <div className="assurance-photo-card__content"><span>{card.kicker}</span><h3>{card.title}</h3><p>{card.text}</p><div className="assurance-outcome"><small>Что получает покупатель</small><b>{card.outcome}</b></div><Link href={presentation.href}>{presentation.linkLabel} →</Link></div>
         </article>;
       })}
     </div>
-    <p className="assurance-photo-note">Фотографии предоставлены владельцем сайта и показывают реальные процессы хранения, комплектации и отгрузки. Наличие конкретного артикула подтверждаем перед счётом.</p>
+    <p className="assurance-photo-note">Шесть фотографий показывают реальные складские, комплектовочные и отгрузочные процессы. Наличие конкретного исполнения и дату отправки подтверждаем перед счётом.</p>
     <nav className="assurance-evidence-links" aria-label="Проверяемая информация о покупке">
       <div><span>Можно проверить до обращения</span><b>Компания, документы и порядок поставки</b></div>
       <Link href="/company">Как работает 7TOOL</Link>

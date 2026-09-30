@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import { siteContact } from "../data/contactConfig";
 
 function TelegramIcon() {
@@ -10,12 +13,44 @@ function MaxIcon() {
 }
 
 export function HeaderContactMenu({ compact = false, placement }: { compact?: boolean; placement: string }) {
-  return <details className={`header-contact-menu${compact ? " header-contact-menu--compact" : ""}`} data-contact-placement={placement}>
-    <summary aria-label={`Связаться с 7TOOL, телефон ${siteContact.phone}`}>
+  const menuRef = useRef<HTMLDetailsElement>(null);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const closeFromOutside = (event: PointerEvent) => {
+      const menu = menuRef.current;
+      if (menu?.open && event.target instanceof Node && !menu.contains(event.target)) {
+        menu.removeAttribute("open");
+        setOpen(false);
+      }
+    };
+    const closeFromKeyboard = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || !menuRef.current?.open) return;
+      menuRef.current.removeAttribute("open");
+      setOpen(false);
+      menuRef.current.querySelector<HTMLElement>("summary")?.focus();
+    };
+    document.addEventListener("pointerdown", closeFromOutside);
+    document.addEventListener("keydown", closeFromKeyboard);
+    return () => {
+      document.removeEventListener("pointerdown", closeFromOutside);
+      document.removeEventListener("keydown", closeFromKeyboard);
+    };
+  }, []);
+
+  const closeMenu = () => {
+    menuRef.current?.removeAttribute("open");
+    setOpen(false);
+    menuRef.current?.querySelector<HTMLElement>("summary")?.focus();
+  };
+
+  return <details className={`header-contact-menu${compact ? " header-contact-menu--compact" : ""}`} data-contact-placement={placement} ref={menuRef} onToggle={() => setOpen(Boolean(menuRef.current?.open))}>
+    <summary aria-label={open ? "Закрыть контакты менеджера" : `Связаться с 7TOOL, телефон ${siteContact.phone}`}>
       {compact ? <><span className="mobile-manager-avatar"><Image src={siteContact.photo} alt="" width={52} height={52} /></span><span className="desktop-manager-label"><b>Менеджер 7TOOL</b><small>Телефон и мессенджеры</small></span><i className="mobile-manager-online" aria-hidden="true" /></> : <><span>Связаться</span><b>{siteContact.phone}</b></>}
+      <i className="header-contact-close-indicator" aria-hidden="true">×</i>
     </summary>
     <div className="header-contact-panel">
-      <header><span>Персональный менеджер</span><b>{siteContact.managerName}</b><small>{siteContact.managerRole}</small></header>
+      <header><Image className="header-contact-manager-photo" src={siteContact.photo} alt={siteContact.managerName} width={64} height={64} /><div><span>Персональный менеджер</span><b>{siteContact.managerName}</b><small>{siteContact.managerRole}</small></div><button type="button" aria-label="Закрыть контакты менеджера" onClick={closeMenu}>×</button></header>
       <a href={siteContact.phoneHref} aria-label={`Позвонить ${siteContact.managerName}`}><span>Телефон</span><b>{siteContact.phone}</b></a>
       <a href={`mailto:${siteContact.email}?subject=Вопрос%20по%20оборудованию`} aria-label={`Написать ${siteContact.managerName} на email`}><span>Email</span><b>{siteContact.email}</b></a>
       <div>

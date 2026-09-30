@@ -12,16 +12,34 @@ import { validateTrustContentSettings } from "../app/data/trustContentValidation
 
 const onePixelPng = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64");
 
-test("trust content validation preserves the three stable card purposes", () => {
+test("trust content validation preserves six stable photo purposes", () => {
   const valid = cloneDefaults();
+  assert.equal(valid.cards.length, 6);
   assert.equal(validateTrustContentSettings(valid).ok, true);
   assert.equal(validateTrustContentSettings({ ...valid, sectionTitle:"" }).ok, false);
   assert.equal(validateTrustContentSettings({ ...valid, cards:[...valid.cards].reverse() }).ok, false);
   assert.equal(validateTrustContentSettings({ ...valid, cards:valid.cards.map((card, index) => index === 0 ? { ...card, imageAssetId:"../../secret.png" } : card) }).ok, false);
 });
 
+test("legacy three-card trust settings gain the new photos without losing saved content", async () => {
+  const dataDir = await mkdtemp(path.join(os.tmpdir(), "7tool-trust-legacy-"));
+  try {
+    const legacy = cloneDefaults();
+    legacy.cards = legacy.cards.slice(0, 3);
+    legacy.cards[0].title = "Сохранённый заголовок склада";
+    assert.equal(validateTrustContentSettings(legacy).ok, true);
+    const saved = await saveTrustContentSettings(legacy, { dataDir });
+    assert.equal(saved.cards.length, 6);
+    assert.equal(saved.cards[0].title, "Сохранённый заголовок склада");
+    assert.equal(saved.cards[5].id, "selection");
+  } finally {
+    await rm(dataDir, { recursive:true, force:true });
+  }
+});
+
 test("trust links use existing public routes", () => {
-  assert.equal(TRUST_CARD_PRESENTATION.documents.href, "/warranty");
+  assert.equal(TRUST_CARD_PRESENTATION.terms.href, "/delivery");
+  assert.equal(TRUST_CARD_PRESENTATION.selection.href, "/catalog");
 });
 
 test("trust content persists atomically, checks revisions and restores defaults", async () => {

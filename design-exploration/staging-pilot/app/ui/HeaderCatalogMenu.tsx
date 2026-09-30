@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { siteContact } from "../data/contactConfig";
@@ -118,6 +119,7 @@ export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[
           return <section key={group.slug} data-expanded={isExpanded ? "true" : "false"}>
             <Link className="header-catalog-group header-catalog-group--desktop" href={group.href} onClick={closeMenu}>
               <span>{group.id}</span>
+              <span className="header-catalog-group-media"><Image src={group.representativeImage || group.image} alt="" width={56} height={44} unoptimized={Boolean(group.representativeImage)} /></span>
               <span><b>{group.title}</b><small>{formatCategoryCount(group.subcategories.length)}</small></span>
               <i aria-hidden="true">→</i>
             </Link>
@@ -129,6 +131,7 @@ export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[
               onClick={() => setExpandedGroup(isExpanded ? "" : group.slug)}
             >
               <span>{group.id}</span>
+              <span className="header-catalog-group-media"><Image src={group.representativeImage || group.image} alt="" width={56} height={44} unoptimized={Boolean(group.representativeImage)} /></span>
               <span><b>{group.title}</b><small>{formatCategoryCount(group.subcategories.length)}</small></span>
               <i aria-hidden="true">{isExpanded ? "−" : "+"}</i>
             </button>
