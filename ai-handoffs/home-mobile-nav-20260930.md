@@ -69,6 +69,21 @@ The existing `/test/settings/trust` workspace remains the source of truth for th
 - No production, DNS, feed, cron or secret changes were made.
 - Disk recovery: only rebuildable `dist/.next` outputs in three old isolated worktrees were removed; no source or user data was deleted.
 
+## New storefront deployment
+
+- Published only to `new.7tool.ru`.
+- Active immutable release: `/var/www/7tool-release-20260930-home-mobile-0b863cd/design-exploration/staging-pilot`.
+- Rollback release retained: `/var/www/7tool-release-20260930-variant-media-01dd28e/design-exploration/staging-pilot`.
+- Archive SHA-256: `F9ECF792FB9D141C50DE9973BCAB2E4685E45832BBF8B2493387F9DD8C8C8D75`.
+- Server build passed against the existing isolated new-catalog paths.
+- Separate candidate on `127.0.0.1:3251` returned `200` for the homepage, catalogue, drilling category, product page and staff access screen; no write route was called.
+- Atomic cutover retained automatic rollback on failed start or homepage smoke.
+- `7tool-storefront-new` stayed online for five minutes with `0` restarts and `0` unstable restarts; the candidate process was removed and the PM2 state was saved.
+- External `https://new.7tool.ru/` and the drilling category returned `200`; the homepage retained `X-Robots-Tag: noindex, nofollow, noarchive`.
+- Live mobile `390 × 844` verification found no page overflow and confirmed the new first screen, bottom navigation and evidence link.
+- Production `7tool-prod` remained online on its unchanged release with restart count `3`; `https://7tool.ru/` returned `200` after the cutover.
+- Server free space after deployment: approximately `4.8 GiB`.
+
 ## Commit
 
 Implementation commit: `91fd4e7` — `feat: strengthen homepage trust and mobile navigation`
