@@ -34,7 +34,11 @@
 - Mobile browser 390×844: no horizontal overflow; two-column variant selector; 56 px manager control stays above the sticky purchase bar.
 - Seven priority category pages checked at mobile width: drilling machines, annular cutters, pipe bevelers, burrs, welding carriages, tapping manipulators and compressors.
 - No forms were submitted and no external delivery was triggered.
+- Published only to `new.7tool.ru`: release `/var/www/7tool-release-20260930-variant-media-01dd28e/design-exploration/staging-pilot`; `7tool-storefront-new` online with PID `141740`, zero restarts.
+- Live desktop comparison: four equal 249 px price columns, fixed table layout, non-wrapping prices and zero overflow. Live mobile: four equal 174 px columns inside the intended horizontal comparison scroller, zero page overflow.
+- `new.7tool.ru/test/access` returns 200 with `X-Robots-Tag: noindex, nofollow, noarchive`; `7tool.ru` remained online with unchanged PID `100870` and restart count `3`.
+- Rollback target remains `/var/www/7tool-release-20260930-category-ux-6fa98cc/design-exploration/staging-pilot`.
 
 ## Commit
 
-_Implementation SHA will be recorded after the commit._
+- Implementation: `01dd28e` (`fix: stabilize comparison and variant buying flow`).
