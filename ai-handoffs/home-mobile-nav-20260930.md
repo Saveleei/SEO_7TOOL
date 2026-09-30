@@ -71,4 +71,4 @@ The existing `/test/settings/trust` workspace remains the source of truth for th
 
 ## Commit
 
-`ab810a6` — `feat: strengthen homepage trust and mobile navigation`
+Implementation commit: `91fd4e7` — `feat: strengthen homepage trust and mobile navigation`
