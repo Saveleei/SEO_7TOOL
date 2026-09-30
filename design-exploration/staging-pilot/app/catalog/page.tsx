@@ -5,7 +5,7 @@ import { Breadcrumbs } from "../ui/Breadcrumbs";
 import { PilotFooter } from "../ui/PilotFooter";
 import { PilotHeader } from "../ui/PilotHeader";
 import { getCanonicalCatalogGroups, pilotFeedCategorySlugs } from "../data/productionCategoryGroups";
-import { trustCardImageUrl } from "../data/trustContentModel";
+import { orderTrustCardsForDisplay, trustCardDisplayKicker, trustCardImageUrl } from "../data/trustContentModel";
 import { getTrustContentSettings } from "../data/trustContentStore";
 import { createPublicMetadata } from "../data/seo";
 
@@ -38,7 +38,7 @@ export default async function CatalogPage() {
         <section className="section catalog-evidence-section" aria-labelledby="catalog-evidence-title"><div className="container">
           <div className="section-heading"><div><p className="eyebrow">{trustContent.sectionEyebrow}</p><h2 id="catalog-evidence-title">{trustContent.sectionTitle}</h2></div><p>{trustContent.sectionIntro}</p></div>
           <div className="catalog-evidence-grid">
-            {trustContent.cards.map((card) => <article key={card.id}><Image src={trustCardImageUrl(card)} alt={card.imageAlt} width={520} height={300} unoptimized={Boolean(card.imageAssetId)} /><div><span>{card.kicker}</span><h3>{card.title}</h3><p>{card.text}</p></div></article>)}
+            {orderTrustCardsForDisplay(trustContent.cards).map((card, index) => <article key={card.id}><Image src={trustCardImageUrl(card)} alt={card.imageAlt} width={520} height={300} unoptimized={Boolean(card.imageAssetId)} /><div><span>{trustCardDisplayKicker(card, index)}</span><h3>{card.title}</h3><p>{card.text}</p></div></article>)}
           </div>
         </div></section>
       </main><PilotFooter /></div>

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { TRUST_CARD_PRESENTATION, trustCardImageUrl, type TrustContentSettings } from "../data/trustContentModel";
+import { orderTrustCardsForDisplay, TRUST_CARD_PRESENTATION, trustCardDisplayKicker, trustCardImageUrl, type TrustContentSettings } from "../data/trustContentModel";
 
 export function TrustSection({ content }: { content: TrustContentSettings }) {
   return <section className="section assurance-section" aria-labelledby="assurance-title"><div className="container">
@@ -12,15 +12,15 @@ export function TrustSection({ content }: { content: TrustContentSettings }) {
     </ol>
     <div className="assurance-gallery-meta"><b>6 реальных фотосюжетов</b><span>На телефоне листайте фотографии в сторону →</span></div>
     <div className="assurance-grid" aria-label="Фотографии склада, комплектации, подбора и отгрузки">
-      {content.cards.map((card) => {
+      {orderTrustCardsForDisplay(content.cards).map((card, index) => {
         const presentation = TRUST_CARD_PRESENTATION[card.id];
         return <article className="assurance-photo-card" key={card.id}>
-          <Image src={trustCardImageUrl(card)} alt={card.imageAlt} width={520} height={300} unoptimized={Boolean(card.imageAssetId)} />
-          <div className="assurance-photo-card__content"><span>{card.kicker}</span><h3>{card.title}</h3><p>{card.text}</p><div className="assurance-outcome"><small>Что получает покупатель</small><b>{card.outcome}</b></div><Link href={presentation.href}>{presentation.linkLabel} →</Link></div>
+          <div className="assurance-photo-card__media"><Image src={trustCardImageUrl(card)} alt={card.imageAlt} width={520} height={300} unoptimized={Boolean(card.imageAssetId)} /><span>{trustCardDisplayKicker(card, index)}</span></div>
+          <div className="assurance-photo-card__content"><h3>{card.title}</h3><p>{card.text}</p><ul className="assurance-proof-list">{presentation.proofs.map((proof) => <li key={proof}>{proof}</li>)}</ul><div className="assurance-outcome"><small>Что получает покупатель</small><b>{card.outcome}</b></div><Link href={presentation.href}>{presentation.linkLabel} →</Link></div>
         </article>;
       })}
     </div>
-    <p className="assurance-photo-note">Шесть фотографий показывают реальные складские, комплектовочные и отгрузочные процессы. Наличие конкретного исполнения и дату отправки подтверждаем перед счётом.</p>
+    <p className="assurance-photo-note">Шесть фотографий показывают паллетное и мелкоячеистое хранение, работу сотрудников при комплектации и подготовку груза к отгрузке. Наличие конкретного исполнения и дату отправки подтверждаем перед счётом.</p>
     <nav className="assurance-evidence-links" aria-label="Проверяемая информация о покупке">
       <div><span>Можно проверить до обращения</span><b>Компания, документы и порядок поставки</b></div>
       <Link href="/company">Как работает 7TOOL</Link>

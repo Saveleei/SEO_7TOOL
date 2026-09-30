@@ -55,6 +55,8 @@ test("trust section exposes verifiable evidence instead of unsupported claims", 
   assert.equal(DEFAULT_TRUST_CONTENT_SETTINGS.cards.length, 6);
   assert.match(section, /6 реальных фотосюжетов/u);
   assert.match(section, /assurance-photo-card/u);
+  assert.match(section, /assurance-photo-card__media/u);
+  assert.match(section, /presentation\.proofs\.map/u);
   for (const href of ["/company", "/warranty", "/delivery", "/ordering"]) assert.match(section, new RegExp(`href="${href}"`, "u"));
   assert.match(css, /grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/u);
   assert.match(css, /\.assurance-evidence-links/u);

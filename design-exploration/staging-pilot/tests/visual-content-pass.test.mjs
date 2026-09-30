@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { DEFAULT_TRUST_CONTENT_SETTINGS } from "../app/data/trustContentModel.ts";
+import { DEFAULT_TRUST_CONTENT_SETTINGS, orderTrustCardsForDisplay } from "../app/data/trustContentModel.ts";
 
 const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
 
@@ -27,7 +27,7 @@ test("catalog subcategories use their own feed-grounded imagery without inventin
 test("catalog evidence and product cards explain the verifiable buying process", async () => {
   const [catalog, card] = await Promise.all([read("../app/catalog/page.tsx"), read("../app/ui/FeedProductCard.tsx")]);
   assert.match(catalog, /getTrustContentSettings/u);
-  assert.match(catalog, /trustContent\.cards\.map/u);
+  assert.match(catalog, /orderTrustCardsForDisplay\(trustContent\.cards\)\.map/u);
   assert.match(catalog, /trustCardImageUrl\(card\)/u);
   assert.match(card, /feed-product-assurance/u);
   assert.match(card, /Проверим до оплаты/u);
@@ -50,10 +50,28 @@ test("administrator editors control homepage merchandising photos and shared tru
 
 test("homepage trust copy matches the real photos and stays evidence-led", () => {
   assert.equal(DEFAULT_TRUST_CONTENT_SETTINGS.cards.length, 6);
-  assert.equal(DEFAULT_TRUST_CONTENT_SETTINGS.cards[3].title, "Сверяем состав заказа");
-  assert.equal(DEFAULT_TRUST_CONTENT_SETTINGS.cards[4].title, "Готовим груз к отправке");
+  assert.equal(DEFAULT_TRUST_CONTENT_SETTINGS.cards[3].title, "Сотрудник сверяет состав заказа");
+  assert.equal(DEFAULT_TRUST_CONTENT_SETTINGS.cards[4].title, "Люди готовят груз к отправке");
+  assert.deepEqual(orderTrustCardsForDisplay(DEFAULT_TRUST_CONTENT_SETTINGS.cards).map((card) => card.id), ["applicability", "picking", "dispatch", "documents", "terms", "selection"]);
   assert.match(DEFAULT_TRUST_CONTENT_SETTINGS.sectionIntro, /коммерческом предложении/u);
+  assert.match(DEFAULT_TRUST_CONTENT_SETTINGS.sectionIntro, /работу сотрудников/u);
   assert.doesNotMatch(JSON.stringify(DEFAULT_TRUST_CONTENT_SETTINGS), /собственный склад|всегда в наличии|официальный дилер/iu);
+});
+
+test("trust photography keeps copy on a separate readable surface", async () => {
+  const [section, homepage, css] = await Promise.all([
+    read("../app/ui/TrustSection.tsx"),
+    read("../app/page.tsx"),
+    read("../app/globals.css"),
+  ]);
+  assert.match(section, /assurance-photo-card__media/u);
+  assert.match(section, /presentation\.proofs\.map/u);
+  assert.match(section, /паллетное и мелкоячеистое хранение/u);
+  assert.match(homepage, /orderTrustCardsForDisplay\(trustContent\.cards\)\.slice\(0, 3\)/u);
+  assert.match(homepage, /hero-evidence-link__copy/u);
+  assert.match(css, /\.assurance-photo-card__media[\s\S]*?position:relative/u);
+  assert.match(css, /\.assurance-photo-card__content[\s\S]*?background:#fff/u);
+  assert.match(css, /\.hero-evidence-link \{[\s\S]*?grid-template-columns:104px minmax\(0,1fr\)/u);
 });
 
 test("real warehouse evidence is shared across homepage, catalog and company page", async () => {
@@ -66,8 +84,8 @@ test("real warehouse evidence is shared across homepage, catalog and company pag
   ]);
   for (const image of ["01", "02", "04", "06", "07", "08"]) assert.match(model, new RegExp(`/warehouse/${image}\\.webp`, "u"));
   assert.match(homepage, /<TrustSection content=\{trustContent\}/u);
-  assert.match(catalog, /trustContent\.cards\.map/u);
+  assert.match(catalog, /orderTrustCardsForDisplay\(trustContent\.cards\)\.map/u);
   assert.match(company, /company-operations-section/u);
-  assert.match(company, /trustContent\.cards\.map/u);
+  assert.match(company, /orderTrustCardsForDisplay\(trustContent\.cards\)\.map/u);
   assert.match(editor, /на главной, в общем каталоге и на странице компании/u);
 });

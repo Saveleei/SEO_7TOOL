@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { getProductionCategoryGroups, pilotFeedCategorySlugs } from "../data/productionCategoryGroups";
-import { trustCardImageUrl } from "../data/trustContentModel";
+import { orderTrustCardsForDisplay, trustCardDisplayKicker, trustCardImageUrl } from "../data/trustContentModel";
 import { getTrustContentSettings } from "../data/trustContentStore";
 import { PublicInfoContact, PublicInfoPage } from "../ui/PublicInfoPage";
 import { createPublicMetadata } from "../data/seo";
@@ -21,7 +21,7 @@ export default async function CompanyPage() {
     <section className="section section-muted public-info-section company-operations-section" aria-labelledby="company-operations-title"><div className="container">
       <div className="public-info-heading public-info-heading--split"><div><p className="eyebrow">Реальная работа с заказами</p><h2 id="company-operations-title">Склад, комплектация и отгрузка</h2></div><p>Фотографии предоставлены владельцем сайта. Они показывают реальные процессы, но не заменяют проверку остатка выбранного артикула перед счётом.</p></div>
       <div className="catalog-evidence-grid company-operations-grid">
-        {trustContent.cards.map((card) => <article key={card.id}><Image src={trustCardImageUrl(card)} alt={card.imageAlt} width={720} height={460} unoptimized={Boolean(card.imageAssetId)} /><div><span>{card.kicker}</span><h3>{card.title}</h3><p>{card.text}</p></div></article>)}
+        {orderTrustCardsForDisplay(trustContent.cards).map((card, index) => <article key={card.id}><Image src={trustCardImageUrl(card)} alt={card.imageAlt} width={720} height={460} unoptimized={Boolean(card.imageAssetId)} /><div><span>{trustCardDisplayKicker(card, index)}</span><h3>{card.title}</h3><p>{card.text}</p></div></article>)}
       </div>
       <div className="company-operations-actions"><Link href="/delivery">Условия доставки и отгрузки →</Link><Link href="/warranty">Гарантия и документы →</Link></div>
     </div></section>

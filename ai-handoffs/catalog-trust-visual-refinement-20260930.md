@@ -1,0 +1,23 @@
+# Catalog and trust visual refinement
+
+- Agent: Codex
+- Branch: `codex/catalog-trust-visual-refinement-20260930`
+- Base commit: `b45f8cc`
+- Scope: `design-exploration/staging-pilot/` homepage, catalog menu, production-task cards, shared trust section, compact product-size selector, mobile purchase actions, responsive styles, and focused regression tests.
+- Goal: make catalog imagery informative rather than cropped, separate trust copy from busy photos, represent distinct storage/picking/dispatch processes with real uploaded photos, and remove mobile overlap without changing catalog, lead, feed, or production behavior.
+- Completion criteria: desktop/mobile browser QA; relevant tests, full tests, lint, and production build pass; immutable release is deployed only to `new.7tool.ru`; `7tool.ru` remains untouched and its process identity/restart count is verified unchanged.
+- Constraints: no production, DNS, feed, cron, credential, or external-form changes.
+- Implementation:
+  - Catalog and production-task cutouts use larger contained media frames instead of cropped thumbnails.
+  - Trust evidence uses six real uploaded photos with separate readable copy, diversified into pallet storage, large-equipment storage, employee picking, people preparing dispatch, and tooling selection.
+  - Hero evidence shows three distinct real processes without mobile overlap.
+  - Size-driven product variants show only the dimension in compact tiles; price, material, article, availability, and specifications remain in the selected-variant area.
+  - Mobile product actions keep quantity + `Добавить в КП` on one stable row and put `Быстрый запрос` on a full-width row.
+- Verification:
+  - Targeted regression: 23/23 passed, then 21/21 passed after final selector/readability updates.
+  - Full `node --test tests\\*.test.mjs`: 333/333 passed.
+  - Full ESLint: passed.
+  - Vinext production build: passed; final post-readability build pending before commit.
+  - Browser QA: 1440×1000 and 390×844; no horizontal overflow. Mobile size grid is three columns, 46 px targets; quick request is full width.
+  - Known baseline: Vinext may log the existing RSC-prefetch `TypeError: f is not a function`; navigation remained functional and the change did not add it.
+- Status: implementation verified locally; commit and immutable `new.7tool.ru` deployment pending.

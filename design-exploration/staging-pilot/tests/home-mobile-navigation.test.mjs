@@ -53,7 +53,7 @@ test("homepage first screen pairs visual assortment with editable warehouse evid
 
   assert.match(page, /hero-mobile-catalog-preview/u);
   assert.match(page, /homepageKeyCategories\.slice\(0, 3\)/u);
-  assert.match(page, /trustContent\.cards\.slice\(0, 4\)\.map/u);
+  assert.match(page, /orderTrustCardsForDisplay\(trustContent\.cards\)\.slice\(0, 3\)\.map/u);
   assert.match(page, /trustCardImageUrl\(card\)/u);
   assert.match(page, /Реальные склад, комплектация и отгрузка/u);
   assert.match(css, /\.hero-mobile-catalog-preview \.homepage-category-tiles--hero \{ display:flex/u);

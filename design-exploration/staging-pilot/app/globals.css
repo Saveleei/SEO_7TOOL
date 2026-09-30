@@ -2742,6 +2742,9 @@ body:has(.feed-compare-tray) .request-cart-dock { bottom:96px; }
 .feed-variant-option-image { width:44px; height:44px; padding:3px; border:1px solid rgba(36,41,37,.12); border-radius:5px; background:#fff; object-fit:contain; mix-blend-mode:multiply; }
 .feed-variant-option-copy { min-width:0; display:grid; gap:2px; }
 .feed-variant-options>a.active .feed-variant-option-image { border-color:rgba(255,255,255,.36); mix-blend-mode:normal; }
+.feed-variant-options--sizes { grid-template-columns:repeat(auto-fill,minmax(98px,1fr)); gap:5px; }
+.feed-variant-options--sizes>a { min-height:44px; justify-items:center; padding:7px 8px; text-align:center; }
+.feed-variant-options--sizes>a b { font-size:14px; }
 .feed-variant-reveal { width:100%; min-height:58px; display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:16px; margin-top:9px; padding:10px 12px; border:1px solid #c9cec7; border-left:3px solid var(--cta); border-radius:6px; background:#f5f7f3; color:#262a27; font:inherit; text-align:left; cursor:pointer; }
 .feed-variant-reveal:hover { border-color:#8e958d; border-left-color:var(--cta-hover); background:#f0f3ee; }
 .feed-variant-reveal:focus-visible { outline:3px solid rgba(39,91,65,.25); outline-offset:2px; }
@@ -2771,6 +2774,8 @@ body:has(.feed-compare-tray) .request-cart-dock { bottom:96px; }
 .feed-conversion-purchase-actions>button { min-height:48px; padding:0 12px; border:1px solid var(--action-dark); border-radius:6px; background:var(--action-dark); color:#fff; font-size:14px; font-weight:800; cursor:pointer; }
 .feed-conversion-purchase-actions>button:hover { border-color:var(--action-dark-hover); background:var(--action-dark-hover); }
 .feed-conversion-purchase-actions>button.added { border-color:#bdd9ca; background:#e8f3ed; color:#087044; }
+.feed-add-label { display:block; }
+.feed-add-label--mobile { display:none; }
 .feed-conversion-purchase-actions>.feed-open-quote { border-color:#bfc3bd; background:#fff; color:#252925; }
 .feed-conversion-secondary-actions { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-top:8px; }
 .feed-conversion-secondary-actions>.contact-dialog-trigger,.feed-conversion-secondary-actions>a,.feed-conversion-secondary-actions>.feed-product-compare-trigger { min-height:45px; display:flex; align-items:center; justify-content:center; padding:0 10px; border:1px solid #c6cac3; border-radius:6px; background:#fff; color:#303431; font-family:inherit; font-size:13px; font-weight:750; text-align:center; cursor:pointer; }
@@ -2946,6 +2951,9 @@ body:has(.feed-compare-tray) .request-cart-dock { bottom:96px; }
   .feed-variant-search { grid-template-columns:1fr; gap:6px; }
   .feed-variant-options { grid-template-columns:1fr 1fr; }
   .feed-variant-options>a { min-height:70px; }
+  .feed-variant-options--sizes { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .feed-variant-options--sizes>a { min-height:46px; padding:7px 5px; }
+  .feed-variant-options--sizes>a b { font-size:13px; }
   .feed-variant-reveal { grid-template-columns:1fr; gap:8px; padding:12px; }
   .feed-variant-reveal b { font-size:14px; }
   .feed-variant-reveal small { font-size:12px; }
@@ -2957,7 +2965,10 @@ body:has(.feed-compare-tray) .request-cart-dock { bottom:96px; }
   .feed-conversion-price b { font-size:29px; }
   .feed-conversion-price span { max-width:none; text-align:left; }
   .feed-conversion-purchase-actions { grid-template-columns:82px 1fr; }
+  .feed-conversion-purchase-actions>.quick-order-trigger { grid-column:1/-1; width:100%; }
   .feed-conversion-purchase-actions>.feed-open-quote { grid-column:1/-1; }
+  .feed-add-label--full { display:none; }
+  .feed-add-label--mobile { display:block; white-space:nowrap; }
   .feed-conversion-secondary-actions { grid-template-columns:1fr; }
   .feed-conversion-secondary-actions>.contact-dialog-trigger,.feed-conversion-secondary-actions>a,.feed-conversion-secondary-actions>.feed-product-compare-trigger { min-height:45px; }
   .product-comparison-layer { align-items:end; padding:0; }
@@ -5886,6 +5897,7 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
   .feed-card-variant,.feed-inline-variant { grid-template-columns:minmax(0,1fr) auto; }
   .feed-variant-order-actions { grid-column:1/-1; grid-template-columns:1fr 1fr; }
   .feed-mobile-order-actions { min-width:145px; }
+  .feed-conversion-purchase-actions>.quick-order-trigger { grid-column:1/-1; width:100%; }
   .quick-order-layer { align-items:end; padding:0; }
   .quick-order-dialog { width:100%; max-height:calc(100dvh - 18px); border-radius:12px 12px 0 0; }
   .quick-order-dialog>header { padding:18px 16px 15px; }
@@ -6671,4 +6683,229 @@ body:has(.request-cart-dock) .mobile-manager-bubble { bottom:88px; }
   .assurance-grid .assurance-photo-card:first-child>.assurance-photo-card__content { min-height:380px; padding:20px; }
   .assurance-grid .assurance-photo-card h3 { font-size:22px; }
   .assurance-photo-note { margin-top:7px; }
+}
+
+/* Catalog and operational-evidence refinement.
+   Product cutouts stay fully visible; real warehouse photography is allowed to
+   crop only inside a dedicated media frame, never underneath body copy. */
+.hero-evidence-link {
+  display:grid;
+  grid-template-columns:104px minmax(0,1fr);
+  align-items:center;
+  column-gap:14px;
+}
+.hero-evidence-link__photos { min-width:0; width:104px; padding-left:1px; }
+.hero-evidence-link__photos img { margin-left:-10px; }
+.hero-evidence-link__copy { min-width:0; }
+
+.header-catalog-group--desktop {
+  min-height:68px;
+  grid-template-columns:28px 78px minmax(0,1fr) 14px;
+  gap:10px;
+}
+.header-catalog-group-media {
+  width:78px;
+  height:58px;
+  padding:6px!important;
+  border-color:#d8ded7;
+  background:#f7f9f6;
+}
+.header-catalog-group-media img { object-fit:contain; object-position:center; }
+
+.homepage-task-path {
+  min-height:190px;
+  grid-template-columns:31px minmax(0,1fr) 142px;
+  gap:11px 16px;
+  padding:20px;
+}
+.homepage-task-path>img {
+  width:142px;
+  height:110px;
+  padding:6px;
+  border:1px solid #e0e5de;
+  border-radius:8px;
+  background:#f7f9f6;
+  object-fit:contain;
+  object-position:center;
+  mix-blend-mode:multiply;
+}
+.homepage-task-path__copy h3 { font-size:22px; }
+.homepage-task-path__copy p { max-width:280px; }
+
+.production-category-media { background:#f7f9f6; }
+.production-category-media::after { display:none; }
+.production-category-media img {
+  padding:12px;
+  background:#f7f9f6;
+  object-fit:contain;
+  object-position:center;
+  mix-blend-mode:multiply;
+}
+
+.catalog-direction>nav>a.catalog-subcategory-link {
+  min-height:102px;
+  grid-template-columns:88px minmax(0,1fr) 15px;
+}
+.catalog-direction>nav>a .catalog-subcategory-media { width:88px; height:84px; background:#fff; }
+.catalog-direction>nav>a .catalog-subcategory-media img {
+  inset:5px;
+  width:calc(100% - 10px);
+  height:calc(100% - 10px);
+  object-fit:contain;
+  object-position:center;
+}
+
+.assurance-grid .assurance-photo-card {
+  min-height:0;
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  grid-template-rows:228px minmax(0,1fr);
+  isolation:auto;
+  overflow:hidden;
+  background:#fff;
+}
+.assurance-photo-card__media {
+  min-height:0;
+  position:relative;
+  overflow:hidden;
+  background:#e8ece6;
+}
+.assurance-grid .assurance-photo-card>.assurance-photo-card__media>img,
+.assurance-grid .assurance-photo-card:first-child>.assurance-photo-card__media>img {
+  width:100%;
+  height:100%;
+  position:static;
+  display:block;
+  object-fit:cover;
+  object-position:center;
+  transition:transform .25s ease;
+}
+.assurance-grid .assurance-photo-card:hover>.assurance-photo-card__media>img { transform:scale(1.018); }
+.assurance-photo-card__media>span {
+  position:absolute;
+  top:14px;
+  left:14px;
+  padding:6px 8px;
+  border-radius:5px;
+  background:rgba(29,37,31,.9);
+  color:#fff;
+  font:800 var(--type-caption)/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;
+  letter-spacing:.035em;
+  text-transform:uppercase;
+  box-shadow:0 3px 12px rgba(16,22,18,.14);
+}
+.assurance-grid .assurance-photo-card>.assurance-photo-card__content,
+.assurance-grid .assurance-photo-card:first-child>.assurance-photo-card__content {
+  min-height:310px;
+  position:static;
+  display:flex;
+  align-items:flex-start;
+  justify-content:flex-start;
+  flex-direction:column;
+  padding:20px 21px 21px;
+  background:#fff;
+  color:var(--ink);
+}
+.assurance-grid .assurance-photo-card h3 {
+  max-width:none;
+  margin:0 0 8px;
+  color:var(--ink);
+  font-size:22px;
+  line-height:1.12;
+}
+.assurance-grid .assurance-photo-card p {
+  max-width:none;
+  display:block;
+  overflow:visible;
+  color:#5d665f;
+  font-size:var(--type-secondary);
+  line-height:1.48;
+  -webkit-line-clamp:unset;
+}
+.assurance-grid .assurance-photo-card .assurance-proof-list { margin:14px 0 0; }
+.assurance-grid .assurance-photo-card .assurance-outcome {
+  width:100%;
+  max-width:none;
+  margin:14px 0 0;
+  padding:11px 12px;
+  border:0;
+  border-left:3px solid #2f8259;
+  border-radius:0 5px 5px 0;
+  background:#eef6f1;
+}
+.assurance-grid .assurance-photo-card .assurance-outcome small { color:#5f6d64; }
+.assurance-grid .assurance-photo-card .assurance-outcome b { color:#203029; }
+.assurance-grid .assurance-photo-card a {
+  min-height:40px;
+  margin-top:auto;
+  padding-top:11px;
+  color:#87340f;
+}
+.assurance-grid .assurance-photo-card a:focus-visible { outline-color:rgba(201,74,18,.4); }
+
+@media (max-width:1050px) and (min-width:761px) {
+  .homepage-task-path { grid-template-columns:31px minmax(0,1fr) 118px; }
+  .homepage-task-path>img { width:118px; height:96px; }
+}
+
+@media (max-width:760px) {
+  .hero-evidence-link {
+    width:100%;
+    min-height:74px;
+    grid-template-columns:82px minmax(0,1fr);
+    gap:10px;
+    padding:9px;
+    overflow:visible;
+  }
+  .hero-evidence-link__photos { width:82px; min-width:0; }
+  .hero-evidence-link__photos img { width:38px; height:38px; margin-left:-9px; }
+  .hero-evidence-link__copy { overflow-wrap:anywhere; }
+  .hero-evidence-link b { font-size:13px; line-height:1.25; }
+  .hero-evidence-link small { font-size:var(--type-caption); line-height:1.35; }
+
+  .header-catalog-group--mobile {
+    min-height:72px;
+    grid-template-columns:28px 60px minmax(0,1fr) 32px;
+  }
+  .header-catalog-group--mobile .header-catalog-group-media { width:60px; height:52px; padding:5px!important; }
+  .header-catalog-grid>section[data-expanded="true"]>nav,
+  .header-catalog-grid>section[data-expanded="true"]>.header-catalog-overview { padding-left:112px; }
+
+  .homepage-task-path {
+    min-height:150px;
+    grid-template-columns:29px minmax(0,1fr) 106px;
+    gap:9px 11px;
+    padding:15px;
+  }
+  .homepage-task-path>img { width:106px; height:88px; padding:4px; }
+  .homepage-task-path__copy h3 { font-size:18px; }
+
+  .production-category-media img { padding:9px; object-fit:contain; }
+  .catalog-direction>nav>a.catalog-subcategory-link {
+    min-height:98px;
+    grid-template-columns:82px minmax(0,1fr) 15px;
+  }
+  .catalog-direction>nav>a .catalog-subcategory-media { width:82px; height:78px; }
+
+  .assurance-grid .assurance-photo-card {
+    min-width:min(88vw,360px);
+    min-height:0;
+    flex:0 0 min(88vw,360px);
+    grid-template-rows:205px minmax(0,1fr);
+  }
+  .assurance-grid .assurance-photo-card>.assurance-photo-card__content,
+  .assurance-grid .assurance-photo-card:first-child>.assurance-photo-card__content {
+    min-height:330px;
+    padding:18px;
+  }
+  .assurance-grid .assurance-photo-card h3 { font-size:21px; }
+  .assurance-photo-card__media>span { top:11px; left:11px; }
+}
+
+@media (max-width:390px) {
+  .hero-evidence-link { grid-template-columns:74px minmax(0,1fr); }
+  .hero-evidence-link__photos { width:74px; }
+  .hero-evidence-link__photos img { width:35px; height:35px; margin-left:-8px; }
+  .homepage-task-path { grid-template-columns:27px minmax(0,1fr) 92px; }
+  .homepage-task-path>img { width:92px; height:78px; }
 }

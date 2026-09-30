@@ -40,7 +40,10 @@ test("product selector exposes the full searchable size range and keeps SKU seco
   assert.match(purchase, /className="feed-variant-reveal"/u);
   assert.match(purchase, /track\("open_variant_list", "product_buybox"\)/u);
   assert.match(purchase, /Найти по размеру или артикулу/u);
+  assert.match(purchase, /sizeOnlySelector \? "feed-variant-options--sizes"/u);
+  assert.match(purchase, /!sizeOnlySelector && <small>\{variant\.price\}<\/small>/u);
   assert.match(purchase, /<b>\{variant\.choiceLabel\}<\/b>/u);
+  assert.match(purchase, /feed-add-label--mobile">\{added \? "Добавлено" : "Добавить в КП"\}/u);
   assert.match(purchase, /<small>\{selected\.choiceContext[\s\S]*артикул \$\{selected\.sku\}/u);
   assert.doesNotMatch(purchase, /<b>\{variant\.sku/u);
   assert.match(purchase, /<a[^>]*href=\{variant\.href\}[^>]*aria-current=/u);
