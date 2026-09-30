@@ -8,6 +8,7 @@ import { HeaderCatalogMenu } from "./HeaderCatalogMenu";
 import { HeaderContactMenu } from "./HeaderContactMenu";
 import { HeaderSearch } from "./HeaderSearch";
 import { ManagerSessionControl } from "./ManagerSessionControl";
+import { MobileBottomNavigation } from "./MobileBottomNavigation";
 import { RequestCartButton } from "./RequestCart";
 
 export function PilotHeader({ managerMode = false, managerActor = null }: { managerMode?: boolean; managerActor?: ManagerActor | null }) {
@@ -23,9 +24,7 @@ export function PilotHeader({ managerMode = false, managerActor = null }: { mana
           {managerMode ? <div className="manager-header-actions"><nav className="manager-workspace-nav" aria-label="Рабочее место"><Link href="/test/requests">Заявки</Link>{managerActor && canManager(managerActor, "catalog:audit") && <Link href="/test/catalog-quality">Качество каталога</Link>}{managerActor && canManager(managerActor, "catalog:manage") && <Link href="/test/catalog-parameters">Характеристики</Link>}{managerActor && canManager(managerActor, "settings:manage") && <Link href="/test/catalog-media">Фото товаров</Link>}{managerActor && canManager(managerActor, "delivery:prepare") && <Link href="/test/delivery">Очередь КП</Link>}{managerActor && canManager(managerActor, "settings:manage") && <><Link href="/test/settings/homepage">Главная</Link><Link href="/test/settings/trust">Доверие</Link><Link href="/test/settings/shipping">Отгрузка</Link><Link href="/test/settings/quote">Настройки КП</Link></>}</nav>{managerActor && <ManagerSessionControl actor={managerActor} />}</div> : <><HeaderCatalogMenu groups={categoryGroups} /><HeaderSearch /><a className="header-quick" href="/#production-categories"><span>?</span>Выбрать по задаче</a><Link className="header-info-link" href="/company">Компания</Link><HeaderContactMenu placement="desktop_header" /><RequestCartButton /></>}
         </div>
       </header>
-      {!managerMode && <nav className="mobile-action-bar" aria-label="Быстрые действия">
-        <RequestCartButton compact />
-      </nav>}
+      {!managerMode && <MobileBottomNavigation />}
       {!managerMode && <div className="mobile-manager-bubble"><HeaderContactMenu compact placement="mobile_manager_bubble" /></div>}
     </>
   );

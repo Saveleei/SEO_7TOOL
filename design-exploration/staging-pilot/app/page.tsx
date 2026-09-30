@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { PilotFooter } from "./ui/PilotFooter";
 import { PilotHeader } from "./ui/PilotHeader";
@@ -12,6 +13,7 @@ import { getHomepageContentSettings } from "./data/homepageContentStore";
 import { homepageAssetUrl } from "./data/homepageContentModel";
 import { getHomepageKeyCategories, getProductionCategoryGroups, pilotFeedCategorySlugs } from "./data/productionCategoryGroups";
 import { getTrustContentSettings } from "./data/trustContentStore";
+import { trustCardImageUrl } from "./data/trustContentModel";
 import { createPublicMetadata } from "./data/seo";
 
 export const metadata: Metadata = createPublicMetadata({
@@ -43,6 +45,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
               <p className="eyebrow">{homepageContent.hero.eyebrow}</p>
               <h1>{homepageContent.hero.title}</h1>
               <p className="hero-lead">{homepageContent.hero.intro}</p>
+              <div className="hero-mobile-catalog-preview" aria-label="Быстрый вход в каталог">
+                <HomepageCategoryTiles categories={homepageKeyCategories.slice(0, 3)} compact />
+                <Link href="/catalog">Все разделы каталога →</Link>
+              </div>
               <div className="hero-primary-actions">
                 <Link className="button button-dark" href="/catalog" data-home-action="open_catalog">Открыть каталог</Link>
                 <a className="button button-quiet" href="#production-categories" data-home-action="choose_task">Выбрать по задаче</a>
@@ -60,6 +66,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
                 <a href={siteContact.phoneHref}><small>Позвонить</small><b>{siteContact.phone}</b></a>
                 <a href={`mailto:${siteContact.email}?subject=Запрос%20с%20сайта%207TOOL`}><small>Отправить запрос</small><b>{siteContact.email}</b></a>
               </div>
+              <a className="hero-evidence-link" href="#assurance-title">
+                <span className="hero-evidence-link__photos" aria-hidden="true">{trustContent.cards.map((card) => <Image key={card.id} src={trustCardImageUrl(card)} alt="" width={52} height={52} unoptimized={Boolean(card.imageAssetId)} />)}</span>
+                <span><b>Реальные склад, комплектация и отгрузка</b><small>Посмотреть фотографии и порядок проверки поставки →</small></span>
+              </a>
             </div>
             <aside className="hero-catalog-card" aria-labelledby="hero-catalog-title">
               <div className="hero-catalog-card__heading">

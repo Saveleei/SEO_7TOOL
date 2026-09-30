@@ -3,17 +3,30 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { siteContact } from "../data/contactConfig";
 import type { ProductionCategoryGroup } from "../data/productionCategoryGroups";
+
+const FOCUSABLE_SELECTOR = "a[href],button:not([disabled]),input:not([disabled]),[tabindex]:not([tabindex='-1'])";
 
 export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[] }) {
   const menuRef = useRef<HTMLDetailsElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [expandedGroup, setExpandedGroup] = useState("");
 
   useEffect(() => {
     const menu = menuRef.current;
-    const syncOpenState = () => setIsOpen(Boolean(menu?.open));
+    const syncOpenState = () => {
+      const open = Boolean(menu?.open);
+      setIsOpen(open);
+      if (open) {
+        returnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        if (window.matchMedia("(max-width: 760px)").matches) window.requestAnimationFrame(() => closeButtonRef.current?.focus());
+      }
+    };
     const closeFromOutside = (event: PointerEvent) => {
       if (menu?.open && event.target instanceof Node && !menu.contains(event.target)) {
         menu.removeAttribute("open");
@@ -21,25 +34,44 @@ export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[
       }
     };
     const closeFromKeyboard = (event: KeyboardEvent) => {
-      if (!menu?.open || event.key !== "Escape") return;
+      if (!menu?.open) return;
+      if (event.key !== "Escape") {
+        if (event.key !== "Tab" || !window.matchMedia("(max-width: 760px)").matches) return;
+        const focusable = Array.from(panelRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR) ?? []).filter((element) => element.offsetParent !== null);
+        const first = focusable[0];
+        const last = focusable.at(-1);
+        if (!first || !last) return;
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+        return;
+      }
       event.preventDefault();
       menu.removeAttribute("open");
       setIsOpen(false);
-      menu.querySelector<HTMLElement>("summary")?.focus();
+      returnFocusRef.current?.focus();
+    };
+    const openFromMobileNavigation = () => {
+      if (!menu) return;
+      menu.setAttribute("open", "");
+      setIsOpen(true);
+      returnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      window.requestAnimationFrame(() => closeButtonRef.current?.focus());
     };
     menu?.addEventListener("toggle", syncOpenState);
     document.addEventListener("pointerdown", closeFromOutside);
     document.addEventListener("keydown", closeFromKeyboard);
+    window.addEventListener("7tool:open-catalog-menu", openFromMobileNavigation);
     return () => {
       menu?.removeEventListener("toggle", syncOpenState);
       document.removeEventListener("pointerdown", closeFromOutside);
       document.removeEventListener("keydown", closeFromKeyboard);
+      window.removeEventListener("7tool:open-catalog-menu", openFromMobileNavigation);
     };
   }, []);
 
   useEffect(() => {
     document.body.classList.toggle("catalog-menu-open", isOpen);
-    const background = Array.from(document.querySelectorAll<HTMLElement>("main, .footer, .mobile-action-bar"));
+    const background = Array.from(document.querySelectorAll<HTMLElement>("main, .footer, .mobile-action-bar, .mobile-manager-bubble"));
     for (const element of background) {
       if (isOpen) element.setAttribute("inert", "");
       else element.removeAttribute("inert");
@@ -54,6 +86,7 @@ export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[
     menuRef.current?.removeAttribute("open");
     setIsOpen(false);
     setExpandedGroup("");
+    returnFocusRef.current?.focus();
   };
 
   return <details className="header-catalog-menu" ref={menuRef}>
@@ -62,10 +95,18 @@ export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[
       aria-current={pathname.startsWith("/catalog") ? "page" : undefined}
       aria-expanded={isOpen}
       aria-label={isOpen ? "Закрыть каталог 7TOOL" : "Открыть каталог 7TOOL"}
-      onClick={() => setIsOpen(!menuRef.current?.open)}
     ><i aria-hidden="true" /><span>Каталог</span></summary>
     <button className="header-catalog-backdrop" type="button" aria-label="Закрыть каталог" onClick={closeMenu} />
-    <div className="header-catalog-panel" aria-label="Каталог оборудования">
+    <div className="header-catalog-panel" ref={panelRef} role="dialog" aria-modal="true" aria-label="Каталог и навигация 7TOOL">
+      <div className="header-catalog-mobile-top">
+        <Link className="header-catalog-mobile-brand" href="/" aria-label="7TOOL — главная" onClick={closeMenu}><span aria-hidden="true" /></Link>
+        <form action="/search" role="search"><label className="sr-only" htmlFor="mobile-catalog-search">Найти товар</label><input id="mobile-catalog-search" name="q" type="search" placeholder="Модель, товар или задача" /><button type="submit" aria-label="Найти">⌕</button></form>
+        <button ref={closeButtonRef} type="button" aria-label="Закрыть меню" onClick={closeMenu}>×</button>
+      </div>
+      <div className="header-catalog-mobile-contact">
+        <a href={siteContact.phoneHref}><span>Позвонить</span><b>{siteContact.phone}</b></a>
+        <a href={`mailto:${siteContact.email}?subject=Запрос%20с%20сайта%207TOOL`}><span>Написать</span><b>{siteContact.email}</b></a>
+      </div>
       <header>
         <div><span>Каталог 7TOOL</span><b>Оборудование и оснастка по разделам</b><small>Каждая категория показана один раз. Подбор по операции — отдельным сценарием.</small></div>
         <Link href="/catalog" onClick={closeMenu}>Открыть весь каталог →</Link>
@@ -98,6 +139,13 @@ export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[
           </section>;
         })}
       </div>
+      <nav className="header-catalog-service-links" aria-label="Информация для покупателей">
+        <Link href="/company" onClick={closeMenu}>О компании</Link>
+        <Link href="/delivery" onClick={closeMenu}>Доставка по России</Link>
+        <Link href="/payment" onClick={closeMenu}>Оплата и отсрочка</Link>
+        <Link href="/warranty" onClick={closeMenu}>Гарантия и сервис</Link>
+        <Link href="/contacts" onClick={closeMenu}>Контакты и реквизиты</Link>
+      </nav>
       <footer>
         <div><b>Не знаете категорию?</b><span>Опишите операцию, материал и условия работы — инженер предложит подходящие варианты.</span></div>
         <Link href="/#production-categories" onClick={closeMenu}>Выбрать по задаче</Link>
