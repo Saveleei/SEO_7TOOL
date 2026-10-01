@@ -57,4 +57,4 @@ Make the homepage production-task entry visually explicit on desktop and compact
 
 ## Commit
 
-`1f3e3e4` — `feat: simplify task and variant selection`
+Implementation commit: `f27e7b0` — `feat: simplify task and variant selection`
