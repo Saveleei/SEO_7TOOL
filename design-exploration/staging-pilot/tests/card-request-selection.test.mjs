@@ -14,19 +14,25 @@ test("feed card model preserves exact variant image and canonical href", () => {
 
 test("card view requires an exact variant before adding to the quote request", async () => {
   const source = await readFile(new URL("../app/ui/FeedProductCard.tsx", import.meta.url), "utf8");
+  const picker = await readFile(new URL("../app/ui/VariantPickerDialog.tsx", import.meta.url), "utf8");
   assert.match(source, /product\.selectedVariantCount === 1 \? product\.variants\[0\]/u);
   assert.match(source, /archetype\.multipleAction/u);
-  assert.match(source, /id:`variant:\$\{variant\.id\}`/u);
-  assert.match(source, /id:`variant:\$\{directVariant\.id\}`/u);
+  assert.match(source, /<VariantPickerDialog/u);
   assert.match(source, /image:variant\.image, href:variant\.href/u);
+  assert.match(source, /id:`variant:\$\{directVariant\.id\}`/u);
   assert.match(source, /image:directVariant\.image, href:directVariant\.href/u);
+  assert.match(picker, /id:`variant:\$\{selected\.id\}`/u);
+  assert.match(picker, /image:selected\.image, href:selected\.href/u);
   assert.doesNotMatch(source, /AddRequestButton item=\{\{ id:product\.id/u);
 });
 
 test("table view carries exact variant media and links into the quote request", async () => {
   const source = await readFile(new URL("../app/ui/FeedProductTable.tsx", import.meta.url), "utf8");
-  assert.ok((source.match(/image:variant\.image, href:variant\.href/gu)?.length ?? 0) >= 2);
+  const picker = await readFile(new URL("../app/ui/VariantPickerDialog.tsx", import.meta.url), "utf8");
+  assert.match(source, /<VariantPickerDialog/u);
+  assert.match(source, /image:variant\.image, href:variant\.href/u);
   assert.ok((source.match(/image:directVariant\.image, href:directVariant\.href/gu)?.length ?? 0) >= 2);
   assert.match(source, /<QuickOrderDialog[\s\S]*id:`variant:\$\{directVariant\.id\}`/u);
-  assert.match(source, /<QuickOrderDialog[\s\S]*id:`variant:\$\{variant\.id\}`/u);
+  assert.match(picker, /id:`variant:\$\{selected\.id\}`/u);
+  assert.match(picker, /href:selected\.href/u);
 });

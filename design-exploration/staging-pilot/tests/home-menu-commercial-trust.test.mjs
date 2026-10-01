@@ -15,7 +15,7 @@ test("homepage presents the four commercial trust conditions with honest qualifi
   assert.match(page, /возможна для организаций после согласования/u);
 });
 
-test("header menu uses one representative image per direction while homepage quick-category media cannot crop", async () => {
+test("header menu keeps directions textual and gives concrete subcategories uncropped media", async () => {
   const [menu, tiles, settings, css] = await Promise.all([
     read("../app/ui/HeaderCatalogMenu.tsx"),
     read("../app/ui/HomepageCategoryTiles.tsx"),
@@ -23,14 +23,15 @@ test("header menu uses one representative image per direction while homepage qui
     read("../app/globals.css"),
   ]);
 
-  assert.match(menu, /next\/image/u);
-  assert.match(menu, /header-catalog-group-media/u);
-  assert.match(menu, /group\.representativeImage \|\| group\.image/u);
-  assert.doesNotMatch(menu, /subcategory\.image/u);
+  assert.match(menu, /HomepageCategoryMedia/u);
+  assert.match(menu, /header-catalog-subcategory-media/u);
+  assert.match(menu, /subcategory\.image/u);
+  assert.doesNotMatch(menu, /group\.representativeImage \|\| group\.image/u);
   assert.match(tiles, /compact \? "contain"/u);
   assert.match(tiles, /compact \? "center"/u);
   assert.match(settings, /Для разделов первого экрана обрезка отключена/u);
   assert.match(css, /\.homepage-category-tiles--hero \.homepage-category-tile-media img[\s\S]*?object-fit:contain!important/u);
+  assert.match(css, /\.header-catalog-subcategory-media img[^}]*object-fit:contain/u);
   assert.match(css, /\.header-catalog-panel \{ max-height:calc\(100dvh - 112px\)/u);
 });
 

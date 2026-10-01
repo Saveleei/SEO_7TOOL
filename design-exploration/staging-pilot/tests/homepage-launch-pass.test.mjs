@@ -49,8 +49,11 @@ test("homepage production tasks expose direct category paths without cropping eq
   assert.match(paths, /group\.subcategories\.slice\(0, 4\)/u);
   assert.match(paths, /category\.href/u);
   assert.match(paths, /homepage-task-path__action/u);
-  assert.match(css, /\.homepage-task-path>img \{[\s\S]*?object-fit:contain/u);
+  assert.match(paths, /HomepageCategoryMedia src=\{category\.image\}/u);
+  assert.doesNotMatch(paths, /group\.representativeImage|group\.image/u);
+  assert.match(css, /\.homepage-task-path__subcategory-media img[^}]*object-fit:contain/u);
   assert.match(css, /\.homepage-task-path__subcategories \{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/u);
+  assert.match(css, /\.homepage-task-path\[data-expanded="true"\] \.homepage-task-path__subcategories/u);
 });
 
 test("trust section exposes verifiable evidence instead of unsupported claims", async () => {
@@ -74,5 +77,6 @@ test("trust section exposes verifiable evidence instead of unsupported claims", 
   for (const href of ["/company", "/warranty", "/delivery", "/ordering"]) assert.match(section, new RegExp(`href="${href}"`, "u"));
   assert.match(css, /grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/u);
   assert.match(css, /\.assurance-evidence-links/u);
-  assert.match(css, /@media \(max-width:760px\)[\s\S]*?scroll-snap-type:x mandatory/u);
+  assert.match(section, /assurance-mobile-toggle/u);
+  assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.assurance-grid \{ width:100%; max-width:none; display:grid; grid-template-columns:1fr/u);
 });

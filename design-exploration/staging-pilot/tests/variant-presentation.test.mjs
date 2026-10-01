@@ -29,27 +29,26 @@ test("all cutter variants are sorted by diameter rather than article feed order"
 test("product selector exposes the full searchable size range and keeps SKU secondary", async () => {
   const page = await readFile(new URL("../app/product/[slug]/page.tsx", import.meta.url), "utf8");
   const purchase = await readFile(new URL("../app/ui/FeedProductPurchase.tsx", import.meta.url), "utf8");
+  const picker = await readFile(new URL("../app/ui/VariantPickerDialog.tsx", import.meta.url), "utf8");
   assert.match(page, /sortVariantsForChoice\(product,/u);
   assert.doesNotMatch(page, /allVariants\.filter[\s\S]{0,200}\.slice\(0, 12\)/u);
   assert.match(page, /getProductVariantChoices\(product\)/u);
   assert.match(page, /variants=\{allPurchaseVariants\}/u);
   assert.doesNotMatch(page, /variantsEndpoint=/u);
-  assert.match(purchase, /sizeOnlySelector \? matchingVariants\.length/u);
-  assert.match(purchase, /`Показаны все \$\{totalVariantCount\}/u);
-  assert.match(purchase, /feed-variant-availability-legend/u);
-  assert.match(purchase, /confirmedAvailable \? "В наличии" : "Наличие и срок уточним"/u);
-  assert.match(purchase, /confirmedAvailable \? "is-available" : "is-unconfirmed"/u);
+  assert.match(purchase, /feed-variant-picker-summary/u);
+  assert.match(purchase, /<VariantPickerDialog/u);
+  assert.match(purchase, /items=\{pickerItems\}/u);
   assert.match(purchase, /!sizeOnlySelector && totalVariantCount > INITIAL_VARIANTS/u);
-  assert.match(purchase, /Найти по размеру или артикулу/u);
-  assert.match(purchase, /sizeOnlySelector \? "feed-variant-options--sizes"/u);
-  assert.match(purchase, /!sizeOnlySelector && <small>\{variant\.price\}<\/small>/u);
-  assert.match(purchase, /<b>\{variant\.choiceLabel\}<\/b>/u);
+  assert.match(picker, /Найти по размеру или артикулу/u);
+  assert.match(picker, /В наличии · \{availableCount\}/u);
+  assert.match(picker, /item\.shippingPromise\.available \? "is-available" : "is-unconfirmed"/u);
+  assert.match(picker, /<b>\{item\.label\}<\/b>/u);
   assert.match(purchase, /feed-add-label--mobile">\{added \? "Добавлено" : "Добавить в КП"\}/u);
   assert.match(purchase, /<small>\{selected\.choiceContext[\s\S]*артикул \$\{selected\.sku\}/u);
   assert.doesNotMatch(purchase, /<b>\{variant\.sku/u);
-  assert.match(purchase, /<a[^>]*href=\{variant\.href\}[^>]*aria-current=/u);
-  assert.doesNotMatch(purchase, /history\.replaceState/u);
-  assert.match(purchase, /Выбор обновляет всю карточку/u);
+  assert.match(picker, /href=\{selected\.href\}/u);
+  assert.match(picker, /AddRequestButton/u);
+  assert.doesNotMatch(picker, /history\.replaceState/u);
 });
 
 test("full size list is loaded on demand in natural order", async () => {
@@ -74,20 +73,34 @@ test("compatible accessory cards lead with working size and keep article as refe
 });
 
 test("category card variants show the buyer size first and keep actions readable", async () => {
-  const [card, table, styles] = await Promise.all([
+  const [card, table, picker, styles] = await Promise.all([
     readFile(new URL("../app/ui/FeedProductCard.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/ui/FeedProductTable.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/ui/VariantPickerDialog.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
   ]);
   for (const source of [card, table]) {
-    assert.match(source, /feed-variant-choice-link/u);
-    assert.match(source, /Арт\. \$\{variant\.sku\}/u);
-    assert.match(source, /Добавить в КП/u);
+    assert.match(source, /VariantPickerDialog/u);
+    assert.match(source, /toPickerItems/u);
+    assert.match(source, /variantChoiceLabel/u);
   }
-  assert.doesNotMatch(card, /feed-variant-sku-link/u);
-  assert.match(card, /feed-card-variant--available/u);
-  assert.match(card, /feed-card-variant--unconfirmed/u);
-  assert.match(styles, /feed-mobile-order-actions>button[^}]*white-space:normal/u);
+  assert.match(picker, /Артикул \$\{selected\.sku\}/u);
+  assert.match(picker, /Добавить в КП/u);
+  assert.match(styles, /\.variant-picker-dialog \{[\s\S]*?max-height:min/u);
+  assert.match(styles, /@media \(max-width:760px\)[\s\S]*?\.variant-picker-dialog \{ width:100%; height:100dvh/u);
+});
+
+test("full comparison repeats the commercial decision after technical parameters", async () => {
+  const [page, styles] = await Promise.all([
+    readFile(new URL("../app/compare/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+  ]);
+  assert.doesNotMatch(page, /\["Ориентировочная цена с НДС", "price"/u);
+  assert.match(page, /comparison-table__price/u);
+  assert.match(page, /comparison-table__commercial-row/u);
+  assert.match(page, /Цена и следующий шаг/u);
+  assert.match(page, /Выбрать модель/u);
+  assert.match(styles, /\.comparison-table__commercial-row td strong[^}]*font:/u);
 });
 
 test("every feed category has a buyer-first variant presentation rule", () => {

@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { siteContact } from "../data/contactConfig";
 import type { ProductionCategoryGroup } from "../data/productionCategoryGroups";
+import { HomepageCategoryMedia } from "./HomepageCategoryMedia";
 
 const FOCUSABLE_SELECTOR = "a[href],button:not([disabled]),input:not([disabled]),[tabindex]:not([tabindex='-1'])";
 
@@ -119,7 +119,6 @@ export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[
           return <section key={group.slug} data-expanded={isExpanded ? "true" : "false"}>
             <Link className="header-catalog-group header-catalog-group--desktop" href={group.href} onClick={closeMenu}>
               <span>{group.id}</span>
-              <span className="header-catalog-group-media"><Image src={group.representativeImage || group.image} alt="" width={56} height={44} unoptimized={Boolean(group.representativeImage)} /></span>
               <span><b>{group.title}</b><small>{formatCategoryCount(group.subcategories.length)}</small></span>
               <i aria-hidden="true">→</i>
             </Link>
@@ -131,12 +130,15 @@ export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[
               onClick={() => setExpandedGroup(isExpanded ? "" : group.slug)}
             >
               <span>{group.id}</span>
-              <span className="header-catalog-group-media"><Image src={group.representativeImage || group.image} alt="" width={56} height={44} unoptimized={Boolean(group.representativeImage)} /></span>
               <span><b>{group.title}</b><small>{formatCategoryCount(group.subcategories.length)}</small></span>
               <i aria-hidden="true">{isExpanded ? "−" : "+"}</i>
             </button>
             <nav id={navigationId} aria-label={`Категории: ${group.title}`}>
-              {group.subcategories.map((subcategory) => <Link href={subcategory.href} key={subcategory.slug} onClick={closeMenu}>{subcategory.label}<b aria-hidden="true">→</b></Link>)}
+              {group.subcategories.map((subcategory) => <Link href={subcategory.href} key={subcategory.slug} onClick={closeMenu}>
+                <span className="header-catalog-subcategory-media"><HomepageCategoryMedia src={subcategory.image} alt="" sizes="(max-width: 760px) 58px, 52px" /></span>
+                <span><b>{subcategory.label}</b><small>{formatSeriesCount(subcategory.count ?? 0)}</small></span>
+                <i aria-hidden="true">→</i>
+              </Link>)}
             </nav>
             <Link className="header-catalog-overview" href={group.href} onClick={closeMenu}>Обзор раздела →</Link>
           </section>;
@@ -155,6 +157,13 @@ export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[
       </footer>
     </div>
   </details>;
+}
+
+function formatSeriesCount(count: number): string {
+  const mod100 = count % 100;
+  const mod10 = count % 10;
+  const noun = mod100 >= 11 && mod100 <= 14 ? "серий" : mod10 === 1 ? "серия" : mod10 >= 2 && mod10 <= 4 ? "серии" : "серий";
+  return `${count} ${noun}`;
 }
 
 function formatCategoryCount(count: number): string {

@@ -2,49 +2,43 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Fragment, useState, type CSSProperties } from "react";
+import { Fragment, useState } from "react";
 import { pluralizeCardVariants } from "../data/categoryCardArchetypes.mjs";
 import type { FeedProductCardModel, FeedProductVariantModel } from "../data/feedCatalog";
 import { QuickOrderDialog } from "./QuickOrderDialog";
 import { AddRequestButton } from "./RequestCart";
 import { FeedAvailability } from "./FeedAvailability";
+import { VariantPickerDialog, type VariantPickerItem } from "./VariantPickerDialog";
 
 export function FeedProductTable({ products, columns }: { products: FeedProductCardModel[]; columns: string[] }) {
-  const [expandedIds, setExpandedIds] = useState<string[]>([]);
+  const [pickerProductId, setPickerProductId] = useState("");
   const tableIdentity = products[0]?.cardArchetype.tableIdentity ?? "Товарная серия";
-
-  function toggleProduct(id: string) {
-    setExpandedIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
-  }
+  const pickerProduct = products.find((product) => product.id === pickerProductId);
 
   return <>
     <div className="feed-product-table-wrap">
       <table className="feed-product-table">
         <thead><tr><th>{tableIdentity}</th>{columns.map((column) => <th key={column}>{column}</th>)}<th>Цена</th><th><span className="visually-hidden">Действия</span></th></tr></thead>
         <tbody>{products.map((product) => {
-          const expanded = expandedIds.includes(product.id);
           const directVariant = product.selectedVariantCount === 1 ? product.variants[0] : undefined;
           return <Fragment key={product.id}>
-            <tr className={`${expanded ? "feed-product-row feed-product-row--expanded" : "feed-product-row"} feed-product-row--${product.cardArchetype.id}`}>
+            <tr className={`feed-product-row feed-product-row--${product.cardArchetype.id}`}>
               <td><div className={product.image ? "feed-table-product" : "feed-table-product feed-table-product--no-image"}>{product.image && <Link href={`/product/${product.slug}`} tabIndex={-1} aria-hidden="true"><Image src={product.image} alt="" width={86} height={74} unoptimized /></Link>}<div><em>{product.cardArchetype.badge}</em><span>{product.brand}{product.sku ? ` · серия ${product.sku}` : ""}</span><Link href={`/product/${product.slug}`}>{product.title}</Link><small>{variantLabel(product.selectedVariantCount, product.cardArchetype.variantForms)}{product.selectedVariantCount !== product.variantCount ? ` из ${product.variantCount}` : ""}</small>{product.matchReasons.length > 0 && <div className="feed-table-match">Подходит: {product.matchReasons.join(" · ")}</div>}</div></div></td>
               {columns.map((column) => <td key={column}><span className="feed-table-cell-label">{column}</span>{product.specs.find((spec) => spec.label === column)?.value ?? "—"}</td>)}
               <td className="feed-table-price"><b>{product.price}</b><small>{product.price === "Цена по запросу" || product.variantCount > 1 ? product.cardArchetype.priceRequestNote : "с НДС · подтвердим в КП"}</small><FeedAvailability shippingPromise={product.shippingPromise} count={product.availableVariantCount} /></td>
-              <td><div className="feed-table-actions">{directVariant ? <><AddRequestButton item={{ id:`variant:${directVariant.id}`, title:directVariant.title || product.title, article:variantArticle(directVariant.sku), price:directVariant.price, image:directVariant.image, href:directVariant.href, shippingLabel:directVariant.shippingPromise.label, shippingDetail:directVariant.shippingPromise.detail }}>Добавить в КП</AddRequestButton><QuickOrderDialog item={{ id:`variant:${directVariant.id}`, title:directVariant.title || product.title, article:variantArticle(directVariant.sku), price:directVariant.price, image:directVariant.image, href:directVariant.href, shippingLabel:directVariant.shippingPromise.label, shippingDetail:directVariant.shippingPromise.detail }} available={directVariant.shippingPromise.available} productId={product.id} variantId={directVariant.id} category={product.categorySlug} placement="category_table" pageType="category" /></> : <button className="feed-variant-toggle" type="button" aria-expanded={expanded} aria-controls={`variants-${product.id}`} onClick={() => toggleProduct(product.id)}>{expanded ? "Скрыть варианты" : `${product.cardArchetype.multipleAction} · ${product.selectedVariantCount}`}</button>}<a className="feed-all-characteristics" href={`/product/${product.slug}`} aria-label={`${product.cardArchetype.detailAction}: ${product.title}`}>{product.cardArchetype.detailAction}</a></div></td>
+              <td><div className="feed-table-actions">{directVariant ? <><AddRequestButton item={{ id:`variant:${directVariant.id}`, title:directVariant.title || product.title, article:variantArticle(directVariant.sku), price:directVariant.price, image:directVariant.image, href:directVariant.href, shippingLabel:directVariant.shippingPromise.label, shippingDetail:directVariant.shippingPromise.detail }}>Добавить в КП</AddRequestButton><QuickOrderDialog item={{ id:`variant:${directVariant.id}`, title:directVariant.title || product.title, article:variantArticle(directVariant.sku), price:directVariant.price, image:directVariant.image, href:directVariant.href, shippingLabel:directVariant.shippingPromise.label, shippingDetail:directVariant.shippingPromise.detail }} available={directVariant.shippingPromise.available} productId={product.id} variantId={directVariant.id} category={product.categorySlug} placement="category_table" pageType="category" /></> : <button className="feed-variant-toggle" type="button" aria-haspopup="dialog" onClick={() => setPickerProductId(product.id)}>{product.cardArchetype.multipleAction} · {product.selectedVariantCount}</button>}<a className="feed-all-characteristics" href={`/product/${product.slug}`} aria-label={`${product.cardArchetype.detailAction}: ${product.title}`}>{product.cardArchetype.detailAction}</a></div></td>
             </tr>
-            {!directVariant && expanded && <tr className="feed-variant-expansion"><td colSpan={columns.length + 3} id={`variants-${product.id}`}>
-              <div className="feed-variant-expansion-head"><div><b>{product.cardArchetype.multipleAction}</b><span>Добавьте в КП только одну точную позицию</span></div>{product.variantCount > product.variants.length && <Link href={`/product/${product.slug}`}>Все {pluralizeCardVariants(product.variantCount, product.cardArchetype.variantForms)} →</Link>}</div>
-              <div className="feed-inline-variants">{product.variants.map((variant) => <InlineVariant product={product} variant={variant} columns={columns} key={variant.id} />)}</div>
-            </td></tr>}
           </Fragment>;
         })}</tbody>
       </table>
       <p className="feed-table-note">Цена указана по данным поставщика. Наличие, срок и совместимость подтверждаем для выбранного исполнения в КП.</p>
     </div>
-    <div className="feed-product-table-mobile">{products.map((product) => <MobileSeries product={product} columns={columns} key={product.id} />)}</div>
+    <div className="feed-product-table-mobile">{products.map((product) => <MobileSeries product={product} columns={columns} onOpenVariants={() => setPickerProductId(product.id)} key={product.id} />)}</div>
+    {pickerProduct && <VariantPickerDialog open onClose={() => setPickerProductId("")} productId={pickerProduct.id} productTitle={pickerProduct.title} category={pickerProduct.categorySlug} pageType="category" placement="category_table_size_picker" items={toPickerItems(pickerProduct, columns)} totalVariantCount={pickerProduct.variantCount} fullProductHref={`/product/${pickerProduct.slug}`} selectorLabel={isSizeLedProduct(pickerProduct, columns) ? "Размер" : "Исполнение"} />}
   </>;
 }
 
-function MobileSeries({ product, columns }: { product: FeedProductCardModel; columns: string[] }) {
+function MobileSeries({ product, columns, onOpenVariants }: { product: FeedProductCardModel; columns: string[]; onOpenVariants: () => void }) {
   const directVariant = product.selectedVariantCount === 1 ? product.variants[0] : undefined;
   if (directVariant) return <article className={`feed-mobile-series feed-mobile-series--direct feed-mobile-series--${product.cardArchetype.id}`}>
     <div className={product.image ? "feed-mobile-series-head" : "feed-mobile-series-head feed-mobile-series-head--no-image"}>{product.image && <Image src={product.image} alt="" width={92} height={78} unoptimized />}<div><em>{product.cardArchetype.badge}</em><span>{product.brand}{product.sku ? ` · ${product.sku}` : ""}</span><Link href={`/product/${product.slug}`}>{product.title}</Link><small>{variantLabel(1, product.cardArchetype.variantForms)}</small></div></div>
@@ -53,39 +47,20 @@ function MobileSeries({ product, columns }: { product: FeedProductCardModel; col
     <Link className="feed-mobile-all-variants" href={`/product/${product.slug}`}>{product.cardArchetype.detailAction} →</Link>
   </article>;
 
-  return <details className="feed-mobile-series">
-    <summary>
+  return <article className="feed-mobile-series feed-mobile-series--picker">
       <div className={product.image ? "feed-mobile-series-head" : "feed-mobile-series-head feed-mobile-series-head--no-image"}>{product.image && <Image src={product.image} alt="" width={92} height={78} unoptimized />}<div><em>{product.cardArchetype.badge}</em><span>{product.brand}{product.sku ? ` · ${product.sku}` : ""}</span><b>{product.title}</b><small>{variantLabel(product.selectedVariantCount, product.cardArchetype.variantForms)}{product.selectedVariantCount !== product.variantCount ? ` из ${product.variantCount}` : ""}</small></div></div>
       <dl>{columns.map((column) => <div key={column}><dt>{column}</dt><dd>{product.specs.find((spec) => spec.label === column)?.value ?? "—"}</dd></div>)}</dl>
-      <div className="feed-mobile-series-commercial"><div><b>{product.price}</b><FeedAvailability shippingPromise={product.shippingPromise} /></div><i>{product.cardArchetype.multipleAction} · {product.selectedVariantCount}</i></div>
-    </summary>
-    <div className="feed-mobile-variants"><div className="feed-variant-expansion-head"><div><b>{product.cardArchetype.multipleAction}</b><span>Размер указан первым; зелёная граница означает подтверждённый остаток</span></div></div>{product.variants.map((variant) => <article className={variantCardClass("feed-mobile-variant", variant)} key={variant.id}>
-      <div><span>{variant.matchesSelection ? "Соответствует фильтрам" : variant.available ? "В наличии" : "Наличие уточним"}</span><a className="feed-variant-choice-link" href={`/product/${product.slug}?variant=${encodeURIComponent(variant.id)}#variants`}><b>{variantChoiceLabel(variant, columns)}</b><small>{variant.sku ? `Арт. ${variant.sku}` : "Без артикула в фиде"}</small></a></div>
-      <dl>{columns.map((column) => <div key={column}><dt>{column}</dt><dd>{variant.specs.find((spec) => spec.label === column)?.value ?? "—"}</dd></div>)}</dl>
-      <div className="feed-mobile-variant-action"><div><b>{variant.price}</b><FeedAvailability shippingPromise={variant.shippingPromise} exact /></div><div className="feed-mobile-order-actions"><AddRequestButton item={{ id:`variant:${variant.id}`, title:variant.title || product.title, article:variantArticle(variant.sku), price:variant.price, image:variant.image, href:variant.href, shippingLabel:variant.shippingPromise.label, shippingDetail:variant.shippingPromise.detail }}>Добавить в КП</AddRequestButton><QuickOrderDialog item={{ id:`variant:${variant.id}`, title:variant.title || product.title, article:variantArticle(variant.sku), price:variant.price, image:variant.image, href:variant.href, shippingLabel:variant.shippingPromise.label, shippingDetail:variant.shippingPromise.detail }} available={variant.shippingPromise.available} productId={product.id} variantId={variant.id} category={product.categorySlug} placement="category_mobile_variant" pageType="category" /></div></div>
-    </article>)}{product.variantCount > product.variants.length && <Link className="feed-mobile-all-variants" href={`/product/${product.slug}`}>Все {pluralizeCardVariants(product.variantCount, product.cardArchetype.variantForms)} →</Link>}</div>
-  </details>;
-}
-
-function InlineVariant({ product, variant, columns }: { product: FeedProductCardModel; variant: FeedProductVariantModel; columns: string[] }) {
-  return <article className={variantCardClass("feed-inline-variant", variant)} style={{ "--variant-spec-count":Math.max(1, columns.length) } as CSSProperties}>
-    <div className="feed-inline-variant-id"><span>{variant.matchesSelection ? "Соответствует фильтрам" : variant.available ? "В наличии" : "Наличие уточним"}</span><a className="feed-variant-choice-link" href={`/product/${product.slug}?variant=${encodeURIComponent(variant.id)}#variants`}><b>{variantChoiceLabel(variant, columns)}</b><small>{variant.sku ? `Арт. ${variant.sku}` : "Без артикула в фиде"}</small></a></div>
-    {columns.map((column) => <div key={column}><span>{column}</span><b>{variant.specs.find((spec) => spec.label === column)?.value ?? "—"}</b></div>)}
-    <div className="feed-inline-variant-price"><b>{variant.price}</b><span>с НДС · данные поставщика</span><FeedAvailability shippingPromise={variant.shippingPromise} exact /></div>
-    <div className="feed-variant-order-actions"><AddRequestButton item={{ id:`variant:${variant.id}`, title:variant.title || product.title, article:variantArticle(variant.sku), price:variant.price, image:variant.image, href:variant.href, shippingLabel:variant.shippingPromise.label, shippingDetail:variant.shippingPromise.detail }}>Добавить в КП</AddRequestButton><QuickOrderDialog item={{ id:`variant:${variant.id}`, title:variant.title || product.title, article:variantArticle(variant.sku), price:variant.price, image:variant.image, href:variant.href, shippingLabel:variant.shippingPromise.label, shippingDetail:variant.shippingPromise.detail }} available={variant.shippingPromise.available} productId={product.id} variantId={variant.id} category={product.categorySlug} placement="category_table_variant" pageType="category" /></div>
+      <div className="feed-mobile-series-commercial"><div><b>{product.price}</b><FeedAvailability shippingPromise={product.shippingPromise} /></div><button type="button" aria-haspopup="dialog" onClick={onOpenVariants}>{product.cardArchetype.multipleAction} · {product.selectedVariantCount}</button></div>
+      <Link className="feed-mobile-all-variants" href={`/product/${product.slug}`}>{product.cardArchetype.detailAction} →</Link>
   </article>;
 }
 
 function variantLabel(count: number, forms: [string, string, string]): string {
-  return count === 1 ? pluralizeCardVariants(count, forms) : `${pluralizeCardVariants(count, forms)} · раскройте для выбора`;
+  return count === 1 ? pluralizeCardVariants(count, forms) : `${pluralizeCardVariants(count, forms)} · выберите точное исполнение`;
 }
 
 function variantArticle(sku: string): string {
   return sku ? `Артикул ${sku}` : "Артикул не указан в фиде";
-}
-
-function variantCardClass(base: string, variant: FeedProductVariantModel): string {
-  return [base, variant.matchesSelection ? `${base}--match` : "", variant.available && variant.shippingPromise.available ? `${base}--available` : `${base}--unconfirmed`].filter(Boolean).join(" ");
 }
 
 function variantChoiceLabel(variant: FeedProductVariantModel, columns: string[]): string {
@@ -97,4 +72,12 @@ function variantChoiceLabel(variant: FeedProductVariantModel, columns: string[])
   }
   const decisiveValues = columns.map((column) => variant.specs.find((spec) => spec.label === column)?.value).filter((value): value is string => Boolean(value && value !== "—")).slice(0, 2);
   return decisiveValues.length > 0 ? decisiveValues.join(" · ") : variant.title || variant.sku || "Исполнение";
+}
+
+function toPickerItems(product: FeedProductCardModel, columns: string[]): VariantPickerItem[] {
+  return product.variants.map((variant) => ({ id:variant.id, sku:variant.sku, title:variant.title || product.title, label:variantChoiceLabel(variant, columns), context:variant.specs.slice(0, 2).map((spec) => `${spec.label}: ${spec.value}`).join(" · "), price:variant.price, image:variant.image, href:variant.href, shippingPromise:variant.shippingPromise }));
+}
+
+function isSizeLedProduct(product: FeedProductCardModel, columns: string[]): boolean {
+  return columns.some((column) => /диаметр|длина|размер/iu.test(column)) || product.variants.some((variant) => /[Ø⌀]\s*\d+.*[×xх]\s*\d+/iu.test(variantChoiceLabel(variant, columns)));
 }

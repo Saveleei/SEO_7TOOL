@@ -108,11 +108,14 @@ test("category quick filters expose a live result path and stay compact on mobil
 test("variant articles link to the exact execution and availability copy cannot collapse inline", async () => {
   const card = await readFile(new URL("../app/ui/FeedProductCard.tsx", import.meta.url), "utf8");
   const table = await readFile(new URL("../app/ui/FeedProductTable.tsx", import.meta.url), "utf8");
+  const picker = await readFile(new URL("../app/ui/VariantPickerDialog.tsx", import.meta.url), "utf8");
   const availability = await readFile(new URL("../app/ui/FeedAvailability.tsx", import.meta.url), "utf8");
   const product = await readFile(new URL("../app/product/[slug]/page.tsx", import.meta.url), "utf8");
   const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
-  assert.match(card, /\?variant=\$\{encodeURIComponent\(variant\.id\)\}#variants/u);
-  assert.match(table, /\?variant=\$\{encodeURIComponent\(variant\.id\)\}#variants/u);
+  assert.match(card, /image:variant\.image, href:variant\.href/u);
+  assert.match(table, /image:variant\.image, href:variant\.href/u);
+  assert.match(picker, /href=\{selected\.href\}/u);
+  assert.match(picker, /href:selected\.href/u);
   assert.match(product, /feed-variant-card--selected/u);
   assert.match(availability, /return <div className="feed-availability-block">/u);
   assert.match(styles, /\.feed-availability-block>small \{[^}]*display:block!important[^}]*margin:0!important/us);
