@@ -51,8 +51,20 @@ Improve image fit and responsive readability in the catalog mega-menu, homepage 
 
 ## Deployment
 
-- Not deployed.
-- `new.7tool.ru`, `test.7tool.ru` and production `7tool.ru` were not modified.
+- The user explicitly authorized transferring the four verified UI/test files to VPS `159.194.235.32` and publishing them only to `new.7tool.ru`.
+- Immutable release: `/var/www/7tool-release-20261003-catalog-readability-33cb790/design-exploration/staging-pilot`.
+- Stable pointer: `/var/www/7tool-new-current`.
+- Retained rollback: `/var/www/7tool-release-20261003-inline-media-5f1b49f-r2/design-exploration/staging-pilot`.
+- Deployment used a delta release copied from the active immutable release; only the two changed storefront files and two regression tests were transferred. Their local and remote SHA-256 hashes matched before build.
+- Server gate: focused tests `10/10`, changed-file ESLint with zero errors (CSS is intentionally outside the ESLint config), catalog generation for `24` categories, and Vinext production build all passed.
+- Candidate ran separately on loopback port `3264`; homepage, catalog, drilling category and LZHS product returned `200`, and the variants API returned all `49` LZHS variants.
+- After the atomic pointer switch, public homepage, catalog, category, product, variants API and `robots.txt` returned `200`. The public HTML contains the updated task-card markers and task CTA.
+- After a three-minute stability wait, `7tool-storefront-new` remained `online` on PID `282626`, with one deliberate reload (`10` historical restarts) and `0` unstable restarts. The temporary candidate process was removed and the PM2 state was saved.
+- Indexing protection remains active: duplicate `X-Robots-Tag: noindex, nofollow, noarchive` headers and `robots.txt` with `Disallow: /`.
+- Production `https://7tool.ru/` remained available and its process PID was unchanged at `260197`; neither production code nor DNS, feeds, cron, credentials or form delivery was changed.
+- Approximately `2.6 GiB` remained free after retaining the new immutable release and its rollback.
+- The in-app browser skill was attempted for live responsive QA, but the local runtime failed before browser selection with `failed to write kernel assets: ... path not found`. No unsupported browser automation was substituted. Server/HTML and responsive regression checks passed; final human visual acceptance at the target widths remains advisable.
+- No form or external lead was submitted.
 
 ## Commit
 
