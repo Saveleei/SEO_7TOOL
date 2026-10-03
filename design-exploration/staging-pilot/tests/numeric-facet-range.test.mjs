@@ -58,12 +58,23 @@ test("promoted and full numeric filters remain visible without horizontal clippi
   const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
   const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
   assert.match(page, /getPromotedFacetOptions\(facet, promotedOptionLimit, filters\[facet\.key\], preferredOptions\)/u);
-  assert.match(page, /facet\.keyword === "рабочая длина" \? \["110 мм"\] : \[\]/u);
+  assert.match(page, /slug === "koronchatye-sverla" && facet\.keyword === "рабочая длина"[\s\S]*?\? \["110 мм"\]/u);
+  assert.match(page, /slug === "stanki-sverlilnye" && facet\.numeric && \/макс\.\*диаметр\/iu\.test/u);
+  assert.match(page, /numericOptionValue\(option\.value\) === 35/u);
   assert.match(page, /диапазон \{rangeStart\}–\{rangeEnd\}/u);
   assert.match(page, /feed-numeric-filter/u);
   assert.match(page, /Диапазон фида:/u);
   assert.match(styles, /\.feed-promoted-filters>div>div \{[^}]*flex-wrap:wrap[^}]*overflow:visible/us);
   assert.match(styles, /\.feed-filter-panel \.feed-numeric-filter>div \{[^}]*max-height:285px[^}]*overflow:auto/us);
+});
+
+test("drilling promoted diameter choices preserve the common 35 mm capacity", () => {
+  const facet = getFeedCategoryPage("stanki-sverlilnye", { pageSize:6 }).facets.find((item) => item.keyword === "макс. диаметр");
+  assert.ok(facet);
+  const preferred35 = facet.options.filter((option) => numericValue(option.value) === 35).map((option) => option.value);
+  assert.ok(preferred35.length > 0, "the feed must expose a 35 mm drilling capacity");
+  const promoted = getPromotedFacetOptions(facet, 5, [], preferred35);
+  assert.ok(promoted.some((option) => numericValue(option.value) === 35));
 });
 
 test("high-cardinality dimensions use a bounded range control instead of hundreds of checkboxes", async () => {

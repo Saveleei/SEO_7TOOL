@@ -26,11 +26,13 @@ test("homepage task navigation keeps readable type and removes the accidental th
 
   assert.match(paths, /group\.subcategories\.slice\(0, 4\)/u);
   assert.doesNotMatch(paths, /homepage-task-path__more/u);
-  assert.match(paths, /Все \{group\.subcategories\.length\} категорий/u);
-  assert.match(css, /\.homepage-task-path \{[^}]*min-height:332px;[^}]*height:100%;/u);
-  assert.match(css, /\.homepage-task-path__subcategory-copy>b \{ font-size:15px;/u);
+  assert.match(paths, /formatCategoryCount\(group\.subcategories\.length\)/u);
+  assert.match(css, /\/\* Final task-navigation overrides[\s\S]*?\.homepage-task-path \{[^}]*min-height:0;[^}]*height:100%;/u);
+  assert.match(css, /\.homepage-task-path__subcategory-media \{ width:64px; height:66px;/u);
+  assert.match(css, /\.homepage-task-path__subcategory-copy>b \{ color:#252b27; font-size:15px;/u);
   assert.match(css, /\.homepage-task-path__subcategory-copy>small \{[^}]*font-size:12px;/u);
   assert.match(css, /\.homepage-task-path__action>span>small \{[^}]*font-size:var\(--type-caption\);/u);
+  assert.match(css, /\.homepage-task-path__action \{[^}]*margin-top:0;/u);
 });
 
 test("desktop tablet and mobile layouts preserve legible media and hit targets", async () => {
@@ -38,9 +40,16 @@ test("desktop tablet and mobile layouts preserve legible media and hit targets",
 
   assert.match(css, /\.header-catalog-grid nav>a \{ min-height:74px; grid-template-columns:64px minmax\(0,1fr\) 14px;/u);
   assert.match(css, /\.category-page-shell \.category-assortment-shortcuts>\.container>div>a,[\s\S]*?min-height:96px;[\s\S]*?grid-template-columns:76px minmax\(0,1fr\) 38px;/u);
-  assert.match(css, /@media \(max-width:1050px\)[\s\S]*?\.homepage-task-paths \{ grid-template-columns:1fr 1fr; \}/u);
+  assert.match(css, /@media \(max-width:1200px\) and \(min-width:761px\)[\s\S]*?\.homepage-task-paths \{ grid-template-columns:repeat\(2,minmax\(0,1fr\)\); \}/u);
   assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.homepage-task-paths \{ grid-template-columns:1fr;/u);
-  assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.homepage-task-path\[data-expanded="true"\] \.homepage-task-path__subcategories>a:nth-child\(n\) \{ min-height:92px;/u);
+  assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.homepage-task-path\[data-expanded="true"\] \.homepage-task-path__subcategories>a:nth-child\(n\) \{ min-height:88px;[^}]*grid-template-columns:64px minmax\(0,1fr\) 16px;/u);
   assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.header-catalog-grid>section\[data-expanded="true"\]>nav>a \{ min-height:76px;/u);
   assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.category-page-shell \.category-assortment-shortcuts>\.container>div>a,[\s\S]*?min-height:92px;/u);
+});
+
+test("first category results page keeps page numbers in the center column", async () => {
+  const css = await read("../app/globals.css");
+  assert.match(css, /\.feed-pagination \{[^}]*grid-template-columns:110px 1fr 110px;/u);
+  assert.match(css, /\.feed-pagination>div \{ grid-column:2;[^}]*justify-content:center;/u);
+  assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.feed-pagination>div \{ grid-column:1\/-1;/u);
 });

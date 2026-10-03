@@ -291,7 +291,11 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
         </div></div>
         {promotedFacets.map((facet) => {
           const promotedOptionLimit = slug === "koronchatye-sverla" && facet.keyword === "рабочая длина" ? 6 : facet.numeric ? 5 : 6;
-          const preferredOptions = slug === "koronchatye-sverla" && facet.keyword === "рабочая длина" ? ["110 мм"] : [];
+          const preferredOptions = slug === "koronchatye-sverla" && facet.keyword === "рабочая длина"
+            ? ["110 мм"]
+            : slug === "stanki-sverlilnye" && facet.numeric && /макс.*диаметр/iu.test(facet.keyword ?? "")
+              ? facet.options.filter((option) => numericOptionValue(option.value) === 35).map((option) => option.value)
+              : [];
           const visibleOptions = getPromotedFacetOptions(facet, promotedOptionLimit, filters[facet.key], preferredOptions);
           const rangeStart = facet.numeric ? facet.options[0]?.label : undefined;
           const rangeEnd = facet.numeric ? facet.options[facet.options.length - 1]?.label : undefined;
@@ -541,4 +545,8 @@ function numericFacetBounds(facet: FeedFacet): { minimum: number; maximum: numbe
   if (values.length === 0) return undefined;
   values.sort((first, second) => first.number - second.number);
   return { minimum:values[0].number, maximum:values[values.length - 1].number, minimumLabel:values[0].label, maximumLabel:values[values.length - 1].label };
+}
+
+function numericOptionValue(value: string): number {
+  return Number.parseFloat(value.trim().replace(",", ".").match(/\d+(?:\.\d+)?/u)?.[0] ?? "");
 }

@@ -50,16 +50,24 @@ test("homepage production tasks expose direct category paths without cropping eq
   assert.match(paths, /category\.href/u);
   assert.match(paths, /homepage-task-path__action/u);
   assert.doesNotMatch(paths, /homepage-task-path__more/u);
-  assert.match(paths, /Все \{group\.subcategories\.length\} категорий/u);
+  assert.match(paths, /formatCategoryCount\(group\.subcategories\.length\)/u);
   assert.match(paths, /HomepageCategoryMedia src=\{category\.image\}/u);
   assert.doesNotMatch(paths, /group\.representativeImage|group\.image/u);
   assert.match(css, /\.homepage-task-path__subcategory-media img[^}]*object-fit:contain/u);
   assert.match(css, /\.homepage-task-paths \{ align-items:stretch; \}/u);
-  assert.match(css, /\.homepage-task-path \{[^}]*min-height:332px;[^}]*height:100%;/u);
+  assert.match(css, /\/\* Final task-navigation overrides[\s\S]*?\.homepage-task-path \{[^}]*min-height:0;[^}]*height:100%;/u);
   assert.match(css, /\.homepage-task-path__header \{[^}]*height:96px;/u);
   assert.match(css, /\.homepage-task-path__subcategory-media img \{[^}]*position:absolute!important;[^}]*inset:6px!important;[^}]*object-fit:contain!important;/u);
   assert.match(css, /\.homepage-task-path__subcategories \{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/u);
+  assert.match(css, /\.homepage-task-path__subcategory-media \{ width:64px; height:66px;/u);
   assert.match(css, /\.homepage-task-path\[data-expanded="true"\] \.homepage-task-path__subcategories/u);
+});
+
+test("homepage popular links prioritize annular cutters over compressors", async () => {
+  const page = await read("../app/page.tsx");
+  const shortcuts = page.slice(page.indexOf('className="hero-category-shortcuts"'), page.indexOf('className="hero-direct-contacts"'));
+  assert.match(shortcuts, /href="\/catalog\/category\/koronchatye-sverla">Корончатые сверла/u);
+  assert.doesNotMatch(shortcuts, /href="\/catalog\/category\/kompressory"/u);
 });
 
 test("trust section exposes verifiable evidence instead of unsupported claims", async () => {

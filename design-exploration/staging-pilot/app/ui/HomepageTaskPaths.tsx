@@ -20,13 +20,13 @@ export function HomepageTaskPaths({ groups }: { groups: ProductionCategoryGroup[
         </header>
         <nav className="homepage-task-path__subcategories" id={navigationId} aria-label={`Подразделы: ${group.title}`}>
           {group.subcategories.slice(0, 4).map((category) => <Link href={category.href} key={category.slug}>
-            <span className="homepage-task-path__subcategory-media"><HomepageCategoryMedia src={category.image} alt="" sizes="(max-width: 760px) 64px, 78px" /></span>
+            <span className="homepage-task-path__subcategory-media"><HomepageCategoryMedia src={category.image} alt="" sizes="64px" /></span>
             <span className="homepage-task-path__subcategory-copy"><b>{category.label}</b><small>{formatSeriesCount(category.count ?? 0)}</small></span>
             <i aria-hidden="true">→</i>
           </Link>)}
         </nav>
         <Link className="homepage-task-path__action" href={group.href}>
-          <span><b>Подобрать по задаче</b>{group.subcategories.length > 4 && <small>Все {group.subcategories.length} категорий</small>}</span>
+          <span><b>Подобрать по задаче</b><small>{formatCategoryCount(group.subcategories.length)} в направлении</small></span>
           <i aria-hidden="true">→</i>
         </Link>
       </article>;
@@ -38,5 +38,12 @@ function formatSeriesCount(count: number): string {
   const mod100 = count % 100;
   const mod10 = count % 10;
   const noun = mod100 >= 11 && mod100 <= 14 ? "серий" : mod10 === 1 ? "серия" : mod10 >= 2 && mod10 <= 4 ? "серии" : "серий";
+  return `${count} ${noun}`;
+}
+
+function formatCategoryCount(count: number): string {
+  const mod100 = count % 100;
+  const mod10 = count % 10;
+  const noun = mod100 >= 11 && mod100 <= 14 ? "категорий" : mod10 === 1 ? "категория" : mod10 >= 2 && mod10 <= 4 ? "категории" : "категорий";
   return `${count} ${noun}`;
 }

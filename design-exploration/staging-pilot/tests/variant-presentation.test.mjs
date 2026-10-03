@@ -47,6 +47,12 @@ test("product selector keeps the full size matrix inline and SKU secondary", asy
   assert.doesNotMatch(purchase, /history\.replaceState/u);
 });
 
+test("non-size execution choices keep complete decision labels visible", async () => {
+  const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(styles, /\.feed-variant-options:not\(\.feed-variant-options--sizes\)>a b,[\s\S]*?white-space:normal;[\s\S]*?overflow-wrap:anywhere;/u);
+  assert.match(styles, /@media \(max-width:760px\)[\s\S]*?\.feed-variant-options:not\(\.feed-variant-options--sizes\) \{ grid-template-columns:1fr; \}/u);
+});
+
 test("full size list is loaded on demand in natural order", async () => {
   const response = await getProductVariants(new Request("http://127.0.0.1/api/catalog-product-variants?product=sverla-koronchatye-lzhs"));
   assert.equal(response.status, 200);

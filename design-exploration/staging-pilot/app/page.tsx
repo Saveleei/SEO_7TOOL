@@ -59,7 +59,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
                 <Link href="/catalog/category/stanki-sverlilnye">Магнитные станки</Link>
                 <Link href="/catalog/category/kromkorezy-dlya-trub">Кромкорезы для труб</Link>
                 <Link href="/catalog/category/borfrezy">Борфрезы</Link>
-                <Link href="/catalog/category/kompressory">Компрессоры</Link>
+                <Link href="/catalog/category/koronchatye-sverla">Корончатые сверла</Link>
               </nav>
               <div className="hero-direct-contacts" data-contact-placement="homepage_hero">
                 <span>Нужно быстро уточнить возможность поставки?</span>
