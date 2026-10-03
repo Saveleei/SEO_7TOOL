@@ -4,7 +4,7 @@ const ALLOWED_EVENTS = new Set([
   "add_to_quote", "remove_from_quote", "change_quote_quantity", "open_quote", "submit_quote", "quote_success", "quote_error",
   "open_quick_order", "submit_quick_order", "quick_order_success", "quick_order_error",
   "open_variant_list", "close_variant_list", "select_variant", "open_comparison",
-  "comparison_view", "comparison_add_to_quote", "comparison_open_product",
+  "comparison_view", "comparison_add", "comparison_remove", "comparison_clear", "comparison_add_to_quote", "comparison_open_product",
   "search_submit", "search_select", "search_zero_action", "search_all_results", "search_guided_selection",
   "open_selection_contact", "show_task_direction", "show_analog_path", "select_specification_file",
   "submit_selection_request", "selection_request_success", "selection_request_error",

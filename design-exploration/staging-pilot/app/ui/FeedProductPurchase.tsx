@@ -8,6 +8,7 @@ import { useRequestCart } from "./RequestCart";
 import { getProductPageArchetype } from "../data/productPageArchetypes";
 import type { FeedShippingPromise } from "../data/feedCatalog";
 import { QuickOrderDialog } from "./QuickOrderDialog";
+import { CompareToggleButton } from "./Comparison";
 
 type PurchaseVariant = {
   id: string;
@@ -28,7 +29,7 @@ type PurchaseVariant = {
 const INITIAL_VARIANTS = 12;
 const VARIANT_PAGE_SIZE = 24;
 
-export function FeedProductPurchase({ productId, productTitle, categorySlug, variants, totalVariantCount = variants.length, variantsEndpoint, selectedVariantId, hasComparableAlternatives = false }: { productId: string; productTitle: string; categorySlug: string; variants: PurchaseVariant[]; totalVariantCount?: number; variantsEndpoint?: string; selectedVariantId?: string; hasComparableAlternatives?: boolean }) {
+export function FeedProductPurchase({ productId, productSlug, productTitle, productBrand, categorySlug, variants, totalVariantCount = variants.length, variantsEndpoint, selectedVariantId, hasComparableAlternatives = false }: { productId: string; productSlug: string; productTitle: string; productBrand: string; categorySlug: string; variants: PurchaseVariant[]; totalVariantCount?: number; variantsEndpoint?: string; selectedVariantId?: string; hasComparableAlternatives?: boolean }) {
   const [availableVariants, setAvailableVariants] = useState(variants);
   const [quantity, setQuantity] = useState(1);
   const [variantsOpen, setVariantsOpen] = useState(false);
@@ -120,6 +121,7 @@ export function FeedProductPurchase({ productId, productTitle, categorySlug, var
 
     <div className="feed-conversion-secondary-actions">
       <ContactRequestDialog categoryTitle={[productTitle, selected.choiceLabel, selected.sku ? `артикул ${selected.sku}` : ""].filter(Boolean).join(", ")} buttonLabel={pageArchetype.fitAction} />
+      <CompareToggleButton className="feed-save-comparison" placement="product_buybox" item={{ productId, slug:productSlug, title:productTitle, brand:productBrand, category:categorySlug, variantId:selected.id, variantLabel:selected.choiceLabel, image:selected.image, href:selected.href }} />
       {hasComparableAlternatives ? <button className="feed-product-compare-trigger" type="button" aria-haspopup="dialog" onClick={() => { track("open_comparison", "product_buybox"); window.dispatchEvent(new CustomEvent(PRODUCT_COMPARISON_EVENT)); }}>{pageArchetype.compareAction}</button> : <ContactRequestDialog categoryTitle={`${productTitle}, ${selected.choiceLabel}: подобрать аналог`} buttonLabel="Подобрать аналог" />}
     </div>
 

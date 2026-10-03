@@ -100,15 +100,17 @@ test("category card variants show the buyer size first and keep actions readable
 });
 
 test("full comparison repeats the commercial decision after technical parameters", async () => {
-  const [page, styles] = await Promise.all([
+  const [page, client, styles] = await Promise.all([
     readFile(new URL("../app/compare/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/compare/ComparePageClient.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
   ]);
-  assert.doesNotMatch(page, /\["Ориентировочная цена с НДС", "price"/u);
-  assert.match(page, /comparison-table__price/u);
-  assert.match(page, /comparison-table__commercial-row/u);
-  assert.match(page, /Цена и следующий шаг/u);
-  assert.match(page, /Выбрать модель/u);
+  const comparison = `${page}\n${client}`;
+  assert.doesNotMatch(comparison, /\["Ориентировочная цена с НДС", "price"/u);
+  assert.match(comparison, /comparison-table__price/u);
+  assert.match(comparison, /comparison-table__commercial-row/u);
+  assert.match(comparison, /Цена и следующий шаг/u);
+  assert.match(comparison, /Выбрать исполнение/u);
   assert.match(styles, /\.comparison-table__commercial-row td strong[^}]*font:/u);
 });
 
