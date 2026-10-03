@@ -26,7 +26,7 @@ test("all cutter variants are sorted by diameter rather than article feed order"
   assert.equal(sorted.at(-1).sku, "LZHS-060");
 });
 
-test("product selector exposes the full searchable size range and keeps SKU secondary", async () => {
+test("product selector keeps the full size matrix inline and SKU secondary", async () => {
   const page = await readFile(new URL("../app/product/[slug]/page.tsx", import.meta.url), "utf8");
   const purchase = await readFile(new URL("../app/ui/FeedProductPurchase.tsx", import.meta.url), "utf8");
   const picker = await readFile(new URL("../app/ui/VariantPickerDialog.tsx", import.meta.url), "utf8");
@@ -35,20 +35,16 @@ test("product selector exposes the full searchable size range and keeps SKU seco
   assert.match(page, /getProductVariantChoices\(product\)/u);
   assert.match(page, /variants=\{allPurchaseVariants\}/u);
   assert.doesNotMatch(page, /variantsEndpoint=/u);
-  assert.match(purchase, /feed-variant-picker-summary/u);
-  assert.match(purchase, /<VariantPickerDialog/u);
-  assert.match(purchase, /items=\{pickerItems\}/u);
-  assert.match(purchase, /!sizeOnlySelector && totalVariantCount > INITIAL_VARIANTS/u);
+  assert.match(purchase, /sizeOnlySelector \? matchingVariants\.length/u);
+  assert.match(purchase, /feed-variant-options--sizes/u);
+  assert.match(purchase, /Показаны все \$\{totalVariantCount\}/u);
+  assert.match(purchase, /feed-variant-availability-legend/u);
+  assert.doesNotMatch(purchase, /<VariantPickerDialog/u);
   assert.match(picker, /Найти по размеру или артикулу/u);
-  assert.match(picker, /В наличии · \{availableCount\}/u);
-  assert.match(picker, /item\.shippingPromise\.available \? "is-available" : "is-unconfirmed"/u);
-  assert.match(picker, /<b>\{item\.label\}<\/b>/u);
   assert.match(purchase, /feed-add-label--mobile">\{added \? "Добавлено" : "Добавить в КП"\}/u);
   assert.match(purchase, /<small>\{selected\.choiceContext[\s\S]*артикул \$\{selected\.sku\}/u);
   assert.doesNotMatch(purchase, /<b>\{variant\.sku/u);
-  assert.match(picker, /href=\{selected\.href\}/u);
-  assert.match(picker, /AddRequestButton/u);
-  assert.doesNotMatch(picker, /history\.replaceState/u);
+  assert.doesNotMatch(purchase, /history\.replaceState/u);
 });
 
 test("full size list is loaded on demand in natural order", async () => {
@@ -83,7 +79,14 @@ test("category card variants show the buyer size first and keep actions readable
     assert.match(source, /VariantPickerDialog/u);
     assert.match(source, /toPickerItems/u);
     assert.match(source, /variantChoiceLabel/u);
+    assert.match(source, /variantsEndpoint=\{`\/api\/catalog-product-variants\?product=\$\{encodeURIComponent\(/u);
   }
+  assert.match(picker, /fetch\(variantsEndpoint/u);
+  assert.match(picker, /Загружаем все \{totalVariantCount\}/u);
+  assert.match(picker, /aria-label="Матрица размеров и наличия"/u);
+  assert.match(picker, /availableItems\.filter/u);
+  assert.match(picker, /item\.shippingPromise\.available \? "is-available" : "is-unconfirmed"/u);
+  assert.match(picker, /<b>\{item\.label\}<\/b>/u);
   assert.match(picker, /Артикул \$\{selected\.sku\}/u);
   assert.match(picker, /Добавить в КП/u);
   assert.match(styles, /\.variant-picker-dialog \{[\s\S]*?max-height:min/u);

@@ -34,7 +34,7 @@ export function FeedProductTable({ products, columns }: { products: FeedProductC
       <p className="feed-table-note">Цена указана по данным поставщика. Наличие, срок и совместимость подтверждаем для выбранного исполнения в КП.</p>
     </div>
     <div className="feed-product-table-mobile">{products.map((product) => <MobileSeries product={product} columns={columns} onOpenVariants={() => setPickerProductId(product.id)} key={product.id} />)}</div>
-    {pickerProduct && <VariantPickerDialog open onClose={() => setPickerProductId("")} productId={pickerProduct.id} productTitle={pickerProduct.title} category={pickerProduct.categorySlug} pageType="category" placement="category_table_size_picker" items={toPickerItems(pickerProduct, columns)} totalVariantCount={pickerProduct.variantCount} fullProductHref={`/product/${pickerProduct.slug}`} selectorLabel={isSizeLedProduct(pickerProduct, columns) ? "Размер" : "Исполнение"} />}
+    {pickerProduct && <VariantPickerDialog open onClose={() => setPickerProductId("")} productId={pickerProduct.id} productTitle={pickerProduct.title} category={pickerProduct.categorySlug} pageType="category" placement="category_table_size_picker" items={toPickerItems(pickerProduct, columns)} totalVariantCount={pickerProduct.variantCount} fullProductHref={`/product/${pickerProduct.slug}`} variantsEndpoint={`/api/catalog-product-variants?product=${encodeURIComponent(pickerProduct.slug)}`} selectorLabel={isSizeLedProduct(pickerProduct, columns) ? "Размер" : "Исполнение"} />}
   </>;
 }
 

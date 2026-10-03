@@ -31,6 +31,7 @@ type Props = {
   initialVariantId?: string;
   totalVariantCount?: number;
   fullProductHref?: string;
+  variantsEndpoint?: string;
   selectorLabel?: "Размер" | "Исполнение";
 };
 
@@ -39,19 +40,43 @@ export function VariantPickerDialog(props: Props) {
   return <OpenVariantPickerDialog {...props} />;
 }
 
-function OpenVariantPickerDialog({ onClose, productId, productTitle, category, pageType, placement, items, initialVariantId, totalVariantCount = items.length, fullProductHref, selectorLabel = "Размер" }: Props) {
+function OpenVariantPickerDialog({ onClose, productId, productTitle, category, pageType, placement, items, initialVariantId, totalVariantCount = items.length, fullProductHref, variantsEndpoint, selectorLabel = "Размер" }: Props) {
   const [query, setQuery] = useState("");
   const [stockOnly, setStockOnly] = useState(false);
   const [activeId, setActiveId] = useState(initialVariantId ?? items[0]?.id ?? "");
+  const [availableItems, setAvailableItems] = useState(items);
+  const [variantsLoading, setVariantsLoading] = useState(Boolean(variantsEndpoint && items.length < totalVariantCount));
+  const [variantsError, setVariantsError] = useState("");
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
-  const selected = items.find((item) => item.id === activeId) ?? items[0];
-  const availableCount = items.filter((item) => item.shippingPromise.available).length;
+  const selected = availableItems.find((item) => item.id === activeId) ?? availableItems[0];
+  const availableCount = availableItems.filter((item) => item.shippingPromise.available).length;
   const filteredItems = useMemo(() => {
     const normalized = normalizeSearch(query);
-    return items.filter((item) => (!stockOnly || item.shippingPromise.available) && (!normalized || normalizeSearch([item.label, item.context, item.sku].filter(Boolean).join(" ")).includes(normalized)));
-  }, [items, query, stockOnly]);
+    return availableItems.filter((item) => (!stockOnly || item.shippingPromise.available) && (!normalized || normalizeSearch([item.label, item.context, item.sku].filter(Boolean).join(" ")).includes(normalized)));
+  }, [availableItems, query, stockOnly]);
+
+  useEffect(() => {
+    if (!variantsEndpoint || items.length >= totalVariantCount) return;
+    const controller = new AbortController();
+    void fetch(variantsEndpoint, { headers:{ Accept:"application/json" }, signal:controller.signal })
+      .then(async (response) => {
+        const payload = await response.json() as { ok?: boolean; variants?: unknown };
+        const loaded = Array.isArray(payload.variants) ? payload.variants.filter(isVariantPickerApiItem).map(toVariantPickerItem) : [];
+        if (!response.ok || !payload.ok || loaded.length < totalVariantCount) throw new Error("variant_list_unavailable");
+        setAvailableItems(loaded);
+        setActiveId((current) => loaded.some((item) => item.id === current) ? current : loaded[0]?.id ?? "");
+      })
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setVariantsError("Не удалось загрузить всю матрицу. Откройте карточку товара или передайте размер менеджеру.");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setVariantsLoading(false);
+      });
+    return () => controller.abort();
+  }, [items, totalVariantCount, variantsEndpoint]);
 
   useEffect(() => {
     returnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -88,20 +113,20 @@ function OpenVariantPickerDialog({ onClose, productId, productTitle, category, p
     <button className="variant-picker-backdrop" type="button" onClick={onClose} aria-label="Закрыть выбор размера" />
     <div className="variant-picker-dialog" ref={dialogRef}>
       <header>
-        <div><span>{productTitle}</span><h2 id={`variant-picker-title-${productId}`}>Выберите {selectorLabel.toLocaleLowerCase("ru-RU")}</h2><p id={`variant-picker-description-${productId}`}>{totalVariantCount} {variantWord(totalVariantCount, selectorLabel)} · {availableCount} с подтверждённым остатком</p></div>
+        <div><span>{productTitle}</span><h2 id={`variant-picker-title-${productId}`}>Выберите {selectorLabel.toLocaleLowerCase("ru-RU")}</h2><p id={`variant-picker-description-${productId}`}>{totalVariantCount} {variantWord(totalVariantCount, selectorLabel)} · {variantsLoading ? "проверяем наличие" : `${availableCount} с подтверждённым остатком`}</p></div>
         <button ref={closeRef} type="button" onClick={onClose} aria-label="Закрыть">×</button>
       </header>
       <div className="variant-picker-tools">
         <label><span>Найти по размеру или артикулу</span><input type="search" inputMode="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Например: 35 × 30" autoFocus /></label>
-        <div role="group" aria-label="Фильтр наличия"><button className={!stockOnly ? "active" : undefined} type="button" aria-pressed={!stockOnly} onClick={() => setStockOnly(false)}>Все · {items.length}</button><button className={stockOnly ? "active" : undefined} type="button" aria-pressed={stockOnly} onClick={() => { setStockOnly(true); track("variant_picker_stock_filter"); }}>В наличии · {availableCount}</button></div>
+        <div role="group" aria-label="Фильтр наличия"><button className={!stockOnly ? "active" : undefined} type="button" aria-pressed={!stockOnly} onClick={() => setStockOnly(false)}>Все · {variantsLoading ? totalVariantCount : availableItems.length}</button><button className={stockOnly ? "active" : undefined} type="button" aria-pressed={stockOnly} disabled={variantsLoading} onClick={() => { setStockOnly(true); track("variant_picker_stock_filter"); }}>В наличии · {availableCount}</button></div>
       </div>
       <div className="variant-picker-legend" aria-label="Обозначения"><span><i className="is-available" />В наличии</span><span><i />Наличие и срок уточним</span></div>
       <div className="variant-picker-results" aria-live="polite">
-        {filteredItems.length > 0 ? <div className="variant-picker-grid">{filteredItems.map((item) => {
+        {variantsLoading ? <div className="variant-picker-loading" role="status"><b>Загружаем все {totalVariantCount} {variantWord(totalVariantCount, selectorLabel)}</b><span>Собираем полную матрицу размеров и актуального наличия.</span></div> : filteredItems.length > 0 ? <div className="variant-picker-grid" aria-label="Матрица размеров и наличия">{filteredItems.map((item) => {
           const active = item.id === selected?.id;
           return <button className={[active ? "active" : "", item.shippingPromise.available ? "is-available" : "is-unconfirmed"].filter(Boolean).join(" ")} type="button" aria-pressed={active} onClick={() => { setActiveId(item.id); track("variant_picker_select", item.id); }} key={item.id}><b>{item.label}</b><small>{item.price}</small><span><i aria-hidden="true" />{item.shippingPromise.available ? "В наличии" : "Уточним"}</span></button>;
         })}</div> : <div className="variant-picker-empty"><b>Совпадений нет</b><span>Измените размер или покажите все исполнения.</span><button type="button" onClick={() => { setQuery(""); setStockOnly(false); }}>Сбросить фильтр</button></div>}
-        {totalVariantCount > items.length && fullProductHref && <a className="variant-picker-all-link" href={fullProductHref}>На странице товара доступны все {totalVariantCount} {variantWord(totalVariantCount, selectorLabel)} →</a>}
+        {variantsError && <div className="variant-picker-load-error" role="status"><span>{variantsError}</span>{fullProductHref && <a href={fullProductHref}>Открыть карточку товара →</a>}</div>}
       </div>
       {selected && <footer>
         <div className="variant-picker-selection"><span>Выбрано</span><b>{selected.label}</b><small>{selected.sku ? `Артикул ${selected.sku}` : "Артикул не указан"}</small></div>
@@ -125,4 +150,51 @@ function variantWord(count: number, selectorLabel: "Размер" | "Испол�
   if (mod10 === 1) return forms[0];
   if (mod10 >= 2 && mod10 <= 4) return forms[1];
   return forms[2];
+}
+
+type VariantPickerApiItem = {
+  id: string;
+  sku: string;
+  title: string;
+  price: string;
+  choiceLabel: string;
+  choiceContext: string;
+  image?: string;
+  href: string;
+  shippingPromise: FeedShippingPromise;
+};
+
+function isVariantPickerApiItem(value: unknown): value is VariantPickerApiItem {
+  if (!value || typeof value !== "object") return false;
+  const variant = value as Partial<VariantPickerApiItem>;
+  return typeof variant.id === "string"
+    && typeof variant.sku === "string"
+    && typeof variant.title === "string"
+    && typeof variant.price === "string"
+    && typeof variant.choiceLabel === "string"
+    && typeof variant.choiceContext === "string"
+    && typeof variant.href === "string"
+    && isShippingPromise(variant.shippingPromise);
+}
+
+function isShippingPromise(value: unknown): value is FeedShippingPromise {
+  if (!value || typeof value !== "object") return false;
+  const promise = value as Partial<FeedShippingPromise>;
+  return typeof promise.available === "boolean"
+    && typeof promise.label === "string"
+    && typeof promise.detail === "string";
+}
+
+function toVariantPickerItem(variant: VariantPickerApiItem): VariantPickerItem {
+  return {
+    id:variant.id,
+    sku:variant.sku,
+    title:variant.title,
+    label:variant.choiceLabel,
+    context:variant.choiceContext,
+    price:variant.price,
+    image:variant.image,
+    href:variant.href,
+    shippingPromise:variant.shippingPromise,
+  };
 }

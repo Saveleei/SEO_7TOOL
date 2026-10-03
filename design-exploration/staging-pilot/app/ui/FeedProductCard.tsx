@@ -51,7 +51,7 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
         <div className="feed-product-assurance"><b>Проверим до оплаты</b><span>Точное исполнение · комплектность и документы · остаток и дата отгрузки</span></div>
       </div>
     </div>
-    {!directVariant && <VariantPickerDialog open={pickerOpen} onClose={() => setPickerOpen(false)} productId={product.id} productTitle={product.title} category={product.categorySlug} pageType="category" placement="category_card_size_picker" items={toPickerItems(product)} totalVariantCount={product.variantCount} fullProductHref={`/product/${product.slug}`} selectorLabel={isSizeLedProduct(product) ? "Размер" : "Исполнение"} />}
+    {!directVariant && <VariantPickerDialog open={pickerOpen} onClose={() => setPickerOpen(false)} productId={product.id} productTitle={product.title} category={product.categorySlug} pageType="category" placement="category_card_size_picker" items={toPickerItems(product)} totalVariantCount={product.variantCount} fullProductHref={`/product/${product.slug}`} variantsEndpoint={`/api/catalog-product-variants?product=${encodeURIComponent(product.slug)}`} selectorLabel={isSizeLedProduct(product) ? "Размер" : "Исполнение"} />}
   </article>;
 }
 

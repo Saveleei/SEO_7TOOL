@@ -52,6 +52,10 @@ test("homepage production tasks expose direct category paths without cropping eq
   assert.match(paths, /HomepageCategoryMedia src=\{category\.image\}/u);
   assert.doesNotMatch(paths, /group\.representativeImage|group\.image/u);
   assert.match(css, /\.homepage-task-path__subcategory-media img[^}]*object-fit:contain/u);
+  assert.match(css, /\.homepage-task-paths \{ align-items:stretch; \}/u);
+  assert.match(css, /\.homepage-task-path \{[^}]*min-height:390px;[^}]*height:100%;/u);
+  assert.match(css, /\.homepage-task-path__header \{[^}]*height:100px;/u);
+  assert.match(css, /\.homepage-task-path__subcategory-media img \{[^}]*position:absolute!important;[^}]*inset:5px!important;[^}]*object-fit:contain!important;/u);
   assert.match(css, /\.homepage-task-path__subcategories \{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/u);
   assert.match(css, /\.homepage-task-path\[data-expanded="true"\] \.homepage-task-path__subcategories/u);
 });
