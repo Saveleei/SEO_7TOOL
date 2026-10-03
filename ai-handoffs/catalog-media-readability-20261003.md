@@ -56,4 +56,4 @@ Improve image fit and responsive readability in the catalog mega-menu, homepage 
 
 ## Commit
 
-To be recorded after commit.
+Implementation commit: `e945506` (`fix: improve catalog media readability`).
