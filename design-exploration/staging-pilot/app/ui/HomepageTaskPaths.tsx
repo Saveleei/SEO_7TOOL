@@ -24,9 +24,11 @@ export function HomepageTaskPaths({ groups }: { groups: ProductionCategoryGroup[
             <span className="homepage-task-path__subcategory-copy"><b>{category.label}</b><small>{formatSeriesCount(category.count ?? 0)}</small></span>
             <i aria-hidden="true">→</i>
           </Link>)}
-          {group.subcategories.length > 4 && <Link className="homepage-task-path__more" href={group.href}><span><b>Ещё {group.subcategories.length - 4}</b><small>Открыть всё направление</small></span><i aria-hidden="true">→</i></Link>}
         </nav>
-        <Link className="homepage-task-path__action" href={group.href}>Подобрать по задаче <span aria-hidden="true">→</span></Link>
+        <Link className="homepage-task-path__action" href={group.href}>
+          <span><b>Подобрать по задаче</b>{group.subcategories.length > 4 && <small>Все {group.subcategories.length} категорий</small>}</span>
+          <i aria-hidden="true">→</i>
+        </Link>
       </article>;
     })}
   </div>;

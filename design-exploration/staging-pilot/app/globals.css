@@ -354,7 +354,7 @@ img { display:block; max-width:100%; }
    concrete equipment categories carry the visual recognition cue. */
 .homepage-task-paths { align-items:stretch; }
 .homepage-task-path {
-  min-height:390px;
+  min-height:332px;
   height:100%;
   display:flex;
   align-items:stretch;
@@ -364,8 +364,8 @@ img { display:block; max-width:100%; }
   overflow:hidden;
 }
 .homepage-task-path__header {
-  min-height:100px;
-  height:100px;
+  min-height:96px;
+  height:96px;
   display:grid;
   grid-template-columns:31px minmax(0,1fr) auto;
   align-items:start;
@@ -385,9 +385,9 @@ img { display:block; max-width:100%; }
 }
 .homepage-task-path__subcategories>a {
   min-width:0;
-  min-height:82px;
+  min-height:94px;
   display:grid;
-  grid-template-columns:64px minmax(0,1fr) 13px;
+  grid-template-columns:76px minmax(0,1fr) 15px;
   align-items:center;
   gap:9px;
   padding:8px 10px;
@@ -7332,12 +7332,12 @@ body:has(.request-cart-dock) .mobile-manager-bubble { bottom:88px; }
 .homepage-task-path__subcategories>a:nth-child(even) { border-right:0; }
 .homepage-task-path__subcategories>a:hover { position:relative; z-index:1; border-color:#aeb9b0; background:#f9fbf8; box-shadow:inset 0 0 0 1px #aeb9b0; }
 .homepage-task-path__subcategories>a.homepage-task-path__more { grid-template-columns:minmax(0,1fr) 13px; padding-left:16px; border-style:dashed; color:#7c340f; }
-.homepage-task-path__subcategory-media { width:64px; height:62px; position:relative; flex:0 0 auto; overflow:hidden; border:1px solid #e0e5de; border-radius:6px; background:#f4f7f2; }
+.homepage-task-path__subcategory-media { width:76px; height:70px; position:relative; flex:0 0 auto; overflow:hidden; border:1px solid #e0e5de; border-radius:7px; background:#f4f7f2; }
 .homepage-task-path__subcategory-media img {
   position:absolute!important;
-  inset:5px!important;
-  width:calc(100% - 10px)!important;
-  height:calc(100% - 10px)!important;
+  inset:6px!important;
+  width:calc(100% - 12px)!important;
+  height:calc(100% - 12px)!important;
   object-fit:contain!important;
   object-position:center!important;
   padding:0!important;
@@ -7345,12 +7345,16 @@ body:has(.request-cart-dock) .mobile-manager-bubble { bottom:88px; }
 }
 .homepage-task-path__subcategory-copy { min-width:0; }
 .homepage-task-path__subcategory-copy>b,.homepage-task-path__subcategory-copy>small { display:block; }
-.homepage-task-path__subcategory-copy>b { font-size:13px; line-height:1.22; }
-.homepage-task-path__subcategory-copy>small { margin-top:4px; color:#727a73; font-size:var(--type-caption); font-weight:600; }
+.homepage-task-path__subcategory-copy>b { font-size:15px; line-height:1.24; }
+.homepage-task-path__subcategory-copy>small { margin-top:5px; color:#687169; font-size:12px; font-weight:650; }
 .homepage-task-path__subcategories>a>i { color:#a63f15; font-size:15px; font-style:normal; }
 .homepage-task-path__more>span>b,.homepage-task-path__more>span>small { display:block; }
 .homepage-task-path__more>span>small { margin-top:3px; color:#727a73; font-size:var(--type-caption); font-weight:600; }
-.homepage-task-path__action { min-height:45px; grid-column:auto; display:flex; align-items:center; justify-content:space-between; margin-top:auto; padding:0 17px; font-size:13px; }
+.homepage-task-path__action { min-height:48px; grid-column:auto; display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:auto; padding:7px 17px; font-size:13px; }
+.homepage-task-path__action>span,.homepage-task-path__action>span>b,.homepage-task-path__action>span>small { display:block; }
+.homepage-task-path__action>span>b { font-size:13px; }
+.homepage-task-path__action>span>small { margin-top:2px; color:#6e766f; font-size:var(--type-caption); font-weight:650; }
+.homepage-task-path__action>i { color:#a63f15; font-size:16px; font-style:normal; }
 
 .header-catalog-group--desktop { min-height:68px; grid-template-columns:28px minmax(0,1fr) 14px; gap:10px; }
 .header-catalog-group--desktop>span:nth-child(2)>b,
@@ -7359,12 +7363,30 @@ body:has(.request-cart-dock) .mobile-manager-bubble { bottom:88px; }
 .header-catalog-group--mobile>span:nth-child(2)>small { display:block; }
 .header-catalog-group--desktop>span:nth-child(2)>b { color:var(--ink); font:800 var(--type-body)/1.2 Inter,Arial,sans-serif; }
 .header-catalog-group--desktop>span:nth-child(2)>small { margin-top:4px; color:#737a73; font:500 var(--type-caption)/1.2 Inter,Arial,sans-serif; }
-.header-catalog-grid nav>a { min-height:64px; grid-template-columns:52px minmax(0,1fr) 12px; gap:9px; padding:6px 0; }
-.header-catalog-subcategory-media { width:52px; height:50px; position:relative; overflow:hidden; border:1px solid #e1e5df; border-radius:5px; background:#f6f8f4; }
-.header-catalog-subcategory-media img { object-fit:contain; object-position:center; padding:4px; mix-blend-mode:multiply; }
+.header-catalog-grid nav>a { min-height:74px; grid-template-columns:64px minmax(0,1fr) 14px; gap:11px; padding:7px 0; }
+.header-catalog-subcategory-media { width:64px; height:60px; position:relative; overflow:hidden; border:1px solid #dce2db; border-radius:6px; background:#f6f8f4; }
+.header-catalog-subcategory-media img { position:absolute!important; inset:6px!important; width:calc(100% - 12px)!important; height:calc(100% - 12px)!important; object-fit:contain!important; object-position:center!important; padding:0!important; mix-blend-mode:multiply; }
 .header-catalog-grid nav>a>span:nth-child(2)>b,.header-catalog-grid nav>a>span:nth-child(2)>small { display:block; }
-.header-catalog-grid nav>a>span:nth-child(2)>b { color:#333a35; font-size:var(--type-control); line-height:1.2; }
-.header-catalog-grid nav>a>span:nth-child(2)>small { margin-top:3px; color:#737b74; font-size:var(--type-caption); }
+.header-catalog-grid nav>a>span:nth-child(2)>b { color:#333a35; font-size:15px; line-height:1.22; }
+.header-catalog-grid nav>a>span:nth-child(2)>small { margin-top:4px; color:#687169; font-size:12px; }
+
+.category-page-shell .category-assortment-shortcuts>.container>div>a,
+.category-page-shell .category-assortment-more>div>a {
+  min-height:96px;
+  display:grid;
+  grid-template-columns:76px minmax(0,1fr) 38px;
+  align-items:center;
+  gap:12px;
+  padding:10px 12px;
+}
+.category-assortment-shortcut-media { width:76px; height:70px; position:relative; overflow:hidden; border-radius:7px; }
+.category-assortment-shortcut-media img { position:absolute!important; inset:7px!important; width:calc(100% - 14px)!important; height:calc(100% - 14px)!important; object-fit:contain!important; object-position:center!important; padding:0!important; mix-blend-mode:multiply; }
+.category-page-shell .category-assortment-shortcuts>.container>div>a b,
+.category-page-shell .category-assortment-more>div>a b { font-size:15px; line-height:1.25; }
+.category-page-shell .category-assortment-shortcuts>.container>div>a small,
+.category-page-shell .category-assortment-more>div>a small { margin-top:5px; font-size:12px; line-height:1.38; }
+.category-page-shell .category-assortment-shortcuts>.container>div>a em,
+.category-page-shell .category-assortment-more>div>a em { min-width:34px; min-height:34px; margin-left:0; font-size:var(--type-caption); }
 
 .comparison-table__price small { font-size:var(--type-caption); }
 .comparison-table__price strong { font-size:20px; }
@@ -7385,8 +7407,8 @@ body:has(.request-cart-dock) .mobile-manager-bubble { bottom:88px; }
   .homepage-task-path__header>button>i { font-size:22px; font-style:normal; line-height:1; }
   .homepage-task-path__subcategories { display:none; grid-template-columns:1fr; gap:0; margin:0; border-top:1px solid #e1e5df; }
   .homepage-task-path[data-expanded="true"] .homepage-task-path__subcategories { display:grid; }
-  .homepage-task-path[data-expanded="true"] .homepage-task-path__subcategories>a:nth-child(n) { min-height:82px; display:grid; grid-template-columns:68px minmax(0,1fr) 16px; padding:8px 10px; border-right:0; font-size:inherit; }
-  .homepage-task-path__subcategory-media { width:68px; height:64px; }
+  .homepage-task-path[data-expanded="true"] .homepage-task-path__subcategories>a:nth-child(n) { min-height:92px; display:grid; grid-template-columns:76px minmax(0,1fr) 16px; padding:8px 10px; border-right:0; font-size:inherit; }
+  .homepage-task-path__subcategory-media { width:76px; height:70px; }
   .homepage-task-path__subcategory-copy>b { font-size:15px; }
   .homepage-task-path__action { display:none; font-size:13px; }
   .homepage-task-path[data-expanded="true"] .homepage-task-path__action { display:flex; min-height:48px; }
@@ -7395,22 +7417,22 @@ body:has(.request-cart-dock) .mobile-manager-bubble { bottom:88px; }
   .header-catalog-group--mobile>span:nth-child(2)>b { color:var(--ink); font:800 15px/1.22 Inter,Arial,sans-serif; }
   .header-catalog-group--mobile>span:nth-child(2)>small { margin-top:3px; color:#737a73; font:500 var(--type-caption)/1.2 Inter,Arial,sans-serif; }
   .header-catalog-grid>section[data-expanded="true"]>nav { padding:4px 14px 7px 49px; }
-  .header-catalog-grid>section[data-expanded="true"]>nav>a { min-height:66px; grid-template-columns:56px minmax(0,1fr) 14px; gap:10px; padding:6px 0; }
-  .header-catalog-subcategory-media { width:56px; height:54px; }
+  .header-catalog-grid>section[data-expanded="true"]>nav>a { min-height:76px; grid-template-columns:64px minmax(0,1fr) 14px; gap:11px; padding:7px 0; }
+  .header-catalog-subcategory-media { width:64px; height:60px; }
   .header-catalog-grid>section[data-expanded="true"]>.header-catalog-overview { padding-left:49px; }
 
   .category-page-shell .category-assortment-shortcuts>.container>div,
   .category-page-shell .category-assortment-shortcuts--segments>.container>div { grid-template-columns:1fr; gap:7px; }
   .category-page-shell .category-assortment-shortcuts>.container>div>a,
   .category-page-shell .category-assortment-more>div>a {
-    min-height:84px;
+    min-height:92px;
     display:grid;
-    grid-template-columns:68px minmax(0,1fr) 34px;
+    grid-template-columns:72px minmax(0,1fr) 34px;
     align-items:center;
     gap:10px;
     padding:8px 10px;
   }
-  .category-assortment-shortcut-media { width:68px; height:66px; }
+  .category-assortment-shortcut-media { width:72px; height:66px; }
   .category-page-shell .category-assortment-shortcuts>.container>div>a b,
   .category-page-shell .category-assortment-more>div>a b { font-size:15px; }
   .category-page-shell .category-assortment-shortcuts>.container>div>a em,
