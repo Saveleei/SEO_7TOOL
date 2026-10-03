@@ -45,15 +45,15 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
               <p className="eyebrow">{homepageContent.hero.eyebrow}</p>
               <h1>{homepageContent.hero.title}</h1>
               <p className="hero-lead">{homepageContent.hero.intro}</p>
-              <div className="hero-mobile-catalog-preview" aria-label="Быстрый вход в каталог">
-                <HomepageCategoryTiles categories={homepageKeyCategories.slice(0, 3)} compact />
-                <Link href="/catalog">Все разделы каталога →</Link>
-              </div>
               <div className="hero-primary-actions">
                 <Link className="button button-dark" href="/catalog" data-home-action="open_catalog">Открыть каталог</Link>
                 <a className="button button-quiet" href="#production-categories" data-home-action="choose_task">Выбрать по задаче</a>
               </div>
               <Link className="hero-specification-link" href="/?request=spec#quick-order" data-home-action="upload_specification">Есть ТЗ или список позиций? Передать файл без письма →</Link>
+              <div className="hero-mobile-catalog-preview" aria-label="Быстрый вход в каталог">
+                <HomepageCategoryTiles categories={homepageKeyCategories.slice(0, 3)} compact />
+                <Link href="/catalog">Все разделы каталога →</Link>
+              </div>
               <nav className="hero-category-shortcuts" aria-label="Популярные категории">
                 <span>Часто ищут:</span>
                 <Link href="/catalog/category/stanki-sverlilnye">Магнитные станки</Link>

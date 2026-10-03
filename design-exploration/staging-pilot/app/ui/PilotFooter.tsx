@@ -14,7 +14,7 @@ export function PilotFooter() {
           <p>Промышленное оборудование и оснастка для металлообработки.</p>
           <span>{testContour && !intakeDelivery ? "Локальный тестовый пилот · внешняя отправка заявок отключена." : "Доставка по России · счёт с НДС · гарантия 12 месяцев."}</span>
         </div>
-        <nav aria-label="Каталог"><b>Каталог</b><Link href="/catalog">Все категории</Link><Link href="/#production-categories">Подбор по задаче</Link><Link href="/compare">Сравнение</Link></nav>
+        <nav aria-label="Каталог"><b>Каталог</b><Link href="/catalog">Все категории</Link><Link href="/#production-categories">Подбор по задаче</Link></nav>
         <nav aria-label="Покупателям"><b>Покупателям</b><Link href="/ordering">Как заказать</Link><Link href="/payment">Оплата</Link><Link href="/delivery">Доставка</Link><Link href="/warranty">Гарантия и документы</Link></nav>
         <nav aria-label="Компания"><b>Компания</b><Link href="/company">О компании</Link><Link href="/contacts">Контакты и реквизиты</Link></nav>
         <div className="footer-contacts" data-contact-placement="footer">

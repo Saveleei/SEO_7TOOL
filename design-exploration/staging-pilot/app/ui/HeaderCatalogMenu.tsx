@@ -1,10 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { siteContact } from "../data/contactConfig";
 import type { ProductionCategoryGroup } from "../data/productionCategoryGroups";
+import { MaxIcon, TelegramIcon } from "./HeaderContactMenu";
 import { HomepageCategoryMedia } from "./HomepageCategoryMedia";
 
 const FOCUSABLE_SELECTOR = "a[href],button:not([disabled]),input:not([disabled]),[tabindex]:not([tabindex='-1'])";
@@ -104,10 +106,6 @@ export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[
         <form action="/search" role="search"><label className="sr-only" htmlFor="mobile-catalog-search">Найти товар</label><input id="mobile-catalog-search" name="q" type="search" placeholder="Модель, товар или задача" /><button type="submit" aria-label="Найти">⌕</button></form>
         <button ref={closeButtonRef} type="button" aria-label="Закрыть меню" onClick={closeMenu}>×</button>
       </div>
-      <div className="header-catalog-mobile-contact">
-        <a href={siteContact.phoneHref}><span>Позвонить</span><b>{siteContact.phone}</b></a>
-        <a href={`mailto:${siteContact.email}?subject=Запрос%20с%20сайта%207TOOL`}><span>Написать</span><b>{siteContact.email}</b></a>
-      </div>
       <header>
         <div><span>Каталог 7TOOL</span><b>Оборудование и оснастка по разделам</b><small>Каждая категория показана один раз. Подбор по операции — отдельным сценарием.</small></div>
         <Link href="/catalog" onClick={closeMenu}>Открыть весь каталог →</Link>
@@ -144,6 +142,18 @@ export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[
           </section>;
         })}
       </div>
+      <aside className="header-catalog-manager" data-contact-placement="catalog_menu_manager" aria-label="Связаться с персональным менеджером 7TOOL">
+        <div className="header-catalog-manager__identity">
+          <span className="header-catalog-manager__photo"><Image src={siteContact.photo} alt={siteContact.managerName} width={56} height={56} /><i aria-hidden="true" /></span>
+          <span><small>На связи</small><b>{siteContact.managerName}</b><span>Поможет подобрать оборудование и проверить наличие</span></span>
+        </div>
+        <a className="header-catalog-manager__phone" href={siteContact.phoneHref} aria-label={`Позвонить ${siteContact.managerName}`} onClick={closeMenu}><small>Позвонить</small><b>{siteContact.phone}</b></a>
+        <div className="header-catalog-manager__messengers">
+          <a href={siteContact.telegramUrl} target="_blank" rel="noopener noreferrer" aria-label={`Написать ${siteContact.managerName} в Telegram`} onClick={closeMenu}><TelegramIcon /><span>Telegram</span></a>
+          <a href={siteContact.maxUrl} target="_blank" rel="noopener noreferrer" aria-label={`Написать ${siteContact.managerName} в MAX`} onClick={closeMenu}><MaxIcon /><span>MAX</span></a>
+        </div>
+        <Link className="header-catalog-manager__task" href="/?request=spec#quick-order" onClick={closeMenu}><span>Передать задачу или ТЗ</span><small>Модель знать не обязательно</small></Link>
+      </aside>
       <nav className="header-catalog-service-links" aria-label="Информация для покупателей">
         <Link href="/company" onClick={closeMenu}>О компании</Link>
         <Link href="/delivery" onClick={closeMenu}>Доставка по России</Link>
