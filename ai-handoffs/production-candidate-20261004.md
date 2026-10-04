@@ -63,10 +63,20 @@ The candidate currently uses a frozen verified snapshot. A production-owned nigh
 
 ## Remaining release gates
 
-1. Human visual acceptance at `360`, `390`, `768`, `1366` and `1920` CSS pixels. The in-app browser still fails before opening a page because its kernel assets path is missing (`os error 3`), so this gate is not complete.
-2. Authenticated staff sign-in and workspace smoke on loopback without submitting a request. No plaintext production password was read or exposed during this deployment.
-3. Install and dry-run a production-owned nightly base + Stalex feed pipeline against the candidate data paths.
-4. Obtain explicit authorization for nginx cutover. Until then, `7tool.ru` must remain on the current process.
+1. Rebuild the isolated server candidate from at least commit `a3ec641`; the retained `e242642` runtime predates the corrected allowlisted production admin session.
+2. Install and dry-run a production-owned nightly base + Stalex feed pipeline against the candidate data paths.
+3. Obtain explicit authorization for nginx cutover. Until then, `7tool.ru` must remain on the current process.
+
+## Completed after candidate creation
+
+- Multi-width visual acceptance completed at 360, 390, 768, 1366 and 1920 CSS px.
+- Commit `a3ec641` removes the accidental dependency between local administrator sessions and `QUOTE_TEST_MODE`. Access remains restricted by the exact configured host, same-origin verification, rate limiting, PBKDF2 credentials and a signed HttpOnly/SameSite session; a foreign host is rejected.
+- Focused access/release tests: `17/17`; full suite: `363/363`; changed-file ESLint and Vinext production build passed.
+- A local production-mode runtime completed `62/62` read-only release checks through the real login endpoint. All nine staff workspaces returned `200` after authentication; anonymous requests still redirected. No request, setting, asset or delivery record was created.
+- Browser inspection confirmed all nine staff routes have an H1, no error alert and no page-level horizontal overflow at desktop width. The mobile request journal also has no page-level overflow; its workspace navigation remains an intentional internal horizontal rail.
+- The smoke matrix now includes `/test/catalog-parameters` and `/test/catalog-media` so every administrator destination in the header is checked.
+- Temporary local credentials and the isolated smoke data directory were removed after the run. No live password or session token was read or exposed.
+- The retained VPS candidate was not modified or restarted; this follow-up changed source and local test artifacts only.
 
 ## Rollback
 
