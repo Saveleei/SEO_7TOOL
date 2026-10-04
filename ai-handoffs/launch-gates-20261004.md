@@ -2,22 +2,22 @@
 
 ## Decision
 
-The responsive release on `new.7tool.ru` has passed the functional, lead-delivery, feed and privacy-safe event gates. A separate production-configured candidate from commit `e242642` has also passed configuration, build, data and read-only route checks on `127.0.0.1:3244`. It is not yet authorized for production cutover. The remaining release blocker is human visual acceptance on real desktop and mobile widths; the in-app browser runtime failed before opening a page (`kernel assets`, `os error 3`).
+The responsive release on `new.7tool.ru` has passed the functional, lead-delivery, feed, privacy-safe event and multi-width visual gates. A separate production-configured candidate from commit `e242642` has also passed configuration, build, data and read-only route checks on `127.0.0.1:3244`. It is not yet authorized for production cutover. The next independent gate is authenticated staff-workspace smoke.
 
 Production `7tool.ru`, DNS, credentials and secrets were not changed.
 
 ## Current immutable points
 
-- New release: `/var/www/7tool-release-20261004-baymard-responsive-bd4632d/design-exploration/staging-pilot`.
+- New release: `/var/www/7tool-release-20261004-tablet-mobile-daeb930/design-exploration/staging-pilot`.
 - New pointer: `/var/www/7tool-new-current`.
-- New rollback: `/var/www/7tool-release-20261004-dynamic-comparison-7df6b0d/design-exploration/staging-pilot`.
+- New rollback: `/var/www/7tool-release-20261004-baymard-responsive-bd4632d/design-exploration/staging-pilot`.
 - New process: `7tool-storefront-new`, port `3243`, PM2 id `27`, online, zero unstable restarts.
 - Current production release/pointer: `/var/www/7tool-release-20260911-trust-performance-029d3f3/7tool-source` via `/var/www/7tool-current`.
 - Current production process: `7tool-prod`, port `3108`, PM2 id `1`, online, zero unstable restarts.
 - Production candidate release: `/var/www/7tool-release-20261004-production-candidate-e242642/design-exploration/staging-pilot`.
 - Production candidate process: `7tool-prod-candidate-e242642`, loopback port `3244`, PM2 id `34`, online, zero restarts and zero unstable restarts.
 - Candidate shared data: `/var/www/7tool-production-candidate-shared-e242642`; no request or outbox records were created.
-- Free disk at the gate: approximately `2.0 GiB`; do not create another full release before measuring its projected size and pruning only explicitly superseded artifacts.
+- Free disk at the gate: approximately `1.8 GiB`; do not create another full release before measuring its projected size and pruning only explicitly superseded artifacts.
 
 ## Controlled lead gate
 
@@ -52,14 +52,16 @@ Production `7tool.ru`, DNS, credentials and secrets were not changed.
 
 ## Visual acceptance checklist
 
-Check `https://new.7tool.ru/` at `360`, `390`, `768`, `1366` and `1920` CSS pixels:
+Completed on `https://new.7tool.ru/` at `360`, `390`, `768`, `1366` and `1920` CSS pixels:
 
 1. Header/menu open and closed, search, manager bubble and its close control.
 2. Homepage hero, key catalog entries, production-task groups and all six trust photos.
 3. Drilling-machine and annular-cutter category: task shortcuts, filter drawer, applied filters, product table/cards and pagination.
 4. LZHS product: full size matrix, available/unconfirmed states, price/action row, sticky mobile action and manager contacts.
 5. Comparison: product headers, feature rows and repeated commercial action at the bottom.
-6. No overlap, clipped copy, horizontal page scroll, cropped evidence photos or inaccessible touch targets.
+6. No page-level horizontal overflow, clipped decision copy or inaccessible touch targets. Evidence photos retain their full composition; intentional comparison-table horizontal scrolling is contained inside its own region.
+
+Tablet hero composition and the full mobile category task prompt were corrected in `daeb930`. The filter drawer was verified in both unchanged and dirty states: it closes, restores body scrolling, moves to products and preserves selected parameters in the URL.
 
 ## Production candidate gate
 
@@ -95,5 +97,5 @@ Do not point `7tool.ru` directly at port `3243`: that process is built for `new.
 - Isolated production candidate build and read-only smoke: **GO**.
 - Authenticated staff workspace smoke: **PENDING**.
 - Production-owned nightly feed runtime for the candidate: **PENDING**.
-- Human multi-width visual acceptance: **PENDING / release blocker**.
+- Human multi-width visual acceptance: **GO**.
 - Production cutover: **NOT AUTHORIZED and not executed**.

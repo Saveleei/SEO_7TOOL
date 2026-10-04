@@ -44,6 +44,8 @@ Audit and improve the published preview storefront for desktop and mobile usabil
 - Reordered the homepage task cards so the buyer first reads the concrete production task (`Сверление и резьба`), then its explanatory context.
 - Preserved a visible 2 × 2 overview of the four B2B trust conditions on mobile instead of hiding them in a carousel.
 - Added reduced-motion handling and regression tests for the responsive interaction contract.
+- Corrected the tablet homepage hero at 761–960 px: the heading keeps coherent line breaks, the oversized desktop catalog card is replaced by a compact three-entry overview, and duplicated shortcuts/contacts are removed.
+- Preserved the full mobile category task prompt instead of truncating the decisive instruction with an ellipsis.
 
 ## Files
 
@@ -55,31 +57,32 @@ Audit and improve the published preview storefront for desktop and mobile usabil
 
 ## Verification
 
-- Targeted responsive/filter tests: 18 passed, 0 failed.
-- Full test suite: 357 passed, 0 failed.
+- Targeted tablet/mobile responsive tests: 11 passed, 0 failed after the final correction.
+- Full test suite: 362 passed, 0 failed.
 - ESLint: passed.
 - Production build: passed; all application routes generated successfully.
 - Local production HTTP smoke test: `/`, drilling-machine category, annular-cutter product and `/compare` returned HTTP 200.
 - `git diff --check`: passed.
-- Browser-driven multi-width visual QA could not be completed because the in-app browser runtime failed to create its kernel assets (`os error 3`). This is the remaining manual release gate; no standalone browser automation was substituted.
+- Browser-driven visual QA completed at 360, 390, 768, 1366 and 1920 CSS px. Homepage, catalog menu, categories, mobile filter drawer, LZHS product/size matrix and comparison were checked without page-level horizontal overflow, clipped decision copy or inaccessible controls.
+- Both mobile filter outcomes were exercised: `К товарам` closes the drawer and scrolls to the list; `Показать результаты` closes it, restores scrolling and persists the selected filter in the shareable URL.
 
 ## New preview deployment
 
 - The previously granted authorization for the isolated preview was used; only `new.7tool.ru` was updated.
-- Active immutable release: `/var/www/7tool-release-20261004-baymard-responsive-bd4632d/design-exploration/staging-pilot`.
+- Active immutable release: `/var/www/7tool-release-20261004-tablet-mobile-daeb930/design-exploration/staging-pilot`.
 - Atomic pointer: `/var/www/7tool-new-current`.
-- Preserved rollback: `/var/www/7tool-release-20261004-dynamic-comparison-7df6b0d/design-exploration/staging-pilot`.
-- The delta archive contained the three changed interface files and two regression-test files. Its local and remote SHA-256 was `0428432e4d54120f470dc724576d6200ffbd9f5b70007d2a0554f2cbbba8b13f`.
+- Preserved rollback: `/var/www/7tool-release-20261004-baymard-responsive-bd4632d/design-exploration/staging-pilot`.
+- Final interface correction commit: `daeb930`.
 - The candidate used the current catalog generation `/var/www/7tool-new-shared/catalog-releases/20261004004514-67c1dd90f641`; product/meta SHA consistency was verified before build.
 - Server gate: `6/6` focused tests passed, changed-file ESLint passed, catalog presentation generated 24 categories and the Vinext production build passed.
 - The candidate was accepted separately on loopback port `3267`; homepage, drilling category, exact annular-cutter product, comparison page and variants API passed before cutover.
 - Public homepage, drilling category, product, comparison page, variants API and `robots.txt` returned `200` after cutover.
-- `7tool-storefront-new` is online on PID `307764` with one deliberate release restart and no restart loop observed during final verification.
+- `7tool-storefront-new` is online with one deliberate final-release restart and no restart loop observed during final verification.
 - Indexing protection remains active: `X-Robots-Tag: noindex, nofollow, noarchive` and `robots.txt` contains `Disallow: /`.
 - Production `7tool.ru` stayed online on unchanged PID `260197` and returned `200`; it was not restarted or modified.
 - No forms were submitted. Feeds, cron, DNS, credentials, secrets and production services were not changed.
-- Approximately `2.2 GiB` remained free after retaining the active release and rollback.
-- Because the in-app browser runtime still failed before selection (`failed to write kernel assets: ... os error 3`), final human visual acceptance at 360/390/768/1366/1920 px remains advisable on `https://new.7tool.ru/`.
+- Approximately `1.8 GiB` remained free after retaining the active release and rollback.
+- Responsive visual acceptance is complete. The next independent launch gate is authenticated staff-workspace smoke; production remains unchanged.
 
 ## Post-deploy P0 funnel check
 
@@ -88,10 +91,10 @@ Audit and improve the published preview storefront for desktop and mobile usabil
 - Feed-backed comparison resolved exact variants `A9982` and `A10651`, current prices and shipping states with no missing selections.
 - The LZHS product variants API returned all 49 executions.
 - No form was submitted and no external lead was created.
-- The browser connection failed again before page selection, so this check confirms functional routing/data only and does not replace real-device visual acceptance.
+- The earlier browser-runtime issue was subsequently cleared and the multi-width visual checks above now replace that pending manual gate.
 
 ## Launch-gate continuation
 
 - See `ai-handoffs/launch-gates-20261004.md` for the controlled request result, nightly base + Stalex feed evidence, privacy-safe analytics checks and the exact blue/green cutover/rollback map.
-- Production remains unchanged. Human multi-width visual acceptance remains a release blocker.
+- Production remains unchanged. Multi-width visual acceptance is closed; authenticated staff-workspace smoke is the next gate.
 - Production analytics source was prepared in commit `43903c8`: the existing counter `109097461` is fail-closed outside the indexable non-test contour, and only sanitized allowlisted conversion events are sent as goals. It is now present only in the loopback production candidate documented in `ai-handoffs/production-candidate-20261004.md`; public `new.7tool.ru` and `7tool.ru` were not changed.
