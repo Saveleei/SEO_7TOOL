@@ -3,7 +3,7 @@
 - Agent: Codex
 - Branch: `codex/baymard-responsive-ux-20261004`
 - Base: `4d98da9`
-- Status: implementation and local verification complete; not deployed
+- Status: implementation verified and deployed only to `new.7tool.ru`
 
 ## Goal
 
@@ -63,6 +63,20 @@ Audit and improve the published preview storefront for desktop and mobile usabil
 - `git diff --check`: passed.
 - Browser-driven multi-width visual QA could not be completed because the in-app browser runtime failed to create its kernel assets (`os error 3`). This is the remaining manual release gate; no standalone browser automation was substituted.
 
-## Release note
+## New preview deployment
 
-No deployment, feed publication, live form submission, DNS change or production-service change was performed. Publish to `new.7tool.ru` only after explicit approval and a visual check at 360/390/768/1366/1920 px.
+- The previously granted authorization for the isolated preview was used; only `new.7tool.ru` was updated.
+- Active immutable release: `/var/www/7tool-release-20261004-baymard-responsive-bd4632d/design-exploration/staging-pilot`.
+- Atomic pointer: `/var/www/7tool-new-current`.
+- Preserved rollback: `/var/www/7tool-release-20261004-dynamic-comparison-7df6b0d/design-exploration/staging-pilot`.
+- The delta archive contained the three changed interface files and two regression-test files. Its local and remote SHA-256 was `0428432e4d54120f470dc724576d6200ffbd9f5b70007d2a0554f2cbbba8b13f`.
+- The candidate used the current catalog generation `/var/www/7tool-new-shared/catalog-releases/20261004004514-67c1dd90f641`; product/meta SHA consistency was verified before build.
+- Server gate: `6/6` focused tests passed, changed-file ESLint passed, catalog presentation generated 24 categories and the Vinext production build passed.
+- The candidate was accepted separately on loopback port `3267`; homepage, drilling category, exact annular-cutter product, comparison page and variants API passed before cutover.
+- Public homepage, drilling category, product, comparison page, variants API and `robots.txt` returned `200` after cutover.
+- `7tool-storefront-new` is online on PID `307764` with one deliberate release restart and no restart loop observed during final verification.
+- Indexing protection remains active: `X-Robots-Tag: noindex, nofollow, noarchive` and `robots.txt` contains `Disallow: /`.
+- Production `7tool.ru` stayed online on unchanged PID `260197` and returned `200`; it was not restarted or modified.
+- No forms were submitted. Feeds, cron, DNS, credentials, secrets and production services were not changed.
+- Approximately `2.2 GiB` remained free after retaining the active release and rollback.
+- Because the in-app browser runtime still failed before selection (`failed to write kernel assets: ... os error 3`), final human visual acceptance at 360/390/768/1366/1920 px remains advisable on `https://new.7tool.ru/`.
