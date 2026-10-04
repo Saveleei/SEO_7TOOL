@@ -4,6 +4,7 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 import { isProductionSeoHost } from "../app/data/seoIndexing.mjs";
+import { resolveYandexMetrikaId } from "../app/data/analyticsConfig.mjs";
 
 const PASSWORD_HASH_PATTERN = /^pbkdf2-sha256\$(\d{6,7})\$([A-Za-z0-9_-]{16,128})\$([A-Za-z0-9_-]{32,128})$/u;
 const MAX_FEED_AGE_MINUTES = 26 * 60;
@@ -18,6 +19,8 @@ export function validateProductionConfig(env = process.env, options = {}) {
   if (env.QUOTE_TEST_MODE === "1") errors.push("QUOTE_TEST_MODE must be disabled on production.");
   else checks.push("test contour disabled");
   requireExact(env, "SEO_INDEXING_ENABLED", "1", errors, checks);
+  if (resolveYandexMetrikaId(env) == null) errors.push("YANDEX_METRIKA_ID must contain a valid production counter id.");
+  else checks.push("Yandex Metrica counter configured");
 
   const dataDir = requireAbsolutePath(env, "QUOTE_DATA_DIR", errors, checks);
   const catalogPath = requireAbsolutePath(env, "CATALOG_FEED_PATH", errors, checks);

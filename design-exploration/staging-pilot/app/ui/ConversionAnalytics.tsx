@@ -3,9 +3,12 @@
 import { useEffect } from "react";
 import { sanitizeConversionEvent } from "../data/conversionAnalytics.mjs";
 
-type DataLayerWindow = Window & { dataLayer?: Array<Record<string, unknown>> };
+type DataLayerWindow = Window & {
+  dataLayer?: Array<Record<string, unknown>>;
+  ym?: (counterId: number, action: "reachGoal", goal: string, params: Record<string, unknown>) => void;
+};
 
-export function useConversionAnalytics() {
+export function useConversionAnalytics(counterId: number | null = null) {
   useEffect(() => {
     function record(detail: unknown) {
       const safeEvent = sanitizeConversionEvent(detail) as Record<string, unknown> | null;
@@ -13,6 +16,10 @@ export function useConversionAnalytics() {
       const analyticsWindow = window as DataLayerWindow;
       analyticsWindow.dataLayer ??= [];
       analyticsWindow.dataLayer.push(safeEvent);
+      if (counterId && typeof analyticsWindow.ym === "function") {
+        const { event, ...params } = safeEvent;
+        try { analyticsWindow.ym(counterId, "reachGoal", String(event), params); } catch { /* Analytics must never interrupt the buying path. */ }
+      }
     }
 
     function receive(event: Event) {
@@ -42,11 +49,11 @@ export function useConversionAnalytics() {
       window.removeEventListener("7tool:prototype-event", receive);
       document.removeEventListener("click", trackProductOpen);
     };
-  }, []);
+  }, [counterId]);
 }
 
-export function ConversionAnalytics() {
-  useConversionAnalytics();
+export function ConversionAnalytics({ counterId = null }: { counterId?: number | null }) {
+  useConversionAnalytics(counterId);
   return null;
 }
 

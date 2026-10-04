@@ -35,6 +35,7 @@ test("production preflight accepts only a complete live configuration and matchi
 
     assert.equal(validateProductionConfig({ ...env, QUOTE_TEST_MODE:"1" }, { checkFiles:false }).ok, false);
     assert.equal(validateProductionConfig({ ...env, SEO_INDEXING_ENABLED:"0" }, { checkFiles:false }).ok, false);
+    assert.equal(validateProductionConfig({ ...env, YANDEX_METRIKA_ID:"" }, { checkFiles:false }).ok, false);
     assert.equal(validateProductionConfig({ ...env, MANAGER_AUTH_LOCAL_HOSTS:"test.7tool.ru" }, { checkFiles:false }).ok, false);
     assert.equal(isTestManagerHostname("7tool.ru", env), true);
     assert.equal(isTestManagerHostname("attacker.7tool.ru", env), false);
@@ -193,6 +194,7 @@ function productionEnv({ quoteDir, catalogPath, metadataPath }) {
     QUOTE_TEST_MODE:"0",
     QUOTE_DATA_DIR:quoteDir,
     SEO_INDEXING_ENABLED:"1",
+    YANDEX_METRIKA_ID:"109097461",
     MANAGER_AUTH_LOCAL_HOSTS:"7tool.ru,www.7tool.ru",
     MANAGER_AUTH_LOCAL_USERNAME:"production-admin",
     MANAGER_AUTH_LOCAL_PASSWORD_HASH:`pbkdf2-sha256$310000$${salt}$${digest}`,

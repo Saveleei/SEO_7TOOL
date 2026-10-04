@@ -37,9 +37,16 @@ test("category and product funnel entry points are wired globally", async () => 
   const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
   const filters = await readFile(new URL("../app/ui/AutoApplyFilters.tsx", import.meta.url), "utf8");
   const tracker = await readFile(new URL("../app/ui/ConversionAnalytics.tsx", import.meta.url), "utf8");
-  assert.match(layout, /<ConversionAnalytics \/>/u);
+  assert.match(layout, /<ConversionAnalytics counterId=\{metrikaCounterId\} \/>/u);
   assert.match(tracker, /record\(resolvePageView\(window\.location\)\)/u);
   assert.match(tracker, /event:"view_category"/u);
   assert.match(tracker, /event:"view_product"/u);
   assert.match(filters, /event:"apply_filter"/u);
+});
+
+test("the sanitized event is the only payload sent to the configured goal collector", async () => {
+  const tracker = await readFile(new URL("../app/ui/ConversionAnalytics.tsx", import.meta.url), "utf8");
+  assert.match(tracker, /sanitizeConversionEvent\(detail\)/u);
+  assert.match(tracker, /analyticsWindow\.ym\(counterId, "reachGoal", String\(event\), params\)/u);
+  assert.doesNotMatch(tracker, /analyticsWindow\.ym\([^\n]+phone|analyticsWindow\.ym\([^\n]+email/iu);
 });

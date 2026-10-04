@@ -4,10 +4,12 @@ import { ContactAnalytics } from "./ui/ContactAnalytics";
 import { ConversionAnalytics } from "./ui/ConversionAnalytics";
 import { DocumentNavigationFallback } from "./ui/DocumentNavigationFallback";
 import { JsonLd } from "./ui/JsonLd";
+import { YandexMetrika } from "./ui/YandexMetrika";
 import { RequestCartProvider } from "./ui/RequestCart";
 import { ComparisonProvider } from "./ui/Comparison";
 import { siteCompany, siteContact } from "./data/contactConfig";
 import { publicRobots } from "./data/seo";
+import { resolveYandexMetrikaId } from "./data/analyticsConfig.mjs";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://7tool.ru"),
@@ -27,6 +29,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const forceDocumentNavigation = process.env.FORCE_DOCUMENT_NAVIGATION !== "0";
+  const metrikaCounterId = resolveYandexMetrikaId();
   const structuredData = {
     "@context":"https://schema.org",
     "@graph":[
@@ -34,5 +37,5 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       { "@type":"WebSite", "@id":"https://7tool.ru/#website", url:"https://7tool.ru/", name:siteCompany.brandName, publisher:{ "@id":"https://7tool.ru/#organization" }, inLanguage:"ru-RU" },
     ],
   };
-  return <html lang="ru" data-scroll-behavior="smooth" data-document-navigation={forceDocumentNavigation ? "true" : undefined}><body><JsonLd data={structuredData} />{forceDocumentNavigation && <DocumentNavigationFallback />}<ConversionAnalytics /><ContactAnalytics /><RequestCartProvider><ComparisonProvider>{children}</ComparisonProvider></RequestCartProvider></body></html>;
+  return <html lang="ru" data-scroll-behavior="smooth" data-document-navigation={forceDocumentNavigation ? "true" : undefined}><body><JsonLd data={structuredData} /><YandexMetrika counterId={metrikaCounterId} />{forceDocumentNavigation && <DocumentNavigationFallback />}<ConversionAnalytics counterId={metrikaCounterId} /><ContactAnalytics /><RequestCartProvider><ComparisonProvider>{children}</ComparisonProvider></RequestCartProvider></body></html>;
 }
