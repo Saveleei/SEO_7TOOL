@@ -80,3 +80,12 @@ Audit and improve the published preview storefront for desktop and mobile usabil
 - No forms were submitted. Feeds, cron, DNS, credentials, secrets and production services were not changed.
 - Approximately `2.2 GiB` remained free after retaining the active release and rollback.
 - Because the in-app browser runtime still failed before selection (`failed to write kernel assets: ... os error 3`), final human visual acceptance at 360/390/768/1366/1920 px remains advisable on `https://new.7tool.ru/`.
+
+## Post-deploy P0 funnel check
+
+- Read-only HTTP checks returned `200` for homepage, search, drilling category, filtered annular-cutter category, exact product, comparison, ordering, delivery, payment, warranty, contacts and company pages.
+- Search for `STEYR-35` returned five products; the first result was the correct LENZ STEYR-35 product with an exact variant link.
+- Feed-backed comparison resolved exact variants `A9982` and `A10651`, current prices and shipping states with no missing selections.
+- The LZHS product variants API returned all 49 executions.
+- No form was submitted and no external lead was created.
+- The browser connection failed again before page selection, so this check confirms functional routing/data only and does not replace real-device visual acceptance.
