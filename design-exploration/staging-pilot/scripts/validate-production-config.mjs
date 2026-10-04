@@ -15,6 +15,7 @@ export function validateProductionConfig(env = process.env, options = {}) {
   const now = new Date(options.now ?? Date.now());
 
   requireExact(env, "NODE_ENV", "production", errors, checks);
+  requireExact(env, "HOST", "127.0.0.1", errors, checks);
   requireExact(env, "QUOTE_WORKSPACE_ENABLED", "1", errors, checks);
   if (env.QUOTE_TEST_MODE === "1") errors.push("QUOTE_TEST_MODE must be disabled on production.");
   else checks.push("test contour disabled");

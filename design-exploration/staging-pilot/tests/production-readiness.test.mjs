@@ -34,6 +34,7 @@ test("production preflight accepts only a complete live configuration and matchi
     assert.ok(result.checks.includes("catalog checksum and freshness verified"));
 
     assert.equal(validateProductionConfig({ ...env, QUOTE_TEST_MODE:"1" }, { checkFiles:false }).ok, false);
+    assert.equal(validateProductionConfig({ ...env, HOST:"0.0.0.0" }, { checkFiles:false }).ok, false);
     assert.equal(validateProductionConfig({ ...env, SEO_INDEXING_ENABLED:"0" }, { checkFiles:false }).ok, false);
     assert.equal(validateProductionConfig({ ...env, YANDEX_METRIKA_ID:"" }, { checkFiles:false }).ok, false);
     assert.equal(validateProductionConfig({ ...env, MANAGER_AUTH_LOCAL_HOSTS:"test.7tool.ru" }, { checkFiles:false }).ok, false);
@@ -166,8 +167,11 @@ test("production entrypoints enforce preflight, exec Vinext directly and contain
   assert.match(ecosystem, /interpreter: "\/bin\/sh"/u);
   assert.match(ecosystem, /max_memory_restart: "1280M"/u);
   assert.match(productionShell, /node scripts\/validate-production-config\.mjs/u);
-  assert.match(productionShell, /exec node node_modules\/vinext\/dist\/cli\.js start/u);
+  assert.match(productionShell, /exec node node_modules\/vinext\/dist\/cli\.js start --hostname/u);
+  assert.match(productionShell, /HOST:-127\.0\.0\.1/u);
+  assert.match(envExample, /^HOST=127\.0\.0\.1$/mu);
   assert.match(envExample, /^YANDEX_METRIKA_ID=$/mu);
+  assert.match(cutoverRunbook, /^HOST=127\.0\.0\.1$/mu);
   assert.match(cutoverRunbook, /^YANDEX_METRIKA_ID=109097461$/mu);
   assert.doesNotMatch(`${ecosystem}\n${preflight}\n${productionShell}`, /MANAGER_AUTH_LOCAL_PASSWORD_HASH:\s*["'][^"']+/u);
   assert.doesNotMatch(`${preflight}\n${productionShell}`, /sendMail|smtp|telegram\.org|api\.max|crm\./iu);
@@ -194,6 +198,7 @@ function productionEnv({ quoteDir, catalogPath, metadataPath }) {
   return {
     NODE_ENV:"production",
     PORT:"3100",
+    HOST:"127.0.0.1",
     QUOTE_WORKSPACE_ENABLED:"1",
     QUOTE_TEST_MODE:"0",
     QUOTE_DATA_DIR:quoteDir,
