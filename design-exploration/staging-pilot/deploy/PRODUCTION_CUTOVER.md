@@ -26,6 +26,7 @@ QUOTE_WORKSPACE_ENABLED=1
 QUOTE_TEST_MODE=0
 QUOTE_DATA_DIR=<absolute shared request directory>
 SEO_INDEXING_ENABLED=1
+YANDEX_METRIKA_ID=109097461
 MANAGER_AUTH_LOCAL_HOSTS=7tool.ru,www.7tool.ru
 MANAGER_AUTH_TEST_HOSTS=
 MANAGER_AUTH_LOCAL_USERNAME=<server secret>
@@ -42,7 +43,7 @@ Both catalog paths must point through `/var/www/7tool-production-shared/catalog-
 
 The production scheduler should invoke the stable `/var/www/7tool-production-feed-runtime-current/7tool-source/scripts/production-feed-refresh.sh` once per night after copying the reviewed runtime into an immutable directory. `PM2_APP_NAME` must stay `7tool-prod` in both the storefront and feed environments so the atomic catalog publication reloads the process that actually serves production. Do not schedule the active storefront release itself: feed behavior must not change when the UI release changes.
 
-Run `npm run validate:production` before the process starts. The preflight blocks test mode, disabled lead capture or shipping promises, non-production administrator hosts, missing or unwritable storage, stale catalog metadata and checksum divergence.
+Run `npm run validate:production` before the process starts. The preflight blocks test mode, disabled lead capture or shipping promises, a missing production analytics counter, non-production administrator hosts, missing or unwritable storage, stale catalog metadata and checksum divergence. The counter is rendered only when `SEO_INDEXING_ENABLED=1` and `QUOTE_TEST_MODE=0`, so it must remain absent from the noindex preview.
 
 ## Lead handling at first launch
 

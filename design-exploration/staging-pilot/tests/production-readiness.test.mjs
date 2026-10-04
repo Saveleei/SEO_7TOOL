@@ -152,11 +152,13 @@ test("legacy isolated test contour remains compatible and explicit", async () =>
 });
 
 test("production entrypoints enforce preflight, exec Vinext directly and contain no embedded credentials", async () => {
-  const [packageJson, ecosystem, preflight, productionShell] = await Promise.all([
+  const [packageJson, ecosystem, preflight, productionShell, envExample, cutoverRunbook] = await Promise.all([
     readFile(new URL("../package.json", import.meta.url), "utf8").then(JSON.parse),
     readFile(new URL("../ecosystem.production.config.cjs", import.meta.url), "utf8"),
     readFile(new URL("../scripts/validate-production-config.mjs", import.meta.url), "utf8"),
     readFile(new URL("../scripts/start-production.sh", import.meta.url), "utf8"),
+    readFile(new URL("../.env.example", import.meta.url), "utf8"),
+    readFile(new URL("../deploy/PRODUCTION_CUTOVER.md", import.meta.url), "utf8"),
   ]);
   assert.equal(packageJson.scripts["validate:production"], "node scripts/validate-production-config.mjs");
   assert.equal(packageJson.scripts["start:production"], "sh scripts/start-production.sh");
@@ -165,6 +167,8 @@ test("production entrypoints enforce preflight, exec Vinext directly and contain
   assert.match(ecosystem, /max_memory_restart: "1280M"/u);
   assert.match(productionShell, /node scripts\/validate-production-config\.mjs/u);
   assert.match(productionShell, /exec node node_modules\/vinext\/dist\/cli\.js start/u);
+  assert.match(envExample, /^YANDEX_METRIKA_ID=$/mu);
+  assert.match(cutoverRunbook, /^YANDEX_METRIKA_ID=109097461$/mu);
   assert.doesNotMatch(`${ecosystem}\n${preflight}\n${productionShell}`, /MANAGER_AUTH_LOCAL_PASSWORD_HASH:\s*["'][^"']+/u);
   assert.doesNotMatch(`${preflight}\n${productionShell}`, /sendMail|smtp|telegram\.org|api\.max|crm\./iu);
 });
