@@ -93,4 +93,5 @@ Audit and improve the published preview storefront for desktop and mobile usabil
 ## Launch-gate continuation
 
 - See `ai-handoffs/launch-gates-20261004.md` for the controlled request result, nightly base + Stalex feed evidence, privacy-safe analytics checks and the exact blue/green cutover/rollback map.
-- Production remains unchanged. Human multi-width visual acceptance and the production analytics collector remain open gates.
+- Production remains unchanged. Human multi-width visual acceptance remains a release blocker; analytics deployment and environment configuration remain part of the future production-candidate build.
+- Production analytics source is now prepared in commit `43903c8`: the existing counter `109097461` is fail-closed outside the indexable non-test contour, and only sanitized allowlisted conversion events are sent as goals. It has not been deployed.

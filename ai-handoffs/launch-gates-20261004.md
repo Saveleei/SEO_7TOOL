@@ -41,8 +41,11 @@ Production `7tool.ru`, DNS, credentials and secrets were not changed.
 - `46/46` focused analytics, contact, comparison, product and variant tests passed.
 - Allowlisted events include phone, email, Telegram/MAX, filters, product/variant selection, compare, quote and one-click flows.
 - Event context is limited to placement, page type, product/variant/category and bounded counters. Phone, email, names, free text and search text are stripped.
-- The new application currently writes the safe events to `window.dataLayer` but does not load an analytics collector.
-- The existing production site publicly uses Yandex Metrica counter `109097461` with ecommerce `dataLayer`. Carry this counter into the production candidate through an explicit environment/config integration; do not enable it on the noindex preview unless preview traffic is intentionally filtered.
+- Commit `43903c8` adds a fail-closed production integration for the existing Yandex Metrica counter `109097461` and forwards only the already sanitized events as goals.
+- The collector can render only when `YANDEX_METRIKA_ID` is valid, `SEO_INDEXING_ENABLED=1` and `QUOTE_TEST_MODE` is disabled. It therefore remains absent on the noindex/test preview even if the id is accidentally present.
+- Production preflight now rejects a missing or invalid counter id, so measurement cannot silently disappear during cutover.
+- Verification: `12/12` focused tests, changed-file ESLint, `360/360` full tests and Vinext production build passed.
+- This analytics commit is local only and has not been deployed to `new.7tool.ru` or `7tool.ru`.
 
 ## Visual acceptance checklist
 
@@ -75,6 +78,6 @@ Do not point `7tool.ru` directly at port `3243`: that process is built for `new.
 - One controlled request and delivery: **GO**.
 - Nightly base + Stalex refresh: **GO**.
 - Privacy-safe event contract: **GO**.
-- External analytics collector in the production candidate: **PENDING**.
+- External analytics collector in source: **GO**; deployment/configuration remains part of the production candidate build.
 - Human multi-width visual acceptance: **PENDING / release blocker**.
 - Production cutover: **NOT AUTHORIZED and not executed**.
