@@ -97,5 +97,6 @@ Do not point `7tool.ru` directly at port `3243`: that process is built for `new.
 - Isolated production candidate build and read-only smoke: **GO**.
 - Authenticated staff workspace smoke: **GO in source/local production runtime** (`62/62`); the retained VPS candidate must be rebuilt from `a3ec641` or later before cutover.
 - Production-owned nightly feed code and current-data dry-run: **GO** (`30/30`, exact catalog SHA, current reviewed Stalex set). Installing the production shared root/env/cron remains an unexecuted cutover action.
+- Frozen successor package and VPS capacity: **GO** for source commit `edac525f493c` (`25/25`, successful Vinext build, verified 10.83 MiB archive, 1.8 GiB server disk free). The package remains local and the older loopback candidate remains untouched.
 - Human multi-width visual acceptance: **GO**.
 - Production cutover: **NOT AUTHORIZED and not executed**.
