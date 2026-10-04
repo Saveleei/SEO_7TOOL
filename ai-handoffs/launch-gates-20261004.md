@@ -2,7 +2,7 @@
 
 ## Decision
 
-The responsive release on `new.7tool.ru` has passed the functional, lead-delivery, feed and privacy-safe event gates. It is not yet authorized for production cutover. The remaining release blocker is human visual acceptance on real desktop and mobile widths; the in-app browser runtime failed before opening a page (`kernel assets`, `os error 3`).
+The responsive release on `new.7tool.ru` has passed the functional, lead-delivery, feed and privacy-safe event gates. A separate production-configured candidate from commit `e242642` has also passed configuration, build, data and read-only route checks on `127.0.0.1:3244`. It is not yet authorized for production cutover. The remaining release blocker is human visual acceptance on real desktop and mobile widths; the in-app browser runtime failed before opening a page (`kernel assets`, `os error 3`).
 
 Production `7tool.ru`, DNS, credentials and secrets were not changed.
 
@@ -14,7 +14,10 @@ Production `7tool.ru`, DNS, credentials and secrets were not changed.
 - New process: `7tool-storefront-new`, port `3243`, PM2 id `27`, online, zero unstable restarts.
 - Current production release/pointer: `/var/www/7tool-release-20260911-trust-performance-029d3f3/7tool-source` via `/var/www/7tool-current`.
 - Current production process: `7tool-prod`, port `3108`, PM2 id `1`, online, zero unstable restarts.
-- Free disk at the gate: approximately `2.2 GiB`; do not create another full release before measuring its projected size and pruning only explicitly superseded preview artifacts.
+- Production candidate release: `/var/www/7tool-release-20261004-production-candidate-e242642/design-exploration/staging-pilot`.
+- Production candidate process: `7tool-prod-candidate-e242642`, loopback port `3244`, PM2 id `34`, online, zero restarts and zero unstable restarts.
+- Candidate shared data: `/var/www/7tool-production-candidate-shared-e242642`; no request or outbox records were created.
+- Free disk at the gate: approximately `2.0 GiB`; do not create another full release before measuring its projected size and pruning only explicitly superseded artifacts.
 
 ## Controlled lead gate
 
@@ -45,7 +48,7 @@ Production `7tool.ru`, DNS, credentials and secrets were not changed.
 - The collector can render only when `YANDEX_METRIKA_ID` is valid, `SEO_INDEXING_ENABLED=1` and `QUOTE_TEST_MODE` is disabled. It therefore remains absent on the noindex/test preview even if the id is accidentally present.
 - Production preflight now rejects a missing or invalid counter id, so measurement cannot silently disappear during cutover.
 - Verification: `12/12` focused tests, changed-file ESLint, `360/360` full tests and Vinext production build passed.
-- This analytics commit is local only and has not been deployed to `new.7tool.ru` or `7tool.ru`.
+- This analytics integration is present in the loopback-only production candidate. It has not been deployed to the public `new.7tool.ru` or current `7tool.ru` process.
 
 ## Visual acceptance checklist
 
@@ -58,14 +61,24 @@ Check `https://new.7tool.ru/` at `360`, `390`, `768`, `1366` and `1920` CSS pixe
 5. Comparison: product headers, feature rows and repeated commercial action at the bottom.
 6. No overlap, clipped copy, horizontal page scroll, cropped evidence photos or inaccessible touch targets.
 
+## Production candidate gate
+
+- Production preflight passed `18/18` checks.
+- Focused readiness tests passed `8/8`; changed-file ESLint, `360/360` full tests and the Vinext production build passed.
+- Candidate catalog and metadata match SHA-256 `67c1dd90f641066028e75f1cecbf504a8dff18463a65b0d5d83cffd0edd4f3e9`.
+- Representative storefront, search, product, comparison, company, ordering and SEO routes returned `200` on loopback.
+- The candidate binds only to `127.0.0.1:3244` and was unreachable on the public VPS address.
+- Existing production and `new` processes remained online and returned `200`; nginx, DNS and their PM2 processes were not modified.
+- Full evidence and rollback are recorded in `ai-handoffs/production-candidate-20261004.md`.
+
 ## Safe production cutover map (not executed)
 
 Do not point `7tool.ru` directly at port `3243`: that process is built for `new.7tool.ru`, has `QUOTE_TEST_MODE=1`, `SEO_INDEXING_ENABLED=0` and preview-specific data paths.
 
 1. Freeze the accepted Git SHA and catalog generation. Record the existing production process PID/restart count and copy the active nginx config to a timestamped rollback file.
-2. Build a separate immutable production candidate from the accepted source with `NEXT_PUBLIC_SITE_URL=https://7tool.ru`, `SEO_INDEXING_ENABLED=1`, `QUOTE_WORKSPACE_ENABLED=1`, `QUOTE_TEST_MODE=0` and a durable production quote directory. Keep secrets outside the release.
+2. Use the already-built immutable candidate `e242642`, or rebuild it only if source/data changes. It has `NEXT_PUBLIC_SITE_URL=https://7tool.ru`, `SEO_INDEXING_ENABLED=1`, `QUOTE_WORKSPACE_ENABLED=1`, `QUOTE_TEST_MODE=0` and isolated durable quote storage. Secrets remain outside the release.
 3. Load the existing Yandex Metrica id `109097461` only in the production build. Confirm that the privacy-safe `dataLayer` contract remains unchanged.
-4. Start the candidate as a separate PM2 app on an unused loopback port (planned `3244`). Do not stop `7tool-prod` on `3108`.
+4. Reconfirm the separate PM2 candidate on loopback port `3244`. Do not stop `7tool-prod` on `3108`.
 5. Run loopback checks for homepage, search, representative categories/products, variants, comparison, robots/sitemap, same-origin request validation and the active catalog SHA. Do not submit another external request unless separately authorized.
 6. Preserve `location /api/lead` on the legacy upstream `127.0.0.1:3108` during the first cutover. The new request outbox currently posts to `https://7tool.ru/api/lead`; routing the endpoint into the new app would break the bridge or recurse. Route the remaining storefront traffic to the production candidate.
 7. Validate nginx configuration, reload nginx, and check public HTTP/security/SEO headers plus the top conversion routes. Keep both PM2 processes alive for the observation window.
@@ -78,6 +91,9 @@ Do not point `7tool.ru` directly at port `3243`: that process is built for `new.
 - One controlled request and delivery: **GO**.
 - Nightly base + Stalex refresh: **GO**.
 - Privacy-safe event contract: **GO**.
-- External analytics collector in source: **GO**; deployment/configuration remains part of the production candidate build.
+- External analytics collector in the isolated candidate: **GO**; public routing remains unmodified.
+- Isolated production candidate build and read-only smoke: **GO**.
+- Authenticated staff workspace smoke: **PENDING**.
+- Production-owned nightly feed runtime for the candidate: **PENDING**.
 - Human multi-width visual acceptance: **PENDING / release blocker**.
 - Production cutover: **NOT AUTHORIZED and not executed**.

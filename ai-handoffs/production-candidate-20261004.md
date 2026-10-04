@@ -1,0 +1,73 @@
+# 7TOOL isolated production candidate — 2026-10-04
+
+## Outcome
+
+An indexable production-configured storefront candidate was built from commit `e242642` and started on VPS `159.194.235.32` as a separate loopback-only process. Public traffic was not switched. Nginx, DNS, the current production process, `new.7tool.ru`, secrets and scheduled feeds were not changed.
+
+## Immutable candidate
+
+- Source branch: `codex/baymard-responsive-ux-20261004`.
+- Source commit: `e242642` (`fix: bind production runtime to loopback`).
+- Release: `/var/www/7tool-release-20261004-production-candidate-e242642`.
+- Application cwd: `/var/www/7tool-release-20261004-production-candidate-e242642/design-exploration/staging-pilot`.
+- Shared data: `/var/www/7tool-production-candidate-shared-e242642`.
+- Environment file: `/var/www/7tool-production-candidate-shared-e242642/candidate.env`, mode `0600`.
+- PM2 process: `7tool-prod-candidate-e242642`, id `34`.
+- Bind: `127.0.0.1:3244`; the port did not answer from the public Internet.
+- The process is intentionally absent from the saved PM2 startup dump until cutover is approved.
+
+## Runtime configuration
+
+- `NEXT_PUBLIC_SITE_URL=https://7tool.ru`.
+- `HOST=127.0.0.1` and `PORT=3244`.
+- `SEO_INDEXING_ENABLED=1`.
+- `QUOTE_WORKSPACE_ENABLED=1`.
+- `QUOTE_TEST_MODE=0`.
+- `QUOTE_INTAKE_DELIVERY_ENABLED=0` and no delivery endpoint, so the candidate cannot forward a request externally during acceptance.
+- Yandex Metrica id `109097461`; the source-side fail-closed privacy gate is enabled.
+- Quote data and catalog paths are isolated from both the current production and `new` contours.
+
+## Catalog snapshot
+
+- Source: the verified active `new` catalog generation.
+- Product/meta SHA-256: `67c1dd90f641066028e75f1cecbf504a8dff18463a65b0d5d83cffd0edd4f3e9`.
+- Base feed completion: `2026-10-04T00:45:14.755Z`.
+- Stalex refresh: `2026-10-04T00:45:17.375Z`.
+- Candidate product and metadata files have matching SHA-256.
+- Search for `Stalex` returned a feed-backed product with price, positive stock and the next-working-day shipping promise.
+
+The candidate currently uses a frozen verified snapshot. A production-owned nightly base + Stalex refresh must be installed and dry-run before traffic cutover; no scheduler was added in this step.
+
+## Verification
+
+- Production configuration preflight: `18/18` checks passed.
+- Candidate Vinext production build: passed; 24 catalog categories generated.
+- Focused production-readiness tests: `8/8` passed.
+- Changed-file ESLint: passed.
+- Full suite: `360/360` passed.
+- Candidate PM2 state at final check: `online`, `0` restarts, `0` unstable restarts.
+- Loopback routes returned `200`: homepage, catalog, drilling and annular-cutter categories, drilling task, representative product, exact search, Stalex search, company, contacts, ordering, payment, delivery, warranty, comparison, `robots.txt` and `sitemap.xml`.
+- Anonymous `/test/requests` returned `307` as expected.
+- Metrica script and id were present in the production candidate response.
+- Candidate quote storage contained no `requests.jsonl` or request-intake outbox files. No form or lead was submitted.
+- Existing `7tool-prod` remained online with `6` historical restarts, `0` unstable restarts and returned HTTP `200`.
+- Existing `7tool-storefront-new` remained online with `13` historical restarts, `0` unstable restarts and returned HTTP `200`.
+- Final disk state: approximately `2.0 GiB` free (`95%` used).
+
+## Safety and cleanup
+
+- No nginx reload, DNS change, public route change, PM2 save, production restart or credential change was performed.
+- The failed flat-layout candidate was verified by its exact absolute path and removed; it contained no unique data.
+- Local transfer archives under the task worktree were removed after upload. These temporary artifacts are not recoverable and contained no unique source or business data.
+- The current immutable candidate and its isolated shared data were retained.
+
+## Remaining release gates
+
+1. Human visual acceptance at `360`, `390`, `768`, `1366` and `1920` CSS pixels. The in-app browser still fails before opening a page because its kernel assets path is missing (`os error 3`), so this gate is not complete.
+2. Authenticated staff sign-in and workspace smoke on loopback without submitting a request. No plaintext production password was read or exposed during this deployment.
+3. Install and dry-run a production-owned nightly base + Stalex feed pipeline against the candidate data paths.
+4. Obtain explicit authorization for nginx cutover. Until then, `7tool.ru` must remain on the current process.
+
+## Rollback
+
+No traffic points to the candidate, so the current rollback is simply to stop and delete only `7tool-prod-candidate-e242642`; the active production process and nginx configuration require no change. Do not remove the release or shared paths until the candidate is either accepted or explicitly abandoned.
