@@ -64,7 +64,7 @@ The candidate currently uses a frozen verified snapshot. A production-owned nigh
 ## Remaining release gates
 
 1. Rebuild the isolated server candidate from at least commit `a3ec641`; the retained `e242642` runtime predates the corrected allowlisted production admin session.
-2. Install and dry-run a production-owned nightly base + Stalex feed pipeline against the candidate data paths.
+2. Install the already validated production-owned nightly base + Stalex feed pipeline against the final production shared root and closed environment during an explicitly authorized cutover. The code and a current-data isolated dry-run passed on 2026-10-05; no production scheduler was added.
 3. Obtain explicit authorization for nginx cutover. Until then, `7tool.ru` must remain on the current process.
 
 ## Completed after candidate creation

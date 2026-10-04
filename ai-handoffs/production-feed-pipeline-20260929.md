@@ -66,3 +66,18 @@
 ## Оставшийся launch gate
 
 Перед реальным ежедневным включением нужны отдельное явное разрешение и один управляемый cutover: создать production shared root и закрытый env, скопировать production database/reviewed baseline, направить storefront на `catalog-current`, выполнить backup + smoke и только после этого добавить ночной cron. Текущая реализация готова к этому этапу, но сама его не выполняла.
+
+## Повторная проверка на актуальных данных — 2026-10-05
+
+- Проверка выполнена в ветке `codex/baymard-responsive-ux-20261004` без изменения VPS, cron, PM2, DNS, production-файлов или секретов.
+- Актуальные base/Stalex snapshots были скопированы из контура `new` в локальный изолированный каталог и пропущены через production builder, строгий reviewed-report validator и runtime `verify`.
+- Dry-run успешно собрал `4 358` товаров и `18 485` исполнений: `4 337` базовых товаров + `21` рассмотренная позиция Stalex, из них `15` с подтверждённым положительным остатком.
+- SHA-256 результата `67c1dd90f641066028e75f1cecbf504a8dff18463a65b0d5d83cffd0edd4f3e9` совпал с metadata и Stalex report. `completedAt=2026-10-04T00:45:14.755Z`, возраст на момент проверки `1298` минут при fail-closed лимите `1560` минут.
+- Узкие production-feed/Stalex/operations тесты: `30/30` пройдено.
+- Только-чтение контроль VPS подтвердил `refresh-status=complete`, `exitCode=0`, тот же активный immutable generation и совпадающий фактический SHA `products.json`.
+- Журнал последнего цикла подтвердил: base feed `18 998` офферов, Stalex refresh/merge, validation, атомарное переключение и успешное завершение. Первый loopback-запрос сразу после PM2 reload получил ожидаемый кратковременный connection refusal; последующая попытка штатного retry-loop прошла, поэтому status записан как `complete`.
+- `7tool-storefront-new`, `7tool-prod` и `7tool-prod-candidate-e242642` были `online`, у всех `unstable restarts=0`; `new.7tool.ru` и `7tool.ru` отвечали HTTP `200`.
+- Публичная карточка Stalex с положительным числовым остатком и категория на `new.7tool.ru` содержали название товара, `В наличии` и корректную формулировку отгрузки.
+- Ночной job не запускался вручную. Следующий штатный запуск `new` оставлен cron на `00:45 UTC` (`03:45 Europe/Moscow`).
+
+Итог: код и текущие данные production-owned pipeline прошли повторный изолированный gate. Установка закрытого env/shared root и cron для реального production остаётся частью отдельно разрешаемого cutover, а не подготовительного dry-run.
