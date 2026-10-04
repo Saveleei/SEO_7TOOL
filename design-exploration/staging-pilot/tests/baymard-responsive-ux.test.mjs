@@ -42,3 +42,19 @@ test("catalog labels and filter values remain complete decision data", async () 
   assert.match(contract, /\.feed-filter-panel fieldset label span \{[\s\S]*?overflow:visible;[\s\S]*?white-space:normal;/u);
   assert.match(contract, /\.feed-results-toolbar \{[\s\S]*?min-height:54px;[\s\S]*?background:#fafbf9;/u);
 });
+
+test("tablet hero preserves a readable value proposition and direct catalog entrances", async () => {
+  const css = await read("../app/globals.css");
+  const contract = css.slice(css.lastIndexOf("/* Baymard-informed B2B responsive pass"));
+
+  assert.match(contract, /@media \(min-width:761px\) and \(max-width:960px\)[\s\S]*?\.homepage-main \.hero-grid \{[\s\S]*?grid-template-columns:1fr;/u);
+  assert.match(contract, /@media \(min-width:761px\) and \(max-width:960px\)[\s\S]*?\.homepage-main \.hero-grid>\.hero-catalog-card \{ display:none; \}/u);
+  assert.match(contract, /\.hero-mobile-catalog-preview \.homepage-category-tiles--hero \{[\s\S]*?grid-template-columns:repeat\(3,minmax\(0,1fr\)\);/u);
+});
+
+test("mobile category task prompt wraps without losing deciding words", async () => {
+  const css = await read("../app/globals.css");
+  const contract = css.slice(css.lastIndexOf("/* Baymard-informed B2B responsive pass"));
+
+  assert.match(contract, /\.category-page-shell \.category-assortment-shortcuts header b \{[\s\S]*?max-width:none;[\s\S]*?overflow:visible;[\s\S]*?text-overflow:clip;[\s\S]*?white-space:normal;/u);
+});
