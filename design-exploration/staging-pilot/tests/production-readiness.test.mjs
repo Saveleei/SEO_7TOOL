@@ -192,6 +192,22 @@ test("production PM2 process name follows the production feed reload target", ()
   }
 });
 
+test("production nginx cutover preserves the legacy lead bridge while switching the storefront", async () => {
+  const config = await readFile(new URL("../deploy/7tool.ru.nginx.cutover.conf.example", import.meta.url), "utf8");
+  const lead = config.match(/location = \/api\/lead\s*\{([\s\S]*?)\n\s*\}/u)?.[1] || "";
+  const staticAssets = config.match(/location \/_next\/static\/\s*\{([\s\S]*?)\n\s*\}/u)?.[1] || "";
+  const storefront = config.match(/location \/\s*\{([\s\S]*?)\n\s*\}/gu)?.at(-1) || "";
+
+  assert.match(config, /server_name 7tool\.ru www\.7tool\.ru/u);
+  assert.match(config, /return 301 https:\/\/7tool\.ru\$request_uri/u);
+  assert.match(lead, /proxy_pass http:\/\/127\.0\.0\.1:3108/u);
+  assert.doesNotMatch(lead, /:3244/u);
+  assert.match(staticAssets, /proxy_pass http:\/\/127\.0\.0\.1:3244/u);
+  assert.match(storefront, /proxy_pass http:\/\/127\.0\.0\.1:3244/u);
+  assert.doesNotMatch(storefront, /:3108/u);
+  assert.doesNotMatch(config, /^\s*auth_basic\s+[^#]/mu);
+});
+
 function productionEnv({ quoteDir, catalogPath, metadataPath }) {
   const salt = randomBytes(18).toString("base64url");
   const digest = randomBytes(32).toString("base64url");

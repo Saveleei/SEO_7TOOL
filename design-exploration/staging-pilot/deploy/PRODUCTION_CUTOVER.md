@@ -67,6 +67,8 @@ Until external notification adapters are approved, an assigned employee must mon
 
 Switch only the production upstream to the verified candidate. Do not change DNS, certificates, feed cron or the test host in the same operation.
 
+The currently active `7tool.ru` server block sends both `/_next/static/` and the catch-all `/` location to the legacy `127.0.0.1:3108` process and has no separate `/api/lead` location. Before changing the catch-all upstream, add the exact `location = /api/lead` exception from `deploy/7tool.ru.nginx.cutover.conf.example` and keep it on `127.0.0.1:3108`. Route only the storefront/static locations to the verified candidate on `127.0.0.1:3244`. Validate a timestamped candidate config with `nginx -t` before reload; rollback restores the timestamped original file and reloads Nginx after another successful syntax check.
+
 Immediately verify:
 
 - `/`, `/catalog`, a task route, three priority categories and two product pages return 200;
@@ -75,6 +77,7 @@ Immediately verify:
 - a deliberately authorized control request is saved once and receives a request number;
 - production feed and test feed remain unchanged;
 - PM2 stays online with no restart loop.
+- the new outbox can reach the legacy `/api/lead` adapter without routing back into the candidate.
 
 ## Observation and rollback
 
