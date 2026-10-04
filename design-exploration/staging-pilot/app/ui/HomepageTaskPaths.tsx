@@ -6,7 +6,7 @@ import type { ProductionCategoryGroup } from "../data/productionCategoryGroups";
 import { HomepageCategoryMedia } from "./HomepageCategoryMedia";
 
 export function HomepageTaskPaths({ groups }: { groups: ProductionCategoryGroup[] }) {
-  const [expandedGroup, setExpandedGroup] = useState(groups[0]?.slug ?? "");
+  const [expandedGroup, setExpandedGroup] = useState("");
 
   return <div className="homepage-task-paths">
     {groups.map((group) => {
@@ -15,7 +15,7 @@ export function HomepageTaskPaths({ groups }: { groups: ProductionCategoryGroup[
       return <article className="homepage-task-path" data-expanded={expanded ? "true" : "false"} key={group.slug}>
         <header className="homepage-task-path__header">
           <span className="homepage-task-path__number">{group.id}</span>
-          <div className="homepage-task-path__copy"><small>{group.accent}</small><h3><Link href={group.href}>{group.title}</Link></h3></div>
+          <div className="homepage-task-path__copy"><h3><Link href={group.href}>{group.title}</Link></h3><small>{group.accent}</small></div>
           <button type="button" aria-controls={navigationId} aria-expanded={expanded} aria-label={`${expanded ? "Свернуть" : "Показать"} подразделы: ${group.title}`} onClick={() => setExpandedGroup(expanded ? "" : group.slug)}><span>{expanded ? "Свернуть" : "Разделы"}</span><i aria-hidden="true">{expanded ? "−" : "+"}</i></button>
         </header>
         <nav className="homepage-task-path__subcategories" id={navigationId} aria-label={`Подразделы: ${group.title}`}>

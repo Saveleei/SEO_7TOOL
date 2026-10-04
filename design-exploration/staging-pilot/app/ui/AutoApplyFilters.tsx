@@ -27,24 +27,41 @@ export function AutoApplyFilterPanel({
   const timerRef = useRef<number | undefined>(undefined);
   const [isPending, startTransition] = useTransition();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileDirty, setMobileDirty] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
   const toggleId = `feed-filters-${slug}`;
 
-  useEffect(() => () => window.clearTimeout(timerRef.current), []);
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 1180px)");
+    const syncViewport = () => setIsMobileViewport(query.matches);
+    syncViewport();
+    query.addEventListener("change", syncViewport);
+    return () => {
+      window.clearTimeout(timerRef.current);
+      query.removeEventListener("change", syncViewport);
+    };
+  }, []);
 
-  function applyFilters() {
+  function applyFilters({ closeMobile = false }: { closeMobile?: boolean } = {}) {
     const form = formRef.current;
     if (!form) return;
     const params = serializeForm(form);
-    const hash = window.matchMedia("(max-width: 1180px)").matches ? "#feed-filter-panel" : "#products";
-    const href = `${action}${params.size > 0 ? `?${params.toString()}` : ""}${hash}`;
+    const href = `${action}${params.size > 0 ? `?${params.toString()}` : ""}#products`;
     trackFilterChange("full_filter", activeFilterCount);
+    if (closeMobile) setMobileOpen(false);
+    setMobileDirty(false);
     startTransition(() => router.replace(href, { scroll:false }));
+    if (closeMobile) window.requestAnimationFrame(() => document.getElementById("feed-results-list")?.scrollIntoView({ behavior:"smooth", block:"start" }));
   }
 
   function queueApply(event: FormEvent<HTMLFormElement>) {
     const target = event.target;
     if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
     window.clearTimeout(timerRef.current);
+    if (window.matchMedia("(max-width: 1180px)").matches) {
+      setMobileDirty(true);
+      return;
+    }
     const needsTypingPause = target instanceof HTMLInputElement && ["number", "search", "text"].includes(target.type);
     timerRef.current = window.setTimeout(applyFilters, needsTypingPause ? 520 : 120);
   }
@@ -52,10 +69,14 @@ export function AutoApplyFilterPanel({
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     window.clearTimeout(timerRef.current);
-    applyFilters();
+    applyFilters({ closeMobile:isMobileViewport });
   }
 
   function showResults() {
+    if (mobileDirty) {
+      applyFilters({ closeMobile:true });
+      return;
+    }
     setMobileOpen(false);
     window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#products`);
     window.requestAnimationFrame(() => document.getElementById("feed-results-list")?.scrollIntoView({ behavior:"smooth", block:"start" }));
@@ -67,8 +88,8 @@ export function AutoApplyFilterPanel({
     <form ref={formRef} method="get" action={`${action}#products`} onChange={queueApply} onSubmit={submit}>
       {children}
       <div className="feed-filter-actions feed-filter-actions--auto">
-        <span className="feed-filter-live-status" aria-live="polite">{isPending ? "Обновляем подбор…" : "Изменения применяются автоматически"}</span>
-        <button className="button feed-filter-mobile-results" type="button" onClick={showResults}>{resultCount > 0 ? `К товарам · ${resultCount.toLocaleString("ru-RU")}` : "Посмотреть следующий шаг"}</button>
+        <span className="feed-filter-live-status" aria-live="polite">{isPending ? "Обновляем подбор…" : isMobileViewport ? mobileDirty ? "Параметры выбраны — примените фильтры" : "Выберите параметры и покажите результат" : "Изменения применяются автоматически"}</span>
+        <button className="button feed-filter-mobile-results" type="button" onClick={showResults}>{mobileDirty ? "Показать результаты" : resultCount > 0 ? `К товарам · ${resultCount.toLocaleString("ru-RU")}` : "Посмотреть следующий шаг"}</button>
         <a href={resetHref}>Очистить фильтры</a>
       </div>
     </form>
