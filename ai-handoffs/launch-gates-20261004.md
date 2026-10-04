@@ -97,6 +97,7 @@ Do not point `7tool.ru` directly at port `3243`: that process is built for `new.
 - Isolated production candidate build and read-only smoke: **GO**.
 - Authenticated staff workspace smoke: **GO in source/local production runtime** (`62/62`); the retained VPS candidate must be rebuilt from `a3ec641` or later before cutover.
 - Production-owned nightly feed code and current-data dry-run: **GO** (`30/30`, exact catalog SHA, current reviewed Stalex set). Installing the production shared root/env/cron remains an unexecuted cutover action.
-- Frozen successor package and VPS capacity: **GO** for source commit `edac525f493c` (`25/25`, successful Vinext build, verified 10.83 MiB archive, 1.8 GiB server disk free). The package remains local and the older loopback candidate remains untouched.
+- Frozen successor package and VPS capacity: **GO** for source commit `115d6e286532` (`25/25` production-critical regression plus `7/7` route/preflight checks, successful Vinext build, verified 10.83 MiB archive, 1.8 GiB server disk free). The package remains local and the older loopback candidate remains untouched.
+- Nginx lead-bridge split: **GO in reviewed source**. The active config currently has no `/api/lead` exception; the cutover template keeps that exact endpoint on legacy `3108` and routes only storefront/static traffic to candidate `3244`. It has not been installed or reloaded.
 - Human multi-width visual acceptance: **GO**.
 - Production cutover: **NOT AUTHORIZED and not executed**.

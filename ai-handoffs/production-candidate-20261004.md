@@ -84,13 +84,15 @@ No traffic points to the candidate, so the current rollback is simply to stop an
 
 ## Frozen successor candidate — 2026-10-05
 
-- Exact application source commit: `edac525f493cf5c4d6b650b8a73872c23c5f24f9`.
-- Local immutable Git archive: `C:\Users\user\Documents\ChatGPT\7TOOL\.release-artifacts\7tool-production-candidate-edac525f493c.tar.gz`.
-- Archive size: `11 354 155` bytes (`10.83 MiB`); SHA-256: `d2f2b4d1e9e60ab9352e09cd38305b1b8a8edbcdf7008b8302f6663b152fd5fe`.
-- The archive contains `332` tracked application files. It contains no actual `.env`, private key, database, JSONL request/outbox file, credential file, runtime data or `node_modules`; `.env.example` and the quote API source routes are intentional source files.
+- Exact application source commit: `115d6e286532` (`ops: preserve lead bridge during cutover`).
+- Local immutable Git archive: `C:\Users\user\Documents\ChatGPT\7TOOL\.release-artifacts\7tool-production-candidate-115d6e286532.tar.gz`.
+- Archive size: `11 355 025` bytes (`10.83 MiB`); SHA-256: `5fb3a8b276bb5b7dca1ad9194dc6787e6dcf48e1dce0dd8c5c1715575eccadc4`.
+- The archive contains `333` tracked application files. It contains no actual `.env`, private key, database, JSONL request/outbox file, credential file, runtime data or `node_modules`; `.env.example` and the quote API source routes are intentional source files.
 - Production-critical regression: `25/25` passed, including production config, local administrator session, release smoke matrix, technical SEO and privacy-safe analytics.
 - Exact Vinext build passed after regenerating the 24-category presentation. Generated build files did not change tracked source.
 - Read-only capacity check: `1.8 GiB` free disk, `1.57 GiB` available RAM and `1.8 GiB` swap free. The retained `e242642` release is about `122 MiB`; its isolated shared data is about `65 MiB`. A successor release fits without deleting current production or rollback artifacts.
 - `7tool-prod-candidate-e242642` and `7tool-prod` remained online with zero unstable restarts. No archive was uploaded, no new PM2 process was started, and nginx, DNS, cron, production data and secrets were not changed.
 
-This closes the immutable-package and capacity gate. The next action is an explicitly controlled replacement of only the loopback candidate with `edac525f493c`, followed by authenticated `62/62` smoke. Public cutover remains a separate authorization boundary.
+- Read-only inspection found that the active production nginx block has no dedicated `/api/lead` exception: both `/_next/static/` and `/` currently point to `127.0.0.1:3108`. Commit `115d6e2` adds a reviewed cutover template and regression test that keep exact `/api/lead` on `3108` while moving only the storefront/static routes to `3244`; focused readiness is now `7/7` and changed-file ESLint passed.
+
+This closes the immutable-package, capacity and route-split preparation gate. The next action is an explicitly controlled replacement of only the loopback candidate with `115d6e286532`, followed by authenticated `62/62` smoke. Public cutover remains a separate authorization boundary.
