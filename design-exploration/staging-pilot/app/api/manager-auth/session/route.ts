@@ -1,6 +1,5 @@
 import { createLocalAdminSession, clearLocalSessionCookie, localAdminCredentialsConfigured, localSessionCookie, verifyLocalAdminCredentials } from "../../../data/managerAccessServer.ts";
 import { isTestManagerHostname } from "../../../data/managerAccess.ts";
-import { isQuoteTestModeEnabled } from "../../../data/quoteRequestStore.ts";
 import { createMemoryRateLimiter } from "../../../data/quoteRequestValidation.mjs";
 import { effectiveRequestUrl, isSameOriginRequest } from "../../../data/requestOrigin.ts";
 
@@ -8,7 +7,7 @@ const limiter = createMemoryRateLimiter({ limit:8, windowMs:15 * 60 * 1000 });
 
 export async function POST(request: Request) {
   const requestUrl = new URL(request.url);
-  if (!isQuoteTestModeEnabled() || !isTestManagerHostname(requestUrl.hostname)) return Response.json({ ok:false, message:"Вход сотрудников отключён для этого домена." }, { status:404 });
+  if (!isTestManagerHostname(requestUrl.hostname)) return Response.json({ ok:false, message:"Вход сотрудников отключён для этого домена." }, { status:404 });
   if (!isSameOriginRequest(request, { requireOrigin:true })) return Response.json({ ok:false, message:"Запрос отклонён проверкой источника." }, { status:403 });
   const clientKey = request.headers.get("x-real-ip")?.trim()
     || request.headers.get("x-forwarded-for")?.split(",").at(-1)?.trim()
@@ -40,7 +39,7 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   const requestUrl = new URL(request.url);
-  if (!isQuoteTestModeEnabled() || !isTestManagerHostname(requestUrl.hostname)) return Response.json({ ok:false }, { status:404 });
+  if (!isTestManagerHostname(requestUrl.hostname)) return Response.json({ ok:false }, { status:404 });
   if (!isSameOriginRequest(request, { requireOrigin:true })) return Response.json({ ok:false, message:"Запрос отклонён проверкой источника." }, { status:403 });
   return Response.json({ ok:true }, { headers:{ "Cache-Control":"no-store", "Set-Cookie":clearLocalSessionCookie(effectiveRequestUrl(request)) } });
 }

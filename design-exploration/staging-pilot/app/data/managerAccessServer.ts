@@ -1,7 +1,6 @@
 import { createHmac, pbkdf2Sync, randomBytes, timingSafeEqual } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { isQuoteTestModeEnabled } from "./quoteRequestStore.ts";
 import {
   canManager,
   isTestManagerHostname,
@@ -27,7 +26,7 @@ export async function resolveManagerActor(headers: Headers, options: ResolveOpti
 }
 
 export async function resolveLocalManagerActor(headers: Headers, options: ResolveOptions = {}): Promise<ManagerActor | null> {
-  if (!isQuoteTestModeEnabled() || !isTestManagerHostname(requestHostname(headers))) return null;
+  if (!isTestManagerHostname(requestHostname(headers))) return null;
   const token = cookieValue(headers.get("cookie"), MANAGER_SESSION_COOKIE);
   if (!token) return null;
   const secret = await readLocalSecret(options.dataDir);
@@ -42,7 +41,6 @@ export async function authorizeManagerRequest(request: Request, capability: Mana
 }
 
 export async function createLocalAdminSession(options: ResolveOptions = {}): Promise<{ token: string; actor: ManagerActor; maxAge: number }> {
-  if (!isQuoteTestModeEnabled()) throw new Error("Local manager sign-in is disabled.");
   const secret = await getOrCreateLocalSecret(options.dataDir);
   const now = Math.floor((options.now ?? Date.now()) / 1000);
   const payload = { sub:"local-admin", role:"admin", iat:now, exp:now + SESSION_TTL_SECONDS, nonce:randomBytes(12).toString("hex") };

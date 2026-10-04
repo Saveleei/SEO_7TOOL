@@ -91,6 +91,41 @@ test("local admin sign-in is loopback-only and uses an HttpOnly signed session",
   }
 });
 
+test("local admin sign-in works on an explicitly allowlisted production host", async () => {
+  const dataDir = await mkdtemp(path.join(os.tmpdir(), "7tool-manager-production-session-"));
+  const previousMode = process.env.QUOTE_TEST_MODE;
+  const previousDataDir = process.env.QUOTE_DATA_DIR;
+  const previousHosts = process.env.MANAGER_AUTH_LOCAL_HOSTS;
+  const previousUsername = process.env.MANAGER_AUTH_LOCAL_USERNAME;
+  const previousPasswordHash = process.env.MANAGER_AUTH_LOCAL_PASSWORD_HASH;
+  try {
+    process.env.QUOTE_TEST_MODE = "0";
+    process.env.QUOTE_DATA_DIR = dataDir;
+    process.env.MANAGER_AUTH_LOCAL_HOSTS = "admin.example.test";
+    configureTestCredentials();
+    const response = await signIn(signInRequest("https://admin.example.test", TEST_PASSWORD));
+    assert.equal(response.status, 200);
+    const setCookie = response.headers.get("set-cookie") || "";
+    assert.match(setCookie, /7tool_manager_session=/u);
+    assert.match(setCookie, /HttpOnly/u);
+    assert.match(setCookie, /SameSite=Strict/u);
+    assert.match(setCookie, /Secure/u);
+    const cookie = setCookie.split(";")[0];
+    const resolved = await resolveManagerActor(new Headers({ host:"admin.example.test", cookie }), { dataDir });
+    assert.equal(resolved?.role, "admin");
+    assert.equal(await resolveManagerActor(new Headers({ host:"attacker.example.test", cookie }), { dataDir }), null);
+    const denied = await signIn(signInRequest("https://attacker.example.test", TEST_PASSWORD));
+    assert.equal(denied.status, 404);
+  } finally {
+    restoreEnv("QUOTE_TEST_MODE", previousMode);
+    restoreEnv("QUOTE_DATA_DIR", previousDataDir);
+    restoreEnv("MANAGER_AUTH_LOCAL_HOSTS", previousHosts);
+    restoreEnv("MANAGER_AUTH_LOCAL_USERNAME", previousUsername);
+    restoreEnv("MANAGER_AUTH_LOCAL_PASSWORD_HASH", previousPasswordHash);
+    await rm(dataDir, { recursive:true, force:true });
+  }
+});
+
 test("test login denies missing configuration and invalid credentials without issuing a cookie", async () => {
   const previousMode = process.env.QUOTE_TEST_MODE;
   const previousUsername = process.env.MANAGER_AUTH_LOCAL_USERNAME;
@@ -122,6 +157,8 @@ test("test manager hostname is deny-by-default and requires an exact explicit al
   assert.equal(isTestManagerHostname("test.7tool.ru", { MANAGER_AUTH_TEST_HOSTS:"test.7tool.ru" }), true);
   assert.equal(isTestManagerHostname("TEST.7TOOL.RU.", { MANAGER_AUTH_TEST_HOSTS:"test.7tool.ru" }), true);
   assert.equal(isTestManagerHostname("attacker.test.7tool.ru", { MANAGER_AUTH_TEST_HOSTS:"test.7tool.ru" }), false);
+  assert.equal(isTestManagerHostname("7tool.ru", { MANAGER_AUTH_LOCAL_HOSTS:"7tool.ru,www.7tool.ru" }), true);
+  assert.equal(isTestManagerHostname("attacker.7tool.ru", { MANAGER_AUTH_LOCAL_HOSTS:"7tool.ru,www.7tool.ru" }), false);
 });
 
 test("administrator can submit, approve and prepare one quote without trusting browser actor fields", async () => {
