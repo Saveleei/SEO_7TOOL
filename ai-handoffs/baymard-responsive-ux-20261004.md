@@ -89,3 +89,8 @@ Audit and improve the published preview storefront for desktop and mobile usabil
 - The LZHS product variants API returned all 49 executions.
 - No form was submitted and no external lead was created.
 - The browser connection failed again before page selection, so this check confirms functional routing/data only and does not replace real-device visual acceptance.
+
+## Launch-gate continuation
+
+- See `ai-handoffs/launch-gates-20261004.md` for the controlled request result, nightly base + Stalex feed evidence, privacy-safe analytics checks and the exact blue/green cutover/rollback map.
+- Production remains unchanged. Human multi-width visual acceptance and the production analytics collector remain open gates.
