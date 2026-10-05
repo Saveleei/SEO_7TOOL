@@ -4,7 +4,7 @@ import { buildDrillSelectionUrl, resolveReverseFacetValue } from "../app/data/dr
 
 test("drill selection preserves commercial context and applies a real minimum diameter", () => {
   const url = buildDrillSelectionUrl({
-    pathname:"/catalog/category/stanki-sverlilnye",
+    pathname:"/c/stanki-sverlilnye",
     search:"?view=cards&availability=in-stock&sort=price-asc&page=3&f_brand=LENZ&min_spec2=16&f_spec4=Нет",
     diameterFacetKey:"spec2",
     reverseFacetKey:"spec4",
@@ -27,7 +27,7 @@ test("drill selection preserves commercial context and applies a real minimum di
 
 test("workshop selection removes an old installation query", () => {
   const url = buildDrillSelectionUrl({
-    pathname:"/catalog/category/stanki-sverlilnye",
+    pathname:"/c/stanki-sverlilnye",
     search:"?q=магнитн&view=table",
     diameterFacetKey:"spec2",
     diameter:50,
@@ -49,7 +49,7 @@ test("reverse is applied only when the feed exposes an exact affirmative value",
 
 test("selection inside an exact drilling kind preserves the hierarchy", () => {
   const url = buildDrillSelectionUrl({
-    pathname:"/catalog/category/stanki-sverlilnye",
+    pathname:"/c/stanki-sverlilnye",
     search:"?segment=drill-stationary&drill_type=stationary-radial&view=table&page=2",
     diameterFacetKey:"spec1",
     diameter:50,

@@ -11,6 +11,7 @@ import {
 } from "../data/feedCatalog";
 import { getVariantChoicePresentation } from "../data/variantPresentation";
 import { getVariantShippingPromise } from "../data/shippingPromise.mjs";
+import { publicProductPath } from "../data/publicUrls";
 import type { ProductPageArchetype } from "../data/productPageArchetypes";
 import { ContactRequestDialog } from "./ContactRequestDialog";
 import { FeedAvailability } from "./FeedAvailability";
@@ -74,7 +75,7 @@ function RecommendationCard({ mode, recommendation }: RecommendationCardProps) {
   const choice = getVariantChoicePresentation(product, variant);
   const image = variant.images?.find(Boolean) ?? getFeedProductImage(product);
   const price = formatFeedPrice(variant.price) ?? getFeedProductPriceLabel(product);
-  const href = `/product/${product.slug}?variant=${encodeURIComponent(variant.id)}#variants`;
+  const href = `${publicProductPath(product, variant)}#variants`;
   const label = mode === "compatibility" ? recommendation.relationLabel : recommendation.reason;
   const shippingPromise = getVariantShippingPromise(variant);
 
@@ -101,7 +102,7 @@ function buildComparisonOptions(product: FeedProduct, variant: FeedVariant, alte
       shippingLabel:shippingPromise.label,
       shippingDetail:shippingPromise.detail,
       image:variant.images?.find(Boolean) ?? getFeedProductImage(product),
-      href:`/product/${product.slug}?variant=${encodeURIComponent(variant.id)}#variants`,
+      href:`${publicProductPath(product, variant)}#variants`,
       reason:"Текущее выбранное исполнение",
       current:true,
     },
@@ -121,7 +122,7 @@ function buildComparisonOptions(product: FeedProduct, variant: FeedVariant, alte
         shippingLabel:alternativeShipping.label,
         shippingDetail:alternativeShipping.detail,
         image:alternative.variant.images?.find(Boolean) ?? getFeedProductImage(alternative.product),
-        href:`/product/${alternative.product.slug}?variant=${encodeURIComponent(alternative.variant.id)}#variants`,
+        href:`${publicProductPath(alternative.product, alternative.variant)}#variants`,
         reason:alternative.reason,
       };
     }),

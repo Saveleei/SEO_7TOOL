@@ -237,7 +237,7 @@ test("robotics category separates processes and carries process-specific enginee
 
 test("generic guided selection replaces only its own filters and keeps commercial context", () => {
   const url = buildCategorySelectionUrl({
-    pathname:"/catalog/category/kompressory",
+    pathname:"/c/kompressory",
     search:"?availability=in-stock&sort=relevance&page=3&f_spec1=old&f_brand=Fubag",
     selections:[{ key:"spec1", value:"440" }, { key:"spec2", value:"100" }],
   });

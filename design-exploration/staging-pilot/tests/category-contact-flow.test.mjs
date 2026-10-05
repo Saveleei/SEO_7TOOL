@@ -151,7 +151,7 @@ test("product cards use readable actions and a native full-details navigation", 
   assert.match(card, /<h3><a href=/u);
   assert.match(card, /<a className="feed-all-characteristics" href=/u);
   assert.match(list, /<FeedProductCard product=\{product\}/u);
-  assert.match(card, /href=\{`\/product\/\$\{product\.slug\}`\}/u);
+  assert.match(card, /href=\{`\/p\/\$\{product\.slug\}`\}/u);
   assert.match(table, /<a className="feed-all-characteristics" href=/u);
   assert.doesNotMatch(card, /from "next\/link"/u);
   assert.doesNotMatch(list, /from "next\/link"/u);

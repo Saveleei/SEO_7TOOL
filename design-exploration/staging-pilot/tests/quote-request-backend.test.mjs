@@ -21,8 +21,8 @@ const validInput = {
   checkAvailability:"on",
   checkSet:"on",
   checkDocs:"on",
-  source:{ pagePath:"/product/test", utmSource:"qa", utmMedium:"local", utmCampaign:"backend" },
-  items:[{ id:"variant:A9409", title:"LENZ STEYR-35", article:"Артикул STEYR-35", price:"47 999 ₽", quantity:1, href:"/product/test" }],
+  source:{ pagePath:"/p/test", utmSource:"qa", utmMedium:"local", utmCampaign:"backend" },
+  items:[{ id:"variant:A9409", title:"LENZ STEYR-35", article:"Артикул STEYR-35", price:"47 999 ₽", quantity:1, href:"/p/test" }],
 };
 
 test("server validation requires usable contacts, consent, items and idempotency", () => {

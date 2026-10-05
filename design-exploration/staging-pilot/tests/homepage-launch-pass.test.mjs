@@ -66,8 +66,8 @@ test("homepage production tasks expose direct category paths without cropping eq
 test("homepage popular links prioritize annular cutters over compressors", async () => {
   const page = await read("../app/page.tsx");
   const shortcuts = page.slice(page.indexOf('className="hero-category-shortcuts"'), page.indexOf('className="hero-direct-contacts"'));
-  assert.match(shortcuts, /href="\/catalog\/category\/koronchatye-sverla">Корончатые сверла/u);
-  assert.doesNotMatch(shortcuts, /href="\/catalog\/category\/kompressory"/u);
+  assert.match(shortcuts, /href="\/c\/koronchatye-sverla">Корончатые сверла/u);
+  assert.doesNotMatch(shortcuts, /href="\/c\/kompressory"/u);
 });
 
 test("trust section exposes verifiable evidence instead of unsupported claims", async () => {

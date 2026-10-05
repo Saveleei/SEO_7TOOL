@@ -22,8 +22,8 @@ test("feed products remain discoverable and render safely without media or an ar
   assert.match(productPage, /Артикул не указан в фиде/u);
   assert.match(card, /Артикул не указан в фиде/u);
   assert.match(table, /Артикул не указан в фиде/u);
-  assert.ok(PUBLIC_RELEASE_ROUTES.includes(`/product/${missingMedia[0].slug}`));
-  assert.ok(PUBLIC_RELEASE_ROUTES.includes(`/product/${missingSku[0].slug}`));
+  assert.ok(PUBLIC_RELEASE_ROUTES.includes(`/p/${missingMedia[0].slug}`));
+  assert.ok(PUBLIC_RELEASE_ROUTES.includes(`/p/${missingSku[0].slug}`));
 });
 
 test("all four contact channels emit only allowlisted non-personal context", () => {
@@ -35,13 +35,13 @@ test("all four contact channels emit only allowlisted non-personal context", () 
 
   const detail = buildContactClickDetail({
     href:"mailto:info@7tool.ru?subject=Test",
-    pathname:"/catalog/category/borfrezy",
+    pathname:"/c/borfrezy",
     context:{ placement:"category_manager", phone:"+7 999 000-00-00", email:"buyer@example.com", name:"Иван" },
   });
   assert.deepEqual(detail, { event:"EMAIL_CLICK", channel:"email", page_type:"category", category:"borfrezy", placement:"category_manager" });
   assert.doesNotMatch(JSON.stringify(detail), /info@|buyer|7999|Иван/iu);
 
-  const productDetail = buildContactClickDetail({ href:"https://t.me/saveleei", pathname:"/product/test-product", search:"?variant=A9409", context:{ placement:"product_manager" } });
+  const productDetail = buildContactClickDetail({ href:"https://t.me/saveleei", pathname:"/p/test-product", search:"?variant=A9409", context:{ placement:"product_manager" } });
   assert.deepEqual(productDetail, { event:"click_messenger", channel:"telegram", page_type:"product", product_id:"test-product", variant_id:"A9409", placement:"product_manager" });
 });
 

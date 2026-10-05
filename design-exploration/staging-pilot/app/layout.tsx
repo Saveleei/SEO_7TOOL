@@ -5,6 +5,8 @@ import { ConversionAnalytics } from "./ui/ConversionAnalytics";
 import { DocumentNavigationFallback } from "./ui/DocumentNavigationFallback";
 import { JsonLd } from "./ui/JsonLd";
 import { YandexMetrika } from "./ui/YandexMetrika";
+import { WebVitalsAnalytics } from "./ui/WebVitalsAnalytics";
+import { AttributionCapture } from "./ui/AttributionCapture";
 import { RequestCartProvider } from "./ui/RequestCart";
 import { ComparisonProvider } from "./ui/Comparison";
 import { siteCompany, siteContact } from "./data/contactConfig";
@@ -37,5 +39,5 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       { "@type":"WebSite", "@id":"https://7tool.ru/#website", url:"https://7tool.ru/", name:siteCompany.brandName, publisher:{ "@id":"https://7tool.ru/#organization" }, inLanguage:"ru-RU" },
     ],
   };
-  return <html lang="ru" data-scroll-behavior="smooth" data-document-navigation={forceDocumentNavigation ? "true" : undefined}><body><JsonLd data={structuredData} /><YandexMetrika counterId={metrikaCounterId} />{forceDocumentNavigation && <DocumentNavigationFallback />}<ConversionAnalytics counterId={metrikaCounterId} /><ContactAnalytics /><RequestCartProvider><ComparisonProvider>{children}</ComparisonProvider></RequestCartProvider></body></html>;
+  return <html lang="ru" data-scroll-behavior="smooth" data-document-navigation={forceDocumentNavigation ? "true" : undefined}><body><JsonLd data={structuredData} /><YandexMetrika counterId={metrikaCounterId} /><AttributionCapture counterId={metrikaCounterId} />{forceDocumentNavigation && <DocumentNavigationFallback />}<ConversionAnalytics counterId={metrikaCounterId} /><WebVitalsAnalytics /><ContactAnalytics /><RequestCartProvider><ComparisonProvider>{children}</ComparisonProvider></RequestCartProvider></body></html>;
 }

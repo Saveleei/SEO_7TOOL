@@ -40,7 +40,7 @@ test("platform identity requires an explicit server allowlist and keeps return p
   assert.equal(safeManagerReturnTo("/test/requests/7T-1?tab=quote"), "/test/requests/7T-1?tab=quote");
   assert.equal(safeManagerReturnTo("https://attacker.example/test/requests"), "/test/requests");
   assert.equal(safeManagerReturnTo("//attacker.example"), "/test/requests");
-  assert.equal(safePreviewReturnTo("/catalog/category/borfrezy?view=table#products"), "/catalog/category/borfrezy?view=table#products");
+  assert.equal(safePreviewReturnTo("/c/borfrezy?view=table#products"), "/c/borfrezy?view=table#products");
   assert.equal(safePreviewReturnTo("https://attacker.example/catalog"), "/");
   assert.equal(safePreviewReturnTo("/test/access?returnTo=%2Fcatalog"), "/");
 });

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { FormEvent, KeyboardEvent as ReactKeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import { getQuickOrderMode } from "../data/quickOrder.mjs";
+import { buildRequestSource } from "../data/requestAttribution";
 import type { RequestItem } from "./RequestCart";
 import { ManagerContactCard } from "./ManagerContactCard";
 
@@ -94,16 +95,10 @@ export function QuickOrderDialog({ item, available, productId, variantId, catego
     track("submit_quick_order");
     if (!idempotencyKeyRef.current) idempotencyKeyRef.current = crypto.randomUUID();
     const formData = new FormData(event.currentTarget);
-    const query = new URLSearchParams(window.location.search);
     formData.set("request_type", "quick_order");
     formData.set("idempotency_key", idempotencyKeyRef.current);
     formData.set("items", JSON.stringify([{ ...item, quantity }]));
-    formData.set("source", JSON.stringify({
-      pagePath:window.location.pathname,
-      utmSource:query.get("utm_source") ?? "",
-      utmMedium:query.get("utm_medium") ?? "",
-      utmCampaign:query.get("utm_campaign") ?? "",
-    }));
+    formData.set("source", JSON.stringify(buildRequestSource()));
     try {
       const response = await fetch("/api/quote-requests", { method:"POST", body:formData, headers:{ "X-Requested-With":"7tool-quick-order" } });
       const result = await response.json() as { ok?: boolean; requestNumber?: string; message?: string };
@@ -137,7 +132,7 @@ export function QuickOrderDialog({ item, available, productId, variantId, catego
             <label>Телефон для связи <span>*</span><input name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+7 999 000-00-00" required autoFocus /></label>
             <label>Компания <small>необязательно</small><input name="company" type="text" autoComplete="organization" placeholder="Название организации" /></label>
             <label className="quick-order-form-wide">Комментарий <small>необязательно</small><textarea name="comment" rows={3} placeholder="Когда удобно позвонить или что важно уточнить" /></label>
-            <label className="quick-order-consent quick-order-form-wide"><input name="consent" type="checkbox" defaultChecked required /><span>Я согласен на обработку персональных данных</span></label>
+            <label className="quick-order-consent quick-order-form-wide"><input name="consent" type="checkbox" defaultChecked required /><span>Я согласен с <a href="/soglasie-na-obrabotku" target="_blank">обработкой персональных данных</a></span></label>
             {formError && <div className="quick-order-error quick-order-form-wide" role="alert">{formError}</div>}
             <div className="quick-order-submit quick-order-form-wide"><button type="submit" disabled={submitting}>{submitting ? "Надёжно сохраняем…" : mode.submitLabel}</button><small>Менеджер сначала подтвердит цену, наличие и срок. Оплата на этом шаге не производится.</small></div>
           </form>

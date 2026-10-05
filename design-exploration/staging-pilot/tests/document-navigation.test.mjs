@@ -3,16 +3,16 @@ import test from "node:test";
 import { readFile } from "node:fs/promises";
 import { resolveDocumentNavigation } from "../app/data/documentNavigation.mjs";
 
-const currentUrl = "https://test.7tool.ru/catalog/category/borfrezy?view=cards";
+const currentUrl = "https://test.7tool.ru/c/borfrezy?view=cards";
 
 test("staging document navigation keeps authenticated internal links reliable", () => {
   assert.equal(
-    resolveDocumentNavigation({ href:"/product/test-product", currentUrl }),
-    "https://test.7tool.ru/product/test-product",
+    resolveDocumentNavigation({ href:"/p/test-product", currentUrl }),
+    "https://test.7tool.ru/p/test-product",
   );
   assert.equal(
     resolveDocumentNavigation({ href:"?view=table#products", currentUrl }),
-    "https://test.7tool.ru/catalog/category/borfrezy?view=table#products",
+    "https://test.7tool.ru/c/borfrezy?view=table#products",
   );
 });
 

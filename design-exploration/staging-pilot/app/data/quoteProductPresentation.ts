@@ -4,6 +4,7 @@ import {
   getFeedVariantTechnicalSpecs,
   type FeedProductSpec,
 } from "./feedCatalog.ts";
+import { publicProductPath } from "./publicUrls.ts";
 
 export type QuoteProductPresentation = {
   exactVariant: true;
@@ -28,7 +29,7 @@ export function getQuoteProductPresentation(itemId: string): QuoteProductPresent
     exactVariant:true,
     variantId:variant.id,
     category:product.category,
-    productHref:`/product/${product.slug}?variant=${encodeURIComponent(variant.id)}`,
+    productHref:publicProductPath(product, variant),
     imageUrl,
     imageAlt:variant.name || product.title,
     keySpecs:getFeedVariantSpecs(product, variant),

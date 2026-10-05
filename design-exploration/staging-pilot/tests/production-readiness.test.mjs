@@ -252,8 +252,8 @@ function validRequest() {
     checkAvailability:"on",
     checkSet:"on",
     checkDocs:"on",
-    items:[{ id:"variant:A9409", title:"LENZ STEYR-35", article:"STEYR-35", quantity:1, href:"/product/magnitnyy-sverlilnyy-stanok-lenz-steyr-35?variant=A9409" }],
-    source:{ pagePath:"/product/magnitnyy-sverlilnyy-stanok-lenz-steyr-35", utmSource:"", utmMedium:"", utmCampaign:"" },
+    items:[{ id:"variant:A9409", title:"LENZ STEYR-35", article:"STEYR-35", quantity:1, href:"/p/magnitnyy-sverlilnyy-stanok-lenz-steyr-35?variant=A9409" }],
+    source:{ pagePath:"/p/magnitnyy-sverlilnyy-stanok-lenz-steyr-35", utmSource:"", utmMedium:"", utmCampaign:"" },
   };
 }
 

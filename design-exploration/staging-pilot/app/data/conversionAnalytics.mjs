@@ -8,14 +8,16 @@ const ALLOWED_EVENTS = new Set([
   "search_submit", "search_select", "search_zero_action", "search_all_results", "search_guided_selection",
   "open_selection_contact", "show_task_direction", "show_analog_path", "select_specification_file",
   "submit_selection_request", "selection_request_success", "selection_request_error",
+  "web_vital",
 ]);
 
 const SAFE_STRING_FIELDS = new Set([
   "event", "placement", "page_type", "product_id", "variant_id", "category", "channel", "action",
   "request_type", "quick_order_mode", "filter_name", "filter_kind", "result_type", "query_type",
   "target_product_id", "target_variant_id",
+  "metric_name", "metric_rating", "navigation_type",
 ]);
-const SAFE_NUMBER_FIELDS = new Set(["item_count", "candidate_count", "result_count", "result_position", "query_length", "active_filter_count"]);
+const SAFE_NUMBER_FIELDS = new Set(["item_count", "candidate_count", "result_count", "result_position", "query_length", "active_filter_count", "metric_value", "metric_delta"]);
 const SAFE_VALUE = /^[\p{L}\p{N}_.:+-]+(?:[ ]+[\p{L}\p{N}_.:+-]+){0,7}$/u;
 
 export function sanitizeConversionEvent(value) {

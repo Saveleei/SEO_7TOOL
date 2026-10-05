@@ -9,7 +9,8 @@ export function canonicalUrl(pathname: string): string {
 }
 
 export function publicRobots(indexable = true): Metadata["robots"] {
-  if (!indexable || !isSeoIndexingEnabled()) return { index:false, follow:false, nocache:true };
+  if (!isSeoIndexingEnabled()) return { index:false, follow:false, nocache:true };
+  if (!indexable) return { index:false, follow:true, nocache:true };
   return {
     index:true,
     follow:true,

@@ -1,6 +1,7 @@
 import { formatFeedPrice, getFeedProductBySlug, getFeedProductImage, getFeedProductPriceLabel, getFeedVariantTechnicalSpecs, toFeedProductCardModel } from "../../data/feedCatalog.ts";
 import { getProductShippingPromise, getVariantShippingPromise } from "../../data/shippingPromise.mjs";
 import { getVariantChoicePresentation } from "../../data/variantPresentation.ts";
+import { publicProductPath } from "../../data/publicUrls.ts";
 
 type RequestedItem = { slug: string; variantId?: string };
 
@@ -44,7 +45,7 @@ export async function GET(request: Request) {
         sku:variant.sku || product.sku,
         choiceLabel:choice.label,
         image:variant.images?.find(Boolean) ?? getFeedProductImage(product),
-        href:`/product/${product.slug}?variant=${encodeURIComponent(variant.id)}#variants`,
+        href:`${publicProductPath(product, variant)}#variants`,
         price:formatFeedPrice(variant.price) ?? "Цена по запросу",
         variantCount:1,
         available:shipping.available,
@@ -67,7 +68,7 @@ export async function GET(request: Request) {
       sku:product.sku,
       choiceLabel:`${product.variants.length} ${variantWord(product.variants.length)}`,
       image:getFeedProductImage(product),
-      href:`/product/${product.slug}`,
+      href:publicProductPath(product),
       price:getFeedProductPriceLabel(product),
       variantCount:product.variants.length,
       available:shipping.available,

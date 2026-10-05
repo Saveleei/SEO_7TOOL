@@ -33,7 +33,7 @@ test("every generic selector facet has an explicit category match rule", () => {
 
 test("capacity, exact fit and pipe containment produce distinct query constraints", () => {
   const minimumUrl = new URL(buildCategorySelectionUrl({
-    pathname:"/catalog/category/kompressory",
+    pathname:"/c/kompressory",
     search:"?sort=relevance&f_spec1=old",
     selections:[{ key:"spec1", value:"1210", mode:"minimum" }],
   }), "https://test.7tool.ru");
@@ -41,7 +41,7 @@ test("capacity, exact fit and pipe containment produce distinct query constraint
   assert.equal(minimumUrl.searchParams.has("f_spec1"), false);
 
   const exactUrl = new URL(buildCategorySelectionUrl({
-    pathname:"/catalog/category/pilnye-diski",
+    pathname:"/c/pilnye-diski",
     search:"?min_spec1=100",
     selections:[{ key:"spec1", value:"250 мм", mode:"exact" }],
   }), "https://test.7tool.ru");
@@ -49,7 +49,7 @@ test("capacity, exact fit and pipe containment produce distinct query constraint
   assert.equal(exactUrl.searchParams.has("min_spec1"), false);
 
   const rangeUrl = new URL(buildCategorySelectionUrl({
-    pathname:"/catalog/category/kromkorezy-dlya-trub",
+    pathname:"/c/kromkorezy-dlya-trub",
     selections:[{ key:"spec1", minimumFacetKey:"spec2", value:"600", mode:"range" }],
   }), "https://test.7tool.ru");
   assert.equal(rangeUrl.searchParams.get("min_spec1"), "600");

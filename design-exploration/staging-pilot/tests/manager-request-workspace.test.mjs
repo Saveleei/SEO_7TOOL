@@ -21,8 +21,8 @@ const validInput = {
   checkAvailability:"on",
   checkSet:"on",
   checkDocs:"on",
-  source:{ pagePath:"/product/test", utmSource:"qa", utmMedium:"local", utmCampaign:"manager" },
-  items:[{ id:"variant:manager", title:"LENZ STEYR-35", article:"STEYR-35", price:"47 999 ₽", quantity:2, href:"/product/test" }],
+  source:{ pagePath:"/p/test", utmSource:"qa", utmMedium:"local", utmCampaign:"manager" },
+  items:[{ id:"variant:manager", title:"LENZ STEYR-35", article:"STEYR-35", price:"47 999 ₽", quantity:2, href:"/p/test" }],
 };
 
 test("workflow accepts only deliberate neighbouring transitions and known assignee", () => {

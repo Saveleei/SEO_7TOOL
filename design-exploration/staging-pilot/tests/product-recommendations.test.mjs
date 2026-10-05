@@ -75,7 +75,7 @@ test("product page uses exact variants, honest supply states and local callback 
   assert.match(recommendations, /pageArchetype\.kitTitle/u);
   assert.match(recommendations, /pageArchetype\.alternativesTitle/u);
   assert.match(recommendations, /Не показываем товары из соседней категории наугад/u);
-  assert.match(recommendations, /\?variant=\$\{encodeURIComponent\(variant\.id\)\}#variants/u);
+  assert.match(recommendations, /publicProductPath\(product, variant\)/u);
   assert.match(recommendations, /choice\.label/u);
   assert.match(recommendations, /Артикул \$\{variant\.sku\}/u);
   assert.doesNotMatch(recommendations, /mailto:/u);
@@ -134,8 +134,8 @@ test("legacy STEYR route and all primary search links converge on the feed produ
   const legacy = await readFile(new URL("../app/product/lenz-steyr-35/page.tsx", import.meta.url), "utf8");
   const headerSearch = await readFile(new URL("../app/ui/HeaderSearch.tsx", import.meta.url), "utf8");
   const catalogSearch = await readFile(new URL("../app/data/catalogSearch.ts", import.meta.url), "utf8");
-  const canonicalPath = "/product/magnitnyy-sverlilnyy-stanok-lenz-steyr-35";
+  const canonicalPath = "/p/magnitnyy-sverlilnyy-stanok-lenz-steyr-35";
   assert.match(legacy, new RegExp(canonicalPath));
   assert.match(headerSearch, /<SmartSearch placement="header" \/>/u);
-  assert.match(catalogSearch, /`\/product\/\$\{product\.slug\}/u);
+  assert.match(catalogSearch, /publicProductPath\(product/u);
 });

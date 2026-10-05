@@ -143,7 +143,7 @@ export function comparisonSelectionFromCard(product: FeedProductCardModel): Comp
     variantId:exactVariant?.id,
     variantLabel:exactVariant ? product.specs.slice(0, 2).map((spec) => spec.value).filter(Boolean).join(" · ") || undefined : undefined,
     image:exactVariant?.image ?? product.image,
-    href:exactVariant?.href ?? `/product/${product.slug}`,
+    href:exactVariant?.href ?? `/p/${product.slug}`,
   };
 }
 
@@ -172,7 +172,7 @@ function sanitizeComparisonSelections(value: unknown): ComparisonSelection[] {
     const variantId = candidate.variantId ? safeIdentifier(candidate.variantId) : undefined;
     const variantLabel = candidate.variantLabel ? safeText(candidate.variantLabel, 160) : undefined;
     const image = candidate.image && /^\/(?:[^\s]+)$/u.test(candidate.image) ? candidate.image.slice(0, 600) : candidate.image && /^https:\/\//u.test(candidate.image) ? candidate.image.slice(0, 600) : undefined;
-    const href = typeof candidate.href === "string" && candidate.href.startsWith(`/product/${slug}`) ? candidate.href.slice(0, 600) : `/product/${slug}`;
+    const href = typeof candidate.href === "string" && candidate.href.startsWith(`/p/${slug}`) ? candidate.href.slice(0, 600) : `/p/${slug}`;
     if (!productId || !slug || !title || !brand || !category) continue;
     unique.set(productId, { productId, slug, title, brand, category, variantId, variantLabel, image, href });
     if (unique.size === MAX_ITEMS) break;
@@ -205,7 +205,7 @@ function trackComparison(event: string, item: ComparisonSelection, placement: st
 
 function resolvePageType(): string {
   if (window.location.pathname.startsWith("/catalog/")) return "category";
-  if (window.location.pathname.startsWith("/product/")) return "product";
+  if (window.location.pathname.startsWith("/p/")) return "product";
   if (window.location.pathname === "/compare") return "comparison";
   return "other";
 }

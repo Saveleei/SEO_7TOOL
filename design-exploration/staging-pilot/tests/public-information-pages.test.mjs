@@ -54,3 +54,9 @@ test("public contacts use the canonical company and manager configuration", asyn
   assert.match(footer, /siteCompany\.legalName/u);
   assert.doesNotMatch(`${contacts}\n${footer}`, /checkingAccount|correspondentAccount|bankName|bik/u);
 });
+
+test("the global footer does not invent one warranty term for every product", async () => {
+  const footer = await readFile(new URL("../app/ui/PilotFooter.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(footer, /гарантия\s+12\s+месяцев/iu);
+  assert.match(footer, /гарантийные условия по выбранному товару/iu);
+});

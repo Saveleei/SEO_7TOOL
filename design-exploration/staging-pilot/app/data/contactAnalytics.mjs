@@ -46,8 +46,8 @@ function getRouteIdentifier(pathname) {
 
 function classifyPageType(pathname) {
   const value = String(pathname ?? "");
-  if (value.startsWith("/product/")) return "product";
-  if (value.startsWith("/catalog/category/")) return "category";
+  if (value.startsWith("/p/")) return "product";
+  if (value.startsWith("/c/")) return "category";
   if (value.startsWith("/catalog/task/")) return "task";
   if (value === "/catalog" || value.startsWith("/catalog/")) return "catalog";
   if (value.startsWith("/search")) return "search";

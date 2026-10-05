@@ -16,7 +16,7 @@ const product = {
   article:"STEYR-35",
   quantity:1,
   price:"47 999 ₽",
-  href:"/product/magnitnyy-sverlilnyy-stanok-lenz-steyr-35?variant=A9409",
+  href:"/p/magnitnyy-sverlilnyy-stanok-lenz-steyr-35?variant=A9409",
 };
 
 const admin = {

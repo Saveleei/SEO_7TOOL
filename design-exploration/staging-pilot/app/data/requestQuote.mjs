@@ -45,7 +45,7 @@ export function sanitizeProductHref(value) {
   try {
     const base = "https://quote-draft.7tool.invalid";
     const url = new URL(value, base);
-    if (url.origin !== base || !/^\/product\/[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\/?$/u.test(url.pathname)) return undefined;
+    if (url.origin !== base || !/^\/p\/[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\/?$/u.test(url.pathname)) return undefined;
     if ([...url.searchParams.keys()].some((key) => key !== "variant")) return undefined;
     const variant = url.searchParams.get("variant");
     if (variant !== null && !/^[A-Za-z0-9._:-]{1,160}$/u.test(variant)) return undefined;

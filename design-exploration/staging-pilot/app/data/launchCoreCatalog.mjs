@@ -1,6 +1,7 @@
 import { getCatalogQualityReport } from "./catalogQuality.ts";
 import { getCategoryExpertProfile } from "./categoryExpertProfiles.mjs";
 import { getFeedCategoryPage, toFeedProductCardModel } from "./feedCatalog.ts";
+import { publicProductPath } from "./publicUrls.ts";
 
 export const launchCoreScopes = Object.freeze([
   { id:"magnetic-drills", title:"Магнитные сверлильные станки", slug:"stanki-sverlilnye", query:{ segment:"drill-magnetic" } },
@@ -35,7 +36,12 @@ function auditScope(scope, quality, visibleLimit) {
   const cardsWithoutDecisionSpecs = cards.filter((card) => card.specs.length === 0);
   const unsafePrices = cards.filter((card) => !card.price || /(?:^|\s)0(?:[\s ]*₽|\s*$)/u.test(card.price));
   const variantChoices = cards.flatMap((card) => card.variants.map((variant) => ({ card, variant })));
-  const invalidVariantLinks = variantChoices.filter(({ card, variant }) => variant.href !== `/product/${card.slug}?variant=${encodeURIComponent(variant.id)}#variants`);
+  const productsById = new Map(products.map((product) => [product.id, product]));
+  const invalidVariantLinks = variantChoices.filter(({ card, variant }) => {
+    const product = productsById.get(card.id);
+    const exactVariant = product?.variants.find((candidate) => candidate.id === variant.id);
+    return !product || !exactVariant || variant.href !== `${publicProductPath(product, exactVariant)}#variants`;
+  });
   const unsupportedTodayPromises = cards.filter((card) => /сегодня/iu.test(card.shippingPromise?.label ?? "") && !card.shippingPromise?.available);
   const profile = getCategoryExpertProfile(scope.slug);
   const blockers = [

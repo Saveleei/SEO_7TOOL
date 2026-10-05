@@ -1,4 +1,5 @@
 import { formatFeedPrice, getFeedProductImage, getFeedVariantSpecs, type FeedParameter, type FeedProduct, type FeedVariant } from "./feedCatalog.ts";
+import { publicProductPath } from "./publicUrls.ts";
 import { getVariantShippingPromise } from "./shippingPromise.mjs";
 
 export type VariantChoicePresentation = {
@@ -111,6 +112,14 @@ export function sortVariantsForChoice(product: FeedProduct, variants: FeedVarian
   });
 }
 
+export function selectDefaultVariant(product: FeedProduct, variants: FeedVariant[]): FeedVariant | undefined {
+  const sorted = sortVariantsForChoice(product, variants);
+  return sorted.find((variant) => hasConfirmedStock(variant) && hasValidPrice(variant))
+    ?? sorted.find(hasConfirmedStock)
+    ?? sorted.find((variant) => variant.available === true)
+    ?? sorted[0];
+}
+
 export function getProductVariantChoices(product: FeedProduct): ProductVariantChoice[] {
   const variants = sortVariantsForChoice(product, product.variants.filter((variant) => variant.name || variant.sku));
   const exactVariantImageCounts = countVariantImages(variants);
@@ -133,7 +142,7 @@ export function getProductVariantChoices(product: FeedProduct): ProductVariantCh
       selectorLabel:choice.selectorLabel,
       image:exactImage ?? getFeedProductImage(product),
       selectorImage,
-      href:`/product/${product.slug}?variant=${encodeURIComponent(variant.id)}#variants`,
+      href:`${publicProductPath(product, variant)}#variants`,
     };
   });
   const duplicateCounts = new Map<string, number>();
@@ -478,6 +487,14 @@ function normalize(value: string): string {
 
 function numeric(value?: number): number {
   return typeof value === "number" && Number.isFinite(value) ? value : Number.POSITIVE_INFINITY;
+}
+
+function hasConfirmedStock(variant: FeedVariant): boolean {
+  return variant.available === true && typeof variant.quantity === "number" && Number.isFinite(variant.quantity) && variant.quantity > 0;
+}
+
+function hasValidPrice(variant: FeedVariant): boolean {
+  return typeof variant.price === "number" && Number.isFinite(variant.price) && variant.price > 0;
 }
 
 type Measure = { text: string; number: number; unit: string };

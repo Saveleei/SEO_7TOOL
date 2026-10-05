@@ -1,5 +1,5 @@
 import { permanentRedirect } from "next/navigation";
 
 export default function LegacyMagneticDrillsPage() {
-  permanentRedirect("/catalog/category/stanki-sverlilnye");
+  permanentRedirect("/c/stanki-sverlilnye");
 }

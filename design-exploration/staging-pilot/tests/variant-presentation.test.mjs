@@ -3,7 +3,8 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { GET as getProductVariants } from "../app/api/catalog-product-variants/route.ts";
 import { getFeedVariantSpecs } from "../app/data/feedCatalog.ts";
-import { CATEGORY_VARIANT_PRESENTATION_RULES, getProductVariantChoices, getVariantChoicePresentation, sortVariantsForChoice } from "../app/data/variantPresentation.ts";
+import { publicProductPath } from "../app/data/publicUrls.ts";
+import { CATEGORY_VARIANT_PRESENTATION_RULES, getProductVariantChoices, getVariantChoicePresentation, selectDefaultVariant, sortVariantsForChoice } from "../app/data/variantPresentation.ts";
 
 const snapshot = JSON.parse(await readFile(new URL("../../../7tool-source/src/lib/products.json", import.meta.url), "utf8"));
 const annularCutters = snapshot.products.find((product) => product.slug === "sverla-koronchatye-lzhs");
@@ -17,6 +18,17 @@ test("annular cutter choices lead with size instead of supplier article", () => 
   assert.equal(choice.sizeLed, true);
   assert.match(choice.context, /Weldon 19 \+ Nitto/u);
   assert.doesNotMatch(choice.label, /LZHS|A9021/u);
+});
+
+test("default product variant prefers confirmed stock and price without changing explicit sorting", () => {
+  const product = annularCutters;
+  assert.ok(product);
+  const variants = [
+    { ...product.variants[0], id:"unavailable", available:false, quantity:0, price:100 },
+    { ...product.variants[0], id:"stock-no-price", available:true, quantity:2, price:undefined },
+    { ...product.variants[0], id:"stock-price", available:true, quantity:1, price:200 },
+  ];
+  assert.equal(selectDefaultVariant(product, variants)?.id, "stock-price");
 });
 
 test("all cutter variants are sorted by diameter rather than article feed order", () => {
@@ -181,7 +193,9 @@ test("magnetic drill cards lead with annular capacity and name twist-drill capac
 test("every variant deep link preserves the exact selection and returns to the selector", () => {
   for (const product of snapshot.products) {
     for (const choice of getProductVariantChoices(product)) {
-      assert.equal(choice.href, `/product/${product.slug}?variant=${encodeURIComponent(choice.id)}#variants`);
+      const variant = product.variants.find((entry) => entry.id === choice.id);
+      assert.ok(variant);
+      assert.equal(choice.href, `${publicProductPath(product, variant)}#variants`);
     }
   }
 });

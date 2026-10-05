@@ -19,8 +19,8 @@ test("quote totals only include exact prices and respect quantities", () => {
 test("restored quote draft accepts only bounded product context", () => {
   const restored = sanitizeRequestItems([
     { id:"variant:A9409", title:"LENZ STEYR-35", article:"Артикул STEYR-35", price:"47 999 ₽", quantity:5000, image:"javascript:alert(1)", href:"https://outside.example" },
-    { id:"variant:A12935", title:"Сверло LZTS-021", article:"Артикул LZTS-021", price:"2 882 ₽", quantity:1, image:"https://s3.export.k2tool.ru/pim/images/product/preview/cutter.png", href:"/product/sverla-koronchatye-lzts?variant=A12935#variants" },
-    { id:"variant:unsafe", title:"Опасная ссылка", article:"Артикул X", image:"http://outside.example/pixel.gif", href:"//outside.example/product/foo" },
+    { id:"variant:A12935", title:"Сверло LZTS-021", article:"Артикул LZTS-021", price:"2 882 ₽", quantity:1, image:"https://s3.export.k2tool.ru/pim/images/product/preview/cutter.png", href:"/p/sverla-koronchatye-lzts?variant=A12935#variants" },
+    { id:"variant:unsafe", title:"Опасная ссылка", article:"Артикул X", image:"http://outside.example/pixel.gif", href:"//outside.example/p/foo" },
     { title:"missing required fields" },
   ]);
   assert.equal(restored.length, 3);
@@ -28,7 +28,7 @@ test("restored quote draft accepts only bounded product context", () => {
   assert.equal(restored[0].image, undefined);
   assert.equal(restored[0].href, undefined);
   assert.equal(restored[1].image, "https://s3.export.k2tool.ru/pim/images/product/preview/cutter.png");
-  assert.equal(restored[1].href, "/product/sverla-koronchatye-lzts?variant=A12935#variants");
+  assert.equal(restored[1].href, "/p/sverla-koronchatye-lzts?variant=A12935#variants");
   assert.equal(restored[2].image, undefined);
   assert.equal(restored[2].href, undefined);
 });

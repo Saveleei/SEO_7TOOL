@@ -7,6 +7,35 @@ import type { ManagerRole } from "./managerAccess.ts";
 type QuoteStatus = "received" | "checking" | "quote_ready" | "sent";
 type StoredAttachment = { relativePath: string; mime: string; size: number; kind: "billing" | "specification"; originalName: string };
 type AttachmentInput = { bytes: Buffer; extension: string; mime: string; size: number; kind: "billing" | "specification"; originalName: string } | null;
+type StoredCampaignTouch = {
+  utm_source: string;
+  utm_medium: string;
+  utm_campaign: string;
+  utm_content: string;
+  utm_term: string;
+  yclid: string;
+  landingPage: string;
+  referrer: string;
+  capturedAt: string;
+};
+type StoredRequestSource = {
+  pagePath: string;
+  utmSource: string;
+  utmMedium: string;
+  utmCampaign: string;
+  pageUrl?: string;
+  landingPage?: string;
+  referrer?: string;
+  firstVisitAt?: string;
+  utmContent?: string;
+  utmTerm?: string;
+  yclid?: string;
+  ymClientId?: string;
+  internalClientId?: string;
+  sessionId?: string;
+  firstTouch?: StoredCampaignTouch;
+  lastNonDirect?: StoredCampaignTouch;
+};
 type ValidatedQuote = {
   requestType: "quote" | "selection" | "quick_order";
   email: string;
@@ -19,7 +48,7 @@ type ValidatedQuote = {
   consent: boolean;
   alternatives: boolean;
   requestedChecks: { availability: boolean; compatibility: boolean; documents: boolean };
-  source: { pagePath: string; utmSource: string; utmMedium: string; utmCampaign: string };
+  source: StoredRequestSource;
   items: Array<{ id: string; title: string; article: string; quantity: number; price?: string; href?: string }>;
 };
 

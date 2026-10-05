@@ -15,6 +15,7 @@ export type CatalogQualityIssueCode =
   | "missing_identifier"
   | "duplicate_identifier"
   | "missing_sku"
+  | "title_spec_conflict"
   | "invalid_range"
   | "malformed_numeric"
   | "numeric_outlier"
@@ -117,6 +118,7 @@ const issueLabels: Record<CatalogQualityIssueCode, string> = {
   missing_identifier:"Нет устойчивого кода исполнения",
   duplicate_identifier:"Код исполнения используется повторно",
   missing_sku:"Нет публичного артикула исполнения",
+  title_spec_conflict:"Название противоречит характеристике",
   invalid_range:"Нижняя граница выше верхней",
   malformed_numeric:"Размер записан как допуск или код",
   numeric_outlier:"Подозрительный числовой выброс",
@@ -131,6 +133,7 @@ const issuePriorities: Record<CatalogQualityIssueCode, CatalogQualityPriority> =
   missing_identifier:"p0",
   duplicate_identifier:"p0",
   missing_sku:"p2",
+  title_spec_conflict:"p0",
   invalid_range:"p0",
   duplicate_sku:"p0",
   malformed_numeric:"p1",
@@ -148,6 +151,8 @@ type GeneratedCatalogQuality = {
   report: CatalogQualityReport;
 };
 
+export const CATALOG_QUALITY_ANALYZER_VERSION = 2;
+
 const generatedCatalogQuality = loadGeneratedCatalogQuality();
 
 let cachedReport: { revision: number; report: CatalogQualityReport } | undefined;
@@ -163,6 +168,10 @@ export function getCatalogQualityReport(): CatalogQualityReport {
 
 export function getCatalogQualityReportSnapshot(): CatalogQualityReport {
   return buildCatalogQualityReport(getPublishedFeedCatalogSnapshot());
+}
+
+export function getCatalogBlockingProductIds(report: CatalogQualityReport = getCatalogQualityReport()): Set<string> {
+  return new Set(report.issues.filter((entry) => entry.priority === "p0").map((entry) => entry.productId));
 }
 
 export function catalogQualityIssueLabel(code: CatalogQualityIssueCode): string {
@@ -227,6 +236,18 @@ function buildCatalogQualityReport(feedSnapshot: ReturnType<typeof getPublishedF
         issues.push(issue(product, category, "missing_sku", "notice", identityDetail, variant));
       }
       if (!(typeof variant.price === "number" && variant.price > 0)) issues.push(issue(product, category, "missing_price", "warning", "На витрине будет показано «Цена по запросу».", variant));
+
+      const diameterConflict = titleDiameterConflict(product, variant);
+      if (diameterConflict) {
+        issues.push(issue(
+          product,
+          category,
+          "title_spec_conflict",
+          "critical",
+          `В названии исполнения указан Ø${formatNumber(diameterConflict.titleDiameter)} мм, а «${diameterConflict.parameter.name}» содержит ${formatParameter(diameterConflict.parameter)}. До исправления источника карточка исключается из индекса и Product JSON-LD.`,
+          variant,
+        ));
+      }
 
       for (const parameter of getFeedDecisionParameters(product, variant)) {
         const canEnterGuidedFacet = selectionFacets.some((facet) => facet.keyword && parameterMatchesKeyword(parameter.name, facet.keyword));
@@ -294,7 +315,7 @@ function loadGeneratedCatalogQuality(): GeneratedCatalogQuality | undefined {
   if (!existsSync(snapshotPath)) return undefined;
   try {
     const parsed = JSON.parse(readFileSync(snapshotPath, "utf8")) as GeneratedCatalogQuality;
-    return parsed.version === 1 && parsed.report?.generatedFrom === "bundled-supplier-feed" ? parsed : undefined;
+    return parsed.version === CATALOG_QUALITY_ANALYZER_VERSION && parsed.report?.generatedFrom === "bundled-supplier-feed" ? parsed : undefined;
   } catch {
     return undefined;
   }
@@ -445,7 +466,7 @@ export function getCatalogEnrichmentQueue(report: CatalogQualityReport = getCata
       categorySlug:first.categorySlug,
       categoryTitle:first.categoryTitle,
       familyLabel:first.familyLabel ?? first.scopeLabel,
-      scopeHref:first.scopeHref ?? `/catalog/category/${first.categorySlug}`,
+      scopeHref:first.scopeHref ?? `/c/${first.categorySlug}`,
       queueHref:`/test/catalog-quality?priority=p1&category=${categoryParam}&issue=not_filterable`,
       productCount:new Set(entries.map((entry) => entry.productId)).size,
       missingParameters,
@@ -508,7 +529,7 @@ function buildProductSelectionProfiles(publishedCategories: FeedCategory[], publ
         mode,
         familyId:shortcut.family,
         familyLabel:shortcut.label,
-        scopeHref:`/catalog/category/${category.slug}?family=${encodeURIComponent(shortcut.family)}`,
+        scopeHref:`/c/${category.slug}?family=${encodeURIComponent(shortcut.family)}`,
         scopeLabel:shortcut.label,
         facets,
         keywords:facets.map((facet) => facet.keyword).filter(Boolean),
@@ -548,7 +569,7 @@ function structuralSelectionTarget(slug: string, product: FeedProduct): Structur
       query:{ productType, segment, subsegment },
       selectionMode:subsegmentShortcut.selectionMode ?? segmentShortcut.selectionMode ?? profile.selectionMode,
       promotedFacetKeywords:subsegmentShortcut.promotedFacetKeywords ?? segmentShortcut.promotedFacetKeywords,
-      scopeHref:`/catalog/category/${slug}?segment=${encodeURIComponent(segment)}&drill_type=${encodeURIComponent(subsegment)}`,
+      scopeHref:`/c/${slug}?segment=${encodeURIComponent(segment)}&drill_type=${encodeURIComponent(subsegment)}`,
       scopeLabel:`${segmentShortcut.label} · ${subsegmentShortcut.label}`,
     };
   }
@@ -557,7 +578,7 @@ function structuralSelectionTarget(slug: string, product: FeedProduct): Structur
       query:{ productType, segment },
       selectionMode:segmentShortcut.selectionMode ?? profile.selectionMode,
       promotedFacetKeywords:segmentShortcut.promotedFacetKeywords,
-      scopeHref:`/catalog/category/${slug}?segment=${encodeURIComponent(segment)}`,
+      scopeHref:`/c/${slug}?segment=${encodeURIComponent(segment)}`,
       scopeLabel:segmentShortcut.label,
     };
   }
@@ -567,7 +588,7 @@ function structuralSelectionTarget(slug: string, product: FeedProduct): Structur
       query:{ productType },
       selectionMode:productTypeShortcut.selectionMode ?? profile.selectionMode,
       promotedFacetKeywords:productTypeShortcut.promotedFacetKeywords,
-      scopeHref:`/catalog/category/${slug}?kind=${encodeURIComponent(productType)}`,
+      scopeHref:`/c/${slug}?kind=${encodeURIComponent(productType)}`,
       scopeLabel:productTypeShortcut.label,
     };
   }
@@ -610,6 +631,17 @@ function isMalformedNumericParameter(parameter: FeedParameter): boolean {
   return /^-?\d+(?:[.,]\d+)?$/u.test(value) && Number.isFinite(numeric) && numeric <= 0;
 }
 
+function titleDiameterConflict(product: FeedProduct, variant: FeedVariant): { titleDiameter: number; parameter: FeedParameter } | undefined {
+  const titleMatch = String(variant.name || product.title).match(/[Ø⌀∅]\s*(\d+(?:[.,]\d+)?)\s*мм/iu);
+  if (!titleMatch) return undefined;
+  const parameter = getFeedDecisionParameters(product, variant).find((entry) => normalizeKey(entry.name) === "диаметр режущей части");
+  if (!parameter) return undefined;
+  const titleDiameter = Number.parseFloat(titleMatch[1].replace(",", "."));
+  const parameterDiameter = parseNumeric(parameter.value);
+  if (!Number.isFinite(titleDiameter) || !Number.isFinite(parameterDiameter) || Math.abs(titleDiameter - parameterDiameter) <= 1.01) return undefined;
+  return { titleDiameter, parameter };
+}
+
 function isMeasuredParameter(name: string): boolean {
   return /(диаметр|длина|ширина|толщина|мощность|производительность|объ[её]м|масса|грузопод|усилие|радиус|охват|частота|скорость|напряжение|ход|поле|размер)/iu.test(name);
 }
@@ -634,6 +666,10 @@ function parseNumeric(value: unknown): number {
 
 function formatParameter(parameter: FeedParameter): string {
   return `${parameter.value}${parameter.unit ? ` ${parameter.unit}` : ""}`.trim();
+}
+
+function formatNumber(value: number): string {
+  return new Intl.NumberFormat("ru-RU", { maximumFractionDigits:4 }).format(value);
 }
 
 function normalizeKey(value: unknown): string {

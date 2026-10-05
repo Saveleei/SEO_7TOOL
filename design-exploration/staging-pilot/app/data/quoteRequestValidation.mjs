@@ -132,12 +132,73 @@ function sanitizeQuoteItems(rawItems) {
 function sanitizeSource(rawSource) {
   const source = rawSource && typeof rawSource === "object" ? rawSource : {};
   const pagePath = cleanText(source.pagePath, 500);
+  const firstTouch = sanitizeCampaignTouch(source.firstTouch);
+  const lastNonDirect = sanitizeCampaignTouch(source.lastNonDirect);
   return {
     pagePath:pagePath.startsWith("/") && !pagePath.startsWith("//") ? pagePath : "/",
+    pageUrl:safeSitePath(source.pageUrl),
+    landingPage:safeSitePath(source.landingPage),
+    referrer:safeReferrer(source.referrer),
+    firstVisitAt:cleanText(source.firstVisitAt, 80),
     utmSource:cleanText(source.utmSource, 100),
     utmMedium:cleanText(source.utmMedium, 100),
     utmCampaign:cleanText(source.utmCampaign, 160),
+    utmContent:cleanText(source.utmContent, 160),
+    utmTerm:cleanText(source.utmTerm, 160),
+    yclid:cleanText(source.yclid, 200),
+    ymClientId:cleanText(source.ymClientId, 40),
+    internalClientId:cleanText(source.internalClientId, 120),
+    sessionId:cleanText(source.sessionId, 120),
+    ...(firstTouch ? { firstTouch } : {}),
+    ...(lastNonDirect ? { lastNonDirect } : {}),
   };
+}
+
+function sanitizeCampaignTouch(value) {
+  if (!value || typeof value !== "object") return undefined;
+  const landingPage = safeSitePath(value.landingPage);
+  const capturedAt = cleanText(value.capturedAt, 80);
+  if (!landingPage || !capturedAt) return undefined;
+  return {
+    utm_source:cleanText(value.utm_source, 100),
+    utm_medium:cleanText(value.utm_medium, 100),
+    utm_campaign:cleanText(value.utm_campaign, 160),
+    utm_content:cleanText(value.utm_content, 160),
+    utm_term:cleanText(value.utm_term, 160),
+    yclid:cleanText(value.yclid, 200),
+    landingPage,
+    referrer:safeReferrer(value.referrer),
+    capturedAt,
+  };
+}
+
+function safeSitePath(value) {
+  const raw = cleanText(value, 1_000);
+  if (!raw) return "";
+  try {
+    const base = "https://7tool.ru";
+    const source = new URL(raw, base);
+    if (source.origin !== base) return "";
+    const safe = new URL(source.pathname, base);
+    for (const key of ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "yclid", "variant"]) {
+      const item = cleanText(source.searchParams.get(key), 200);
+      if (item) safe.searchParams.set(key, item);
+    }
+    return `${safe.pathname}${safe.search}`;
+  } catch {
+    return "";
+  }
+}
+
+function safeReferrer(value) {
+  const raw = cleanText(value, 1_000);
+  if (!raw) return "";
+  try {
+    const url = new URL(raw);
+    return /^(?:https?:)$/u.test(url.protocol) ? `${url.origin}${url.pathname}`.slice(0, 500) : "";
+  } catch {
+    return "";
+  }
 }
 
 function cleanText(value, maxLength) {

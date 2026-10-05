@@ -80,6 +80,7 @@ export function toProductionLeadPayload(request) {
     ? "one_click"
     : request.requestType === "selection" ? "equipment_selection" : items.length > 1 ? "cart_quote" : "product_quote";
   const checks = request.requestedChecks && typeof request.requestedChecks === "object" ? request.requestedChecks : {};
+  const attribution = productionAttribution(request.source);
   return {
     type,
     submissionId:`new-${request.id}`,
@@ -91,6 +92,7 @@ export function toProductionLeadPayload(request) {
     productId:clean(first.id, 120),
     variantId:clean(String(first.id || "").startsWith("variant:") ? String(first.id).slice(8) : "", 120),
     productTitle:clean(first.title, 500),
+    pageUrl:productionPageUrl(request.source),
     category:"new-storefront",
     intent:type,
     ctaKey:`new_${request.requestType}`,
@@ -108,9 +110,58 @@ export function toProductionLeadPayload(request) {
         utmSource:clean(request.source?.utmSource, 300),
         utmMedium:clean(request.source?.utmMedium, 300),
         utmCampaign:clean(request.source?.utmCampaign, 300),
+        utmContent:clean(request.source?.utmContent, 300),
+        utmTerm:clean(request.source?.utmTerm, 300),
+        yclid:clean(request.source?.yclid, 200),
       },
+      ...(attribution ? { attribution } : {}),
     },
   };
+}
+
+function productionPageUrl(source) {
+  const raw = clean(source?.pageUrl, 1_000) || clean(source?.pagePath, 500) || "/";
+  try {
+    const base = "https://7tool.ru";
+    const url = new URL(raw, base);
+    return url.origin === base ? url.toString() : `${base}/`;
+  } catch {
+    return "https://7tool.ru/";
+  }
+}
+
+function productionAttribution(source) {
+  if (!source || typeof source !== "object") return null;
+  const firstTouch = productionTouch(source.firstTouch);
+  const lastNonDirect = productionTouch(source.lastNonDirect);
+  const attribution = {
+    ...(firstTouch ? { firstTouch } : {}),
+    ...(lastNonDirect ? { lastNonDirect } : {}),
+    yclid:clean(source.yclid, 200),
+    ymClientId:clean(source.ymClientId, 40),
+    internalClientId:clean(source.internalClientId, 120),
+    sessionId:clean(source.sessionId, 120),
+    landingPage:clean(source.landingPage, 1_000),
+    referrer:clean(source.referrer, 500),
+    firstVisitAt:clean(source.firstVisitAt, 80),
+  };
+  return Object.values(attribution).some(Boolean) ? attribution : null;
+}
+
+function productionTouch(value) {
+  if (!value || typeof value !== "object") return null;
+  const touch = {
+    utm_source:clean(value.utm_source, 300),
+    utm_medium:clean(value.utm_medium, 300),
+    utm_campaign:clean(value.utm_campaign, 300),
+    utm_content:clean(value.utm_content, 300),
+    utm_term:clean(value.utm_term, 300),
+    yclid:clean(value.yclid, 200),
+    landingPage:clean(value.landingPage, 1_000),
+    referrer:clean(value.referrer, 500),
+    capturedAt:clean(value.capturedAt, 80),
+  };
+  return touch.landingPage && touch.capturedAt ? touch : null;
 }
 
 async function buildOutboundRequest(request, dataDir) {
