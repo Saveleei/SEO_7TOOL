@@ -2,17 +2,15 @@
 
 ## Executive summary
 
-Repository-side SEO foundation и backward compatibility завершены, но этот набор изменений ещё не опубликован. Каноническая архитектура сохраняет существующие `/c`, `/p` и `/brand` URL; все 18 544 URL из sitemap до cutover имеют проверяемое назначение. Preview aliases перенаправляются одним 308 с сохранением query. Добавлены brand/subcategory pages, retained lifecycle для 51 отсутствующего в feed товара, image sitemap data, CollectionPage schema, custom 404, юридические страницы/consent links, field CWV, рекламная атрибуция и URL coverage gate.
+SEO foundation и backward compatibility опубликованы на production 2026-10-05 релизом `7a24266`. Каноническая архитектура сохраняет существующие `/c`, `/p` и `/brand` URL; все 18 544 URL из sitemap до cutover имеют проверяемое назначение. Preview aliases перенаправляются одним 308 с сохранением query. Добавлены brand/subcategory pages, retained lifecycle для 51 отсутствующего в feed товара, image sitemap data, CollectionPage schema, custom 404, юридические страницы/consent links, field CWV, рекламная атрибуция и URL coverage gate.
 
 ## Post-launch audit — 2026-10-05
 
-- Production `https://7tool.ru/` доступен, HTTP и `www` переводятся на HTTPS non-www одним `301`.
-- Опубликованный sitemap содержит 4 384 URL вместо 18 544 URL в зафиксированном sitemap до cutover.
-- Из старого inventory в новом sitemap осталась только главная: отсутствуют 18 307 `/p`, 144 `/c`, 87 `/brand` и 5 static/legal URL.
-- Товарный источник не обязательно стал меньше: новая карта публикует главным образом одну страницу на товарную группу, тогда как старая содержала отдельные индексируемые URL вариантов/моделей.
-- Representative `/p`, `/c` и `/brand` на опубликованной версии возвращают `404`; `/product` redirect теряет query-параметры.
-- Публичный `/feeds/yandex-dynamic.xml` и `/image-sitemap.xml` возвращают `404`; текущий sitemap не содержит image entries.
-- Следовательно, repository fix готовит обязательный восстановительный релиз. До его выкладки поисковая и рекламная непрерывность на production не считается восстановленной.
+- Production `https://7tool.ru/` доступен, HTTP и `www` переводятся на HTTPS non-www; точный production host не имеет `noindex`.
+- Опубликованный sitemap содержит 19 330 canonical URL и 18 341 image entry против 18 544 URL в зафиксированном sitemap до cutover.
+- Representative `/p`, `/c` и `/brand` возвращают `200`; `/product` и `/catalog/category` дают один постоянный `308` с сохранением `yclid`, UTM и `variant`.
+- Из frozen legacy inventory вне sitemap остаются только `/kontakty` с одним `308`, две юридические страницы до подтверждения владельца и пять URL конфликтного G1031. Все они имеют безопасное назначение и не дают массовых 404.
+- Публичный `/feeds/yandex-dynamic.xml` возвращает `200`, но независимая сверка выявила устаревшие коммерческие данные; этот риск описан отдельно ниже.
 
 ## Critical problems found
 
@@ -45,6 +43,14 @@ Frozen inventory: 18 544 URL — 6 static, 23 category, 121 subcategory, 87 bran
 - Product images добавлены в sitemap entries.
 - Draft, P0, search, compare, test, API, redirects и параметры исключены.
 - Фиктивный `lastmod` не создаётся; split index не требуется при объёме менее 50 000 URL.
+
+## Yandex advertising feed
+
+- Добавлена команда `npm run feed:audit`, которая сверяет YML с тем же catalog snapshot, что использует storefront: offer/variant identity, canonical URL, price, availability, currency, category, image, name, brand and SKU.
+- Live feed на момент проверки содержит дату генерации `2026-09-11 07:15` и 3 993 offers. На bundled snapshot релиза найдено: 5 неизвестных offers, 50 price mismatches, 114 availability mismatches, 10 category mismatches, 82 image mismatches и 6 name mismatches.
+- 3 988 распознанных offers ведут на рабочие URL с `?variant=`, но не на self-canonical variant URLs. Сайт сохраняет эти переходы, однако следующая генерация должна сразу выдавать canonical `/p/...` URL.
+- Из 4 070 пригодных к рекламе variants bundled snapshot только 3 872 представлены корректно распознанными активными offers; 198 отсутствуют. Эти числа требуется повторить на текущем production snapshot перед переключением генератора.
+- Текущий feed пока остаётся legacy bridge: заменять его автоматически нельзя до подтверждения legal seller и проверки preview-фида на активном production catalog.
 
 ## Canonical / redirects
 
@@ -105,7 +111,7 @@ Product images включены в sitemap, UI использует responsive N
 - Public URL contract: exact variants, sitemap owners, one-hop redirects, internal-link aliases.
 - Technical SEO: host/indexing, canonical/noindex, sitemap, structured data, 404, conflict quarantine.
 - Analytics: canonical page views, Metrica guard, field CWV.
-- Full unit/integration suite: 381/381 passed after the final legal noindex guard. SEO coverage: 18 544/18 544 classified with zero routing gaps; production sitemap contains 19 334 canonical/indexable URLs and 18 323 image entries. `data:check`: `PASS_WITH_QUARANTINE`. Vinext production build passed. ESLint: 0 errors, 1 existing `no-img-element` warning for the Metrica noscript pixel.
+- Full unit/integration suite after adding the feed parity guard: 383/383. SEO coverage: 18 544/18 544 classified with zero routing gaps; live production sitemap contains 19 330 canonical/indexable URLs and 18 341 image entries. `data:check`: `PASS_WITH_QUARANTINE`. Vinext production build passed for the deployed release. Changed feed-audit files pass ESLint with 0 errors/warnings; the full release lint retained only the existing `no-img-element` warning for the Metrica noscript pixel.
 - Raw `tsc --noEmit` не является поддерживаемой командой проекта и падает на существующей Vinext/API typing baseline; поддерживаемый Vinext build проходит.
 
 ## Remaining risks
@@ -114,14 +120,14 @@ Product images включены в sitemap, UI использует responsive N
 2. 51 retained product lifecycle decisions.
 3. 803 P1 and 2 906 P2 affected products.
 4. Legal entity/NAP/privacy text confirmation.
-5. Non-atomic upstream JSON/SQLite publication, provenance and GTIN checksum.
-6. Нет production field data до запуска.
+5. Legacy advertising feed устарел относительно storefront и всё ещё зависит от процесса на `127.0.0.1:3108`.
+6. Non-atomic upstream JSON/SQLite publication, provenance and GTIN checksum.
+7. Production field data только начинает накапливаться после запуска.
 
 ## External actions required
 
 - Утвердить legal seller/NAP/ИНН/КПП/ОГРН и тексты privacy/consent.
 - Исправить G1031 в supplier source; rerun generator + checks.
-- Выбрать production cutover, включить indexing только для точного `7tool.ru`, проверить headers/robots/sitemap до DNS/proxy switch.
-- Опубликовать восстановительный релиз, затем выполнить fixture crawl, Webmaster/Search Console/Metrica/Merchant Center setup и rich-result validation.
-- До отключения legacy-процесса перенести генерацию `/feeds/yandex-dynamic.xml` из временного loopback bridge в основной storefront.
+- Повторно отправить sitemap и выполнить fixture crawl в Webmaster/Search Console, затем настроить Metrica/Merchant Center и проверить rich results.
+- Подтвердить legal seller для YML, сформировать preview-фид из активного production catalog, добиться `PASS` по `feed:audit` и только после этого заменить legacy bridge.
 - Наблюдать index coverage, redirects, CWV, P0 quarantine и organic conversions; rollback при отклонении guard metrics.

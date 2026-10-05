@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { proxyYandexAdvertisingFeed } from "../app/feeds/yandex-dynamic.xml/route.ts";
 import { validateQuoteRequest } from "../app/data/quoteRequestValidation.mjs";
+import { auditYandexFeed } from "../scripts/audit-yandex-feed.mjs";
 import { toProductionLeadPayload } from "../scripts/process-quote-intake-outbox.mjs";
 
 test("the Yandex feed bridge forwards only a successful XML response from the fixed loopback service", async () => {
@@ -21,6 +22,26 @@ test("the Yandex feed bridge forwards only a successful XML response from the fi
   const rejected = await proxyYandexAdvertisingFeed(async () => new Response("<html>not a feed</html>", { status:200, headers:{ "Content-Type":"text/html" } }));
   assert.equal(rejected.status, 503);
   assert.equal(rejected.headers.get("retry-after"), "300");
+});
+
+test("the Yandex feed audit detects stale commercial facts and non-canonical landing URLs", () => {
+  const snapshot = {
+    categories:[{ slug:"drills", title:"Сверлильные станки", published:true }],
+    products:[{
+      id:"G1", slug:"magnetic-drill", title:"Магнитный станок", brand:"LENZ", sku:"", category:"drills", images:["https://img.example/product.jpg"], draft:false,
+      variants:[{ id:"A1", sku:"MD-1", name:"Магнитный станок MD-1", price:100_000, available:true, params:[], images:[] }],
+    }],
+  };
+  const xml = `<?xml version="1.0"?><yml_catalog><shop><categories><category id="10">Сверлильные станки</category></categories><offers>
+    <offer id="k2-A1" available="false"><url>https://7tool.ru/p/magnetic-drill?variant=A1</url><price>99000</price><currencyId>RUR</currencyId><categoryId>10</categoryId><picture>https://img.example/product.jpg</picture><name>Магнитный станок MD-1</name><vendor>LENZ</vendor><vendorCode>MD-1</vendorCode><param name="Внутренний ID группы">G1</param><param name="ID варианта">A1</param></offer>
+  </offers></shop></yml_catalog>`;
+  const report = auditYandexFeed({ xml, snapshot });
+
+  assert.equal(report.status, "FAIL");
+  assert.equal(report.counts.price, 1);
+  assert.equal(report.counts.availability, 1);
+  assert.equal(report.counts.nonCanonicalUrls, 1);
+  assert.equal(report.mismatches.nonCanonicalUrls[0].expected, "https://7tool.ru/p/magnetic-drill");
 });
 
 test("validated quote attribution keeps Yandex click identity but strips unsafe URLs", () => {

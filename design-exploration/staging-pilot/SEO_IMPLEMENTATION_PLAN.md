@@ -23,6 +23,7 @@
 | preview aliases вели на отдельные owners | единые сигналы и отсутствие дублей | низкий | `proxy.ts`, internal links | one-hop redirect test |
 | не было image sitemap/CollectionPage/404 | discovery, semantics и правильный error UX | низкий | sitemap/routes/not-found | SEO tests + build |
 | analytics не распознавала `/c` и `/p` | восстановить conversion attribution | низкий | analytics + web vitals | analytics tests |
+| не было автоматической сверки рекламного YML с storefront | обнаруживать stale price/availability/URL до публикации | низкий | feed audit script + advertising tests | `npm run feed:audit -- <url-or-file>` |
 
 ## P1/P2 backlog
 
@@ -34,3 +35,4 @@
 6. Добавить honest lastmod после появления trustworthy update timestamp; sitemap index — только при росте.
 7. Field CWV внедрён; first-touch attribution и revenue dashboard требуют consent/product decisions.
 8. Вернуть в feed или формально снять с продажи 51 retained legacy item.
+9. Подтвердить legal seller, пересобрать Yandex feed из активного catalog snapshot и переключать route только после нулевых critical mismatches.

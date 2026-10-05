@@ -22,6 +22,9 @@
 - 2026-10-05: privacy and consent pages remain accessible but are noindex/outside sitemap until owner verification.
 - 2026-10-05: the active production catalog exposed duplicate offer IDs between legacy standalone pages and newer grouped pages. Blocking every participant would have removed 69 historical URLs from the production sitemap. The final rule preserves every owner present in the frozen legacy sitemap, preserves one unambiguous standalone owner when no legacy owner exists, and quarantines only new/ambiguous duplicates. The real `G1031` title/spec conflict remains quarantined.
 - 2026-10-05: deployed and publicly accepted commit `7a2426615256badd7d0b1be04b23d170165a286a` as the stable `7tool-prod` process on port `3260`.
+- 2026-10-05: added a deterministic Yandex feed parity audit covering offer identity, canonical URL, price, availability, currency, category, image, name, vendor and SKU.
+- 2026-10-05: audited the live 3,993-offer XML against the bundled storefront snapshot. The feed is dated `2026-09-11 07:15` and fails parity: 5 unknown offers, 50 price, 114 availability and 10 category mismatches; 3,988 recognized links are non-canonical `?variant=` URLs. Production was not changed.
+- 2026-10-05: after the feed audit addition, the complete local suite passes 383/383 and the changed audit/test files pass ESLint with zero findings.
 
 ## Production release
 
@@ -47,3 +50,4 @@ Nginx still targets port `3260`, so the narrow rollback is to delete only `7tool
 - The advertising feed bridge depends on the legacy service continuing to listen on `127.0.0.1:3108`.
 - Final legal entity/NAP and privacy/consent wording remain owner-verification gates and must not be guessed; those pages remain accessible but noindex/outside sitemap.
 - Yandex Direct campaign final URLs were not edited in the advertising account. The site now accepts old and preview-style links safely, preserves click parameters, and exposes the stable feed URL; account-level destination cleanup remains a separate authenticated operation.
+- The legacy advertising feed must not be replaced until the legal seller is confirmed and a preview generated from the active production catalog passes `feed:audit`; the current route remains fail-closed behind the legacy loopback bridge.
