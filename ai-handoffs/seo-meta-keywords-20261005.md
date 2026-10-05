@@ -8,6 +8,7 @@
 - Completion criteria: category, subcategory, brand, product, homepage, and catalog metadata use bounded page-specific keyword sets; non-indexable URL states expose no keywords; parent drilling-machine keywords exclude intents owned by dedicated subcategories; focused tests, full tests, lint, and production build pass.
 - Constraints: do not deploy, publish feeds, run production migrations, change credentials, or modify live Beget services without separate explicit approval.
 - Status: complete; verified release candidate, not deployed.
+- Commit: `e9e405b` (`feat: add controlled SEO keyword ownership`).
 
 ## Ownership rules
 
