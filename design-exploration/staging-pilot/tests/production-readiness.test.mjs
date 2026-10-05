@@ -163,6 +163,8 @@ test("production entrypoints enforce preflight, exec Vinext directly and contain
   ]);
   assert.equal(packageJson.scripts["validate:production"], "node scripts/validate-production-config.mjs");
   assert.equal(packageJson.scripts["start:production"], "sh scripts/start-production.sh");
+  assert.equal(packageJson.devDependencies.vinext, "1.0.0-beta.7");
+  assert.equal(packageJson.devDependencies["@vitejs/plugin-rsc"], "0.5.34");
   assert.match(ecosystem, /script: "scripts\/start-production\.sh"/u);
   assert.match(ecosystem, /interpreter: "\/bin\/sh"/u);
   assert.match(ecosystem, /max_memory_restart: "1280M"/u);
