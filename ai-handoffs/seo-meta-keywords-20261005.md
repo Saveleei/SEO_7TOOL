@@ -6,8 +6,8 @@
 - Scope: `design-exploration/staging-pilot/` metadata generation for indexable commercial pages and focused SEO regression tests.
 - Goal: add a controlled `meta keywords` signal for Yandex without keyword stuffing, query-string leakage, duplicate phrases, or parent/child category cannibalization.
 - Completion criteria: category, subcategory, brand, product, homepage, and catalog metadata use bounded page-specific keyword sets; non-indexable URL states expose no keywords; parent drilling-machine keywords exclude intents owned by dedicated subcategories; focused tests, full tests, lint, and production build pass.
-- Constraints: do not deploy, publish feeds, run production migrations, change credentials, or modify live Beget services without separate explicit approval.
-- Status: complete; verified release candidate, not deployed.
+- Constraints: do not publish feeds, run production migrations, change credentials, DNS, advertising settings, or unrelated Beget services. Production deployment was performed only after the user's explicit approval on 2026-10-05.
+- Status: complete and deployed to `7tool.ru`.
 - Commit: `e9e405b` (`feat: add controlled SEO keyword ownership`).
 
 ## Ownership rules
@@ -48,5 +48,20 @@
 
 ## Release note
 
-- No production, Beget, feed, DNS, credential, or advertising setting was changed.
-- Deployment requires a separate explicit approval after review of this verified commit.
+- Explicit user authorization: `Публикуй SEO keywords на 7tool.ru`.
+- Deployed source commit: `85bc358` (implementation `e9e405b`).
+- Active immutable release: `/var/www/7tool-release-20261005-seo-keywords-85bc358/design-exploration/staging-pilot`.
+- Preserved rollback: `/var/www/7tool-release-20261005-postlaunch-seo-7a24266/design-exploration/staging-pilot`.
+- Release archives were verified before extraction:
+  - storefront archive SHA-256: `2b4ffbe00ce6e773fde24714c74f7771bef550c817aa8e6ffb0669a2d714a992`;
+  - supporting `7tool-source` archive SHA-256: `540d7e6f2e777f35e709824f6dcff90ab4ccc7be40bfe2a2f7b7f5d76337faf2`.
+- Server gates: production preflight `18/18`, focused SEO tests `17/17`, clean full suite `390/390`, ESLint zero errors with one pre-existing Yandex Metrika warning, Vinext production build passed against the active production catalog.
+- One initial full-suite invocation incorrectly inherited production catalog/settings paths and exposed expected frozen-fixture count drift; no traffic had been switched. The suite was rerun in its required clean test environment and passed `390/390` before cutover.
+- The candidate on `127.0.0.1:3261` passed read-only checks for homepage, catalog, drilling category, magnetic subcategory, exact product, comparison, robots, sitemap, Yandex feed, exact metadata ownership, noindex suppression, and anonymous staff redirect.
+- Rollback-safe PM2 cutover succeeded on the existing port `3260`; `7tool-prod` points to the new immutable release with zero restarts. Nginx remained unchanged: storefront/static traffic stays on `3260`, and the exact legacy `/api/lead` adapter remains on `3108`.
+- Public HTTPS smoke repeated the same route and exact-metadata assertions successfully. The filtered drilling URL remains `noindex, follow, nocache` and contains no keywords tag.
+- No feed publication, DNS, Nginx, credential, cron, migration, advertising, Yandex Direct, or customer-form change was made. No external lead was submitted.
+
+## Known independent follow-up
+
+- A continuity spot check found that `/product/lenz-steyr-35` is intercepted by the pre-existing generic `/product/* → /p/*` proxy rule and therefore ends at the non-existent `/p/lenz-steyr-35` instead of the intended exact product slug. The relevant proxy and legacy route are byte-for-byte unchanged between the rollback commit `7a24266` and this release, so the keywords deployment did not introduce it. `/catalog/sverlenie` still resolves through its redirect to `200`. Fix the product alias as a separate reviewed SEO-continuity change.
