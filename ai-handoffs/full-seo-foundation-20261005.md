@@ -26,7 +26,7 @@
 
 ## Commit
 
-Будет заполнен после завершения.
+- Implementation commit: `50fcf5411d23ba84715e77450f1b45e7c32ad2f1` (`feat: add SEO data-quality foundation`).
 
 ## Review focus
 
