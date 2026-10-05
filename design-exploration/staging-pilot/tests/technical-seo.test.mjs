@@ -39,12 +39,12 @@ test("public metadata uses a clean canonical and noindexes parameterized listing
     const clean = createPublicMetadata({ title:"Каталог", description:"Описание", path:"/catalog?utm_source=test" });
     assert.equal(clean.alternates?.canonical, "https://7tool.ru/catalog");
     assert.equal(clean.robots?.index, true);
-    const duplicate = createPublicMetadata({ title:"Фильтр", description:"Описание", path:"/catalog/category/borfrezy", indexable:false });
+    const duplicate = createPublicMetadata({ title:"Фильтр", description:"Описание", path:"/c/borfrezy", indexable:false });
     assert.equal(duplicate.robots?.index, false);
     assert.equal(duplicate.robots?.follow, true);
     assert.equal(hasSearchParameters({ sort:"relevance", q:"" }), true);
     assert.equal(hasSearchParameters({ q:"" }), false);
-    assert.equal(canonicalUrl("/product/example?variant=1#specs"), "https://7tool.ru/product/example");
+    assert.equal(canonicalUrl("/p/example?variant=1#specs"), "https://7tool.ru/p/example");
   } finally {
     restoreEnv("SEO_INDEXING_ENABLED", previous);
   }
@@ -64,8 +64,8 @@ test("robots and sitemap stay empty by default and expose only canonical public 
     assert.ok(urls.includes("https://7tool.ru/"));
     assert.ok(urls.includes("https://7tool.ru/catalog"));
     assert.ok(urls.includes("https://7tool.ru/catalog/task/drilling"));
-    assert.ok(urls.includes("https://7tool.ru/catalog/category/stanki-sverlilnye"));
-    assert.ok(urls.includes("https://7tool.ru/product/magnitnyy-sverlilnyy-stanok-lenz-steyr-35"));
+    assert.ok(urls.includes("https://7tool.ru/c/stanki-sverlilnye"));
+    assert.ok(urls.includes("https://7tool.ru/p/magnitnyy-sverlilnyy-stanok-lenz-steyr-35"));
     assert.equal(new Set(urls).size, urls.length);
     assert.equal(urls.some((url) => /[?#]/u.test(url)), false);
     assert.equal(urls.some((url) => /\/(?:test|search|compare|api)(?:\/|$)/u.test(new URL(url).pathname)), false);
@@ -88,9 +88,21 @@ test("structured data is escaped and product offers are gated by verified availa
   assert.match(product, /"@type":"Product"/u);
   assert.match(product, /primaryShipping\.available/u);
   assert.match(product, /!dataConflict && <JsonLd/u);
-  assert.match(product, /indexable:Boolean\(product\) && !dataConflict/u);
+  assert.match(product, /indexable:Boolean\(product \|\| retainedProduct\) && !dataConflict/u);
   assert.match(product, /product-data-conflict/u);
   assert.match(product, /"https:\/\/schema\.org\/InStock"/u);
+});
+
+test("canonical categories expose CollectionPage data and the storefront has a real custom 404", async () => {
+  const [category, notFound] = await Promise.all([
+    readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/not-found.tsx", import.meta.url), "utf8"),
+  ]);
+  assert.match(category, /"@type":"CollectionPage"/u);
+  assert.match(category, /"@type":"ItemList"/u);
+  assert.match(category, /!hasSearchParameters\(rawSearchParams\)/u);
+  assert.match(notFound, /Ошибка 404/u);
+  assert.match(notFound, /robots:\{ index:false, follow:true \}/u);
 });
 
 test("sitemap excludes products blocked by catalog P0 findings", async () => {

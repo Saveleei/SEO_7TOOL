@@ -112,7 +112,7 @@ function buildScenarioAudit() {
       const minimumFacet = rule.mode === "range" ? technicalFacets.find((candidate) => candidate.keyword === rule.minimumKeyword) : undefined;
       for (const option of points) {
         const url = buildCategorySelectionUrl({
-          pathname:`/catalog/category/${slug}`,
+          pathname:`/c/${slug}`,
           selections:[{ key:facet.key, value:option.value, mode:rule.mode, minimumFacetKey:minimumFacet?.key }],
         });
         const result = getFeedCategoryPage(slug, queryFromSelectionUrl(url));

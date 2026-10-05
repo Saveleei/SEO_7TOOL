@@ -142,7 +142,7 @@ function inferQuoteItemAnalytics(item: RequestItem): QuoteItemAnalytics {
   const category = window.location.pathname.match(/^\/catalog\/category\/([^/]+)/u)?.[1];
   return {
     placement:category ? "category_product_action" : "product_action",
-    page_type:category ? "category" : window.location.pathname.startsWith("/product/") ? "product" : "other",
+    page_type:category ? "category" : window.location.pathname.startsWith("/p/") ? "product" : "other",
     product_id:productId,
     variant_id:item.id.startsWith("variant:") ? item.id.slice("variant:".length) : undefined,
     category,
@@ -269,7 +269,7 @@ function RequestCartDrawer() {
           <label className="request-cart-wide">Комментарий к закупке<textarea name="comment" rows={4} placeholder="Требуемый срок, условия поставки, режим работы или другие требования" /></label>
           <fieldset className="request-cart-wide request-cart-options"><legend>Что проверить и включить в ответ</legend><label><input name="check_availability" type="checkbox" defaultChecked /> Остаток и ближайшую дату отгрузки</label><label><input name="check_set" type="checkbox" defaultChecked /> Комплектность и совместимость</label><label><input name="check_docs" type="checkbox" defaultChecked /> Паспорт, сертификаты и гарантию</label></fieldset>
           <label className="request-cart-wide request-cart-check"><input name="alternatives" type="checkbox" defaultChecked /> Можно предложить подходящий аналог, если он выгоднее или доступен раньше</label>
-          <label className="request-cart-wide request-cart-check"><input name="consent" type="checkbox" defaultChecked required /> Я согласен на обработку персональных данных</label>
+          <label className="request-cart-wide request-cart-check"><input name="consent" type="checkbox" defaultChecked required /> <span>Я согласен с <a href="/soglasie-na-obrabotku" target="_blank">обработкой персональных данных</a></span></label>
           {formError && <div className="request-cart-wide request-cart-form-error" role="alert">{formError}</div>}
           <div className="request-cart-wide request-cart-submit"><button type="submit" disabled={!items.length || submitting}>{submitting ? "Надёжно сохраняем…" : "Сохранить запрос КП"}</button><small>Сначала надёжно сохраним заявку и присвоим номер. Менеджер проверит состав и условия поставки.</small></div>
         </form>

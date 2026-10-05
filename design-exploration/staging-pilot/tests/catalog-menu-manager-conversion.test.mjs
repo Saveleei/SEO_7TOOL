@@ -32,7 +32,7 @@ test("catalog navigation keeps products first and adds a factual manager route b
 test("manager messenger analytics keep placement context without personal data", () => {
   const detail = buildContactClickDetail({
     href:"https://t.me/saveleei",
-    pathname:"/catalog/category/stanki-sverlilnye",
+    pathname:"/c/stanki-sverlilnye",
     context:{ placement:"catalog_menu_manager", category:"stanki-sverlilnye" },
   });
 

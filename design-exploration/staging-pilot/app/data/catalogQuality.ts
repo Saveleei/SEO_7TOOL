@@ -466,7 +466,7 @@ export function getCatalogEnrichmentQueue(report: CatalogQualityReport = getCata
       categorySlug:first.categorySlug,
       categoryTitle:first.categoryTitle,
       familyLabel:first.familyLabel ?? first.scopeLabel,
-      scopeHref:first.scopeHref ?? `/catalog/category/${first.categorySlug}`,
+      scopeHref:first.scopeHref ?? `/c/${first.categorySlug}`,
       queueHref:`/test/catalog-quality?priority=p1&category=${categoryParam}&issue=not_filterable`,
       productCount:new Set(entries.map((entry) => entry.productId)).size,
       missingParameters,
@@ -529,7 +529,7 @@ function buildProductSelectionProfiles(publishedCategories: FeedCategory[], publ
         mode,
         familyId:shortcut.family,
         familyLabel:shortcut.label,
-        scopeHref:`/catalog/category/${category.slug}?family=${encodeURIComponent(shortcut.family)}`,
+        scopeHref:`/c/${category.slug}?family=${encodeURIComponent(shortcut.family)}`,
         scopeLabel:shortcut.label,
         facets,
         keywords:facets.map((facet) => facet.keyword).filter(Boolean),
@@ -569,7 +569,7 @@ function structuralSelectionTarget(slug: string, product: FeedProduct): Structur
       query:{ productType, segment, subsegment },
       selectionMode:subsegmentShortcut.selectionMode ?? segmentShortcut.selectionMode ?? profile.selectionMode,
       promotedFacetKeywords:subsegmentShortcut.promotedFacetKeywords ?? segmentShortcut.promotedFacetKeywords,
-      scopeHref:`/catalog/category/${slug}?segment=${encodeURIComponent(segment)}&drill_type=${encodeURIComponent(subsegment)}`,
+      scopeHref:`/c/${slug}?segment=${encodeURIComponent(segment)}&drill_type=${encodeURIComponent(subsegment)}`,
       scopeLabel:`${segmentShortcut.label} · ${subsegmentShortcut.label}`,
     };
   }
@@ -578,7 +578,7 @@ function structuralSelectionTarget(slug: string, product: FeedProduct): Structur
       query:{ productType, segment },
       selectionMode:segmentShortcut.selectionMode ?? profile.selectionMode,
       promotedFacetKeywords:segmentShortcut.promotedFacetKeywords,
-      scopeHref:`/catalog/category/${slug}?segment=${encodeURIComponent(segment)}`,
+      scopeHref:`/c/${slug}?segment=${encodeURIComponent(segment)}`,
       scopeLabel:segmentShortcut.label,
     };
   }
@@ -588,7 +588,7 @@ function structuralSelectionTarget(slug: string, product: FeedProduct): Structur
       query:{ productType },
       selectionMode:productTypeShortcut.selectionMode ?? profile.selectionMode,
       promotedFacetKeywords:productTypeShortcut.promotedFacetKeywords,
-      scopeHref:`/catalog/category/${slug}?kind=${encodeURIComponent(productType)}`,
+      scopeHref:`/c/${slug}?kind=${encodeURIComponent(productType)}`,
       scopeLabel:productTypeShortcut.label,
     };
   }

@@ -13,7 +13,7 @@
 | `segment`, `drill_type`, `family` | structural filters | guided selection | noindex до curated landing | clean category | follow |
 | `f_*` | facet | discrete specs | noindex | clean category | follow, не в sitemap |
 | `min_*`, `max_*` | range | numeric specs | noindex | clean category | follow, не в sitemap |
-| `variant` | product execution | exact selection | noindex | base product | follow |
+| `variant` | legacy product execution selector | exact selection for old/query links | noindex | exact `/p/[variant-slug]` when resolvable, otherwise base product | follow |
 | `utm_*`, `gclid`, `yclid`, `from` | tracking | attribution | noindex by parameter presence | clean pathname | ignore for SEO |
 
 ## Яндекс Вебмастер

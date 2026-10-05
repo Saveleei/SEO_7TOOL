@@ -15,6 +15,7 @@ import { getRuntimeCatalogProductMediaUrl } from "./catalogProductMediaStore.ts"
 import { applyRuntimeCatalogParameterOverrides, applyRuntimeCatalogParameterOverridesToProducts, getRuntimeCatalogParameterOverrideRevision } from "./catalogParameterOverrideStore.ts";
 import { getFeedDecisionParameters } from "./feedDecisionParameters.mjs";
 import { applySupplierImageProxy } from "./supplierImageProxy.mjs";
+import { publicProductPath, publicProductSlug } from "./publicUrls.ts";
 
 export type FeedParameter = {
   name: string;
@@ -235,6 +236,7 @@ const categoriesBySlug = new Map(
 
 const productsByCategory = new Map<string, FeedProduct[]>();
 const productsBySlug = new Map<string, FeedProduct>();
+const productsByPublicSlug = new Map<string, { product: FeedProduct; variantId?: string } | null>();
 const productsById = new Map<string, FeedProduct>();
 const variantsById = new Map<string, { product: FeedProduct; variant: FeedVariant }>();
 const categoryFacetCache = new Map<string, CachedFeedFacet[]>();
@@ -268,10 +270,34 @@ for (const product of feedSnapshot.products) {
   if (product.draft || !categoriesBySlug.has(product.category)) continue;
   productsById.set(product.id, product);
   productsBySlug.set(product.slug, product);
+  registerPublicProductSlug(product.slug, { product });
+  if (product.variants.length > 1) {
+    for (const variant of product.variants) registerPublicProductSlug(publicProductSlug(product, variant), { product, variantId:variant.id });
+  }
   for (const variant of product.variants) variantsById.set(variant.id, { product, variant });
   const categoryProducts = productsByCategory.get(product.category) ?? [];
   categoryProducts.push(product);
   productsByCategory.set(product.category, categoryProducts);
+}
+
+function registerPublicProductSlug(slug: string, route: { product: FeedProduct; variantId?: string }): void {
+  const current = productsByPublicSlug.get(slug);
+  if (current === undefined) {
+    productsByPublicSlug.set(slug, route);
+    return;
+  }
+  if (current === null || current.product.id !== route.product.id) {
+    productsByPublicSlug.set(slug, null);
+    return;
+  }
+  // The historical contract can collapse a variant SKU into its group slug.
+  // The live resolver has always preferred the group URL in this ambiguity.
+  if (!current.variantId) return;
+  if (!route.variantId) {
+    productsByPublicSlug.set(slug, route);
+    return;
+  }
+  if (current.variantId !== route.variantId) productsByPublicSlug.set(slug, null);
 }
 
 export function getFeedCategory(slug: string): FeedCategory | undefined {
@@ -554,6 +580,13 @@ export function getFeedProductBySlug(slug: string): FeedProduct | undefined {
   return product ? applyRuntimeCatalogParameterOverrides(product) : undefined;
 }
 
+export function getFeedProductRouteBySlug(slug: string): { product: FeedProduct; variant?: FeedVariant } | undefined {
+  const route = productsByPublicSlug.get(slug);
+  if (!route) return undefined;
+  const product = applyRuntimeCatalogParameterOverrides(route.product);
+  return { product, variant:route.variantId ? product.variants.find((variant) => variant.id === route.variantId) : undefined };
+}
+
 export function getFeedProductVariantById(id: string): { product: FeedProduct; variant: FeedVariant } | undefined {
   const found = variantsById.get(id);
   if (!found) return undefined;
@@ -632,7 +665,7 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
         title:variant.name ?? variant.sku,
         price:formatFeedPrice(variant.price) ?? "Цена по запросу",
         image:variant.images?.find(Boolean) ?? productImage,
-        href:`/product/${product.slug}?variant=${encodeURIComponent(variant.id)}#variants`,
+        href:`${publicProductPath(product, variant)}#variants`,
         specs:getFeedVariantSpecs(product, variant),
         matchesSelection,
         available:shippingPromise.available,

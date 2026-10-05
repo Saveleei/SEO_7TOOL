@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { GET as getProductVariants } from "../app/api/catalog-product-variants/route.ts";
 import { getFeedVariantSpecs } from "../app/data/feedCatalog.ts";
+import { publicProductPath } from "../app/data/publicUrls.ts";
 import { CATEGORY_VARIANT_PRESENTATION_RULES, getProductVariantChoices, getVariantChoicePresentation, selectDefaultVariant, sortVariantsForChoice } from "../app/data/variantPresentation.ts";
 
 const snapshot = JSON.parse(await readFile(new URL("../../../7tool-source/src/lib/products.json", import.meta.url), "utf8"));
@@ -192,7 +193,9 @@ test("magnetic drill cards lead with annular capacity and name twist-drill capac
 test("every variant deep link preserves the exact selection and returns to the selector", () => {
   for (const product of snapshot.products) {
     for (const choice of getProductVariantChoices(product)) {
-      assert.equal(choice.href, `/product/${product.slug}?variant=${encodeURIComponent(choice.id)}#variants`);
+      const variant = product.variants.find((entry) => entry.id === choice.id);
+      assert.ok(variant);
+      assert.equal(choice.href, `${publicProductPath(product, variant)}#variants`);
     }
   }
 });

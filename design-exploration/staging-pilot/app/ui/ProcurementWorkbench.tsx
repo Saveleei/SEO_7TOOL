@@ -152,7 +152,7 @@ export function ProcurementWorkbench({ initialTask, initialTool }: { initialTask
         <header><span>Шаг 2 · передать менеджеру</span><h4>Куда перезвонить по задаче?</h4><p>После отправки запрос получит номер и появится в журнале 7TOOL. Описание выше повторно вводить не нужно.</p></header>
         <label>Телефон для связи <span>*</span><input ref={phoneInputRef} name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+7 999 000-00-00" required /></label>
         <label>Имя или компания<input name="company" type="text" autoComplete="organization" maxLength={160} placeholder="Необязательно" /></label>
-        <label className="workbench-contact-consent"><input name="consent" type="checkbox" defaultChecked required /> Я согласен на обработку персональных данных</label>
+        <label className="workbench-contact-consent"><input name="consent" type="checkbox" defaultChecked required /> <span>Я согласен с <a href="/soglasie-na-obrabotku" target="_blank">обработкой персональных данных</a></span></label>
         {formError && <div className="workbench-contact-error" role="alert">{formError}</div>}
         <div className="workbench-contact-submit"><button type="submit" disabled={submitting}>{submitting ? "Сохраняем задачу…" : "Отправить задачу менеджеру"}</button><small>Задача надёжно сохранится с номером заявки и будет доступна менеджеру вместе с выбранными параметрами.</small></div>
       </form>}

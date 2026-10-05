@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumbs } from "../../../ui/Breadcrumbs";
+import { JsonLd } from "../../../ui/JsonLd";
 import { BurrSelectionAssistant } from "../../../ui/BurrSelectionAssistant";
 import { BurrShapeMark } from "../../../ui/BurrShapeMark";
 import { CategorySelectionAssistant } from "../../../ui/CategorySelectionAssistant";
@@ -24,7 +25,8 @@ import { homepageAssetUrl } from "../../../data/homepageContentModel";
 import { getHomepageContentSettings } from "../../../data/homepageContentStore";
 import { getProductionSubcategory } from "../../../data/productionCategoryGroups";
 import { getShippingRuntimeDiagnostic } from "../../../data/shippingRuntimeSettings.mjs";
-import { createPublicMetadata, hasSearchParameters } from "../../../data/seo";
+import { canonicalUrl, createPublicMetadata, hasSearchParameters } from "../../../data/seo";
+import { publicProductPath } from "../../../data/publicUrls";
 
 type SearchValue = string | string[] | undefined;
 type SearchParams = Record<string, SearchValue>;
@@ -68,7 +70,7 @@ export async function generateMetadata({ params, searchParams }: RouteProps): Pr
   const category = getFeedCategory(slug);
   const title = category?.h1 ?? entry?.subcategory.label;
   const description = category?.intro ?? (entry ? `${entry.subcategory.label}: инженерный подбор, характеристики, ориентиры цены и подтверждение условий поставки.` : "Категория промышленного оборудования 7TOOL.");
-  return createPublicMetadata({ title:title ? `${title} — купить с подбором и доставкой | 7TOOL` : "Категория оборудования — 7TOOL", description, path:`/catalog/category/${slug}`, indexable:Boolean(entry && category) && !hasSearchParameters(rawSearchParams), image:entry?.subcategory.image });
+  return createPublicMetadata({ title:title ? `${title} — купить с подбором и доставкой | 7TOOL` : "Категория оборудования — 7TOOL", description, path:`/c/${slug}`, indexable:Boolean(entry && category) && !hasSearchParameters(rawSearchParams), image:entry?.subcategory.image });
 }
 
 export default async function SubcategoryPage({ params, searchParams }: RouteProps) {
@@ -228,13 +230,13 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
       : shortcut.family ? `family=${encodeURIComponent(shortcut.family)}`
       : shortcut.productType ? `kind=${encodeURIComponent(shortcut.productType)}`
       : `segment=${encodeURIComponent(shortcut.segment ?? "")}`;
-    return `/catalog/category/${slug}?${parameter}#products`;
+    return `/c/${slug}?${parameter}#products`;
   };
   const subsegmentShortcuts = (activeShortcut?.subsegments ?? []).map((item) => ({
     ...item,
     count:getFeedCategoryProductCountForQuery(slug, { productType, segment, subsegment:item.id }),
   })).filter((item) => item.count > 0);
-  const assortmentAllHref = `/catalog/category/${slug}#products`;
+  const assortmentAllHref = `/c/${slug}#products`;
   const assortmentOverviewActive = !search && productType === defaultProductType && !segment && !subsegment && !family;
   const categoryHeroCount = family
     ? getFeedCategoryProductCountForQuery(slug, { productType, family })
@@ -245,8 +247,26 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     : productType
     ? getFeedCategoryProductCountForQuery(slug, { productType })
     : feedCategory?.count ?? result.total;
+  const collectionStructuredData = !hasSearchParameters(rawSearchParams) ? {
+    "@context":"https://schema.org",
+    "@type":"CollectionPage",
+    "@id":`${canonicalUrl(`/c/${slug}`)}#collection`,
+    name:categoryTitle,
+    description:categoryIntro,
+    url:canonicalUrl(`/c/${slug}`),
+    mainEntity:{
+      "@type":"ItemList",
+      numberOfItems:result.total,
+      itemListElement:result.products.map((product, index) => ({
+        "@type":"ListItem",
+        position:index + 1,
+        name:product.title,
+        url:canonicalUrl(publicProductPath(product)),
+      })),
+    },
+  } : null;
 
-  return <div className="site-shell category-page-shell"><PilotHeader /><main className="inner-page">
+  return <div className="site-shell category-page-shell">{collectionStructuredData && <JsonLd data={collectionStructuredData} />}<PilotHeader /><main className="inner-page">
     <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Каталог", href:"/catalog" }, { label:group.title, href:group.href }, { label:subcategory.label }]} /></div>
 
     <section className="page-hero page-hero--category"><div className="container page-hero-grid"><div className="category-hero-copy">
@@ -276,7 +296,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
       return <Link className={active ? "active" : undefined} aria-current={active ? "page" : undefined} href={assortmentShortcutHref(shortcut)} key={shortcut.query ?? shortcut.family ?? shortcut.productType ?? shortcut.segment}>{shortcut.image && <span className="category-assortment-shortcut-media"><HomepageCategoryMedia src={shortcut.image} alt="" sizes="(max-width: 760px) 62px, 74px" /></span>}<span><b>{shortcut.label}</b><small>{shortcut.copy}</small></span><em>{shortcut.count.toLocaleString("ru-RU")}</em></Link>;
     })}</div></details>}</div></nav>}
 
-    {subsegmentShortcuts.length > 0 && segment && <nav className="category-type-navigation" aria-label={`Виды раздела «${activeShortcut?.label ?? "Сверлильные станки"}»`}><div className="container"><header><span>Виды оборудования</span><b>Уточните исполнение — или смотрите весь раздел</b></header><div><Link className={!subsegment ? "active" : undefined} aria-current={!subsegment ? "page" : undefined} href={`/catalog/category/${slug}?segment=${encodeURIComponent(segment)}#products`}><b>Все виды</b><small>{getFeedCategoryProductCountForQuery(slug, { productType, segment }).toLocaleString("ru-RU")}</small></Link>{subsegmentShortcuts.map((item) => <Link className={item.id === subsegment ? "active" : undefined} aria-current={item.id === subsegment ? "page" : undefined} href={`/catalog/category/${slug}?segment=${encodeURIComponent(segment)}&drill_type=${encodeURIComponent(item.id)}#products`} key={item.id}><span><b>{item.label}</b><small>{item.copy}</small></span><em>{item.count.toLocaleString("ru-RU")}</em></Link>)}</div></div></nav>}
+    {subsegmentShortcuts.length > 0 && segment && <nav className="category-type-navigation" aria-label={`Виды раздела «${activeShortcut?.label ?? "Сверлильные станки"}»`}><div className="container"><header><span>Виды оборудования</span><b>Уточните исполнение — или смотрите весь раздел</b></header><div><Link className={!subsegment ? "active" : undefined} aria-current={!subsegment ? "page" : undefined} href={`/c/${slug}?segment=${encodeURIComponent(segment)}#products`}><b>Все виды</b><small>{getFeedCategoryProductCountForQuery(slug, { productType, segment }).toLocaleString("ru-RU")}</small></Link>{subsegmentShortcuts.map((item) => <Link className={item.id === subsegment ? "active" : undefined} aria-current={item.id === subsegment ? "page" : undefined} href={`/c/${slug}?segment=${encodeURIComponent(segment)}&drill_type=${encodeURIComponent(item.id)}#products`} key={item.id}><span><b>{item.label}</b><small>{item.copy}</small></span><em>{item.count.toLocaleString("ru-RU")}</em></Link>)}</div></div></nav>}
 
     {scopeGuidance && <section className="drill-scope-guide" aria-label={`Как выбирать: ${categoryTitle}`}><div className="container"><div><span>Задача</span><b>{scopeGuidance.bestFor}</b></div><div><span>Критичное условие</span><b>{scopeGuidance.checkFirst}</b></div><div><span>Главные параметры</span><b>{scopeGuidance.compareBy}</b></div></div></section>}
 
@@ -353,10 +373,10 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
 
       <div className="feed-catalog-layout">
         <AutoApplyFilterPanel
-          action={`/catalog/category/${slug}`}
+          action={`/c/${slug}`}
           activeFilterCount={activeFilterCount}
           resultCount={result.total}
-          resetHref={`/catalog/category/${slug}#products`}
+          resetHref={`/c/${slug}#products`}
           slug={slug}
         >
             {requestedView && <input type="hidden" name="view" value={requestedView} />}
@@ -378,7 +398,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
         <div className="feed-results" id="feed-results-list">
           <div className="feed-results-toolbar"><p><b>{result.total.toLocaleString("ru-RU")}</b> {pluralizeProductGroups(result.total)}{result.total > 0 && <span> · показаны {start}–{end}</span>}</p><div className="feed-toolbar-controls">
             {canUseTable && <nav className="feed-view-switch" aria-label="Вид списка"><a className={view === "table" ? "active" : undefined} href={categoryUrl(slug, rawSearchParams, { setKey:"view", setValue:"table" })}>Таблица</a><a className={view === "cards" ? "active" : undefined} href={categoryUrl(slug, rawSearchParams, { setKey:"view", setValue:"cards" })}>Карточки</a></nav>}
-            <AutoApplySortForm action={`/catalog/category/${slug}`}>
+            <AutoApplySortForm action={`/c/${slug}`}>
               {requestedView && <input type="hidden" name="view" value={requestedView} />}
               {requestedProductType && <input type="hidden" name="kind" value={requestedProductType} />}
               {segment && <input type="hidden" name="segment" value={segment} />}
@@ -394,7 +414,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
           </div></div>
 
           {activeFilterCount > 0 && <nav className="feed-applied-filters" aria-label="Применённые фильтры"><span>Вы выбрали:</span>
-            {productTypeChanged && <PromotedFilterLink href={`/catalog/category/${slug}#products`}>Раздел: оснастка и опции<b aria-hidden="true">×</b></PromotedFilterLink>}
+            {productTypeChanged && <PromotedFilterLink href={`/c/${slug}#products`}>Раздел: оснастка и опции<b aria-hidden="true">×</b></PromotedFilterLink>}
             {segment && activeShortcut && <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKeys:["segment", "drill_type"] })}>Тип: {activeShortcut.label}<b aria-hidden="true">×</b></PromotedFilterLink>}
             {subsegment && activeSubsegment && <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:"drill_type" })}>Вид: {activeSubsegment.label}<b aria-hidden="true">×</b></PromotedFilterLink>}
             {family && activeShortcut && <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:"family" })}>Вид: {activeShortcut.label}<b aria-hidden="true">×</b></PromotedFilterLink>}
@@ -409,7 +429,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
               const facet = result.facets.find((candidate) => candidate.key === key);
               return <PromotedFilterLink href={categoryUrl(slug, rawSearchParams, { removeKey:`max_${key}` })} key={`maximum-${key}`}>{facet?.label ?? "Параметр"}: не более {value}<b aria-hidden="true">×</b></PromotedFilterLink>;
             })}
-            <PromotedFilterLink className="feed-reset-all" href={`/catalog/category/${slug}#products`}>Очистить всё</PromotedFilterLink>
+            <PromotedFilterLink className="feed-reset-all" href={`/c/${slug}#products`}>Очистить всё</PromotedFilterLink>
           </nav>}
 
           <CategoryResultGuidance
@@ -421,7 +441,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
 
           {result.products.length > 0 ? view === "table" ? <FeedProductTable products={productCards} columns={tableColumns} /> : <FeedProductList products={productCards} /> : <div className="feed-state feed-state--guided"><span>Нет точных совпадений</span><h2>Не нужно начинать подбор заново</h2><p>{emptyCopy}</p>
             {recoverySuggestions.length > 0 && <nav className="feed-recovery-options" aria-label="Как расширить результаты"><b>Сохранить остальные условия и:</b>{recoverySuggestions.map((suggestion) => <Link href={categoryUrl(slug, rawSearchParams, { removeKeys:suggestion.removeKeys })} key={suggestion.removeKeys.join("|")}><span>{suggestion.label}</span><small>{suggestion.resultCount.toLocaleString("ru-RU")} {pluralizeProductGroups(suggestion.resultCount)}</small></Link>)}</nav>}
-            <div className="feed-state-actions"><Link className="button" href={`/catalog/category/${slug}#products`}>Сбросить все условия</Link><a className="button button-orange" href={activeSelectorHref}>{slug === "borfrezy" ? "Изменить подбор формы" : "Изменить условия подбора"}</a></div>
+            <div className="feed-state-actions"><Link className="button" href={`/c/${slug}#products`}>Сбросить все условия</Link><a className="button button-orange" href={activeSelectorHref}>{slug === "borfrezy" ? "Изменить подбор формы" : "Изменить условия подбора"}</a></div>
             <details className="feed-zero-request"><summary>Не ослаблять требования — передать инженеру</summary><TestRequestForm compact primaryContact="phone" context={activeQueryContext} buttonLabel="Заказать проверку параметров" /></details>
           </div>}
 
@@ -478,7 +498,7 @@ function categoryUrl(slug: string, raw: SearchParams, change: { removeKey?: stri
   if (change.toggleKey && change.toggleValue && !toggledValueWasSelected) params.append(change.toggleKey, change.toggleValue);
   if (change.page && change.page > 1) params.set("page", String(change.page));
   const query = params.toString();
-  return `/catalog/category/${slug}${query ? `?${query}` : ""}#products`;
+  return `/c/${slug}${query ? `?${query}` : ""}#products`;
 }
 
 function paginationItems(page: number, pageCount: number): Array<number | "…"> {

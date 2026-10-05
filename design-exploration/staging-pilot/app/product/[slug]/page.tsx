@@ -11,7 +11,7 @@ import { PilotHeader } from "../../ui/PilotHeader";
 import { ProductRecommendationSystem } from "../../ui/ProductRecommendationSystem";
 import { JsonLd } from "../../ui/JsonLd";
 import { AddRequestButton, RequestCartButton } from "../../ui/RequestCart";
-import { formatFeedPrice, getFeedCategory, getFeedParameterLabel, getFeedProductAlternatives, getFeedProductBySlug, getFeedProductImage, getFeedProductPriceLabel, getFeedVariantSpecs, type FeedParameter, type FeedVariant } from "../../data/feedCatalog";
+import { formatFeedPrice, getFeedCategory, getFeedParameterLabel, getFeedProductAlternatives, getFeedProductImage, getFeedProductPriceLabel, getFeedProductRouteBySlug, getFeedVariantSpecs, type FeedParameter, type FeedVariant } from "../../data/feedCatalog";
 import { getProductionSubcategory } from "../../data/productionCategoryGroups";
 import { getCategoryExpertProfile } from "../../data/categoryExpertProfiles.mjs";
 import { getProductPageArchetype } from "../../data/productPageArchetypes";
@@ -19,38 +19,48 @@ import { getProductVariantChoices, getVariantChoicePresentation, selectDefaultVa
 import { getVariantShippingPromise } from "../../data/shippingPromise.mjs";
 import { canonicalUrl, createPublicMetadata, hasSearchParameters } from "../../data/seo";
 import { getCatalogBlockingProductIds } from "../../data/catalogQuality";
+import { publicBrandPath, publicCategoryPath, publicProductPath } from "../../data/publicUrls";
+import { getLegacyRetainedProduct } from "../../data/legacyRetainedProducts";
+import { LegacyRetainedProductPage } from "../../ui/LegacyRetainedProductPage";
 
 type RouteProps = { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> };
 
 export async function generateMetadata({ params, searchParams }: RouteProps): Promise<Metadata> {
   const { slug } = await params;
   const rawSearchParams = await searchParams;
-  const product = getFeedProductBySlug(slug);
+  const route = getFeedProductRouteBySlug(slug);
+  const product = route?.product;
+  const retainedProduct = product ? undefined : getLegacyRetainedProduct(slug);
   const dataConflict = Boolean(product && getCatalogBlockingProductIds().has(product.id));
   const selectedVariantId = typeof rawSearchParams.variant === "string" ? rawSearchParams.variant : "";
-  const selectedVariant = product?.variants.find((variant) => variant.id === selectedVariantId);
+  const selectedVariant = route?.variant ?? product?.variants.find((variant) => variant.id === selectedVariantId);
   const selectedChoice = product && selectedVariant ? getVariantChoicePresentation(product, selectedVariant) : undefined;
   return createPublicMetadata({
-    title:product ? `${product.title}${selectedChoice ? `, ${selectedChoice.label}` : ""} — цена и характеристики | 7TOOL` : "Товар — 7TOOL",
-    description:product ? `${product.title}${selectedChoice ? `, ${selectedChoice.label}` : ""}. Характеристики выбранного исполнения, цена с НДС и запрос коммерческого предложения.` : "Карточка промышленного оборудования 7TOOL.",
-    path:`/product/${slug}`,
-    indexable:Boolean(product) && !dataConflict && !hasSearchParameters(rawSearchParams),
-    image:product ? getFeedProductImage(product) : undefined,
+    title:product ? `${product.title}${selectedChoice ? `, ${selectedChoice.label}` : ""} — цена и характеристики | 7TOOL` : retainedProduct ? `${retainedProduct.title} — поставка или замена | 7TOOL` : "Товар — 7TOOL",
+    description:product ? `${product.title}${selectedChoice ? `, ${selectedChoice.label}` : ""}. Характеристики выбранного исполнения, цена с НДС и запрос коммерческого предложения.` : retainedProduct ? `${retainedProduct.title}. Проверка актуальной поставки или подбор подтверждённой замены у 7TOOL.` : "Карточка промышленного оборудования 7TOOL.",
+    path:product ? publicProductPath(product, route?.variant) : `/p/${slug}`,
+    indexable:Boolean(product || retainedProduct) && !dataConflict && !hasSearchParameters(rawSearchParams),
+    image:product ? getFeedProductImage(product) : retainedProduct?.image,
   });
 }
 
 export default async function FeedProductPage({ params, searchParams }: RouteProps) {
   const { slug } = await params;
   const rawSearchParams = await searchParams;
-  const product = getFeedProductBySlug(slug);
-  if (!product) notFound();
+  const route = getFeedProductRouteBySlug(slug);
+  if (!route) {
+    const retainedProduct = getLegacyRetainedProduct(slug);
+    if (retainedProduct) return <LegacyRetainedProductPage product={retainedProduct} />;
+    notFound();
+  }
+  const { product } = route;
   const dataConflict = getCatalogBlockingProductIds().has(product.id);
 
   const category = getFeedCategory(product.category);
   const productionEntry = getProductionSubcategory(product.category);
   const expertProfile = getCategoryExpertProfile(product.category);
   const pageArchetype = getProductPageArchetype(product.category);
-  const selectedVariantId = typeof rawSearchParams.variant === "string" ? rawSearchParams.variant : "";
+  const selectedVariantId = route.variant?.id ?? (typeof rawSearchParams.variant === "string" ? rawSearchParams.variant : "");
   const allVariants = sortVariantsForChoice(product, product.variants.filter((variant) => variant.name || variant.sku));
   const primaryVariant = allVariants.find((variant) => variant.id === selectedVariantId) ?? selectDefaultVariant(product, allVariants);
   const hasExactVariantImage = Boolean(primaryVariant && primaryVariant.images?.[0]);
@@ -65,7 +75,7 @@ export default async function FeedProductPage({ params, searchParams }: RoutePro
   const primaryChoice = primaryVariant ? getVariantChoicePresentation(product, primaryVariant) : undefined;
   const selectedProductContext = [product.title, primaryChoice?.label, primaryVariant?.sku ? `артикул ${primaryVariant.sku}` : ""].filter(Boolean).join(", ");
   const alternatives = primaryVariant ? getFeedProductAlternatives(product, primaryVariant, 3) : [];
-  const productUrl = canonicalUrl(`/product/${product.slug}`);
+  const productUrl = canonicalUrl(publicProductPath(product, route.variant));
   const verifiedOffer = primaryVariant && typeof primaryVariant.price === "number" && primaryVariant.price > 0 && primaryShipping.available
     ? { "@type":"Offer", url:productUrl, priceCurrency:"RUB", price:primaryVariant.price, availability:"https://schema.org/InStock", seller:{ "@id":"https://7tool.ru/#organization" } }
     : undefined;
@@ -85,7 +95,7 @@ export default async function FeedProductPage({ params, searchParams }: RoutePro
   };
 
   return <div className="site-shell">{!dataConflict && <JsonLd data={productStructuredData} />}<PilotHeader /><main className="inner-page feed-product-conversion-page" data-product-archetype={pageArchetype.id}>
-    <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Каталог", href:"/catalog" }, ...(productionEntry ? [{ label:productionEntry.group.title, href:productionEntry.group.href }] : []), { label:category?.title ?? product.category, href:`/catalog/category/${product.category}` }, { label:product.brand }]} /></div>
+    <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Каталог", href:"/catalog" }, ...(productionEntry ? [{ label:productionEntry.group.title, href:productionEntry.group.href }] : []), { label:category?.title ?? product.category, href:publicCategoryPath(product.category) }, ...(product.brand && product.brand !== "—" ? [{ label:product.brand, href:publicBrandPath(product.brand) }] : []), { label:product.title }]} /></div>
 
     {dataConflict && <div className="container"><div className="product-data-conflict" role="alert"><b>Характеристики требуют проверки</b><p>Название и числовые параметры выбранного товара противоречат друг другу в исходном каталоге. До подтверждения поставщиком страница исключена из поискового индекса и товарной разметки; менеджер проверит точное исполнение перед КП.</p></div></div>}
 
@@ -104,8 +114,8 @@ export default async function FeedProductPage({ params, searchParams }: RoutePro
 
     {primaryVariant && <ProductRecommendationSystem product={product} variant={primaryVariant} selectedProductContext={selectedProductContext} criteria={expertProfile.criteria} alternatives={alternatives} pageArchetype={pageArchetype} />}
 
-    <section className="request-section" id="request"><div className="container request-grid"><div><p className="eyebrow">Финальный шаг без повторного ввода</p><h2>{pageArchetype.finalTitle}</h2><p>{pageArchetype.finalCopy}</p><Link href={`/catalog/category/${product.category}`}>← Вернуться к категории</Link></div><div className="request-unified-demo"><span>Единый запрос КП</span><b>{pageArchetype.savedContextLabel}</b><p>Откройте черновик, проверьте количество и добавьте требования к поставке.</p><RequestCartButton /></div></div></section>
-  </main><PilotFooter />{primaryVariant && <nav className="product-mobile-buybar" aria-label="Быстрый запрос по товару"><div><span className={primaryShipping.available ? "is-available" : undefined}>{primaryShipping.label}</span><b>{primaryPrice}</b></div><AddRequestButton openWhenAdded item={{ id:`variant:${primaryVariant.id}`, title:primaryVariant.name || product.title, article:variantArticle(primaryVariant), price:primaryPrice, image:primaryVariant.images?.[0] ?? getFeedProductImage(product), href:`/product/${product.slug}?variant=${encodeURIComponent(primaryVariant.id)}`, shippingLabel:primaryShipping.label, shippingDetail:primaryShipping.detail }}>Добавить в КП</AddRequestButton></nav>}</div>;
+    <section className="request-section" id="request"><div className="container request-grid"><div><p className="eyebrow">Финальный шаг без повторного ввода</p><h2>{pageArchetype.finalTitle}</h2><p>{pageArchetype.finalCopy}</p><Link href={publicCategoryPath(product.category)}>← Вернуться к категории</Link></div><div className="request-unified-demo"><span>Единый запрос КП</span><b>{pageArchetype.savedContextLabel}</b><p>Откройте черновик, проверьте количество и добавьте требования к поставке.</p><RequestCartButton /></div></div></section>
+  </main><PilotFooter />{primaryVariant && <nav className="product-mobile-buybar" aria-label="Быстрый запрос по товару"><div><span className={primaryShipping.available ? "is-available" : undefined}>{primaryShipping.label}</span><b>{primaryPrice}</b></div><AddRequestButton openWhenAdded item={{ id:`variant:${primaryVariant.id}`, title:primaryVariant.name || product.title, article:variantArticle(primaryVariant), price:primaryPrice, image:primaryVariant.images?.[0] ?? getFeedProductImage(product), href:publicProductPath(product, primaryVariant), shippingLabel:primaryShipping.label, shippingDetail:primaryShipping.detail }}>Добавить в КП</AddRequestButton></nav>}</div>;
 }
 
 function formatParameter(parameter: FeedParameter): string { return `${parameter.value}${parameter.unit ? ` ${parameter.unit}` : ""}`; }

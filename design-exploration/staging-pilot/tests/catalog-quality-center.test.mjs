@@ -112,7 +112,7 @@ test("parameter enrichment queue turns every unfilterable product into a bounded
     assert.ok(group.productCount > 0);
     assert.ok(group.sampleProducts.length > 0 && group.sampleProducts.length <= 3);
     assert.match(group.queueHref, /^\/test\/catalog-quality\?priority=p1&category=[^&]+&issue=not_filterable$/u);
-    assert.match(group.scopeHref, /^\/catalog\/category\//u);
+    assert.match(group.scopeHref, /^\/c\//u);
     if (index > 0) assert.ok(queue.groups[index - 1].productCount >= group.productCount);
   }
 });
@@ -192,9 +192,9 @@ test("catalog audit is an administrator-only read-only workspace", async () => {
   assert.match(page, /Все товары очереди/u);
   assert.match(css, /\.catalog-enrichment-groups \{ display:grid; grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/u);
   assert.match(css, /@media \(max-width:720px\)[\s\S]*\.catalog-enrichment-groups \{ grid-template-columns:1fr; \}/u);
-  assert.match(page, /issue\.scopeHref \?\? `\/catalog\/category\/\$\{issue\.categorySlug\}`/u);
+  assert.match(page, /issue\.scopeHref \?\? `\/c\/\$\{issue\.categorySlug\}`/u);
   assert.doesNotMatch(page, /method="post"|fetch\(|server action|<button[^>]+name="action"/iu);
-  assert.ok(page.includes('href={`/product/${issue.productSlug}`}'));
+  assert.ok(page.includes('href={`/p/${issue.productSlug}`}'));
   assert.match(header, /canManager\(managerActor, "catalog:audit"\)/u);
   assert.match(header, /Качество каталога/u);
 });

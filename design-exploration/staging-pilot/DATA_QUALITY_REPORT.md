@@ -6,7 +6,7 @@
 
 | Product | SKU/variant | URL | Source A | Source B | Severity | Решение |
 |---|---|---|---|---|---|---|
-| G1031 | A8177 | `/product/sverlo-koronchatoe-tct-25-mm` | название Ø25 мм | диаметр режущей части 30 мм | P0 | исправить supplier source; до этого noindex, исключение из sitemap и Product JSON-LD |
+| G1031 | A8177 | `/p/sverlo-koronchatoe-tct-25-mm` | название Ø25 мм | диаметр режущей части 30 мм | P0 | исправить supplier source; до этого noindex, исключение из sitemap и Product JSON-LD |
 | G1031 | A8178 | тот же | название Ø25 мм | 40 мм | P0 | то же |
 | G1031 | A8179 | тот же | название Ø25 мм | 55 мм | P0 | то же |
 

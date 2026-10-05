@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { getFeedProductVariantById, toFeedProductCardModel } from "../app/data/feedCatalog.ts";
+import { publicProductPath } from "../app/data/publicUrls.ts";
 
 test("feed card model preserves exact variant image and canonical href", () => {
   const result = getFeedProductVariantById("A12935");
@@ -9,7 +10,7 @@ test("feed card model preserves exact variant image and canonical href", () => {
   const card = toFeedProductCardModel(result.product);
   const variant = card.variants.find((item) => item.id === result.variant.id);
   assert.ok(variant?.image?.startsWith("https://s3.export.k2tool.ru/"));
-  assert.equal(variant?.href, `/product/${result.product.slug}?variant=A12935#variants`);
+  assert.equal(variant?.href, `${publicProductPath(result.product, result.variant)}#variants`);
 });
 
 test("card view requires an exact variant before adding to the quote request", async () => {

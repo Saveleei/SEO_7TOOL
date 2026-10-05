@@ -11,7 +11,7 @@ const CORE_PUBLIC_ROUTES = [
   "/payment",
   "/delivery",
   "/warranty",
-  "/product/magnitnyy-sverlilnyy-stanok-lenz-steyr-35",
+  "/p/magnitnyy-sverlilnyy-stanok-lenz-steyr-35",
   "/search?q=STEYR-35",
   "/compare",
 ];
@@ -20,13 +20,13 @@ const TASK_RELEASE_ROUTES = ["drilling", "edge", "cutting", "welding", "tooling"
   .map((task) => `/catalog/task/${task}`);
 const CATEGORY_RELEASE_ROUTES = feedSnapshot.categories
   .filter((category) => category.published)
-  .map((category) => `/catalog/category/${category.slug}`);
+  .map((category) => `/c/${category.slug}`);
 const EDGE_PRODUCT_ROUTES = [
   feedSnapshot.products.find((product) => !(product.images ?? []).some(Boolean)),
   feedSnapshot.products.find((product) => product.variants.some((variant) => !String(variant.sku ?? "").trim())),
 ]
   .filter(Boolean)
-  .map((product) => `/product/${product.slug}`);
+  .map((product) => `/p/${product.slug}`);
 
 export const PUBLIC_RELEASE_ROUTES = Array.from(new Set([
   ...CORE_PUBLIC_ROUTES,

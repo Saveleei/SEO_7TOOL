@@ -1,45 +1,48 @@
 # Technical SEO Audit
 
-Дата: 2026-10-05. Проверены repository, server-rendered routes и live preview `new.7tool.ru`.
+Дата: 2026-10-05. Проверены repository, generated catalog, frozen live sitemap 7tool.ru и доступный preview. Production deployment не выполнялся.
 
 ## P0 — critical
 
 | Находка | Статус |
 |---|---|
-| Live preview закрыт двойным `X-Robots-Tag: noindex, nofollow, noarchive`, robots `Disallow: /`, sitemap пуст | ожидаемо для preview; критический launch blocker, если этот host собираются индексировать |
-| 9 draft products попадали в публичную проекцию | исправлено |
-| G1031: Ø25 в названии против 30/40/55 в facts | guard внедрён, источник ещё требует исправления |
-| Generated quality cache не учитывал алгоритм | исправлено versioned invalidation |
+| Preview закрыт `noindex,nofollow` и robots `Disallow: /` | правильно до launch; production host должен открываться только в cutover |
+| Риск потери/смены 18 544 индексируемых legacy URL | исправлено: все URL классифицированы и покрыты каноническим route или точным redirect |
+| 51 live product URL отсутствовал в новом feed | сохранены factual retained pages без ложных цены/наличия |
+| 9 draft products попадали в public projection | исправлено |
+| G1031: Ø25 в названии против 30/40/55 в facts | автоматический guard, visible warning, noindex, без Product schema и sitemap; source не исправлен |
+| Quality artifact мог быть stale | исправлено versioned invalidation |
 
 ## P1 — high impact
 
-- Parameterized categories/products: canonical clean URL + `noindex, follow`; ранее был `nofollow` — исправлено.
-- Out-of-range/invalid pagination clamp создавала soft duplicate — теперь настоящий 404.
-- 223 product groups могли выбирать отсутствующий first variant — исправлено availability-aware default.
-- Sitemap исключает P0 blocked products, drafts и служебные URL; пока нет честного lastmod, images и split index.
-- Pagination и основные переходы — crawlable SSR links. Product/catalog content присутствует в HTML.
-- Product JSON-LD и Offer основаны на тех же runtime facts; Offer только при valid price + confirmed availability.
-- Brand pages отсутствуют; brand demand не имеет специализированного типа страницы.
-- Category schema ограничена breadcrumbs; CollectionPage/ItemList можно внедрить после проверки rich-result utility.
-- Analytics фиксирует базовые conversion events, но first-touch/organic attribution и ecommerce payload неполны.
+- Канонические owners сохранены как `/c`, `/c/category/subcategory`, `/p` и `/brand`; существующим индексируемым URL не нужен redirect.
+- Preview-style `/catalog/category` и `/product` дают one-hop 308, сохраняют query и не используются внутренними ссылками.
+- 125 subcategory landings и 87 brand hubs рендерятся сервером, имеют metadata, breadcrumbs, crawlable pagination и CollectionPage/ItemList.
+- Parameter states получают clean canonical и `noindex,follow`; invalid/out-of-range pagination возвращает настоящий 404.
+- Sitemap содержит только canonical owners, product image metadata и исключает draft/P0/service/search/filter URLs.
+- Product Offer строится только из той же подтверждённой цены/наличия, что видит пользователь. Fake review/rating/availability отсутствуют.
+- Создана custom 404; `notFound()` сохраняет настоящий HTTP 404.
+- Аналитика исправлена для `/c` и `/p`; добавлен field CWV event через официальный `useReportWebVitals`.
+- Consent links добавлены во все публичные формы, но юридическая редакция документов ещё требует владельца.
 
-## P2 — improvements
+## P2 — improvements / external backlog
 
-- Добавить trustworthy update timestamps до `lastmod`.
-- Разделить sitemap при росте и добавить image sitemap data.
-- Создать curated brand hubs и content routes только по approved intent map.
-- Улучшить image coverage, alt QA и field CWV monitoring.
-- Централизовать complete legal entity facts, убрать расхождение advertising feed.
+- Вернуть/заменить 51 retained item в upstream feed и формально определить discontinued lifecycle.
+- Исправить 803 P1-affected products и 2 906 P2-affected products по доказуемым источникам.
+- Ввести trustworthy update timestamps до публикации `lastmod`; split sitemap пока не нужен при текущем объёме менее 50 000 URL.
+- Подключить реальные Search Console/Webmaster/Metrica данные, rich result checks и field CWV dashboard после запуска.
+- Реализовать first-touch attribution только после решения по consent/privacy; сейчас персональные данные в analytics events не передаются.
+- Публиковать 50-темный content plan только после экспертной редакции, не массовой AI-генерацией.
 
 ## Technical findings
 
-- Status/404: dynamic unknown routes use `notFound`; invalid pagination now does too.
-- Canonical: centralized, strips query/hash, never points mechanically to homepage.
-- Robots: environment opt-in + exact production host protection; preview must remain closed.
-- Query control: filters/sort/search/variant never enter sitemap and are noindex.
-- Redirects: known legacy routes use permanent redirects; no evidence of chains in inspected aliases.
-- Security/performance: no dependency added, no credentials/config/live infrastructure changed; guards use precomputed report in normal runtime.
+- Crawlability: основные категории, подкатегории, бренды, товары и pagination доступны через SSR links.
+- Canonical: централизован, очищает query/hash и не указывает механически на главную.
+- Robots/indexing: environment opt-in + exact production host; preview защищён headers и robots.
+- Redirects: aliases одноступенчатые, без chains/loops и без массовых redirects на home.
+- Structured data сверена с актуальными официальными требованиями Google/Yandex; category lists не маскируются под Product rich results.
+- Performance: новой тяжёлой зависимости нет; Web Vitals используют уже установленный Next API.
 
-## Limits of this audit
+## Audit limits
 
-No production deployment, Search Console/Webmaster access, real-user CrUX/Metrica data, full external link crawl or Merchant Center validation was authorized. Those checks remain external actions.
+Без публикации нельзя проверить реальные production status codes, server headers после reverse proxy, Search Console/Webmaster coverage, Merchant Center, Яндекс товарные сниппеты и полевые показатели. Эти действия перечислены в setup-документах и являются launch gates, а не незавершённым кодом.

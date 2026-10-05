@@ -1,55 +1,58 @@
 # SEO Project Map — 7TOOL storefront
 
-Дата аудита: 2026-10-05. Целевой preview: `https://new.7tool.ru/`. Канонический production-origin в коде: `https://7tool.ru`.
+Дата актуализации: 2026-10-05. Preview: `https://new.7tool.ru/`. Единственный канонический production origin в коде: `https://7tool.ru`.
 
 ## Architecture
 
-- Next 16.2.6 / React 19.2.6, App Router, серверный рендеринг; сборка через Vinext/Vite.
-- Приложение: `design-exploration/staging-pilot`; `7tool-source` — upstream-каталог и legacy/reference слой.
-- Runtime-каталог читается из `7tool-source/src/lib/products.json` либо `CATALOG_FEED_PATH`. Публичная проекция отбрасывает draft и категории без публикации.
-- Предрасчёт facets, ranking, presentation и quality выполняет `scripts/build-catalog-presentation.mjs`; quality-кэш привязан к SHA фида и версии анализатора.
-- Данные заявок и настроек имеют собственные store-модули. Production-конфигурация, reverse proxy и process manager документированы в deployment-файлах; изменения инфраструктуры в этой работе не выполнялись.
+- Next 16.2.6 / React 19.2.6, App Router, SSR; production build через Vinext/Vite.
+- Storefront находится в `design-exploration/staging-pilot`; `7tool-source` хранит upstream-каталог и legacy/reference слой.
+- Runtime-каталог читается из `7tool-source/src/lib/products.json` либо `CATALOG_FEED_PATH`. Draft и неопубликованные категории исключаются из public projection.
+- `scripts/build-catalog-presentation.mjs` строит presentation/quality artifacts; кэш привязан к SHA фида и версии анализатора.
+- `scripts/build-legacy-subcategories.mjs` детерминированно строит 125 полезных подкатегорий из реального ассортимента.
+- Frozen snapshot опубликованного sitemap 7tool.ru содержит 18 544 URL и используется только как регрессионный fixture. Live-сервисы этим кодом не изменяются.
 
 ## Main routes
 
-| Тип | Реальный маршрут | Индексация |
+| Тип | Канонический маршрут | Правило |
 |---|---|---|
-| Главная | `/` | production only |
-| Каталог | `/catalog` | да |
-| Задачи | `/catalog/task/[task]` | да, только определённые маршруты |
-| Категория | `/catalog/category/[slug]` | чистый URL — да; параметры — noindex, follow |
-| Товар | `/product/[slug]` | да, кроме P0 data conflict; `variant` — noindex |
-| Поиск | `/search` | нет, отсутствует в sitemap |
-| Сравнение/КП/служебные | `/compare`, `/request`, `/test/*`, `/api/*` | нет |
-| Информация | `/delivery`, `/payment`, `/warranty`, `/contacts`, `/about`, `/requisites` | да |
-| Устаревшие aliases | старые catalog/product paths | permanent redirect |
+| Главная | `/` | indexable только на разрешённом production host |
+| Каталог / задачи | `/catalog`, `/catalog/task/[task]` | indexable owners |
+| Категория | `/c/[slug]` | 200 self-canonical; параметры `noindex,follow` |
+| Подкатегория | `/c/[slug]/[subslug]` | 200 self-canonical; crawlable pagination |
+| Товар / вариант | `/p/[legacy-compatible-slug]` | 200 self-canonical; точные legacy variant slugs сохранены |
+| Бренд | `/brand/[slug]` | 200 self-canonical для 87 полезных брендов |
+| Информация | `/contacts`, `/dostavka-i-oplata`, `/garantiya-i-vozvrat`, `/politika-konfidencialnosti`, `/soglasie-na-obrabotku` | public pages |
+| Preview aliases | `/product/[slug]`, `/catalog/category/[slug]` | one-hop 308 на `/p` и `/c`, query сохраняется |
+| Legacy contacts | `/kontakty` | one-hop 308 на `/contacts` |
+| Поиск/compare/test/API | `/search`, `/compare`, `/test/*`, `/api/*` | не входят в sitemap |
 
-Brand routes и editorial/article routes пока отсутствуют. Их нельзя добавлять массово до подтверждения intent и контентного стандарта.
-
-## Data sources and single source of truth
+## Data sources / Single Source of Truth
 
 | Сущность | Источник |
 |---|---|
 | product/model/SKU/brand/category/specs/variants | supplier snapshot `7tool-source/src/lib/products.json` |
-| price/currency/availability/images | тот же snapshot; витрина не выдумывает отсутствующие значения |
-| category grouping/presentation | `productionCategoryGroups.ts`, expert profiles и generated artifacts |
-| shipping promise | variant stock + freshness/config guard |
-| contacts/company | `company.ts` и manager contact model |
-| SEO origin/indexing | `seoIndexing.mjs`, environment opt-in, exact host allowlist |
+| price/currency/availability/images | тот же snapshot; отсутствующие факты не выдумываются |
+| legacy product URL | deterministic `publicUrls.ts`, повторяющий production slug algorithm |
+| 51 опубликованный legacy product, отсутствующий в новом feed | frozen factual snapshot `generatedLegacyRetainedProducts.json`; без устаревших Offer/наличия |
+| categories/subcategories | feed + `productionCategoryGroups.ts` + generated legacy subcategories |
+| brands | нормализованный brand index текущего public feed |
+| contacts/company | `contactConfig.ts`; юридические реквизиты требуют owner verification |
+| canonical/indexing | `seo.ts`, `seoIndexing.mjs`, exact-host opt-in |
 
 ## SEO layer
 
 - Metadata/canonical/robots: `app/data/seo.ts` и route `generateMetadata`.
-- Host protection: `proxy.ts`, `seoIndexing.mjs`.
-- robots/sitemap: `app/robots.ts`, `app/sitemap.ts`.
-- JSON-LD: root layout, Breadcrumbs, product route; Offer публикуется только при подтверждённых цене и наличии.
-- Crawl graph: SSR `<a href>` / Next `Link` в header, catalog, pagination, breadcrumbs and recommendations.
+- Host protection: `proxy.ts`, `seoIndexing.mjs`; preview остаётся закрытым.
+- robots/sitemap: `app/robots.ts`, `app/sitemap.ts`; sitemap содержит canonical `/c`, `/p`, `/brand`, полезные страницы и product images.
+- JSON-LD: Organization, WebSite, BreadcrumbList, Product, Offer при подтверждённых фактах, CollectionPage/ItemList для category/subcategory/brand.
+- Crawl graph: SSR `Link`/`a href`, breadcrumbs, категории, бренды, pagination, recommendations.
+- Observability: catalog/data guards, frozen URL coverage gate, conversion events и field Web Vitals в `dataLayer`.
 
-## Risks
+## Architectural risks
 
-1. Preview намеренно закрыт `X-Robots-Tag` и `Disallow: /`; открывать его нельзя. Перед launch нужен отдельный host cutover checklist.
-2. Один товар `G1031` остаётся в P0 quarantine из-за трёх конфликтных вариантов.
-3. Нет brand hubs и editorial layer; это ограничивает brand/informational demand.
-4. Sitemap — один динамический файл без trustworthy `lastmod`/image extensions; при росте нужен index.
-5. Два приложения используют один catalog snapshot, но legacy SQLite/JSON publication не атомарна.
-6. Не все реквизиты заполнены, а юридическое имя в advertising feed требует сверки.
+1. `new.7tool.ru` намеренно закрыт; до cutover нельзя включать индексацию.
+2. G1031 остаётся в P0 quarantine до исправления supplier source.
+3. 51 retained legacy pages защищают текущий индекс, но их ассортимент нужно либо вернуть в feed, либо принять lifecycle decision.
+4. JSON/SQLite upstream publication пока не атомарна; provenance/GTIN/legal parity требуют отдельной upstream работы.
+5. Нет надёжного per-document update timestamp, поэтому sitemap не фабрикует `lastmod`.
+6. Legal name/NAP/ИНН/КПП/ОГРН и финальные тексты privacy/consent должны быть подтверждены владельцем до публикации.

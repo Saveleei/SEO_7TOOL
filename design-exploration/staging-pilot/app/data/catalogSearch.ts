@@ -4,6 +4,7 @@ import { normalizeCatalogQuery, rankCatalogItems } from "./catalogSearchEngine.m
 import type { CatalogSearchHit, CatalogSearchResponse } from "./catalogSearchTypes.ts";
 import { getProductShippingPromise, getVariantShippingPromise } from "./shippingPromise.mjs";
 import { getRuntimeCatalogParameterOverrideRevision } from "./catalogParameterOverrideStore.ts";
+import { publicProductPath } from "./publicUrls.ts";
 
 type SearchIndexItem<T> = { title: string; searchText: string; normalizedTitle: string; normalizedSearchText: string; identifiers?: string[]; normalizedIdentifiers?: string[]; available?: boolean; data: T };
 
@@ -93,7 +94,7 @@ function toProductHit(product: FeedProduct, normalizedQuery: string): CatalogSea
   const exactVariant = product.variants.find((variant) => normalizeCatalogQuery(variant.sku) === normalizedQuery);
   const chosenVariant = exactVariant ?? (product.variants.length === 1 ? product.variants[0] : undefined);
   const card = toFeedProductCardModel(product);
-  const href = `/product/${product.slug}${exactVariant ? `?variant=${encodeURIComponent(exactVariant.id)}` : ""}`;
+  const href = publicProductPath(product, exactVariant);
   const title = exactVariant?.name || product.title;
   const shippingPromise = exactVariant ? getVariantShippingPromise(exactVariant) : getProductShippingPromise(product.variants);
   return {

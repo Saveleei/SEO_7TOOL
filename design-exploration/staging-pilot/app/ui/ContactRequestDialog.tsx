@@ -106,7 +106,7 @@ export function ContactRequestDialog({ categoryTitle, buttonLabel = "Отпра�
           <label>Телефон для связи <span>*</span><input ref={phoneRef} name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+7 999 000-00-00" required /></label>
           <label>Имя или компания<input name="company" type="text" autoComplete="organization" maxLength={160} placeholder="Необязательно" /></label>
           <label className="contact-dialog-wide">Что требуется<textarea name="comment" rows={4} defaultValue={`Нужен подбор: ${categoryTitle}. `} maxLength={2000} required /></label>
-          <label className="contact-dialog-wide contact-dialog-check"><input name="consent" type="checkbox" defaultChecked required /> Я согласен на обработку персональных данных</label>
+          <label className="contact-dialog-wide contact-dialog-check"><input name="consent" type="checkbox" defaultChecked required /> <span>Я согласен с <a href="/soglasie-na-obrabotku" target="_blank">обработкой персональных данных</a></span></label>
           {formError && <div className="contact-dialog-wide workbench-contact-error" role="alert">{formError}</div>}
           <div className="contact-dialog-actions"><button type="submit" disabled={submitting}>{submitting ? "Сохраняем задачу…" : "Отправить задачу"}</button><small>После отправки менеджер свяжется по указанному номеру в рабочее время.</small></div>
         </form>}
@@ -120,8 +120,8 @@ function trackDialog(event: string) {
 }
 
 function resolvePageType(pathname: string) {
-  if (pathname.startsWith("/product/")) return "product";
-  if (pathname.startsWith("/catalog/category/")) return "category";
+  if (pathname.startsWith("/p/")) return "product";
+  if (pathname.startsWith("/c/")) return "category";
   if (pathname.startsWith("/search")) return "search";
   return "catalog";
 }

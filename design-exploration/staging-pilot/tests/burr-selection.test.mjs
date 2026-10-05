@@ -4,7 +4,7 @@ import { buildBurrSelectionUrl, getBurrTaskRecommendation, resolveMaterialFacetV
 
 test("guided selection keeps commercial context and replaces shape and shank filters", () => {
   const url = buildBurrSelectionUrl({
-    pathname:"/catalog/category/borfrezy",
+    pathname:"/c/borfrezy",
     search:"?view=table&availability=in-stock&sort=relevance&q=&f_spec4=A&f_spec3=3&f_spec5=Чугун&page=4",
     shapeFacetKey:"spec4",
     shankFacetKey:"spec3",
@@ -38,6 +38,6 @@ test("recommendations only use forms that are present in the feed facet", () => 
 test("unknown task removes an old shape constraint without inventing a recommendation", () => {
   const result = getBurrTaskRecommendation("unknown", ["A", "B", "C"]);
   assert.deepEqual(result.forms, []);
-  const url = buildBurrSelectionUrl({ pathname:"/catalog/category/borfrezy", search:"?f_spec4=A", shapeFacetKey:"spec4", forms:[] });
-  assert.equal(url, "/catalog/category/borfrezy#products");
+  const url = buildBurrSelectionUrl({ pathname:"/c/borfrezy", search:"?f_spec4=A", shapeFacetKey:"spec4", forms:[] });
+  assert.equal(url, "/c/borfrezy#products");
 });

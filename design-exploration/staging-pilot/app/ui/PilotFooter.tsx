@@ -16,7 +16,7 @@ export function PilotFooter() {
         </div>
         <nav aria-label="Каталог"><b>Каталог</b><Link href="/catalog">Все категории</Link><Link href="/#production-categories">Подбор по задаче</Link></nav>
         <nav aria-label="Покупателям"><b>Покупателям</b><Link href="/ordering">Как заказать</Link><Link href="/payment">Оплата</Link><Link href="/delivery">Доставка</Link><Link href="/warranty">Гарантия и документы</Link></nav>
-        <nav aria-label="Компания"><b>Компания</b><Link href="/company">О компании</Link><Link href="/contacts">Контакты и реквизиты</Link></nav>
+        <nav aria-label="Компания"><b>Компания</b><Link href="/company">О компании</Link><Link href="/contacts">Контакты и реквизиты</Link><Link href="/politika-konfidencialnosti">Конфиденциальность</Link><Link href="/soglasie-na-obrabotku">Обработка данных</Link></nav>
         <div className="footer-contacts" data-contact-placement="footer">
           <b>Связаться</b>
           <a href={siteContact.phoneHref} aria-label={`Позвонить ${siteContact.managerName}`}>{siteContact.phone}</a>

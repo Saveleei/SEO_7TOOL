@@ -56,10 +56,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
               </div>
               <nav className="hero-category-shortcuts" aria-label="Популярные категории">
                 <span>Часто ищут:</span>
-                <Link href="/catalog/category/stanki-sverlilnye">Магнитные станки</Link>
-                <Link href="/catalog/category/kromkorezy-dlya-trub">Кромкорезы для труб</Link>
-                <Link href="/catalog/category/borfrezy">Борфрезы</Link>
-                <Link href="/catalog/category/koronchatye-sverla">Корончатые сверла</Link>
+                <Link href="/c/stanki-sverlilnye">Магнитные станки</Link>
+                <Link href="/c/kromkorezy-dlya-trub">Кромкорезы для труб</Link>
+                <Link href="/c/borfrezy">Борфрезы</Link>
+                <Link href="/c/koronchatye-sverla">Корончатые сверла</Link>
               </nav>
               <div className="hero-direct-contacts" data-contact-placement="homepage_hero">
                 <span>Нужно быстро уточнить возможность поставки?</span>

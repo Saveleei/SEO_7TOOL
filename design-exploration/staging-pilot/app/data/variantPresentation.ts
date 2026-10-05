@@ -1,4 +1,5 @@
 import { formatFeedPrice, getFeedProductImage, getFeedVariantSpecs, type FeedParameter, type FeedProduct, type FeedVariant } from "./feedCatalog.ts";
+import { publicProductPath } from "./publicUrls.ts";
 import { getVariantShippingPromise } from "./shippingPromise.mjs";
 
 export type VariantChoicePresentation = {
@@ -141,7 +142,7 @@ export function getProductVariantChoices(product: FeedProduct): ProductVariantCh
       selectorLabel:choice.selectorLabel,
       image:exactImage ?? getFeedProductImage(product),
       selectorImage,
-      href:`/product/${product.slug}?variant=${encodeURIComponent(variant.id)}#variants`,
+      href:`${publicProductPath(product, variant)}#variants`,
     };
   });
   const duplicateCounts = new Map<string, number>();

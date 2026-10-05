@@ -16,7 +16,7 @@ test("homepage production tasks expose every published category with feed-backed
     assert.ok(group.productCount > 0, `${group.slug}: empty task count`);
     for (const subcategory of group.subcategories) {
       assert.equal(subcategory.count, getFeedCategory(subcategory.slug)?.count, `${subcategory.slug}: count drift`);
-      assert.match(subcategory.href, new RegExp(`^/catalog/category/${subcategory.slug}$`, "u"));
+      assert.match(subcategory.href, new RegExp(`^/c/${subcategory.slug}$`, "u"));
     }
   }
   const keyCategories = getHomepageKeyCategories();
@@ -25,7 +25,7 @@ test("homepage production tasks expose every published category with feed-backed
   for (const category of keyCategories) {
     assert.ok(category.image, `${category.slug}: homepage category has no image`);
     assert.ok((category.count ?? 0) > 0, `${category.slug}: homepage category has no products`);
-    assert.equal(category.href, `/catalog/category/${category.slug}`);
+    assert.equal(category.href, `/c/${category.slug}`);
   }
 });
 

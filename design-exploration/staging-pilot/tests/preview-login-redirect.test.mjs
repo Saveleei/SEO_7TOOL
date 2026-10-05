@@ -8,9 +8,9 @@ test("preview login redirect preserves and encodes the complete local request", 
   try {
     process.env.QUOTE_TEST_MODE = "1";
     process.env.MANAGER_AUTH_TEST_HOSTS = "test.7tool.ru";
-    const response = await GET(request("/product/sverla-koronchatye-lzhs?variant=A9021&view=table#variants"));
+    const response = await GET(request("/p/sverla-koronchatye-lzhs?variant=A9021&view=table#variants"));
     assert.equal(response.status, 302);
-    assert.equal(response.headers.get("location"), "/test/access?returnTo=%2Fproduct%2Fsverla-koronchatye-lzhs%3Fvariant%3DA9021%26view%3Dtable%23variants");
+    assert.equal(response.headers.get("location"), "/test/access?returnTo=%2Fp%2Fsverla-koronchatye-lzhs%3Fvariant%3DA9021%26view%3Dtable%23variants");
     assert.equal(response.headers.get("cache-control"), "no-store");
   } finally {
     restoreEnv("QUOTE_TEST_MODE", previousMode);

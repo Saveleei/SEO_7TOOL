@@ -16,3 +16,18 @@ test("the production counter reuses the existing ecommerce dataLayer and has a n
   assert.match(source, /ecommerce:"dataLayer"/u);
   assert.match(source, /https:\/\/mc\.yandex\.ru\/watch\/\$\{counterId\}/u);
 });
+
+test("canonical catalog routes emit page views and field Core Web Vitals", async () => {
+  const [conversion, vitals, sanitizer, layout] = await Promise.all([
+    readFile(new URL("../app/ui/ConversionAnalytics.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/ui/WebVitalsAnalytics.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/data/conversionAnalytics.mjs", import.meta.url), "utf8"),
+    readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
+  ]);
+  assert.match(conversion, /\^\\\/c\\\/\(\[\^\/\]\+\)/u);
+  assert.match(conversion, /\^\\\/p\\\/\(\[\^\/\]\+\)/u);
+  assert.match(vitals, /useReportWebVitals/u);
+  assert.match(vitals, /event:"web_vital"/u);
+  assert.match(sanitizer, /"metric_value"/u);
+  assert.match(layout, /<WebVitalsAnalytics \/>/u);
+});

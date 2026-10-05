@@ -68,7 +68,7 @@ export function ComparePageClient() {
 
   if (products.length === 1) {
     const product = products[0];
-    return <section className="comparison-single-state container" aria-live="polite"><div><p className="eyebrow">Первый кандидат сохранён</p><h1>Добавьте ещё один товар</h1><p>После второго выбора появится единая таблица цены, наличия и решающих характеристик.</p><Link href={`/catalog/category/${selections[0]?.category ?? "stanki-sverlilnye"}`}>Вернуться в категорию</Link></div><ComparisonProductCard product={product} onRemove={() => remove(product.productId, "comparison_page")} /></section>;
+    return <section className="comparison-single-state container" aria-live="polite"><div><p className="eyebrow">Первый кандидат сохранён</p><h1>Добавьте ещё один товар</h1><p>После второго выбора появится единая таблица цены, наличия и решающих характеристик.</p><Link href={`/c/${selections[0]?.category ?? "stanki-sverlilnye"}`}>Вернуться в категорию</Link></div><ComparisonProductCard product={product} onRemove={() => remove(product.productId, "comparison_page")} /></section>;
   }
 
   const requestContext = products.map((product) => `${product.title}${product.choiceLabel ? ` — ${product.choiceLabel}` : ""}`).join("; ");
@@ -88,7 +88,7 @@ export function ComparePageClient() {
         </tbody>
         <tfoot><tr className="comparison-table__commercial-row"><th scope="row"><b>Цена и следующий шаг</b><span>Окончательные цену, наличие, комплектацию и срок зафиксирует менеджер в КП.</span></th>{products.map((product) => <td key={`${product.key}-commercial`}><small>{product.mode === "variant" ? "Цена выбранного исполнения с НДС" : "Диапазон цен товарной серии"}</small><strong>{product.price}</strong>{product.available && <em>{product.shippingLabel}</em>}{product.mode === "variant" && product.variantId ? <AddRequestButton item={{ id:`variant:${product.variantId}`, title:product.title, article:product.sku ? `Артикул ${product.sku}` : "Артикул не указан в фиде", price:product.price, image:product.image, href:product.href, shippingLabel:product.shippingLabel, shippingDetail:product.shippingDetail }}>Добавить в КП</AddRequestButton> : <Link href={product.href}>Выбрать исполнение</Link>}</td>)}</tr></tfoot>
       </table></div>
-      <div className="comparison-after-table"><Link href={`/catalog/category/${selections[0]?.category ?? "stanki-sverlilnye"}`}>← Вернуться к выбору</Link><p>Сравнение помогает сократить список. Совместимость и условия поставки подтверждаются для конкретного исполнения.</p></div>
+      <div className="comparison-after-table"><Link href={`/c/${selections[0]?.category ?? "stanki-sverlilnye"}`}>← Вернуться к выбору</Link><p>Сравнение помогает сократить список. Совместимость и условия поставки подтверждаются для конкретного исполнения.</p></div>
     </div></section>
   </>;
 }
