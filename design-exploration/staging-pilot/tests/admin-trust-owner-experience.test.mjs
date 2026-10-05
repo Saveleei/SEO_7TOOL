@@ -23,11 +23,14 @@ test("trust photo editor explains the complete publish flow", async () => {
   assert.doesNotMatch(form, /локальном прототипе/u);
 });
 
-test("typography uses a modern Cyrillic system stack and readable admin sizes", async () => {
+test("typography self-hosts Inter Variable with resilient Cyrillic fallbacks and readable admin sizes", async () => {
   const styles = await read("../app/globals.css");
   const pass = styles.slice(styles.lastIndexOf("/* Typography design pass"));
-  assert.match(pass, /--font-interface:"Segoe UI Variable Text","Segoe UI",Roboto/u);
+  assert.match(pass, /@font-face \{[\s\S]*font-family:"Inter Variable";[\s\S]*font-display:swap/u);
+  assert.match(pass, /--font-interface:"Inter Variable",Inter,-apple-system,BlinkMacSystemFont,"Segoe UI Variable Text"/u);
+  assert.match(pass, /--font-display:"Inter Variable",Inter,-apple-system,BlinkMacSystemFont,"Segoe UI Variable Display"/u);
   assert.match(pass, /body \{[\s\S]*font-family:var\(--font-interface\)/u);
+  assert.doesNotMatch(styles, /(?:font-family|font):[^;]*\bArial\b/u);
   assert.match(pass, /\.manager-access-permissions span \{ font-size:var\(--type-secondary\)/u);
   assert.match(pass, /\.trust-photo-upload \{ min-height:var\(--control-min-height\); font-size:var\(--type-control\)/u);
   assert.match(pass, /@media \(min-width:1680px\)[\s\S]*\.homepage-task-path__copy h3 \{ font-size:22px/u);

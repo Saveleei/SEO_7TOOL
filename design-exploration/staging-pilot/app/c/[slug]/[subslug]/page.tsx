@@ -7,6 +7,7 @@ import { publicCategoryPath } from "../../../data/publicUrls";
 import { createPublicMetadata } from "../../../data/seo";
 import { buildSubcategorySeoKeywords } from "../../../data/seoKeywords";
 import { SEO_SITE_ORIGIN } from "../../../data/seoIndexing.mjs";
+import { socialCardMetadataImage } from "../../../data/socialCards";
 import { Breadcrumbs } from "../../../ui/Breadcrumbs";
 import { FeedProductList } from "../../../ui/FeedProductList";
 import { JsonLd } from "../../../ui/JsonLd";
@@ -32,6 +33,7 @@ export async function generateMetadata({ params, searchParams }: RouteProps): Pr
     description,
     path:`/c/${slug}/${subslug}`,
     indexable:Boolean(landing) && validPage && !hasUnexpectedQuery,
+    image:landing ? socialCardMetadataImage("subcategory", landing.imageAlt ?? `${landing.title} — изображение подкатегории 7TOOL`, slug, subslug) : undefined,
     keywords:buildSubcategorySeoKeywords({ title:landing?.title, h1:landing?.h1 }),
   });
   const canonical = new URL(canonicalPath, SEO_SITE_ORIGIN).toString();

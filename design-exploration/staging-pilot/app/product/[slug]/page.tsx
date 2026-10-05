@@ -19,6 +19,7 @@ import { getProductVariantChoices, getVariantChoicePresentation, selectDefaultVa
 import { getVariantShippingPromise } from "../../data/shippingPromise.mjs";
 import { canonicalUrl, createPublicMetadata, hasSearchParameters } from "../../data/seo";
 import { buildProductSeoKeywords } from "../../data/seoKeywords";
+import { socialCardMetadataImage } from "../../data/socialCards";
 import { getCatalogBlockingProductIds } from "../../data/catalogQuality";
 import { publicBrandPath, publicCategoryPath, publicProductPath } from "../../data/publicUrls";
 import { getLegacyRetainedProduct } from "../../data/legacyRetainedProducts";
@@ -36,12 +37,13 @@ export async function generateMetadata({ params, searchParams }: RouteProps): Pr
   const selectedVariantId = typeof rawSearchParams.variant === "string" ? rawSearchParams.variant : "";
   const selectedVariant = route?.variant ?? product?.variants.find((variant) => variant.id === selectedVariantId);
   const selectedChoice = product && selectedVariant ? getVariantChoicePresentation(product, selectedVariant) : undefined;
+  const productTitle = product ? `${product.title}${selectedChoice ? `, ${selectedChoice.label}` : ""}` : retainedProduct?.title;
   return createPublicMetadata({
-    title:product ? `${product.title}${selectedChoice ? `, ${selectedChoice.label}` : ""} — цена и характеристики | 7TOOL` : retainedProduct ? `${retainedProduct.title} — поставка или замена | 7TOOL` : "Товар — 7TOOL",
+    title:product ? `${productTitle} — цена и характеристики | 7TOOL` : retainedProduct ? `${productTitle} — поставка или замена | 7TOOL` : "Товар — 7TOOL",
     description:product ? `${product.title}${selectedChoice ? `, ${selectedChoice.label}` : ""}. Характеристики выбранного исполнения, цена с НДС и запрос коммерческого предложения.` : retainedProduct ? `${retainedProduct.title}. Проверка актуальной поставки или подбор подтверждённой замены у 7TOOL.` : "Карточка промышленного оборудования 7TOOL.",
     path:product ? publicProductPath(product, route?.variant) : `/p/${slug}`,
     indexable:Boolean(product || retainedProduct) && !dataConflict && !hasSearchParameters(rawSearchParams),
-    image:product ? getFeedProductImage(product) : retainedProduct?.image,
+    image:productTitle ? socialCardMetadataImage("product", `${productTitle} — фото товара на карточке 7TOOL`, slug) : undefined,
     keywords:buildProductSeoKeywords({
       title:product?.title ?? retainedProduct?.title,
       brand:product?.brand,

@@ -10,13 +10,24 @@ import { AttributionCapture } from "./ui/AttributionCapture";
 import { RequestCartProvider } from "./ui/RequestCart";
 import { ComparisonProvider } from "./ui/Comparison";
 import { siteCompany, siteContact } from "./data/contactConfig";
-import { publicRobots } from "./data/seo";
+import { DEFAULT_SOCIAL_IMAGE, publicRobots } from "./data/seo";
 import { resolveYandexMetrikaId } from "./data/analyticsConfig.mjs";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://7tool.ru"),
   title: "7TOOL — промышленное оборудование и оснастка для металлообработки",
   description: "Промышленное оборудование и оснастка для сверления, резки, обработки кромки и сварочной автоматизации. Инженерный подбор, КП с НДС и доставка по России.",
+  manifest: "/site.webmanifest",
+  icons: {
+    icon: [
+      { url:"/favicon.ico", sizes:"any" },
+      { url:"/favicon.svg", type:"image/svg+xml" },
+      { url:"/favicon-32x32.png", type:"image/png", sizes:"32x32" },
+      { url:"/favicon-16x16.png", type:"image/png", sizes:"16x16" },
+    ],
+    shortcut:"/favicon.ico",
+    apple:[{ url:"/apple-touch-icon.png", type:"image/png", sizes:"180x180" }],
+  },
   robots: publicRobots(),
   openGraph: {
     title: "7TOOL — промышленное оборудование и оснастка",
@@ -24,9 +35,9 @@ export const metadata: Metadata = {
     siteName:"7TOOL",
     locale:"ru_RU",
     type:"website",
-    images: [{ url: "/og.png", width: 1734, height: 907, alt: "7TOOL — оборудование для металлообработки" }],
+    images: [DEFAULT_SOCIAL_IMAGE],
   },
-  twitter: { card: "summary_large_image", title: "7TOOL — промышленное оборудование и оснастка", description: "Инженерный подбор оборудования для металлообработки, КП с НДС и доставка по России.", images: ["/og.png"] },
+  twitter: { card: "summary_large_image", title: "7TOOL — промышленное оборудование и оснастка", description: "Инженерный подбор оборудования для металлообработки, КП с НДС и доставка по России.", images: [{ url:DEFAULT_SOCIAL_IMAGE.url, alt:DEFAULT_SOCIAL_IMAGE.alt }] },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

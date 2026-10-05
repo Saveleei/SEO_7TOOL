@@ -4,6 +4,22 @@ import { normalizeSeoKeywords } from "./seoKeywords.ts";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
+export type SeoSocialImage = {
+  url: string;
+  width?: number;
+  height?: number;
+  type?: string;
+  alt?: string;
+};
+
+export const DEFAULT_SOCIAL_IMAGE: Required<SeoSocialImage> = {
+  url:"/social/7tool-share-warehouse-v1.png",
+  width:1200,
+  height:630,
+  type:"image/png",
+  alt:"7TOOL — промышленный инструмент и оборудование со склада в России",
+};
+
 export function canonicalUrl(pathname: string): string {
   const cleanPath = `/${String(pathname || "/").split(/[?#]/u)[0].replace(/^\/+|\/+$/gu, "")}`;
   return new URL(cleanPath === "/" ? "/" : cleanPath, SEO_SITE_ORIGIN).toString();
@@ -31,11 +47,13 @@ export function createPublicMetadata({
   description: string;
   path: string;
   indexable?: boolean;
-  image?: string;
+  image?: string | SeoSocialImage;
   keywords?: readonly string[];
 }): Metadata {
   const canonical = canonicalUrl(path);
-  const socialImage = image ? new URL(image, SEO_SITE_ORIGIN).toString() : canonicalUrl("/og.png");
+  const socialImage = absoluteSocialImage(image ?? DEFAULT_SOCIAL_IMAGE, title);
+  const fallbackImage = absoluteSocialImage(DEFAULT_SOCIAL_IMAGE, DEFAULT_SOCIAL_IMAGE.alt);
+  const openGraphImages = socialImage.url === fallbackImage.url ? [socialImage] : [socialImage, fallbackImage];
   const normalizedKeywords = indexable && isSeoIndexingEnabled() ? normalizeSeoKeywords(keywords) : [];
   return {
     title,
@@ -43,8 +61,17 @@ export function createPublicMetadata({
     ...(normalizedKeywords.length > 0 ? { keywords:normalizedKeywords } : {}),
     alternates:{ canonical },
     robots:publicRobots(indexable),
-    openGraph:{ title, description, url:canonical, siteName:"7TOOL", locale:"ru_RU", type:"website", images:[{ url:socialImage, alt:title }] },
-    twitter:{ card:"summary_large_image", title, description, images:[socialImage] },
+    openGraph:{ title, description, url:canonical, siteName:"7TOOL", locale:"ru_RU", type:"website", images:openGraphImages },
+    twitter:{ card:"summary_large_image", title, description, images:[{ url:socialImage.url, alt:socialImage.alt }] },
+  };
+}
+
+function absoluteSocialImage(image: string | SeoSocialImage, fallbackAlt: string): SeoSocialImage & { url: string; alt: string } {
+  const entry = typeof image === "string" ? { url:image } : image;
+  return {
+    ...entry,
+    url:new URL(entry.url, SEO_SITE_ORIGIN).toString(),
+    alt:entry.alt?.trim() || fallbackAlt,
   };
 }
 
