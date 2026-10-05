@@ -25,7 +25,7 @@ export default async function HomepageSettingsPage() {
   ];
   return <div className="site-shell"><PilotHeader managerMode managerActor={actor} /><main className="inner-page homepage-settings-page">
     <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Заявки", href:"/test/requests" }, { label:"Настройки главной" }]} /></div>
-    <section className="quote-settings-hero"><div className="container"><div><p className="eyebrow">Управление витриной</p><h1>Главная и каталог</h1><p>Меняйте тексты и фотографии главной страницы и направлений общего каталога. Размеры карточек, ссылки и товарные данные защищены шаблоном.</p></div><div className="homepage-settings-hero-actions"><Link href="/" target="_blank">Открыть главную →</Link><Link href="/catalog" target="_blank">Открыть каталог →</Link><Link href="/test/settings/trust">Редактировать доверие →</Link></div></div></section>
+    <section className="quote-settings-hero"><div className="container"><div><p className="eyebrow">Управление витриной</p><h1>Главная и каталог</h1><p>Меняйте тексты и фотографии главной страницы и направлений общего каталога. Размеры карточек, ссылки и товарные данные защищены шаблоном.</p></div><div className="homepage-settings-hero-actions"><Link href="/admin/trust">Фото блока доверия →</Link><Link href="/" target="_blank">Открыть главную →</Link><Link href="/catalog" target="_blank">Открыть каталог →</Link></div></div></section>
     <section className="section"><div className="container"><HomepageContentSettingsForm initial={settings} references={references} /></div></section>
   </main><PilotFooter /></div>;
 }

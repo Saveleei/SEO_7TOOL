@@ -7908,3 +7908,75 @@ p,li { text-wrap:pretty; }
   html { scroll-behavior:auto; }
   *,*::before,*::after { scroll-behavior:auto!important; transition-duration:.01ms!important; animation-duration:.01ms!important; animation-iteration-count:1!important; }
 }
+
+/* Typography design pass — 2026-10-06.
+   Use native, Cyrillic-complete families so the storefront stays modern and
+   consistent without a render-blocking font download. The mono eyebrow remains
+   the single industrial accent; headings and interface copy share one voice. */
+:root {
+  --font-interface:"Segoe UI Variable Text","Segoe UI",Roboto,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  --font-display:"Segoe UI Variable Display","Segoe UI",Roboto,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+}
+
+body {
+  font-family:var(--font-interface);
+  font-kerning:normal;
+  font-variant-ligatures:common-ligatures;
+  letter-spacing:-.004em;
+  line-height:1.5;
+}
+button,input,select,textarea { font-family:inherit; }
+h1,h2,h3,.hero h1,.page-hero h1,.section-heading h2,.assurance-section .section-heading h2 {
+  font-family:var(--font-display);
+  font-kerning:normal;
+  text-wrap:balance;
+}
+.homepage-main .hero h1 { letter-spacing:-.036em; }
+.section-heading h2,.assurance-section .section-heading h2,.quote-settings-hero h1 { letter-spacing:-.03em; }
+.section-heading>p,.assurance-section .section-heading>p { max-width:68ch; }
+
+/* The owner workspace must be as readable as the public storefront. */
+.manager-access-brand span { font-size:var(--type-caption); }
+.manager-access-card>p:not(.eyebrow) { font-size:var(--type-body); }
+.manager-access-permissions span { font-size:var(--type-secondary); }
+.manager-access-form label { font-size:var(--type-secondary); }
+.manager-access-form button { font-size:var(--type-body); }
+.manager-access-card>small { font-size:var(--type-caption); }
+.manager-access-feedback p { font-size:var(--type-secondary); }
+.manager-workspace-nav a { font-size:var(--type-secondary); }
+.quote-settings-hero p:not(.eyebrow) { font-size:var(--type-body); }
+.quote-settings-hero a,.homepage-settings-hero-actions a { font-size:var(--type-control); }
+.quote-settings-card>header>span { font-size:var(--type-caption); }
+.quote-settings-card>header p { font-size:var(--type-secondary); }
+.quote-settings-card>header>button,.quote-sender-heading>button { font-size:var(--type-secondary); }
+.quote-settings-grid>label>span { font-size:var(--type-secondary); }
+.quote-settings-check b { font-size:var(--type-secondary); }
+.quote-settings-check small { font-size:var(--type-caption); }
+.quote-settings-summary>span,.trust-settings-preview>span { font-size:var(--type-caption); }
+.quote-settings-summary>p,.trust-settings-preview>p { font-size:var(--type-control); }
+.quote-settings-summary dt,.quote-settings-summary dd { font-size:var(--type-secondary); }
+.quote-settings-summary>button,.trust-settings-preview>button { font-size:var(--type-control); }
+.quote-settings-summary>small,.trust-settings-preview>small { font-size:var(--type-caption); }
+.quote-settings-feedback p { font-size:var(--type-secondary); }
+
+.trust-settings-photo>div { background:#eef1ec; }
+.trust-settings-photo img,.trust-settings-preview article>img { object-fit:contain; background:#eef1ec; }
+.trust-photo-help { margin:9px 0 0; color:#626b64; font-size:var(--type-caption); line-height:1.45; }
+.trust-photo-upload { min-height:var(--control-min-height); font-size:var(--type-control); }
+.trust-settings-photo>button { min-height:40px; font-size:var(--type-caption); }
+.trust-settings-photo>small { font-size:var(--type-caption); }
+.trust-settings-preview article small { font-size:var(--type-caption); }
+.trust-settings-preview article b { font-size:var(--type-control); line-height:1.3; }
+.trust-settings-preview article span { font-size:var(--type-caption); line-height:1.35; }
+.trust-settings-preview>.trust-settings-reset { font-size:var(--type-caption); }
+
+/* The screenshot came from a 3440 px display. Keep the editorial measure, but
+   lift navigation and decision labels one step at large desktop distances. */
+@media (min-width:1680px) {
+  .header-search-form input { font-size:var(--type-body); }
+  .header-search-form button,.header-quick,.header-info-link { font-size:var(--type-control); }
+  .header-contact-menu>summary b { font-size:var(--type-control); }
+  .homepage-task-path__copy h3 { font-size:22px; line-height:1.18; }
+  .homepage-task-path__copy small,.homepage-task-path__subcategory-copy>small { font-size:var(--type-secondary); }
+  .homepage-task-path__subcategory-copy>b { font-size:var(--type-body); }
+}
