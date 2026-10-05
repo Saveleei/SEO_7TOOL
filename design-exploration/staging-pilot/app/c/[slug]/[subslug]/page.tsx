@@ -5,6 +5,7 @@ import { getPublishedFeedCatalogSnapshot, toFeedProductCardModel } from "../../.
 import { getLegacySubcategoriesForCategory, getLegacySubcategory } from "../../../data/legacySubcategories";
 import { publicCategoryPath } from "../../../data/publicUrls";
 import { createPublicMetadata } from "../../../data/seo";
+import { buildSubcategorySeoKeywords } from "../../../data/seoKeywords";
 import { SEO_SITE_ORIGIN } from "../../../data/seoIndexing.mjs";
 import { Breadcrumbs } from "../../../ui/Breadcrumbs";
 import { FeedProductList } from "../../../ui/FeedProductList";
@@ -26,7 +27,13 @@ export async function generateMetadata({ params, searchParams }: RouteProps): Pr
   const canonicalPath = `/c/${slug}/${subslug}${page && page > 1 ? `?page=${page}` : ""}`;
   const title = landing ? `${landing.metaTitle}${page && page > 1 ? ` — страница ${page}` : ""}` : "Подкатегория — 7TOOL";
   const description = landing ? `${landing.metaDescription}${page && page > 1 ? ` Страница ${page}.` : ""}` : "Подборка промышленного оборудования 7TOOL.";
-  const metadata = createPublicMetadata({ title, description, path:`/c/${slug}/${subslug}`, indexable:Boolean(landing) && validPage && !hasUnexpectedQuery });
+  const metadata = createPublicMetadata({
+    title,
+    description,
+    path:`/c/${slug}/${subslug}`,
+    indexable:Boolean(landing) && validPage && !hasUnexpectedQuery,
+    keywords:buildSubcategorySeoKeywords({ title:landing?.title, h1:landing?.h1 }),
+  });
   const canonical = new URL(canonicalPath, SEO_SITE_ORIGIN).toString();
   return { ...metadata, alternates:{ canonical }, openGraph:{ ...metadata.openGraph, url:canonical } };
 }

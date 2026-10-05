@@ -26,6 +26,7 @@ import { getHomepageContentSettings } from "../../../data/homepageContentStore";
 import { getProductionSubcategory } from "../../../data/productionCategoryGroups";
 import { getShippingRuntimeDiagnostic } from "../../../data/shippingRuntimeSettings.mjs";
 import { canonicalUrl, createPublicMetadata, hasSearchParameters } from "../../../data/seo";
+import { buildCategorySeoKeywords } from "../../../data/seoKeywords";
 import { publicProductPath } from "../../../data/publicUrls";
 
 type SearchValue = string | string[] | undefined;
@@ -70,7 +71,14 @@ export async function generateMetadata({ params, searchParams }: RouteProps): Pr
   const category = getFeedCategory(slug);
   const title = category?.h1 ?? entry?.subcategory.label;
   const description = category?.intro ?? (entry ? `${entry.subcategory.label}: инженерный подбор, характеристики, ориентиры цены и подтверждение условий поставки.` : "Категория промышленного оборудования 7TOOL.");
-  return createPublicMetadata({ title:title ? `${title} — купить с подбором и доставкой | 7TOOL` : "Категория оборудования — 7TOOL", description, path:`/c/${slug}`, indexable:Boolean(entry && category) && !hasSearchParameters(rawSearchParams), image:entry?.subcategory.image });
+  return createPublicMetadata({
+    title:title ? `${title} — купить с подбором и доставкой | 7TOOL` : "Категория оборудования — 7TOOL",
+    description,
+    path:`/c/${slug}`,
+    indexable:Boolean(entry && category) && !hasSearchParameters(rawSearchParams),
+    image:entry?.subcategory.image,
+    keywords:buildCategorySeoKeywords({ slug, title:category?.title ?? entry?.subcategory.label, h1:category?.h1 }),
+  });
 }
 
 export default async function SubcategoryPage({ params, searchParams }: RouteProps) {

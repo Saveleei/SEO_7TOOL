@@ -36,12 +36,14 @@ test("public metadata uses a clean canonical and noindexes parameterized listing
   const previous = process.env.SEO_INDEXING_ENABLED;
   process.env.SEO_INDEXING_ENABLED = "1";
   try {
-    const clean = createPublicMetadata({ title:"Каталог", description:"Описание", path:"/catalog?utm_source=test" });
+    const clean = createPublicMetadata({ title:"Каталог", description:"Описание", path:"/catalog?utm_source=test", keywords:["промышленное оборудование"] });
     assert.equal(clean.alternates?.canonical, "https://7tool.ru/catalog");
     assert.equal(clean.robots?.index, true);
-    const duplicate = createPublicMetadata({ title:"Фильтр", description:"Описание", path:"/c/borfrezy", indexable:false });
+    assert.deepEqual(clean.keywords, ["промышленное оборудование"]);
+    const duplicate = createPublicMetadata({ title:"Фильтр", description:"Описание", path:"/c/borfrezy", indexable:false, keywords:["борфрезы"] });
     assert.equal(duplicate.robots?.index, false);
     assert.equal(duplicate.robots?.follow, true);
+    assert.equal(Object.hasOwn(duplicate, "keywords"), false);
     assert.equal(hasSearchParameters({ sort:"relevance", q:"" }), true);
     assert.equal(hasSearchParameters({ q:"" }), false);
     assert.equal(canonicalUrl("/p/example?variant=1#specs"), "https://7tool.ru/p/example");

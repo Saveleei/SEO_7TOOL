@@ -18,6 +18,7 @@ import { getProductPageArchetype } from "../../data/productPageArchetypes";
 import { getProductVariantChoices, getVariantChoicePresentation, selectDefaultVariant, sortVariantsForChoice } from "../../data/variantPresentation";
 import { getVariantShippingPromise } from "../../data/shippingPromise.mjs";
 import { canonicalUrl, createPublicMetadata, hasSearchParameters } from "../../data/seo";
+import { buildProductSeoKeywords } from "../../data/seoKeywords";
 import { getCatalogBlockingProductIds } from "../../data/catalogQuality";
 import { publicBrandPath, publicCategoryPath, publicProductPath } from "../../data/publicUrls";
 import { getLegacyRetainedProduct } from "../../data/legacyRetainedProducts";
@@ -41,6 +42,12 @@ export async function generateMetadata({ params, searchParams }: RouteProps): Pr
     path:product ? publicProductPath(product, route?.variant) : `/p/${slug}`,
     indexable:Boolean(product || retainedProduct) && !dataConflict && !hasSearchParameters(rawSearchParams),
     image:product ? getFeedProductImage(product) : retainedProduct?.image,
+    keywords:buildProductSeoKeywords({
+      title:product?.title ?? retainedProduct?.title,
+      brand:product?.brand,
+      sku:selectedVariant?.sku ?? product?.sku,
+      variant:selectedChoice?.label,
+    }),
   });
 }
 

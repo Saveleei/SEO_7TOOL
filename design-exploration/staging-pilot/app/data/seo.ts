@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { isSeoIndexingEnabled, SEO_SITE_ORIGIN } from "./seoIndexing.mjs";
+import { normalizeSeoKeywords } from "./seoKeywords.ts";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -24,18 +25,22 @@ export function createPublicMetadata({
   path,
   indexable = true,
   image,
+  keywords = [],
 }: {
   title: string;
   description: string;
   path: string;
   indexable?: boolean;
   image?: string;
+  keywords?: readonly string[];
 }): Metadata {
   const canonical = canonicalUrl(path);
   const socialImage = image ? new URL(image, SEO_SITE_ORIGIN).toString() : canonicalUrl("/og.png");
+  const normalizedKeywords = indexable && isSeoIndexingEnabled() ? normalizeSeoKeywords(keywords) : [];
   return {
     title,
     description,
+    ...(normalizedKeywords.length > 0 ? { keywords:normalizedKeywords } : {}),
     alternates:{ canonical },
     robots:publicRobots(indexable),
     openGraph:{ title, description, url:canonical, siteName:"7TOOL", locale:"ru_RU", type:"website", images:[{ url:socialImage, alt:title }] },

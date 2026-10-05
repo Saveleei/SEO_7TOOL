@@ -9,6 +9,7 @@ import { ManagerContactCard } from "../../../ui/ManagerContactCard";
 import { getProductionCategoryGroup } from "../../../data/productionCategoryGroups";
 import { getCategoryLandingContent } from "../../../data/categoryLandingContent";
 import { createPublicMetadata } from "../../../data/seo";
+import { buildTaskSeoKeywords } from "../../../data/seoKeywords";
 
 type RouteProps = { params: Promise<{ task: string }> };
 
@@ -21,6 +22,7 @@ export async function generateMetadata({ params }: RouteProps): Promise<Metadata
     path:`/catalog/task/${task}`,
     indexable:Boolean(group),
     image:group?.representativeImage ?? group?.image,
+    keywords:buildTaskSeoKeywords({ title:group?.title, categories:group?.subcategories.map((subcategory) => subcategory.label) }),
   });
 }
 

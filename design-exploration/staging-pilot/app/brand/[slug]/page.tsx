@@ -5,6 +5,7 @@ import { getFeedBrandAliasTarget, getFeedBrandLanding } from "../../data/brandCa
 import { toFeedProductCardModel } from "../../data/feedCatalog";
 import { publicBrandPath, publicCategoryPath } from "../../data/publicUrls";
 import { createPublicMetadata } from "../../data/seo";
+import { buildBrandSeoKeywords } from "../../data/seoKeywords";
 import { SEO_SITE_ORIGIN } from "../../data/seoIndexing.mjs";
 import { Breadcrumbs } from "../../ui/Breadcrumbs";
 import { FeedProductList } from "../../ui/FeedProductList";
@@ -25,7 +26,14 @@ export async function generateMetadata({ params, searchParams }: RouteProps): Pr
   const validPage = Boolean(page && page <= pageCount);
   const title = landing ? `${landing.brand}: оборудование и инструмент — купить у 7TOOL${page && page > 1 ? ` — страница ${page}` : ""}` : "Бренд — 7TOOL";
   const description = landing ? `Каталог ${landing.brand}: ${landing.products.length} товарных серий в ${landing.categories.length} разделах. Характеристики, цены и запрос коммерческого предложения.` : "Оборудование и промышленный инструмент по брендам.";
-  const metadata = createPublicMetadata({ title, description, path:`/brand/${slug}`, indexable:Boolean(landing) && validPage && !hasUnexpectedQuery, image:landing?.products[0]?.images[0] });
+  const metadata = createPublicMetadata({
+    title,
+    description,
+    path:`/brand/${slug}`,
+    indexable:Boolean(landing) && validPage && !hasUnexpectedQuery,
+    image:landing?.products[0]?.images[0],
+    keywords:buildBrandSeoKeywords({ brand:landing?.brand, categories:landing?.categories.map((category) => category.title) }),
+  });
   const canonical = new URL(`/brand/${slug}${page && page > 1 ? `?page=${page}` : ""}`, SEO_SITE_ORIGIN).toString();
   return { ...metadata, alternates:{ canonical }, openGraph:{ ...metadata.openGraph, url:canonical } };
 }

@@ -20,6 +20,7 @@ export const metadata: Metadata = createPublicMetadata({
   title:"Промышленное оборудование и оснастка для металлообработки — 7TOOL",
   description:"Сверлильные станки, корончатые свёрла, кромкорезы, труборезы, сварочная автоматизация и оснастка. Подбор по задаче, КП с НДС и доставка по России.",
   path:"/",
+  keywords:["промышленное оборудование", "оборудование для металлообработки", "металлообрабатывающее оборудование", "промышленный инструмент", "оснастка для металлообработки", "оборудование 7TOOL"],
 });
 
 export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
