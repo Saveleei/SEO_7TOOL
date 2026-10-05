@@ -11,8 +11,10 @@ test("feed products remain discoverable and render safely without media or an ar
   const catalog = await readFile(new URL("../app/data/feedCatalog.ts", import.meta.url), "utf8");
   const card = await readFile(new URL("../app/ui/FeedProductCard.tsx", import.meta.url), "utf8");
   const table = await readFile(new URL("../app/ui/FeedProductTable.tsx", import.meta.url), "utf8");
-  const missingMedia = snapshot.products.filter((product) => !(product.images ?? []).some(Boolean));
-  const missingSku = snapshot.products.filter((product) => product.variants.some((variant) => !String(variant.sku ?? "").trim()));
+  const publishedCategorySlugs = new Set(snapshot.categories.filter((category) => category.published).map((category) => category.slug));
+  const publicProducts = snapshot.products.filter((product) => !product.draft && publishedCategorySlugs.has(product.category));
+  const missingMedia = publicProducts.filter((product) => !(product.images ?? []).some(Boolean));
+  const missingSku = publicProducts.filter((product) => product.variants.some((variant) => !String(variant.sku ?? "").trim()));
   assert.ok(missingMedia.length > 0);
   assert.ok(missingSku.length > 0);
   const rankedProducts = catalog.slice(catalog.indexOf("function getRankedCategoryProducts"), catalog.indexOf("function getCategoryFacets"));

@@ -21,9 +21,11 @@ const TASK_RELEASE_ROUTES = ["drilling", "edge", "cutting", "welding", "tooling"
 const CATEGORY_RELEASE_ROUTES = feedSnapshot.categories
   .filter((category) => category.published)
   .map((category) => `/c/${category.slug}`);
+const publishedCategorySlugs = new Set(feedSnapshot.categories.filter((category) => category.published).map((category) => category.slug));
+const publicFeedProducts = feedSnapshot.products.filter((product) => !product.draft && publishedCategorySlugs.has(product.category));
 const EDGE_PRODUCT_ROUTES = [
-  feedSnapshot.products.find((product) => !(product.images ?? []).some(Boolean)),
-  feedSnapshot.products.find((product) => product.variants.some((variant) => !String(variant.sku ?? "").trim())),
+  publicFeedProducts.find((product) => !(product.images ?? []).some(Boolean)),
+  publicFeedProducts.find((product) => product.variants.some((variant) => !String(variant.sku ?? "").trim())),
 ]
   .filter(Boolean)
   .map((product) => `/p/${product.slug}`);

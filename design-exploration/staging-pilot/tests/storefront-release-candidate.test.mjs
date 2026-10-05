@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { assertLoopbackBaseUrl, PROTECTED_RELEASE_ROUTES, PUBLIC_RELEASE_ROUTES } from "../scripts/smoke-release-candidate.mjs";
+import feedSnapshot from "../../../7tool-source/src/lib/products.json" with { type:"json" };
 
 test("release smoke accepts only a bare loopback origin", () => {
   assert.equal(assertLoopbackBaseUrl("http://127.0.0.1:3180").origin, "http://127.0.0.1:3180");
@@ -16,6 +17,8 @@ test("release smoke accepts only a bare loopback origin", () => {
 test("release matrix covers the accepted customer path and every staff workspace", () => {
   assert.ok(PUBLIC_RELEASE_ROUTES.length >= 37);
   assert.equal(new Set(PUBLIC_RELEASE_ROUTES).size, PUBLIC_RELEASE_ROUTES.length);
+  const draftRoutes = feedSnapshot.products.filter((product) => product.draft).map((product) => `/p/${product.slug}`);
+  assert.equal(PUBLIC_RELEASE_ROUTES.some((route) => draftRoutes.includes(route)), false);
   for (const route of ["/", "/catalog", "/catalog/task/drilling", "/c/borfrezy", "/c/stanki-sverlilnye", "/p/magnitnyy-sverlilnyy-stanok-lenz-steyr-35", "/search?q=STEYR-35", "/compare"]) {
     assert.ok(PUBLIC_RELEASE_ROUTES.includes(route), `${route} is absent from the release matrix`);
   }
