@@ -7,6 +7,7 @@ import { classifyMissingProductMedia } from "./catalogMediaRecovery.mjs";
 import { feedParameterMatchesFacetKeyword, getFeedCategoryPage, getFeedCategoryProductType, getFeedCategorySegment, getFeedCategorySubsegment, getFeedProductImage, getPublishedFeedCatalogSnapshot, getPublishedFeedCatalogSourceSha256, type FeedCategory, type FeedCategoryQuery, type FeedFacet, type FeedParameter, type FeedProduct, type FeedVariant } from "./feedCatalog.ts";
 import { getFeedDecisionParameters } from "./feedDecisionParameters.mjs";
 import { getRuntimeCatalogParameterOverrideRevision } from "./catalogParameterOverrideStore.ts";
+import generatedLegacyUrlSnapshot from "./generatedLegacyUrlSnapshot.json" with { type:"json" };
 
 export type CatalogQualityStatus = "critical" | "review" | "healthy";
 export type CatalogQualitySeverity = "critical" | "warning" | "notice";
@@ -144,6 +145,12 @@ const issuePriorities: Record<CatalogQualityIssueCode, CatalogQualityPriority> =
   missing_parameter:"p2",
   duplicate_signature:"p2",
 };
+const legacyProductSlugs = new Set(
+  generatedLegacyUrlSnapshot.urls
+    .map((url) => new URL(url).pathname)
+    .filter((pathname) => pathname.startsWith("/p/"))
+    .map((pathname) => pathname.slice(3)),
+);
 
 type GeneratedCatalogQuality = {
   version: number;
@@ -171,7 +178,36 @@ export function getCatalogQualityReportSnapshot(): CatalogQualityReport {
 }
 
 export function getCatalogBlockingProductIds(report: CatalogQualityReport = getCatalogQualityReport()): Set<string> {
-  return new Set(report.issues.filter((entry) => entry.priority === "p0").map((entry) => entry.productId));
+  const blockingProductIds = new Set(
+    report.issues
+      .filter((entry) => entry.priority === "p0" && entry.code !== "duplicate_identifier")
+      .map((entry) => entry.productId),
+  );
+  const duplicateIdentifiers = new Map<string, CatalogQualityIssue[]>();
+  for (const entry of report.issues.filter((issue) => issue.priority === "p0" && issue.code === "duplicate_identifier")) {
+    const identifier = normalizeKey(entry.variantId ?? "");
+    if (!identifier) {
+      blockingProductIds.add(entry.productId);
+      continue;
+    }
+    duplicateIdentifiers.set(identifier, [...(duplicateIdentifiers.get(identifier) ?? []), entry]);
+  }
+  for (const entries of duplicateIdentifiers.values()) {
+    const uniqueEntries = Array.from(new Map(entries.map((entry) => [entry.productId, entry])).values());
+    const legacyOwners = uniqueEntries.filter((entry) => legacyProductSlugs.has(entry.productSlug));
+    const standaloneOwners = uniqueEntries.filter((entry) => normalizeKey(entry.productId) === normalizeKey(entry.variantId ?? ""));
+    const preservedProductIds = new Set(
+      legacyOwners.length > 0
+        ? legacyOwners.map((entry) => entry.productId)
+        : standaloneOwners.length === 1
+          ? [standaloneOwners[0].productId]
+          : [],
+    );
+    for (const entry of entries) {
+      if (!preservedProductIds.has(entry.productId)) blockingProductIds.add(entry.productId);
+    }
+  }
+  return blockingProductIds;
 }
 
 export function catalogQualityIssueLabel(code: CatalogQualityIssueCode): string {

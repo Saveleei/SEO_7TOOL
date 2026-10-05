@@ -4,7 +4,7 @@ import test from "node:test";
 import feedSnapshotJson from "../../../7tool-source/src/lib/products.json" with { type:"json" };
 import { getCategoryFamily, getCategoryFamilyShortcuts } from "../app/data/categoryAssortmentTaxonomy.mjs";
 import { getCategoryExpertProfile } from "../app/data/categoryExpertProfiles.mjs";
-import { getCatalogEnrichmentQueue, getCatalogQualityReport } from "../app/data/catalogQuality.ts";
+import { getCatalogBlockingProductIds, getCatalogEnrichmentQueue, getCatalogQualityReport } from "../app/data/catalogQuality.ts";
 import { canManager } from "../app/data/managerAccess.ts";
 
 const feedSnapshot = feedSnapshotJson;
@@ -136,6 +136,34 @@ test("P0 identity checks use the stable feed id and scope public articles by bra
     const matching = variants.filter(({ product: candidateProduct, variant }) => normalize(candidateProduct.brand) === normalize(product.brand) && publicSku(candidateProduct, variant) === normalize(issue.sku));
     assert.ok(matching.length > 1, `${issue.id} is only a cross-brand model-code collision`);
   }
+});
+
+test("duplicate variants preserve a unique legacy or standalone canonical owner", () => {
+  const duplicate = (productId, variantId, productSlug = "") => ({ productId, variantId, productSlug, code:"duplicate_identifier", priority:"p0" });
+  const blocked = getCatalogBlockingProductIds({
+    issues:[
+      duplicate("A20577", "A20577"),
+      duplicate("G4490", "A20577"),
+      duplicate("G4164", "A61172", "koronki-almaznye-heden-po-betonu-i-kirpichu"),
+      duplicate("G6000", "A61172", "new-group-without-search-history"),
+      duplicate("G4333", "LEGACY-SHARED", "magnitnye-ugolniki-promotech-serii-m"),
+      duplicate("G4164", "LEGACY-SHARED", "koronki-almaznye-heden-po-betonu-i-kirpichu"),
+      duplicate("G6001", "LEGACY-SHARED", "another-new-group"),
+      duplicate("G5000", "SHARED-1"),
+      duplicate("G5001", "SHARED-1"),
+      { productId:"G1031", variantId:"A8177", code:"title_spec_conflict", priority:"p0" },
+    ],
+  });
+
+  assert.equal(blocked.has("A20577"), false);
+  assert.equal(blocked.has("G4490"), true);
+  assert.equal(blocked.has("G4164"), false);
+  assert.equal(blocked.has("G6000"), true);
+  assert.equal(blocked.has("G4333"), false);
+  assert.equal(blocked.has("G6001"), true);
+  assert.equal(blocked.has("G5000"), true);
+  assert.equal(blocked.has("G5001"), true);
+  assert.equal(blocked.has("G1031"), true);
 });
 
 test("P0 catches explicit title/spec diameter conflicts before SEO publication", () => {
