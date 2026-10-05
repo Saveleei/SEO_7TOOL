@@ -32,6 +32,7 @@ test("base facets are precomputed from the exact feed while runtime overrides re
   ]);
   const generated = JSON.parse(generatedSource);
   assert.equal(generated.sourceSha256, createHash("sha256").update(feed).digest("hex"));
+  assert.equal(generated.version, 1);
   assert.ok(generated.categories["sverla-i-zenkovki"].length >= 10);
   assert.equal(generated.rankings["sverla-i-zenkovki"].length, 367);
   assert.match(catalogSource, /generatedCatalogFacets\.sourceSha256 === feedSnapshotSha256/u);
@@ -48,12 +49,20 @@ test("base catalog quality is precomputed without embedding its large report in 
   ]);
   const generated = JSON.parse(generatedSource);
   assert.equal(generated.sourceSha256, createHash("sha256").update(feed).digest("hex"));
+  assert.equal(generated.version, 2);
   assert.equal(generated.report.productCount, getPublishedFeedCatalogSnapshot().products.length);
   assert.ok(generated.report.issueCount > 0);
   assert.match(qualitySource, /readFileSync\(snapshotPath, "utf8"\)/u);
   assert.match(qualitySource, /revision === 0/u);
   assert.match(qualitySource, /generatedReport \?\? buildCatalogQualityReport/u);
+  assert.match(qualitySource, /parsed\.version === CATALOG_QUALITY_ANALYZER_VERSION/u);
   assert.doesNotMatch(qualitySource, /import\s+generatedCatalogQuality/u);
+});
+
+test("draft supplier products never enter the public storefront snapshot", () => {
+  const publicSnapshot = getPublishedFeedCatalogSnapshot();
+  assert.equal(publicSnapshot.products.some((product) => product.draft), false);
+  assert.equal(publicSnapshot.products.some((product) => product.id === "A57318"), false);
 });
 
 test("global navigation uses a feed-current lightweight catalog projection", async () => {

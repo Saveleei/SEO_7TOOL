@@ -11,6 +11,8 @@
     "prebuild": "node scripts/build-catalog-presentation.mjs",
     "build": "vinext build",
     "catalog:build-presentation": "node scripts/build-catalog-presentation.mjs",
+    "data:check": "node scripts/check-catalog-data.mjs",
+    "seo:check": "node --test tests/technical-seo.test.mjs tests/catalog-quality-center.test.mjs tests/catalog-runtime-loading.test.mjs",
     "acceptance:business": "node scripts/run-business-acceptance.mjs",
     "intake:process": "node scripts/process-quote-intake-outbox.mjs",
     "start": "vinext start",

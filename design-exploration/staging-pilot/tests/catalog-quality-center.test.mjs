@@ -10,7 +10,7 @@ import { canManager } from "../app/data/managerAccess.ts";
 const feedSnapshot = feedSnapshotJson;
 const publishedCategories = feedSnapshot.categories.filter((category) => category.published);
 const publishedSlugs = new Set(publishedCategories.map((category) => category.slug));
-const publishedProducts = feedSnapshot.products.filter((product) => publishedSlugs.has(product.category));
+const publishedProducts = feedSnapshot.products.filter((product) => !product.draft && publishedSlugs.has(product.category));
 const productById = new Map(publishedProducts.map((product) => [product.id, product]));
 
 test("catalog quality report covers the complete published supplier snapshot", () => {
@@ -73,6 +73,7 @@ test("catalog work queues separate blockers, decision defects and enrichment", (
     missing_identifier:"p0",
     duplicate_identifier:"p0",
     missing_sku:"p2",
+    title_spec_conflict:"p0",
     invalid_range:"p0",
     duplicate_sku:"p0",
     malformed_numeric:"p1",
@@ -99,7 +100,7 @@ test("parameter enrichment queue turns every unfilterable product into a bounded
   const unfilterable = report.issues.filter((issue) => issue.code === "not_filterable");
 
   assert.equal(queue.productCount, new Set(unfilterable.map((issue) => issue.productId)).size);
-  assert.equal(queue.productCount, 359);
+  assert.equal(queue.productCount, 350);
   assert.equal(queue.groupCount, queue.groups.length);
   assert.equal(queue.groups.reduce((sum, group) => sum + group.productCount, 0), queue.productCount);
   assert.ok(queue.groups.length > 10);
@@ -135,6 +136,17 @@ test("P0 identity checks use the stable feed id and scope public articles by bra
     const matching = variants.filter(({ product: candidateProduct, variant }) => normalize(candidateProduct.brand) === normalize(product.brand) && publicSku(candidateProduct, variant) === normalize(issue.sku));
     assert.ok(matching.length > 1, `${issue.id} is only a cross-brand model-code collision`);
   }
+});
+
+test("P0 catches explicit title/spec diameter conflicts before SEO publication", () => {
+  const report = getCatalogQualityReport();
+  const conflicts = report.issues.filter((issue) => issue.code === "title_spec_conflict");
+
+  assert.equal(conflicts.length, 3);
+  assert.deepEqual(new Set(conflicts.map((issue) => issue.productId)), new Set(["G1031"]));
+  assert.deepEqual(conflicts.map((issue) => issue.variantId).sort(), ["A8177", "A8178", "A8179"]);
+  assert.ok(conflicts.every((issue) => issue.priority === "p0" && issue.severity === "critical"));
+  assert.ok(conflicts.every((issue) => /исключается из индекса и Product JSON-LD/iu.test(issue.detail)));
 });
 
 test("every catalog quality issue points to evidence in the current feed", () => {

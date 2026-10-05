@@ -3687,6 +3687,9 @@ body:has(.feed-compare-tray) .request-cart-dock { bottom:96px; }
 .manager-test-warning { padding:14px; border-left:3px solid #9d3b0f; border-radius:5px; background:#f4f5f2; }
 .manager-test-warning b { font-size:12px; }
 .manager-test-warning p { margin:4px 0 0; color:#626862; font-size:10px; line-height:1.5; }
+.product-data-conflict { margin:18px 0 0; padding:14px 16px; border:1px solid #d58a61; border-left:4px solid #a54010; border-radius:7px; background:#fff4ee; color:#4c2412; }
+.product-data-conflict b { font-size:14px; }
+.product-data-conflict p { margin:4px 0 0; font-size:13px; line-height:1.55; }
 
 @media (max-width:1000px) {
   .manager-request-layout { grid-template-columns:minmax(0,1fr) 320px; }

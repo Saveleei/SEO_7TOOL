@@ -122,6 +122,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     .filter((entry): entry is [string, number] => Number.isFinite(entry[1]) && entry[1] > 0));
   const categoryQuery: FeedCategoryQuery = { search, sort, page:Number.isFinite(requestedPage) ? requestedPage : 1, filters, numericMinimums, numericMaximums, availability:inStockOnly ? "in-stock" : undefined, productType, segment, subsegment, family };
   const result = getFeedCategoryPage(slug, categoryQuery);
+  if (rawSearchParams.page !== undefined && (!Number.isInteger(requestedPage) || requestedPage < 1 || requestedPage > result.pageCount)) notFound();
   const recoverySuggestions = result.total === 0 ? getFeedCategoryRecoverySuggestions(slug, categoryQuery) : [];
   const activeVariantFilters = result.facets.flatMap((facet) => {
     if (!facet.keyword) return [];

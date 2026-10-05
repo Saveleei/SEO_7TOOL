@@ -3,15 +3,17 @@ import { getPublishedFeedCatalogSnapshot } from "./data/feedCatalog.ts";
 import { getProductionCategoryGroups, pilotFeedCategorySlugs } from "./data/productionCategoryGroups.ts";
 import { canonicalUrl } from "./data/seo.ts";
 import { isSeoIndexingEnabled } from "./data/seoIndexing.mjs";
+import { getCatalogBlockingProductIds } from "./data/catalogQuality.ts";
 
 const publicPages = ["/", "/catalog", "/company", "/contacts", "/ordering", "/payment", "/delivery", "/warranty"];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   if (!isSeoIndexingEnabled()) return [];
   const snapshot = getPublishedFeedCatalogSnapshot();
+  const blockedProductIds = getCatalogBlockingProductIds();
   const taskPaths = getProductionCategoryGroups(pilotFeedCategorySlugs).map((group) => `/catalog/task/${group.slug}`);
   const categoryPaths = snapshot.categories.filter((category) => category.published).map((category) => `/catalog/category/${category.slug}`);
-  const productPaths = snapshot.products.map((product) => `/product/${product.slug}`);
+  const productPaths = snapshot.products.filter((product) => !blockedProductIds.has(product.id)).map((product) => `/product/${product.slug}`);
   const paths = Array.from(new Set([...publicPages, ...taskPaths, ...categoryPaths, ...productPaths]));
   return paths.map((path) => ({
     url:canonicalUrl(path),

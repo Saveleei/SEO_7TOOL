@@ -12,7 +12,7 @@ export function PilotFooter() {
         <div className="footer-identity">
           <Link href="/" aria-label="7TOOL — главная"><Image src="/brand/7tool-inverse.svg" alt="7TOOL" width={135} height={42} /></Link>
           <p>Промышленное оборудование и оснастка для металлообработки.</p>
-          <span>{testContour && !intakeDelivery ? "Локальный тестовый пилот · внешняя отправка заявок отключена." : "Доставка по России · счёт с НДС · гарантия 12 месяцев."}</span>
+          <span>{testContour && !intakeDelivery ? "Локальный тестовый пилот · внешняя отправка заявок отключена." : "Доставка по России · счёт с НДС · гарантийные условия по выбранному товару."}</span>
         </div>
         <nav aria-label="Каталог"><b>Каталог</b><Link href="/catalog">Все категории</Link><Link href="/#production-categories">Подбор по задаче</Link></nav>
         <nav aria-label="Покупателям"><b>Покупателям</b><Link href="/ordering">Как заказать</Link><Link href="/payment">Оплата</Link><Link href="/delivery">Доставка</Link><Link href="/warranty">Гарантия и документы</Link></nav>

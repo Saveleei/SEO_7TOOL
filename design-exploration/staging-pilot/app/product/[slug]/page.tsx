@@ -15,9 +15,10 @@ import { formatFeedPrice, getFeedCategory, getFeedParameterLabel, getFeedProduct
 import { getProductionSubcategory } from "../../data/productionCategoryGroups";
 import { getCategoryExpertProfile } from "../../data/categoryExpertProfiles.mjs";
 import { getProductPageArchetype } from "../../data/productPageArchetypes";
-import { getProductVariantChoices, getVariantChoicePresentation, sortVariantsForChoice } from "../../data/variantPresentation";
+import { getProductVariantChoices, getVariantChoicePresentation, selectDefaultVariant, sortVariantsForChoice } from "../../data/variantPresentation";
 import { getVariantShippingPromise } from "../../data/shippingPromise.mjs";
 import { canonicalUrl, createPublicMetadata, hasSearchParameters } from "../../data/seo";
+import { getCatalogBlockingProductIds } from "../../data/catalogQuality";
 
 type RouteProps = { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> };
 
@@ -25,6 +26,7 @@ export async function generateMetadata({ params, searchParams }: RouteProps): Pr
   const { slug } = await params;
   const rawSearchParams = await searchParams;
   const product = getFeedProductBySlug(slug);
+  const dataConflict = Boolean(product && getCatalogBlockingProductIds().has(product.id));
   const selectedVariantId = typeof rawSearchParams.variant === "string" ? rawSearchParams.variant : "";
   const selectedVariant = product?.variants.find((variant) => variant.id === selectedVariantId);
   const selectedChoice = product && selectedVariant ? getVariantChoicePresentation(product, selectedVariant) : undefined;
@@ -32,7 +34,7 @@ export async function generateMetadata({ params, searchParams }: RouteProps): Pr
     title:product ? `${product.title}${selectedChoice ? `, ${selectedChoice.label}` : ""} — цена и характеристики | 7TOOL` : "Товар — 7TOOL",
     description:product ? `${product.title}${selectedChoice ? `, ${selectedChoice.label}` : ""}. Характеристики выбранного исполнения, цена с НДС и запрос коммерческого предложения.` : "Карточка промышленного оборудования 7TOOL.",
     path:`/product/${slug}`,
-    indexable:Boolean(product) && !hasSearchParameters(rawSearchParams),
+    indexable:Boolean(product) && !dataConflict && !hasSearchParameters(rawSearchParams),
     image:product ? getFeedProductImage(product) : undefined,
   });
 }
@@ -42,6 +44,7 @@ export default async function FeedProductPage({ params, searchParams }: RoutePro
   const rawSearchParams = await searchParams;
   const product = getFeedProductBySlug(slug);
   if (!product) notFound();
+  const dataConflict = getCatalogBlockingProductIds().has(product.id);
 
   const category = getFeedCategory(product.category);
   const productionEntry = getProductionSubcategory(product.category);
@@ -49,7 +52,7 @@ export default async function FeedProductPage({ params, searchParams }: RoutePro
   const pageArchetype = getProductPageArchetype(product.category);
   const selectedVariantId = typeof rawSearchParams.variant === "string" ? rawSearchParams.variant : "";
   const allVariants = sortVariantsForChoice(product, product.variants.filter((variant) => variant.name || variant.sku));
-  const primaryVariant = allVariants.find((variant) => variant.id === selectedVariantId) ?? allVariants[0];
+  const primaryVariant = allVariants.find((variant) => variant.id === selectedVariantId) ?? selectDefaultVariant(product, allVariants);
   const hasExactVariantImage = Boolean(primaryVariant && primaryVariant.images?.[0]);
   const images = Array.from(new Set([...(primaryVariant?.images ?? []), ...product.images, getFeedProductImage(product)].filter((image): image is string => Boolean(image))));
   const keySpecs = primaryVariant ? getFeedVariantSpecs(product, primaryVariant).slice(0, 4) : [];
@@ -81,8 +84,10 @@ export default async function FeedProductPage({ params, searchParams }: RoutePro
     ...(verifiedOffer ? { offers:verifiedOffer } : {}),
   };
 
-  return <div className="site-shell"><JsonLd data={productStructuredData} /><PilotHeader /><main className="inner-page feed-product-conversion-page" data-product-archetype={pageArchetype.id}>
+  return <div className="site-shell">{!dataConflict && <JsonLd data={productStructuredData} />}<PilotHeader /><main className="inner-page feed-product-conversion-page" data-product-archetype={pageArchetype.id}>
     <div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Каталог", href:"/catalog" }, ...(productionEntry ? [{ label:productionEntry.group.title, href:productionEntry.group.href }] : []), { label:category?.title ?? product.category, href:`/catalog/category/${product.category}` }, { label:product.brand }]} /></div>
+
+    {dataConflict && <div className="container"><div className="product-data-conflict" role="alert"><b>Характеристики требуют проверки</b><p>Название и числовые параметры выбранного товара противоречат друг другу в исходном каталоге. До подтверждения поставщиком страница исключена из поискового индекса и товарной разметки; менеджер проверит точное исполнение перед КП.</p></div></div>}
 
     <section className="feed-conversion-main"><div className="container feed-conversion-layout">
       <FeedProductGallery images={images} title={product.title} exactVariantImage={hasExactVariantImage} selectedVariantLabel={primaryChoice?.label} />

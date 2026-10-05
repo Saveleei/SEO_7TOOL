@@ -51,6 +51,7 @@ export type FeedProduct = {
   manualSortOrder?: number;
   description?: string;
   sourceSupplier?: string;
+  draft?: boolean;
 };
 
 export type FeedCompatibilityRecommendation = {
@@ -264,7 +265,7 @@ const denseTableCategorySlugs = new Set([
 ]);
 
 for (const product of feedSnapshot.products) {
-  if (!categoriesBySlug.has(product.category)) continue;
+  if (product.draft || !categoriesBySlug.has(product.category)) continue;
   productsById.set(product.id, product);
   productsBySlug.set(product.slug, product);
   for (const variant of product.variants) variantsById.set(variant.id, { product, variant });

@@ -1681,7 +1681,7 @@
           {
             "value": "Huawei",
             "label": "Huawei",
-            "count": 46
+            "count": 39
           },
           {
             "value": "Sunbow",
@@ -5294,11 +5294,6 @@
             "count": 5
           },
           {
-            "value": "Ravic",
-            "label": "Ravic",
-            "count": 5
-          },
-          {
             "value": "Euroboor",
             "label": "Euroboor",
             "count": 4
@@ -5307,6 +5302,11 @@
             "value": "OMCA",
             "label": "OMCA",
             "count": 4
+          },
+          {
+            "value": "Ravic",
+            "label": "Ravic",
+            "count": 3
           },
           {
             "value": "Aotai",
@@ -5761,7 +5761,7 @@
           {
             "value": "Ручной",
             "label": "Ручной",
-            "count": 20
+            "count": 18
           },
           {
             "value": "Стационарный",
@@ -22530,16 +22530,9 @@
       "A48450",
       "A48451",
       "A14318",
-      "A57669",
       "A14322",
-      "A57853",
       "A14329",
-      "A15303",
-      "A15451",
-      "A17144",
-      "A54177",
-      "A58862",
-      "A22216"
+      "A54177"
     ],
     "kompressory": [
       "A24820",
@@ -23706,9 +23699,7 @@
       "A16103",
       "A15826",
       "A17720",
-      "A57318",
       "A10474",
-      "A47838",
       "G3902",
       "G4067",
       "G4431",

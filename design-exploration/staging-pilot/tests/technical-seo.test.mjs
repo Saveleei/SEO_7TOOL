@@ -41,6 +41,7 @@ test("public metadata uses a clean canonical and noindexes parameterized listing
     assert.equal(clean.robots?.index, true);
     const duplicate = createPublicMetadata({ title:"Фильтр", description:"Описание", path:"/catalog/category/borfrezy", indexable:false });
     assert.equal(duplicate.robots?.index, false);
+    assert.equal(duplicate.robots?.follow, true);
     assert.equal(hasSearchParameters({ sort:"relevance", q:"" }), true);
     assert.equal(hasSearchParameters({ q:"" }), false);
     assert.equal(canonicalUrl("/product/example?variant=1#specs"), "https://7tool.ru/product/example");
@@ -86,7 +87,21 @@ test("structured data is escaped and product offers are gated by verified availa
   assert.match(breadcrumbs, /"@type":"BreadcrumbList"/u);
   assert.match(product, /"@type":"Product"/u);
   assert.match(product, /primaryShipping\.available/u);
+  assert.match(product, /!dataConflict && <JsonLd/u);
+  assert.match(product, /indexable:Boolean\(product\) && !dataConflict/u);
+  assert.match(product, /product-data-conflict/u);
   assert.match(product, /"https:\/\/schema\.org\/InStock"/u);
+});
+
+test("sitemap excludes products blocked by catalog P0 findings", async () => {
+  const source = await readFile(new URL("../app/sitemap.ts", import.meta.url), "utf8");
+  assert.match(source, /getCatalogBlockingProductIds/u);
+  assert.match(source, /!blockedProductIds\.has\(product\.id\)/u);
+});
+
+test("invalid category pages terminate as real 404 responses", async () => {
+  const source = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
+  assert.match(source, /requestedPage > result\.pageCount\)\) notFound\(\)/u);
 });
 
 test("legacy duplicate routes use permanent redirects", async () => {

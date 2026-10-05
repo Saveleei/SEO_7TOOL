@@ -10,7 +10,7 @@ import {
   getFeedProductImage,
   getPublishedFeedCategorySlugs,
 } from "../app/data/feedCatalog.ts";
-import { getCatalogQualityReportSnapshot } from "../app/data/catalogQuality.ts";
+import { CATALOG_QUALITY_ANALYZER_VERSION, getCatalogQualityReportSnapshot } from "../app/data/catalogQuality.ts";
 
 const FEATURED_PRODUCT_SLUGS = [
   "magnitnyy-sverlilnyy-stanok-lenz-steyr-35",
@@ -61,7 +61,7 @@ await writeFile(facetsDestination, `${JSON.stringify({
   rankings:Object.fromEntries(publishedCategorySlugs.map((slug) => [slug, getFeedCategoryRankingSnapshot(slug)])),
 }, null, 2)}\n`, "utf8");
 await writeFile(qualityDestination, `${JSON.stringify({
-  version:1,
+  version:CATALOG_QUALITY_ANALYZER_VERSION,
   sourceSha256:presentation.sourceSha256,
   report:getCatalogQualityReportSnapshot(),
 })}\n`, "utf8");
