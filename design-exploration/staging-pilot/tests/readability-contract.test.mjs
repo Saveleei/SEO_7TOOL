@@ -55,4 +55,6 @@ test("mobile dense controls retain readable targets and discoverable horizontal 
   assert.match(contract, /\.product-jumpnav \.container \{ gap:24px; padding-right:38px/u);
   assert.match(styles, /\.compare-scroll \{ overflow:auto;[\s\S]*scroll-padding-inline:14px 44px/u);
   assert.match(styles, /\.compare-scroll-hint \{ display:block;[\s\S]*font-size:13px/u);
+  assert.match(contract, /\.catalog-hero h1 \{[\s\S]*overflow-wrap:break-word;[\s\S]*hyphens:auto;/u);
+  assert.match(contract, /@media \(max-width:340px\) \{[\s\S]*\.section-heading h2,\.assurance-section \.section-heading h2 \{ font-size:27px; \}/u);
 });
