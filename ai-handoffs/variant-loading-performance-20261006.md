@@ -35,6 +35,8 @@ Reduce the time from opening the product-variant chooser to seeing actionable pr
 
 Implementation and local acceptance complete; production remains unchanged pending explicit publication approval.
 
+- Implementation commit: `fbb9f32`.
+
 ## Result
 
 - The variant API now returns 24 choices by default and hard-limits any single response to 60 choices instead of serializing the complete matrix.
