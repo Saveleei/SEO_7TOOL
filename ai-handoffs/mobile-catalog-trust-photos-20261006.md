@@ -29,4 +29,8 @@ Correct the trust-block photo presentation on the mobile catalogue, make product
 - Social metadata URLs now carry a content-derived revision; source images are single-flight cached with a bounded 32-entry cache and immutable revisioned responses.
 - Root cause of missing requisites delivery identified: the worker generated an invalid Unicode regular expression by escaping hyphens in an already validated request ID. The validator is fixed and a multipart attachment regression test passes.
 - The pending production request ending `AF55E6` was delivered idempotently; one attachment is stored and both email and MAX notification channels are `sent` after one notification attempt.
-- Candidate and production publication remain.
+- Focused regression suite: 37/37 passed. Full suite: 400/400 passed. Lint: 0 errors and one pre-existing `YandexMetrika.tsx` image warning. Windows and Linux production builds passed.
+- Linux candidate validated three concurrent page-specific social cards at 1200x630/HTTP 200, a 31.35 KB cacheable variant response in 89–120 ms, and the representative public pages at HTTP 200.
+- Published release: `/var/www/7tool-release-20261006-mobile-social-intake-924a199`; previous release `/var/www/7tool-release-20261006-social-share-09de62c` remains the rollback target.
+- Production was re-created from the new absolute release path on port 3260, saved to PM2, and verified through `https://7tool.ru`: representative pages and all three social cards return 200; the variant API returns 200 in about 101 ms.
+- Final read-only delivery check confirms the recovered request attachment is stored and both email and MAX are `sent`.
