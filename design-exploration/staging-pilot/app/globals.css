@@ -8043,3 +8043,9 @@ h1,h2,h3,.hero h1,.page-hero h1,.section-heading h2,.assurance-section .section-
 @media (max-width:340px) {
   .section-heading h2,.assurance-section .section-heading h2 { font-size:27px; }
 }
+
+/* Compact and tablet layouts already expose the manager in the bottom bar or
+   header. Avoid a second fixed control covering product comparison actions. */
+@media (max-width:1180px) {
+  .mobile-manager-bubble { display:none!important; }
+}

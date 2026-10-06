@@ -71,6 +71,7 @@ test("desktop navigation and compact manager controls expose one reusable four-c
   assert.match(styles, /header-contact-messenger-icon svg \{ width:24px; height:24px; display:block; \}/u);
   assert.match(styles, /\.mobile-manager-bubble \{[\s\S]{0,180}position:fixed[\s\S]{0,180}display:block/u);
   assert.match(styles, /@media \(max-width:760px\)[\s\S]*\.site-shell:has\(\.product-page\) \.mobile-manager-bubble,\.site-shell:has\(\.feed-product-conversion-page\) \.mobile-manager-bubble \{ display:none; \}/u);
+  assert.match(styles, /@media \(max-width:1180px\) \{\s*\.mobile-manager-bubble \{ display:none!important; \}/u);
   assert.match(styles, /\.mobile-manager-online \{[\s\S]{0,220}background:#169b5f/u);
 });
 
