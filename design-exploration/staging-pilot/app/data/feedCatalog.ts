@@ -30,7 +30,9 @@ export type FeedVariant = {
   sku: string;
   name?: string;
   price?: number;
+  oldPrice?: number;
   quantity?: number;
+  barcode?: string;
   available: boolean;
   params: FeedParameter[];
   images?: string[];
@@ -52,6 +54,7 @@ export type FeedProduct = {
   manualSortOrder?: number;
   description?: string;
   sourceSupplier?: string;
+  feedCategoryId?: string;
   draft?: boolean;
 };
 

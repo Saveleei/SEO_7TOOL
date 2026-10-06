@@ -38,6 +38,7 @@ test("platform identity requires an explicit server allowlist and keeps return p
   assert.equal(resolved?.role, "admin");
   assert.equal(resolved?.name, "Анна Иванова");
   assert.equal(safeManagerReturnTo("/test/requests/7T-1?tab=quote"), "/test/requests/7T-1?tab=quote");
+  assert.equal(safeManagerReturnTo("/admin/catalog?q=LZHS-013"), "/admin/catalog?q=LZHS-013");
   assert.equal(safeManagerReturnTo("https://attacker.example/test/requests"), "/test/requests");
   assert.equal(safeManagerReturnTo("//attacker.example"), "/test/requests");
   assert.equal(safePreviewReturnTo("/c/borfrezy?view=table#products"), "/c/borfrezy?view=table#products");

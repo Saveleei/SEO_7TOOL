@@ -1,40 +1,51 @@
-const YANDEX_FEED_UPSTREAM = "http://127.0.0.1:3108/feeds/yandex-dynamic.xml";
+import { getCatalogBlockingProductIds } from "../../data/catalogQuality.ts";
+import { getPublishedFeedCatalogSnapshot } from "../../data/feedCatalog.ts";
+import { getCatalogSnapshotCompletedAt, getShippingRuntimeDiagnostic } from "../../data/shippingRuntimeSettings.mjs";
+import { buildYandexAdvertisingFeed } from "../../data/yandexAdvertisingFeed.ts";
 
 export const dynamic = "force-dynamic";
 
-export async function proxyYandexAdvertisingFeed(fetchImpl: typeof fetch = fetch, method: "GET" | "HEAD" = "GET"): Promise<Response> {
+type FeedResponseDependencies = {
+  snapshot?: ReturnType<typeof getPublishedFeedCatalogSnapshot>;
+  blockedProductIds?: Set<string>;
+  completedAt?: string;
+  freshness?: { fresh: boolean; snapshotIdentityMatches: boolean };
+};
+
+export function createYandexAdvertisingFeedResponse(request: Request, method: "GET" | "HEAD" = "GET", dependencies: FeedResponseDependencies = {}): Response {
   try {
-    const upstream = await fetchImpl(YANDEX_FEED_UPSTREAM, {
-      method,
-      cache:"no-store",
-      redirect:"error",
-      headers:{ Accept:"application/xml,text/xml;q=0.9,*/*;q=0.1", "User-Agent":"7tool-storefront-feed-bridge/1.0" },
-      signal:AbortSignal.timeout(20_000),
+    const freshness = dependencies.freshness ?? getShippingRuntimeDiagnostic();
+    if (!freshness.fresh || !freshness.snapshotIdentityMatches) return unavailableFeed();
+    const completedAt = dependencies.completedAt ?? getCatalogSnapshotCompletedAt();
+    if (!completedAt) return unavailableFeed();
+    const build = buildYandexAdvertisingFeed({
+      snapshot:dependencies.snapshot ?? getPublishedFeedCatalogSnapshot(),
+      blockedProductIds:dependencies.blockedProductIds ?? getCatalogBlockingProductIds(),
+      generatedAt:completedAt,
     });
-    const contentType = upstream.headers.get("content-type") ?? "";
-    if (!upstream.ok || !/^(?:application|text)\/xml\b/iu.test(contentType)) return unavailableFeed();
     const headers = new Headers({
-      "Content-Type":contentType,
+      "Content-Type":"application/xml; charset=utf-8",
       "Cache-Control":"public, max-age=300, stale-while-revalidate=600",
       "X-Robots-Tag":"noindex, follow",
       "X-Content-Type-Options":"nosniff",
+      "X-7Tool-Catalog-Updated-At":completedAt,
+      ETag:build.etag,
     });
-    for (const name of ["content-length", "etag", "last-modified"]) {
-      const value = upstream.headers.get(name);
-      if (value) headers.set(name, value);
-    }
-    return new Response(method === "HEAD" ? null : upstream.body, { status:200, headers });
+    const modifiedAt = new Date(completedAt);
+    if (Number.isFinite(modifiedAt.getTime())) headers.set("Last-Modified", modifiedAt.toUTCString());
+    if (request.headers.get("if-none-match") === build.etag) return new Response(null, { status:304, headers });
+    return new Response(method === "HEAD" ? null : build.xml, { status:200, headers });
   } catch {
     return unavailableFeed();
   }
 }
 
-export function GET() {
-  return proxyYandexAdvertisingFeed();
+export function GET(request: Request) {
+  return createYandexAdvertisingFeedResponse(request);
 }
 
-export function HEAD() {
-  return proxyYandexAdvertisingFeed(fetch, "HEAD");
+export function HEAD(request: Request) {
+  return createYandexAdvertisingFeedResponse(request, "HEAD");
 }
 
 function unavailableFeed(): Response {

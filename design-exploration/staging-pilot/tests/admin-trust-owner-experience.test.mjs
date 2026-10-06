@@ -9,7 +9,7 @@ test("stable admin entry points lead to the protected owner workspace", async ()
     read("../app/admin/page.tsx"),
     read("../app/admin/trust/page.tsx"),
   ]);
-  assert.match(adminEntry, /redirect\("\/test\/settings\/homepage"\)/u);
+  assert.match(adminEntry, /redirect\("\/admin\/catalog"\)/u);
   assert.match(trustEntry, /redirect\("\/test\/settings\/trust"\)/u);
   assert.match(`${adminEntry}\n${trustEntry}`, /robots:\{ index:false, follow:false, nocache:true \}/u);
 });

@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default function AdminEntryPage() {
-  redirect("/test/settings/homepage");
+  redirect("/admin/catalog");
 }

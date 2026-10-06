@@ -65,7 +65,8 @@ export function safeManagerReturnTo(value: string | null | undefined): string {
   if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("\\") || /[\r\n]/u.test(value)) return "/test/requests";
   try {
     const parsed = new URL(value, "http://local.test");
-    if (parsed.origin !== "http://local.test" || !parsed.pathname.startsWith("/test/")) return "/test/requests";
+    const managerPath = parsed.pathname.startsWith("/test/") || parsed.pathname === "/admin" || parsed.pathname.startsWith("/admin/");
+    if (parsed.origin !== "http://local.test" || !managerPath) return "/test/requests";
     return `${parsed.pathname}${parsed.search}${parsed.hash}`;
   } catch {
     return "/test/requests";

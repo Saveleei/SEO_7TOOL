@@ -1,27 +1,51 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { proxyYandexAdvertisingFeed } from "../app/feeds/yandex-dynamic.xml/route.ts";
+import { createYandexAdvertisingFeedResponse } from "../app/feeds/yandex-dynamic.xml/route.ts";
+import { buildYandexAdvertisingFeed } from "../app/data/yandexAdvertisingFeed.ts";
 import { validateQuoteRequest } from "../app/data/quoteRequestValidation.mjs";
 import { auditYandexFeed } from "../scripts/audit-yandex-feed.mjs";
 import { toProductionLeadPayload } from "../scripts/process-quote-intake-outbox.mjs";
 
-test("the Yandex feed bridge forwards only a successful XML response from the fixed loopback service", async () => {
-  let requestedUrl = "";
-  const response = await proxyYandexAdvertisingFeed(async (url, init) => {
-    requestedUrl = String(url);
-    assert.equal(init?.redirect, "error");
-    return new Response("<?xml version=\"1.0\"?><yml_catalog></yml_catalog>", { status:200, headers:{ "Content-Type":"application/xml", ETag:"feed-v1" } });
+test("the Yandex feed route serves only a fresh matching production snapshot", async () => {
+  const snapshot = sampleCatalog();
+  const request = new Request("https://7tool.ru/feeds/yandex-dynamic.xml");
+  const response = createYandexAdvertisingFeedResponse(request, "GET", {
+    snapshot,
+    blockedProductIds:new Set(),
+    completedAt:"2026-10-06T04:35:15.025Z",
+    freshness:{ fresh:true, snapshotIdentityMatches:true },
   });
-  assert.equal(requestedUrl, "http://127.0.0.1:3108/feeds/yandex-dynamic.xml");
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("x-robots-tag"), "noindex, follow");
-  assert.equal(response.headers.get("etag"), "feed-v1");
-  assert.match(await response.text(), /<yml_catalog>/u);
+  assert.equal(response.headers.get("x-7tool-catalog-updated-at"), "2026-10-06T04:35:15.025Z");
+  assert.match(response.headers.get("etag") || "", /^"[a-f0-9]{64}"$/u);
+  assert.match(await response.text(), /<offer id="k2-A1" available="true">/u);
 
-  const rejected = await proxyYandexAdvertisingFeed(async () => new Response("<html>not a feed</html>", { status:200, headers:{ "Content-Type":"text/html" } }));
+  const rejected = createYandexAdvertisingFeedResponse(request, "GET", {
+    snapshot,
+    blockedProductIds:new Set(),
+    completedAt:"2026-10-06T04:35:15.025Z",
+    freshness:{ fresh:false, snapshotIdentityMatches:true },
+  });
   assert.equal(rejected.status, 503);
   assert.equal(rejected.headers.get("retry-after"), "300");
+});
+
+test("the generated Yandex feed is a complete canonical projection of advertisable variants", () => {
+  const snapshot = sampleCatalog();
+  snapshot.products[0].variants.push({ id:"A2", sku:"MD-2", name:"Магнитный станок MD-2", price:110_000, available:false, params:[], images:[] });
+  const build = buildYandexAdvertisingFeed({ snapshot, generatedAt:"2026-10-06T04:35:15.025Z" });
+  const report = auditYandexFeed({ xml:build.xml, snapshot });
+
+  assert.equal(build.summary.advertisableVariantCount, 1);
+  assert.equal(build.summary.excludedUnavailableCount, 1);
+  assert.equal(report.status, "PASS");
+  assert.equal(report.coverage.advertisableVariantCount, 1);
+  assert.equal(report.counts.nonCanonicalUrls, 0);
+  assert.match(build.xml, /<url>https:\/\/7tool\.ru\/p\/magnetic-drill--md-1<\/url>/u);
+  assert.match(build.xml, /<picture>https:\/\/img\.example\/product\.jpg<\/picture>/u);
+  assert.doesNotMatch(build.xml, /k2-A2/u);
 });
 
 test("the Yandex feed audit detects stale commercial facts and non-canonical landing URLs", () => {
@@ -111,3 +135,13 @@ test("every lead form uses the shared persisted attribution source", async () =>
     assert.doesNotMatch(source, /query\.get\("utm_/u, file);
   }
 });
+
+function sampleCatalog() {
+  return {
+    categories:[{ slug:"drills", title:"Сверлильные станки", count:1, published:true }],
+    products:[{
+      id:"G1", slug:"magnetic-drill", title:"Магнитный станок", brand:"LENZ", sku:"MD", category:"drills", images:["https://img.example/product.jpg"], stock:1, paramAxes:[], draft:false,
+      variants:[{ id:"A1", sku:"MD-1", name:"Магнитный станок MD-1", price:100_000, quantity:1, available:true, params:[], images:[] }],
+    }],
+  };
+}

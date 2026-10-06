@@ -4,6 +4,7 @@ import { pathToFileURL } from "node:url";
 import { getCatalogBlockingProductIds } from "../app/data/catalogQuality.ts";
 import { getPublishedFeedCatalogSnapshot } from "../app/data/feedCatalog.ts";
 import { publicProductPath } from "../app/data/publicUrls.ts";
+import { resolveYandexAdvertisingPictureUrl } from "../app/data/yandexAdvertisingFeed.ts";
 
 const DEFAULT_FEED_URL = "https://7tool.ru/feeds/yandex-dynamic.xml";
 const DEFAULT_ORIGIN = "https://7tool.ru";
@@ -102,7 +103,7 @@ export function auditYandexFeed({ xml, snapshot, blockedProductIds = new Set(), 
     const expectedCategory = publishedCategories.get(product.category)?.title ?? "";
     const actualCategory = parsed.categories.get(offer.categoryId) ?? "";
     compareText(result.mismatches.category, offer, product, variant, actualCategory, expectedCategory);
-    compareText(result.mismatches.picture, offer, product, variant, offer.picture, firstImage(product, variant), false);
+    compareText(result.mismatches.picture, offer, product, variant, offer.picture, resolveYandexAdvertisingPictureUrl(firstImage(product, variant), origin), false);
     compareText(result.mismatches.name, offer, product, variant, offer.name, variant.name || product.title);
     compareText(result.mismatches.vendor, offer, product, variant, offer.vendor, product.brand);
     compareText(result.mismatches.vendorCode, offer, product, variant, offer.vendorCode, variant.sku || (product.variants.length === 1 ? product.sku : ""));
