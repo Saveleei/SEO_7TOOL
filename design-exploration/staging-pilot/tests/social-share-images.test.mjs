@@ -133,7 +133,7 @@ test("renderer declares the shared social size and long-lived cache policy", asy
   assert.match(source, /data:image\/svg\+xml;base64/u);
   assert.match(source, /imageDataCache/u);
   assert.match(source, /MAX_CACHED_SOURCE_IMAGES = 8/u);
-  assert.match(source, /MAX_CONCURRENT_RENDERERS = 2/u);
+  assert.match(source, /MAX_CONCURRENT_RENDERERS = 1/u);
   assert.match(source, /withRenderSlot/u);
   assert.match(source, /await image\.arrayBuffer\(\)/u);
 });

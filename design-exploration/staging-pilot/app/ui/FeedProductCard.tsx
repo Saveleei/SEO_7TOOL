@@ -8,6 +8,7 @@ import { QuickOrderDialog } from "./QuickOrderDialog";
 import { AddRequestButton } from "./RequestCart";
 import { FeedAvailability } from "./FeedAvailability";
 import { preloadVariantPickerItems, VariantPickerDialog, type VariantPickerItem } from "./VariantPickerDialog";
+import { VariantAvailabilityMatrix } from "./VariantAvailabilityMatrix";
 
 type Props = {
   product: FeedProductCardModel;
@@ -53,6 +54,7 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
         <div className="feed-product-assurance"><b>Проверим до оплаты</b><span>Точное исполнение · комплектность и документы · остаток и дата отгрузки</span></div>
       </div>
     </div>
+    {!directVariant && <VariantAvailabilityMatrix variants={product.variants} totalVariantCount={product.variantCount} availableVariantCount={product.availableVariantCount} onWarm={warmVariants} onOpen={() => setPickerOpen(true)} />}
     {!directVariant && <VariantPickerDialog open={pickerOpen} onClose={() => setPickerOpen(false)} productId={product.id} productTitle={product.title} category={product.categorySlug} pageType="category" placement="category_card_size_picker" items={toPickerItems(product)} totalVariantCount={product.variantCount} fullProductHref={`/p/${product.slug}`} variantsEndpoint={variantsEndpoint} selectorLabel={isSizeLedProduct(product) ? "Размер" : "Исполнение"} />}
   </article>;
 }
@@ -62,6 +64,7 @@ function variantArticle(sku: string): string {
 }
 
 function variantChoiceLabel(variant: FeedProductVariantModel): string {
+  if (variant.choiceLabel) return variant.choiceLabel;
   const diameter = variant.specs.find((spec) => /диаметр/iu.test(spec.label));
   const length = variant.specs.find((spec) => /(рабочая длина|глубина)/iu.test(spec.label));
   if (diameter && length) {
@@ -72,11 +75,11 @@ function variantChoiceLabel(variant: FeedProductVariantModel): string {
 }
 
 function toPickerItems(product: FeedProductCardModel): VariantPickerItem[] {
-  return product.variants.map((variant) => ({ id:variant.id, sku:variant.sku, title:variant.title || product.title, label:variantChoiceLabel(variant), context:variant.specs.slice(0, 2).map((spec) => `${spec.label}: ${spec.value}`).join(" · "), price:variant.price, image:variant.image, href:variant.href, shippingPromise:variant.shippingPromise }));
+  return product.variants.map((variant) => ({ id:variant.id, sku:variant.sku, title:variant.title || product.title, label:variantChoiceLabel(variant), context:variant.choiceContext || variant.specs.slice(0, 2).map((spec) => `${spec.label}: ${spec.value}`).join(" · "), price:variant.price, image:variant.image, href:variant.href, shippingPromise:variant.shippingPromise }));
 }
 
 function isSizeLedProduct(product: FeedProductCardModel): boolean {
-  return product.variants.some((variant) => /[Ø⌀]\s*\d+.*[×xх]\s*\d+/iu.test(variantChoiceLabel(variant)) || variant.specs.some((spec) => /диаметр|длина|размер/iu.test(spec.label)));
+  return product.variants.some((variant) => variant.selectorLabel === "Размер" || /[Ø⌀]\s*\d+.*[×xх]\s*\d+/iu.test(variantChoiceLabel(variant)) || variant.specs.some((spec) => /диаметр|длина|размер/iu.test(spec.label)));
 }
 
 function variantEndpoint(product: FeedProductCardModel): string {

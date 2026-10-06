@@ -19,7 +19,7 @@ const interFonts = Promise.all([
 
 const imageDataCache = new Map<string, Promise<string>>();
 const MAX_CACHED_SOURCE_IMAGES = 8;
-const MAX_CONCURRENT_RENDERERS = 2;
+const MAX_CONCURRENT_RENDERERS = 1;
 const renderWaiters: Array<() => void> = [];
 let activeRenderers = 0;
 

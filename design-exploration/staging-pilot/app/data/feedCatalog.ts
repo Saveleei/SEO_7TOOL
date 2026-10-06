@@ -16,6 +16,7 @@ import { applyRuntimeCatalogParameterOverrides, applyRuntimeCatalogParameterOver
 import { getFeedDecisionParameters } from "./feedDecisionParameters.mjs";
 import { applySupplierImageProxy } from "./supplierImageProxy.mjs";
 import { publicProductPath, publicProductSlug } from "./publicUrls.ts";
+import { getVariantChoicePresentation, sortVariantsForChoice } from "./variantPresentation.ts";
 
 export type FeedParameter = {
   name: string;
@@ -107,6 +108,9 @@ export type FeedProductVariantModel = {
   image?: string;
   href: string;
   specs: FeedProductSpec[];
+  choiceLabel: string;
+  choiceContext: string;
+  selectorLabel: "Размер" | "Параметры исполнения";
   matchesSelection: boolean;
   available: boolean;
   shippingPromise: FeedShippingPromise;
@@ -661,12 +665,15 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
             : values.some((value) => filter.values.includes(value));
       })) && (!preferAvailable || isConfirmedAvailableVariant(variant)),
     }))
-    .filter(({ matchesSelection }) => !hasVariantSelection || matchesSelection)
-    .sort((first, second) => Number(second.matchesSelection) - Number(first.matchesSelection) || first.sourceOrder - second.sourceOrder);
+    .filter(({ matchesSelection }) => !hasVariantSelection || matchesSelection);
+  const choiceOrder = new Map(sortVariantsForChoice(product, selectedVariants.map(({ variant }) => variant)).map((variant, index) => [variant.id, index]));
+  selectedVariants.sort((first, second) => Number(second.matchesSelection) - Number(first.matchesSelection)
+    || (choiceOrder.get(first.variant.id) ?? first.sourceOrder) - (choiceOrder.get(second.variant.id) ?? second.sourceOrder));
   const variants = selectedVariants
     .slice(0, 12)
     .map(({ variant, matchesSelection }) => {
       const shippingPromise = getVariantShippingPromise(variant);
+      const choice = getVariantChoicePresentation(product, variant);
       return {
         id:variant.id,
         sku:variant.sku,
@@ -675,6 +682,9 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
         image:variant.images?.find(Boolean) ?? productImage,
         href:`${publicProductPath(product, variant)}#variants`,
         specs:getFeedVariantSpecs(product, variant),
+        choiceLabel:choice.label,
+        choiceContext:choice.context,
+        selectorLabel:choice.selectorLabel,
         matchesSelection,
         available:shippingPromise.available,
         shippingPromise,
