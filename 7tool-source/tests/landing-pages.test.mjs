@@ -58,9 +58,14 @@ test("лид сначала сохраняется с атрибуцией и п
   assert.match(leadApi, /landing_quote/);
   assert.match(leadApi, /storeLeadDocument/);
   assert.match(leadApi, /"requisites"/);
-  assert.match(leads, /leadAttachmentWorkspaceUrl/);
-  assert.match(leads, /Открыть заявку и скачать файл/);
-  assert.match(leads, /Защищённый доступ/);
+  assert.match(leads, /leadAttachmentDownloadLinks/);
+  assert.match(leads, /Скачать \$\{link\.kind === "requisites" \? "реквизиты"/);
+  assert.match(leads, /Подписанная ссылка не требует входа/);
+  const attachmentRoute = read("src/app/api/lead/route.ts");
+  assert.match(attachmentRoute, /verifyLeadAttachmentSignature/);
+  assert.match(attachmentRoute, /content-disposition/);
+  assert.match(attachmentRoute, /private, no-store/);
+  assert.doesNotMatch(attachmentRoute, /requireAdmin/);
   assert.doesNotMatch(read("src/app/api/email-intent/route.ts"), /saveLead|submitLead/);
 });
 

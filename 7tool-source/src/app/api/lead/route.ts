@@ -1,8 +1,13 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { NextResponse, type NextRequest } from "next/server";
+import { db } from "@/lib/db";
+import { verifyLeadAttachmentSignature } from "@/lib/lead-attachment-link.mjs";
 import { submitLead, type LeadPayload, type LeadType, type LeadUploadedFile } from "@/lib/leads";
-import { storeLeadDocument, type LeadDocumentKind } from "@/lib/specification-storage";
+import { resolvePrivateLeadFile, storeLeadDocument, type LeadDocumentKind } from "@/lib/specification-storage";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const ALLOWED: LeadType[] = ["contact_form", "cart_quote", "product_quote", "one_click", "price_match", "equipment_selection", "landing_quote", "content_request"];
 const MAX_JSON_BYTES = 24_000;
@@ -10,6 +15,17 @@ const MAX_MULTIPART_BYTES = 20 * 1024 * 1024 + 120_000;
 const WINDOW_MS = 10 * 60_000;
 const LIMIT = 6;
 const buckets = new Map<string, number[]>();
+const ATTACHMENT_MIME: Record<string, string> = {
+  ".pdf": "application/pdf",
+  ".csv": "text/csv; charset=utf-8",
+  ".xls": "application/vnd.ms-excel",
+  ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ".doc": "application/msword",
+  ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+};
 
 function text(value: unknown, max: number): string | undefined {
   if (typeof value !== "string") return undefined;
@@ -109,6 +125,50 @@ function publicRequestHost(req: NextRequest): string {
   const forwarded = req.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
   const host = forwarded || req.headers.get("host")?.trim() || req.nextUrl.host;
   return host.toLowerCase();
+}
+
+function attachmentNotFound() {
+  return new NextResponse("Not found", {
+    status: 404,
+    headers: { "cache-control": "private, no-store", "x-robots-tag": "noindex, noarchive, nofollow" },
+  });
+}
+
+export async function GET(req: NextRequest) {
+  const identity = req.nextUrl.searchParams.get("file")?.match(/^([1-9]\d*)\.(\d+)$/u);
+  const expiresAt = Number(req.nextUrl.searchParams.get("e"));
+  const signature = req.nextUrl.searchParams.get("s") || "";
+  if (!identity) return attachmentNotFound();
+  const leadId = Number(identity[1]);
+  const fileIndex = Number(identity[2]);
+
+  const row = db().prepare("SELECT uploaded_files FROM leads WHERE id = ?").get(leadId) as { uploaded_files: string | null } | undefined;
+  if (!row?.uploaded_files) return attachmentNotFound();
+  let files: LeadUploadedFile[] = [];
+  try { files = JSON.parse(row.uploaded_files) as LeadUploadedFile[]; } catch { return attachmentNotFound(); }
+  const file = files[fileIndex];
+  if (!file || !verifyLeadAttachmentSignature({ leadId, fileIndex, expiresAt, signature, file })) return attachmentNotFound();
+  const resolved = resolvePrivateLeadFile(file.path);
+  if (!resolved) return attachmentNotFound();
+
+  try {
+    const bytes = await readFile(resolved);
+    const ext = path.extname(file.originalName || resolved).toLowerCase();
+    return new NextResponse(bytes, {
+      headers: {
+        "content-type": ATTACHMENT_MIME[ext] || "application/octet-stream",
+        "content-length": String(bytes.byteLength),
+        "content-disposition": `attachment; filename*=UTF-8''${encodeURIComponent(file.originalName || path.basename(resolved))}`,
+        "cache-control": "private, no-store, max-age=0",
+        "content-security-policy": "default-src 'none'; sandbox",
+        "referrer-policy": "no-referrer",
+        "x-content-type-options": "nosniff",
+        "x-robots-tag": "noindex, noarchive, nofollow",
+      },
+    });
+  } catch {
+    return attachmentNotFound();
+  }
 }
 
 export async function POST(req: NextRequest) {

@@ -3,7 +3,8 @@ import nodemailer from "nodemailer";
 import { randomBytes } from "node:crypto";
 import { db } from "./db";
 import { saveLeadAttributionSnapshot } from "./lead-attribution.mjs";
-import { leadAttachmentWorkspaceUrl } from "./lead-attachment-link.mjs";
+import { leadAttachmentDownloadLinks } from "./lead-attachment-link.mjs";
+import { SITE_URL } from "./site-config";
 
 export type LeadType =
   | "contact_form"
@@ -56,6 +57,14 @@ export type LeadUploadedFile = {
   originalName: string;
   size: number;
   scanStatus: "quarantined" | "clean";
+};
+
+type LeadAttachmentDownloadLink = {
+  fileIndex: number;
+  kind: LeadUploadedFile["kind"];
+  name: string;
+  expiresAt: number;
+  url: string;
 };
 
 export type LeadContext = {
@@ -272,7 +281,10 @@ export function renderLeadEmail(p: LeadPayload, leadId: number, ctx: LeadContext
     ? `[7TOOL] ${label} · ${p.productTitle}`
     : `[7TOOL] ${label}`;
   const ts = new Date().toLocaleString("ru-RU", { timeZone: "Europe/Moscow" });
-  const attachmentWorkspaceUrl = leadAttachmentWorkspaceUrl(p);
+  const attachmentLinks = leadAttachmentDownloadLinks(p, leadId, { siteUrl: SITE_URL }) as LeadAttachmentDownloadLink[];
+  const attachmentExpiresAt = attachmentLinks[0]?.expiresAt
+    ? new Date(attachmentLinks[0].expiresAt * 1000).toLocaleString("ru-RU", { timeZone: "Europe/Moscow" })
+    : null;
 
   const rows: [string, string | undefined | null][] = [
     ["Тип", label],
@@ -299,8 +311,8 @@ export function renderLeadEmail(p: LeadPayload, leadId: number, ctx: LeadContext
     .filter(([, v]) => v && String(v).trim())
     .map(([k, v]) => {
       const isUrl = String(v).startsWith("http") || String(v).startsWith("/");
-      const cell = k === "Приложенные файлы" && attachmentWorkspaceUrl
-        ? `${escape(String(v)).replace(/\n/g, "<br>")}<div style="margin-top:10px"><a href="${escape(attachmentWorkspaceUrl)}" style="display:inline-block;padding:9px 12px;border-radius:8px;background:#17221d;color:#fff;text-decoration:none;font-weight:700">Открыть заявку и скачать файл →</a><div style="margin-top:6px;color:#5d6770;font-size:12px">Защищённый доступ: потребуется вход сотрудника.</div></div>`
+      const cell = k === "Приложенные файлы" && attachmentLinks.length
+        ? `<div>${escape(String(v)).replace(/\n/g, "<br>")}</div>${attachmentLinks.map((link) => `<div style="margin-top:10px"><a href="${escape(link.url)}" style="display:inline-block;padding:9px 12px;border-radius:8px;background:#17221d;color:#fff;text-decoration:none;font-weight:700">Скачать ${link.kind === "requisites" ? "реквизиты" : "спецификацию"} →</a><div style="margin-top:4px;color:#5d6770;font-size:12px">${escape(link.name)}</div></div>`).join("")}<div style="margin-top:8px;color:#5d6770;font-size:12px">Подписанная ссылка не требует входа и действует до ${escape(attachmentExpiresAt)} МСК.</div>`
         : isUrl
         ? `<a href="${escape(String(v))}" style="color:#b45309">${escape(String(v))}</a>`
         : escape(String(v)).replace(/\n/g, "<br>");
@@ -320,8 +332,8 @@ export function renderLeadEmail(p: LeadPayload, leadId: number, ctx: LeadContext
 
   const lines = rows
     .filter(([, v]) => v && String(v).trim())
-    .map(([k, v]) => k === "Приложенные файлы" && attachmentWorkspaceUrl
-      ? `${k}: ${v}\nЗащищённое скачивание: ${attachmentWorkspaceUrl}`
+    .map(([k, v]) => k === "Приложенные файлы" && attachmentLinks.length
+      ? `${k}: ${v}\n${attachmentLinks.map((link) => `Скачать ${link.kind === "requisites" ? "реквизиты" : "спецификацию"}: ${link.url}`).join("\n")}\nСсылки действуют до ${attachmentExpiresAt} МСК.`
       : `${k}: ${v}`)
     .join("\n");
   const text = `${label}\n\n${lines}\n\n— 7TOOL admin · #${leadId}`;
@@ -362,7 +374,10 @@ function maxRecipient(): { key: "chat_id" | "user_id"; id: string } | null {
 function renderLeadMax(p: LeadPayload, leadId: number): string {
   const label = TYPE_LABELS[p.type] ?? p.type;
   const ts = new Date().toLocaleString("ru-RU", { timeZone: "Europe/Moscow" });
-  const attachmentWorkspaceUrl = leadAttachmentWorkspaceUrl(p);
+  const attachmentLinks = leadAttachmentDownloadLinks(p, leadId, { siteUrl: SITE_URL }) as LeadAttachmentDownloadLink[];
+  const attachmentExpiresAt = attachmentLinks[0]?.expiresAt
+    ? new Date(attachmentLinks[0].expiresAt * 1000).toLocaleString("ru-RU", { timeZone: "Europe/Moscow" })
+    : null;
   const rows: [string, string | undefined | null, number][] = [
     ["Тип", label, 160],
     ["Время (МСК)", ts, 80],
@@ -371,10 +386,15 @@ function renderLeadMax(p: LeadPayload, leadId: number): string {
     ["Email", p.email, 180],
     ["Компания", p.company, 220],
     ["ИНН", p.inn, 40],
+    ...attachmentLinks.map((link): [string, string, number] => [
+      `Скачать ${link.kind === "requisites" ? "реквизиты" : "спецификацию"} (${link.name})`,
+      link.url,
+      700,
+    ]),
+    ["Ссылки действуют до (МСК)", attachmentExpiresAt, 80],
     ["Товар", p.productTitle, 500],
     ["Сообщение", p.message, 1_200],
     ["Параметры", notificationExtra(p.extra) ? JSON.stringify(notificationExtra(p.extra)) : null, 900],
-    ["Заявка и файл", attachmentWorkspaceUrl, 500],
     ["Товар на сайте", p.productUrl, 500],
     ["Страница заявки", p.pageUrl, 500],
   ];
