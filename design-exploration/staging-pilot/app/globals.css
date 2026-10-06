@@ -8235,22 +8235,23 @@ h1,h2,h3,.hero h1,.page-hero h1,.section-heading h2,.assurance-section .section-
   .variant-picker-dialog--executions .variant-picker-grid>button em { font-size:12px; }
 
   body:has(.product-mobile-buybar) .comparison-tray {
-    left:10px;
-    right:auto;
+    left:max(10px,env(safe-area-inset-left));
+    right:max(10px,env(safe-area-inset-right));
     bottom:74px;
     width:auto;
-    max-width:calc(100% - 20px);
+    max-width:none;
     min-width:0;
-    grid-template-columns:auto auto 40px;
+    grid-template-columns:minmax(52px,auto) minmax(116px,1fr) 40px;
     gap:7px;
     padding:7px 8px 7px 10px;
+    transform:none;
   }
   body:has(.product-mobile-buybar) .comparison-tray>div { display:flex; align-items:center; }
   body:has(.product-mobile-buybar) .comparison-tray>div>span,
   body:has(.product-mobile-buybar) .comparison-tray>div>small { display:none; }
   body:has(.product-mobile-buybar) .comparison-tray>div>b { margin:0; white-space:nowrap; }
   body:has(.product-mobile-buybar) .comparison-tray>a,
-  body:has(.product-mobile-buybar) .comparison-tray>button { min-height:40px; }
+  body:has(.product-mobile-buybar) .comparison-tray>button { min-height:44px; line-height:1.2; white-space:normal; }
   body:has(.product-mobile-buybar) .mobile-manager-bubble { bottom:132px; }
 
   .comparison-mobile-view {

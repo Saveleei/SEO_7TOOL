@@ -59,11 +59,17 @@ test("comparison analytics are allowlisted and privacy-safe", () => {
 
 test("responsive tray and comparison table account for mobile actions", () => {
   const css = read("app/globals.css");
+  const comparison = read("app/ui/Comparison.tsx");
   assert.match(css, /\.comparison-tray \{ position:fixed/u);
   assert.match(css, /body:has\(\.comparison-tray\) \.mobile-manager-bubble/u);
   assert.match(css, /\.comparison-table--dynamic thead th:first-child[^]*position:sticky/u);
   assert.match(css, /\.comparison-product-card>img[^]*object-fit:contain/u);
   assert.match(css, /body:has\(\.product-mobile-buybar\) \.comparison-tray/u);
+  assert.match(css, /body:has\(\.product-mobile-buybar\) \.comparison-tray \{[^}]*left:max\(10px,env\(safe-area-inset-left\)\);[^}]*right:max\(10px,env\(safe-area-inset-right\)\);[^}]*transform:none;/u);
+  assert.match(css, /grid-template-columns:minmax\(52px,auto\) minmax\(116px,1fr\) 40px/u);
+  assert.match(css, /body:has\(\.product-mobile-buybar\) \.comparison-tray>a,[^}]*min-height:44px/u);
+  assert.match(comparison, /href=\{`\/c\/\$\{items\[0\]\.category\}`\} aria-label="Добавить ещё товар для сравнения">Добавить ещё товар<\/Link>/u);
+  assert.doesNotMatch(comparison, /<button type="button" disabled>Добавьте ещё товар<\/button>/u);
   assert.match(css, /\.comparison-mobile-view/u);
   assert.match(css, /\.comparison-mobile-row>div \{ display:grid; grid-template-columns:repeat\(2/u);
 });

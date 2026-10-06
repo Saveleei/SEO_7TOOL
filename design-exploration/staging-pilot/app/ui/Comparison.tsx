@@ -153,7 +153,7 @@ function ComparisonTray() {
   const ready = items.length >= 2;
   return <aside className="comparison-tray" role="status" aria-live="polite">
     <div><span>Сравнение</span><b>{items.length} из {MAX_ITEMS}</b><small>{items.map((item) => item.variantLabel || item.title).join(" · ")}</small></div>
-    {ready ? <Link href="/compare" onClick={() => trackComparison("open_comparison", items[0], "comparison_tray", items.length)}>Сравнить товары</Link> : <button type="button" disabled>Добавьте ещё товар</button>}
+    {ready ? <Link href="/compare" onClick={() => trackComparison("open_comparison", items[0], "comparison_tray", items.length)}>Сравнить товары</Link> : <Link href={`/c/${items[0].category}`} aria-label="Добавить ещё товар для сравнения">Добавить ещё товар</Link>}
     <button type="button" aria-label="Очистить сравнение" onClick={() => clear("comparison_tray")}>×</button>
   </aside>;
 }
