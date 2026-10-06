@@ -6,7 +6,7 @@ import { getProductionSubcategory } from "./productionCategoryGroups.ts";
 export const SOCIAL_CARD_WIDTH = 1200;
 export const SOCIAL_CARD_HEIGHT = 630;
 export const SOCIAL_CARD_CONTENT_TYPE = "image/png";
-export const SOCIAL_CARD_DESIGN_VERSION = "20261006.3";
+export const SOCIAL_CARD_DESIGN_VERSION = "20261006.4";
 
 export type SocialCardKind = "category" | "subcategory" | "product";
 
@@ -41,6 +41,27 @@ export function socialCardMetadataImage(kind: SocialCardKind, imageAlt: string, 
     type:SOCIAL_CARD_CONTENT_TYPE,
     alt:imageAlt,
   };
+}
+
+/**
+ * Social networks cache the source page URL as well as its image. This URL is
+ * intentionally different whenever the resolved card changes, while the page
+ * keeps its clean canonical URL for search engines.
+ */
+export function socialCardSharePath(pagePath: string, kind: SocialCardKind, ...slugs: string[]): string {
+  const revision = currentSocialCardRevision(kind, slugs);
+  if (!revision) return pagePath;
+  return appendShareRevision(pagePath, revision);
+}
+
+export function requestedSocialCardSharePath(
+  pagePath: string,
+  requestedRevision: string | undefined,
+  kind: SocialCardKind,
+  ...slugs: string[]
+): string | undefined {
+  const revision = currentSocialCardRevision(kind, slugs);
+  return revision && requestedRevision === revision ? appendShareRevision(pagePath, revision) : undefined;
 }
 
 export function resolveSocialCardContent(rawSegments: string[]): SocialCardContent | null {
@@ -187,4 +208,15 @@ function socialCardRevision(kind: SocialCardKind, slugs: string[], content: Soci
     content?.image ?? "",
     content?.imageAlt ?? "",
   ].join("|"));
+}
+
+function currentSocialCardRevision(kind: SocialCardKind, slugs: string[]): string | undefined {
+  const content = resolveNormalizedSocialCardContent(kind, slugs);
+  return content ? socialCardRevision(kind, slugs, content) : undefined;
+}
+
+function appendShareRevision(pagePath: string, revision: string): string {
+  const [withoutHash, hash = ""] = pagePath.split("#", 2);
+  const separator = withoutHash.includes("?") ? "&" : "?";
+  return `${withoutHash}${separator}share=${encodeURIComponent(revision)}${hash ? `#${hash}` : ""}`;
 }

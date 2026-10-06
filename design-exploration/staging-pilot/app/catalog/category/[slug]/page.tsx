@@ -16,6 +16,7 @@ import { OpenFullFiltersLink, PromotedFilterLink } from "../../../ui/PromotedFil
 import { PilotFooter } from "../../../ui/PilotFooter";
 import { PilotHeader } from "../../../ui/PilotHeader";
 import { SelectionConversionBlock } from "../../../ui/SelectionConversionBlock";
+import { SocialShareButton } from "../../../ui/SocialShareButton";
 import { TestRequestForm } from "../../../ui/TestRequestForm";
 import { AutoApplyFilterPanel, AutoApplySortForm } from "../../../ui/AutoApplyFilters";
 import { buildCategoryQueryContext, findCategorySelectionOption, getCategorySelectionRule } from "../../../data/categorySelection.mjs";
@@ -27,7 +28,7 @@ import { getProductionSubcategory } from "../../../data/productionCategoryGroups
 import { getShippingRuntimeDiagnostic } from "../../../data/shippingRuntimeSettings.mjs";
 import { canonicalUrl, createPublicMetadata, hasSearchParameters } from "../../../data/seo";
 import { buildCategorySeoKeywords } from "../../../data/seoKeywords";
-import { socialCardMetadataImage } from "../../../data/socialCards";
+import { requestedSocialCardSharePath, socialCardMetadataImage, socialCardSharePath } from "../../../data/socialCards";
 import { publicProductPath } from "../../../data/publicUrls";
 
 type SearchValue = string | string[] | undefined;
@@ -73,12 +74,14 @@ export async function generateMetadata({ params, searchParams }: RouteProps): Pr
   const title = category?.h1 ?? entry?.subcategory.label;
   const metadataTitle = title ? `${title} — купить с подбором и доставкой | 7TOOL` : "Категория оборудования — 7TOOL";
   const description = category?.intro ?? (entry ? `${entry.subcategory.label}: инженерный подбор, характеристики, ориентиры цены и подтверждение условий поставки.` : "Категория промышленного оборудования 7TOOL.");
+  const pagePath = `/c/${slug}`;
   return createPublicMetadata({
     title:metadataTitle,
     description,
-    path:`/c/${slug}`,
+    path:pagePath,
     indexable:Boolean(entry && category) && !hasSearchParameters(rawSearchParams),
     image:entry && category ? socialCardMetadataImage("category", `${title} — изображение категории 7TOOL`, slug) : undefined,
+    socialPath:requestedSocialCardSharePath(pagePath, firstValue(rawSearchParams.share), "category", slug),
     keywords:buildCategorySeoKeywords({ slug, title:category?.title ?? entry?.subcategory.label, h1:category?.h1 }),
   });
 }
@@ -189,6 +192,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     && !Number.isFinite(numericMaximums[facet.key])
     && !(facet.minimumFacetKey && Number.isFinite(numericMaximums[facet.minimumFacetKey])));
   const categoryTitle = activeSubsegment?.heroTitle ?? activeShortcut?.heroTitle ?? feedCategory?.h1 ?? subcategory.label;
+  const sharePath = socialCardSharePath(`/c/${slug}`, "category", slug);
   const categoryIntro = activeSubsegment?.heroIntro ?? activeShortcut?.heroIntro ?? profile.heroIntro;
   const manualHeroMedia = homepageContent.categoryItems.find((item) => item.id === slug && item.imageAssetId);
   const scopedHeroProduct = activeShortcut || activeSubsegment
@@ -284,6 +288,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
       <h1>{categoryTitle}</h1>
       <p>{categoryIntro}</p>
       <div className="category-hero-facts"><span><b>{categoryHeroCount.toLocaleString("ru-RU")}</b> {pluralizeProductGroups(categoryHeroCount)}</span><span>Цена — по данным поставщика</span><span>Наличие и срок — после проверки</span></div>
+      <SocialShareButton path={sharePath} title={categoryTitle} />
     </div><div className="category-hero-decision">{categoryHeroImage && <figure className="category-hero-media">
       <div className="category-hero-media-visual"><HomepageCategoryMedia src={categoryHeroImage} alt={categoryHeroAlt} sizes="(max-width: 760px) 96px, (max-width: 1180px) 150px, 180px" /></div>
       <figcaption><span>{scopedHeroProduct ? "Пример выбранного вида" : "Пример оборудования раздела"}</span><b>{categoryHeroLabel}</b></figcaption>

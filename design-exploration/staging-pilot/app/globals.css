@@ -56,6 +56,8 @@ img { display:block; max-width:100%; }
 .button-dark { background:var(--ink); color:var(--white); }
 .button-quiet { border:1px solid var(--line); background:var(--white); }
 .button-orange { background:var(--orange); color:var(--ink); }
+.social-share-button { gap:8px; margin-top:14px; border:1px solid var(--line); color:var(--ink); cursor:pointer; }
+.social-share-button>span { color:var(--orange); font-size:17px; line-height:1; }
 .hero-visual { min-height:530px; position:relative; display:grid; place-items:center; border:1px solid var(--line); background:rgba(255,255,255,.83); clip-path:polygon(12% 0,100% 0,100% 87%,88% 100%,0 100%,0 13%); }
 .hero-visual>img { width:82%; height:440px; object-fit:contain; filter:drop-shadow(0 25px 28px rgba(18,18,18,.13)); }
 .hero-visual-label { position:absolute; z-index:2; left:18px; top:18px; padding:12px 14px; border-left:3px solid var(--orange); background:rgba(255,255,255,.94); }

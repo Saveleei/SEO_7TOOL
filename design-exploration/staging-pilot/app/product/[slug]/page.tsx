@@ -11,6 +11,7 @@ import { PilotHeader } from "../../ui/PilotHeader";
 import { ProductRecommendationSystem } from "../../ui/ProductRecommendationSystem";
 import { JsonLd } from "../../ui/JsonLd";
 import { AddRequestButton, RequestCartButton } from "../../ui/RequestCart";
+import { SocialShareButton } from "../../ui/SocialShareButton";
 import { formatFeedPrice, getFeedCategory, getFeedParameterLabel, getFeedProductAlternatives, getFeedProductImage, getFeedProductPriceLabel, getFeedProductRouteBySlug, getFeedVariantSpecs, type FeedParameter, type FeedVariant } from "../../data/feedCatalog";
 import { getProductionSubcategory } from "../../data/productionCategoryGroups";
 import { getCategoryExpertProfile } from "../../data/categoryExpertProfiles.mjs";
@@ -19,13 +20,17 @@ import { getProductVariantChoices, getVariantChoicePresentation, selectDefaultVa
 import { getVariantShippingPromise } from "../../data/shippingPromise.mjs";
 import { canonicalUrl, createPublicMetadata, hasSearchParameters } from "../../data/seo";
 import { buildProductSeoKeywords } from "../../data/seoKeywords";
-import { socialCardMetadataImage } from "../../data/socialCards";
+import { requestedSocialCardSharePath, socialCardMetadataImage, socialCardSharePath } from "../../data/socialCards";
 import { getCatalogBlockingProductIds } from "../../data/catalogQuality";
 import { publicBrandPath, publicCategoryPath, publicProductPath } from "../../data/publicUrls";
 import { getLegacyRetainedProduct } from "../../data/legacyRetainedProducts";
 import { LegacyRetainedProductPage } from "../../ui/LegacyRetainedProductPage";
 
 type RouteProps = { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> };
+
+function firstValue(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
 
 export async function generateMetadata({ params, searchParams }: RouteProps): Promise<Metadata> {
   const { slug } = await params;
@@ -38,12 +43,14 @@ export async function generateMetadata({ params, searchParams }: RouteProps): Pr
   const selectedVariant = route?.variant ?? product?.variants.find((variant) => variant.id === selectedVariantId);
   const selectedChoice = product && selectedVariant ? getVariantChoicePresentation(product, selectedVariant) : undefined;
   const productTitle = product ? `${product.title}${selectedChoice ? `, ${selectedChoice.label}` : ""}` : retainedProduct?.title;
+  const pagePath = product ? publicProductPath(product, route?.variant) : `/p/${slug}`;
   return createPublicMetadata({
     title:product ? `${productTitle} — цена и характеристики | 7TOOL` : retainedProduct ? `${productTitle} — поставка или замена | 7TOOL` : "Товар — 7TOOL",
     description:product ? `${product.title}${selectedChoice ? `, ${selectedChoice.label}` : ""}. Характеристики выбранного исполнения, цена с НДС и запрос коммерческого предложения.` : retainedProduct ? `${retainedProduct.title}. Проверка актуальной поставки или подбор подтверждённой замены у 7TOOL.` : "Карточка промышленного оборудования 7TOOL.",
-    path:product ? publicProductPath(product, route?.variant) : `/p/${slug}`,
+    path:pagePath,
     indexable:Boolean(product || retainedProduct) && !dataConflict && !hasSearchParameters(rawSearchParams),
     image:productTitle ? socialCardMetadataImage("product", `${productTitle} — фото товара на карточке 7TOOL`, slug) : undefined,
+    socialPath:requestedSocialCardSharePath(pagePath, firstValue(rawSearchParams.share), "product", slug),
     keywords:buildProductSeoKeywords({
       title:product?.title ?? retainedProduct?.title,
       brand:product?.brand,
@@ -85,6 +92,7 @@ export default async function FeedProductPage({ params, searchParams }: RoutePro
   const selectedProductContext = [product.title, primaryChoice?.label, primaryVariant?.sku ? `артикул ${primaryVariant.sku}` : ""].filter(Boolean).join(", ");
   const alternatives = primaryVariant ? getFeedProductAlternatives(product, primaryVariant, 3) : [];
   const productUrl = canonicalUrl(publicProductPath(product, route.variant));
+  const sharePath = socialCardSharePath(publicProductPath(product, route.variant), "product", slug);
   const verifiedOffer = primaryVariant && typeof primaryVariant.price === "number" && primaryVariant.price > 0 && primaryShipping.available
     ? { "@type":"Offer", url:productUrl, priceCurrency:"RUB", price:primaryVariant.price, availability:"https://schema.org/InStock", seller:{ "@id":"https://7tool.ru/#organization" } }
     : undefined;
@@ -110,7 +118,7 @@ export default async function FeedProductPage({ params, searchParams }: RoutePro
 
     <section className="feed-conversion-main"><div className="container feed-conversion-layout">
       <FeedProductGallery images={images} title={product.title} exactVariantImage={hasExactVariantImage} selectedVariantLabel={primaryChoice?.label} />
-      <div className="feed-conversion-summary"><p className="product-code">{product.brand}{primaryChoice ? ` · ${primaryChoice.label}` : ""}{primaryVariant?.sku ? ` · Артикул ${primaryVariant.sku}` : ""}</p><h1>{product.title}</h1><p className="feed-conversion-intro">{descriptionParagraphs[0] ?? "Параметры товара получены из фактического каталога поставщика. Точное исполнение, комплектацию и срок поставки подтвердит менеджер."}</p><div className="feed-product-buying-route" aria-label={pageArchetype.routeTitle}><div><span>{pageArchetype.badge}</span><b>{pageArchetype.routeTitle}</b><small>{pageArchetype.routeLead}</small></div><ol>{expertProfile.criteria.slice(0, 3).map((criterion: { title: string }, index: number) => <li key={criterion.title}><span>0{index + 1}</span>{criterion.title}</li>)}</ol><a href="#decision">Как проверить →</a></div><div id="variants" className="feed-variant-card--selected"><FeedProductPurchase productId={product.id} productSlug={product.slug} productTitle={product.title} productBrand={product.brand} categorySlug={product.category} variants={allPurchaseVariants} totalVariantCount={allPurchaseVariants.length} selectedVariantId={primaryVariant?.id} hasComparableAlternatives={alternatives.length > 0} /></div><ManagerContactCard compact placement="product_manager" productId={product.id} /></div>
+      <div className="feed-conversion-summary"><p className="product-code">{product.brand}{primaryChoice ? ` · ${primaryChoice.label}` : ""}{primaryVariant?.sku ? ` · Артикул ${primaryVariant.sku}` : ""}</p><h1>{product.title}</h1><p className="feed-conversion-intro">{descriptionParagraphs[0] ?? "Параметры товара получены из фактического каталога поставщика. Точное исполнение, комплектацию и срок поставки подтвердит менеджер."}</p><SocialShareButton path={sharePath} title={product.title} /><div className="feed-product-buying-route" aria-label={pageArchetype.routeTitle}><div><span>{pageArchetype.badge}</span><b>{pageArchetype.routeTitle}</b><small>{pageArchetype.routeLead}</small></div><ol>{expertProfile.criteria.slice(0, 3).map((criterion: { title: string }, index: number) => <li key={criterion.title}><span>0{index + 1}</span>{criterion.title}</li>)}</ol><a href="#decision">Как проверить →</a></div><div id="variants" className="feed-variant-card--selected"><FeedProductPurchase productId={product.id} productSlug={product.slug} productTitle={product.title} productBrand={product.brand} categorySlug={product.category} variants={allPurchaseVariants} totalVariantCount={allPurchaseVariants.length} selectedVariantId={primaryVariant?.id} hasComparableAlternatives={alternatives.length > 0} /></div><ManagerContactCard compact placement="product_manager" productId={product.id} /></div>
     </div></section>
 
     <nav className="product-jumpnav feed-conversion-jumpnav" aria-label="Разделы карточки"><div className="container"><a href="#decision">Подходит ли вам</a><a href="#specs">Характеристики</a><a href="#supply">Комплектация и документы</a><a href="#recommendations">{pageArchetype.recommendationJumpLabel}</a></div></nav>

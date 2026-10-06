@@ -8,6 +8,8 @@ import {
   SOCIAL_CARD_CONTENT_TYPE,
   SOCIAL_CARD_HEIGHT,
   SOCIAL_CARD_WIDTH,
+  requestedSocialCardSharePath,
+  socialCardSharePath,
   socialCardMetadataImage,
 } from "../app/data/socialCards.ts";
 
@@ -32,6 +34,17 @@ test("page-specific card metadata is absolute, dimensioned, typed, and unambiguo
   });
   assert.equal(metadata.openGraph.images.length, 1);
   assert.deepEqual(metadata.twitter.images, [{ url:metadata.openGraph.images[0].url, alt:"Сверлильные станки" }]);
+});
+
+test("share URLs bust page-preview caches without changing canonical SEO URLs", () => {
+  const path = socialCardSharePath("/c/koronchatye-sverla", "category", "koronchatye-sverla");
+  assert.match(path, /^\/c\/koronchatye-sverla\?share=[a-z0-9]+$/u);
+  const revision = new URL(path, "https://7tool.ru").searchParams.get("share");
+  assert.equal(requestedSocialCardSharePath("/c/koronchatye-sverla", revision ?? undefined, "category", "koronchatye-sverla"), path);
+  assert.equal(requestedSocialCardSharePath("/c/koronchatye-sverla", "stale", "category", "koronchatye-sverla"), undefined);
+  const metadata = createPublicMetadata({ title:"Корончатые свёрла", description:"Подбор", path:"/c/koronchatye-sverla", socialPath:path });
+  assert.equal(metadata.alternates.canonical, "https://7tool.ru/c/koronchatye-sverla");
+  assert.equal(metadata.openGraph.url, `https://7tool.ru${path}`);
 });
 
 test("unrelated catalog pages resolve distinct, relevant photography", () => {

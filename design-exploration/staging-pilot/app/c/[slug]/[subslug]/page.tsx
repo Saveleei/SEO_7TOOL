@@ -7,12 +7,13 @@ import { publicCategoryPath } from "../../../data/publicUrls";
 import { createPublicMetadata } from "../../../data/seo";
 import { buildSubcategorySeoKeywords } from "../../../data/seoKeywords";
 import { SEO_SITE_ORIGIN } from "../../../data/seoIndexing.mjs";
-import { socialCardMetadataImage } from "../../../data/socialCards";
+import { requestedSocialCardSharePath, socialCardMetadataImage, socialCardSharePath } from "../../../data/socialCards";
 import { Breadcrumbs } from "../../../ui/Breadcrumbs";
 import { FeedProductList } from "../../../ui/FeedProductList";
 import { JsonLd } from "../../../ui/JsonLd";
 import { PilotFooter } from "../../../ui/PilotFooter";
 import { PilotHeader } from "../../../ui/PilotHeader";
+import { SocialShareButton } from "../../../ui/SocialShareButton";
 
 type SearchValue = string | string[] | undefined;
 type RouteProps = { params: Promise<{ slug: string; subslug: string }>; searchParams: Promise<Record<string, SearchValue>> };
@@ -34,10 +35,12 @@ export async function generateMetadata({ params, searchParams }: RouteProps): Pr
     path:`/c/${slug}/${subslug}`,
     indexable:Boolean(landing) && validPage && !hasUnexpectedQuery,
     image:landing ? socialCardMetadataImage("subcategory", landing.imageAlt ?? `${landing.title} — изображение подкатегории 7TOOL`, slug, subslug) : undefined,
+    socialPath:requestedSocialCardSharePath(canonicalPath, firstValue(rawSearchParams.share), "subcategory", slug, subslug),
     keywords:buildSubcategorySeoKeywords({ title:landing?.title, h1:landing?.h1 }),
   });
   const canonical = new URL(canonicalPath, SEO_SITE_ORIGIN).toString();
-  return { ...metadata, alternates:{ canonical }, openGraph:{ ...metadata.openGraph, url:canonical } };
+  const socialPath = requestedSocialCardSharePath(canonicalPath, firstValue(rawSearchParams.share), "subcategory", slug, subslug);
+  return { ...metadata, alternates:{ canonical }, openGraph:{ ...metadata.openGraph, url:socialPath ? new URL(socialPath, SEO_SITE_ORIGIN).toString() : canonical } };
 }
 
 export default async function LegacySubcategoryPage({ params, searchParams }: RouteProps) {
@@ -51,6 +54,7 @@ export default async function LegacySubcategoryPage({ params, searchParams }: Ro
   const productIds = new Set(landing.productIds);
   const products = getPublishedFeedCatalogSnapshot().products.filter((product) => productIds.has(product.id));
   const pageProducts = products.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const sharePath = socialCardSharePath(`/c/${slug}/${subslug}${page > 1 ? `?page=${page}` : ""}`, "subcategory", slug, subslug);
   const productCards = pageProducts.map((product) => toFeedProductCardModel(product));
   const siblings = getLegacySubcategoriesForCategory(slug).filter((entry) => entry.slug !== subslug).slice(0, 8);
   const paragraphs = landing.seoText.split(/\n\s*\n/gu).map((paragraph) => paragraph.trim()).filter(Boolean);
@@ -80,7 +84,7 @@ export default async function LegacySubcategoryPage({ params, searchParams }: Ro
   } : undefined;
 
   return <div className="site-shell"><JsonLd data={collection} />{faq && <JsonLd data={faq} />}<PilotHeader /><main className="inner-page">
-    <section className="catalog-hero"><div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Каталог", href:"/catalog" }, { label:landing.categoryTitle, href:publicCategoryPath(slug) }, { label:landing.title }]} /><p className="eyebrow">{landing.categoryTitle}</p><h1>{landing.h1 ?? landing.title}</h1><p>{landing.intro}</p><div className="catalog-hero-stats"><span><b>{landing.count.toLocaleString("ru-RU")}</b> товарных серий в подборке</span><span><b>{page}</b> из {pageCount} страниц</span></div></div></section>
+    <section className="catalog-hero"><div className="container"><Breadcrumbs items={[{ label:"Главная", href:"/" }, { label:"Каталог", href:"/catalog" }, { label:landing.categoryTitle, href:publicCategoryPath(slug) }, { label:landing.title }]} /><p className="eyebrow">{landing.categoryTitle}</p><h1>{landing.h1 ?? landing.title}</h1><p>{landing.intro}</p><div className="catalog-hero-stats"><span><b>{landing.count.toLocaleString("ru-RU")}</b> товарных серий в подборке</span><span><b>{page}</b> из {pageCount} страниц</span></div><SocialShareButton path={sharePath} title={landing.h1 ?? landing.title} /></div></section>
 
     <section className="section" id="products"><div className="container"><div className="section-heading"><div><p className="eyebrow">Проверяемая подборка</p><h2>{landing.shortDescription}</h2></div><p>Состав сформирован по правилам исходного каталога; параметры и цены берутся из текущего товарного снимка.</p></div><FeedProductList products={productCards} />{pageCount > 1 && <nav className="feed-pagination" aria-label="Страницы подборки"><div>{Array.from({ length:pageCount }, (_, index) => index + 1).map((value) => <Link className={value === page ? "active" : undefined} aria-current={value === page ? "page" : undefined} href={`/c/${slug}/${subslug}${value > 1 ? `?page=${value}` : ""}`} key={value}>{value}</Link>)}</div></nav>}</div></section>
 
@@ -96,6 +100,10 @@ function parsePage(value: SearchValue): number | undefined {
   if (!/^\d+$/u.test(raw)) return undefined;
   const page = Number.parseInt(raw, 10);
   return page >= 1 ? page : undefined;
+}
+
+function firstValue(value: SearchValue): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
 }
 
 function hasValue(value: SearchValue): boolean {
