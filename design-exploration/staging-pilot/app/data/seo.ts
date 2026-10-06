@@ -52,8 +52,6 @@ export function createPublicMetadata({
 }): Metadata {
   const canonical = canonicalUrl(path);
   const socialImage = absoluteSocialImage(image ?? DEFAULT_SOCIAL_IMAGE, title);
-  const fallbackImage = absoluteSocialImage(DEFAULT_SOCIAL_IMAGE, DEFAULT_SOCIAL_IMAGE.alt);
-  const openGraphImages = socialImage.url === fallbackImage.url ? [socialImage] : [socialImage, fallbackImage];
   const normalizedKeywords = indexable && isSeoIndexingEnabled() ? normalizeSeoKeywords(keywords) : [];
   return {
     title,
@@ -61,7 +59,7 @@ export function createPublicMetadata({
     ...(normalizedKeywords.length > 0 ? { keywords:normalizedKeywords } : {}),
     alternates:{ canonical },
     robots:publicRobots(indexable),
-    openGraph:{ title, description, url:canonical, siteName:"7TOOL", locale:"ru_RU", type:"website", images:openGraphImages },
+    openGraph:{ title, description, url:canonical, siteName:"7TOOL", locale:"ru_RU", type:"website", images:[socialImage] },
     twitter:{ card:"summary_large_image", title, description, images:[{ url:socialImage.url, alt:socialImage.alt }] },
   };
 }

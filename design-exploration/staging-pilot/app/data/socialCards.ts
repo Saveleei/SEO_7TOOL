@@ -6,7 +6,7 @@ import { getProductionSubcategory } from "./productionCategoryGroups.ts";
 export const SOCIAL_CARD_WIDTH = 1200;
 export const SOCIAL_CARD_HEIGHT = 630;
 export const SOCIAL_CARD_CONTENT_TYPE = "image/png";
-export const SOCIAL_CARD_DESIGN_VERSION = "20261006.2";
+export const SOCIAL_CARD_DESIGN_VERSION = "20261006.3";
 
 export type SocialCardKind = "category" | "subcategory" | "product";
 
@@ -19,21 +19,23 @@ export type SocialCardContent = {
   imageAlt: string;
 };
 
+export type SocialCardRouteResolution = {
+  content: SocialCardContent;
+  kind: SocialCardKind;
+  slugs: string[];
+  revision: string;
+  requestedRevision?: string;
+  isCurrentVersion: boolean;
+};
+
 const SAFE_SLUG = /^[a-z0-9][a-z0-9-]{0,179}$/u;
+const SAFE_REVISION = /^[a-z0-9]{5,16}$/u;
 
 export function socialCardMetadataImage(kind: SocialCardKind, imageAlt: string, ...slugs: string[]) {
   const content = resolveSocialCardContent([kind, ...slugs]);
-  const revision = stableRevision([
-    SOCIAL_CARD_DESIGN_VERSION,
-    kind,
-    ...slugs,
-    imageAlt,
-    content?.title ?? "",
-    content?.context ?? "",
-    content?.image ?? "",
-  ].join("|"));
+  const revision = socialCardRevision(kind, slugs, content);
   return {
-    url:`/social-card/${kind}/${slugs.map((slug) => encodeURIComponent(slug)).join("/")}.png?v=${revision}`,
+    url:versionedSocialCardPath(kind, slugs, revision),
     width:SOCIAL_CARD_WIDTH,
     height:SOCIAL_CARD_HEIGHT,
     type:SOCIAL_CARD_CONTENT_TYPE,
@@ -42,9 +44,31 @@ export function socialCardMetadataImage(kind: SocialCardKind, imageAlt: string, 
 }
 
 export function resolveSocialCardContent(rawSegments: string[]): SocialCardContent | null {
-  const segments = normalizeSegments(rawSegments);
-  if (!segments) return null;
-  const [kind, ...slugs] = segments;
+  return resolveSocialCardRoute(rawSegments)?.content ?? null;
+}
+
+export function resolveSocialCardRoute(rawSegments: string[]): SocialCardRouteResolution | null {
+  const parsed = normalizeSegments(rawSegments);
+  if (!parsed) return null;
+  const [kind, ...slugs] = parsed.segments as [SocialCardKind, ...string[]];
+  const content = resolveNormalizedSocialCardContent(kind, slugs);
+  if (!content) return null;
+  const revision = socialCardRevision(kind, slugs, content);
+  return {
+    content,
+    kind,
+    slugs,
+    revision,
+    requestedRevision:parsed.requestedRevision,
+    isCurrentVersion:parsed.requestedRevision === revision,
+  };
+}
+
+export function versionedSocialCardPath(kind: SocialCardKind, slugs: string[], revision: string): string {
+  return `/social-card/v-${revision}/${kind}/${slugs.map((slug) => encodeURIComponent(slug)).join("/")}.png`;
+}
+
+function resolveNormalizedSocialCardContent(kind: SocialCardKind, slugs: string[]): SocialCardContent | null {
   if (kind === "category" && slugs.length === 1) return categoryCard(slugs[0]);
   if (kind === "subcategory" && slugs.length === 2) return subcategoryCard(slugs[0], slugs[1]);
   if (kind === "product" && slugs.length === 1) return productCard(slugs[0]);
@@ -121,15 +145,19 @@ function firstProductImage(productIds: string[]): string | undefined {
   return undefined;
 }
 
-function normalizeSegments(rawSegments: string[]): string[] | null {
-  if (!Array.isArray(rawSegments) || rawSegments.length < 2 || rawSegments.length > 3) return null;
-  const segments = rawSegments.map((segment, index) => {
+function normalizeSegments(rawSegments: string[]): { segments: string[]; requestedRevision?: string } | null {
+  if (!Array.isArray(rawSegments) || rawSegments.length < 2 || rawSegments.length > 4) return null;
+  const decodedSegments = rawSegments.map((segment, index) => {
     const decoded = safeDecode(segment);
     return index === rawSegments.length - 1 ? decoded.replace(/\.png$/u, "") : decoded;
   });
+  const versionMatch = decodedSegments[0]?.match(/^v-([a-z0-9]+)$/u);
+  const requestedRevision = versionMatch?.[1];
+  if (requestedRevision && !SAFE_REVISION.test(requestedRevision)) return null;
+  const segments = requestedRevision ? decodedSegments.slice(1) : decodedSegments;
   if (!["category", "subcategory", "product"].includes(segments[0])) return null;
   if (!segments.slice(1).every((segment) => SAFE_SLUG.test(segment))) return null;
-  return segments;
+  return { segments, requestedRevision };
 }
 
 function safeDecode(value: string): string {
@@ -147,4 +175,16 @@ function stableRevision(value: string): string {
     hash = Math.imul(hash, 16777619);
   }
   return (hash >>> 0).toString(36);
+}
+
+function socialCardRevision(kind: SocialCardKind, slugs: string[], content: SocialCardContent | null): string {
+  return stableRevision([
+    SOCIAL_CARD_DESIGN_VERSION,
+    kind,
+    ...slugs,
+    content?.title ?? "",
+    content?.context ?? "",
+    content?.image ?? "",
+    content?.imageAlt ?? "",
+  ].join("|"));
 }

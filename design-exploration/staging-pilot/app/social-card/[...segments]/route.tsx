@@ -2,7 +2,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { ImageResponse } from "next/og";
-import { resolveSocialCardContent, SOCIAL_CARD_HEIGHT, SOCIAL_CARD_WIDTH } from "../../data/socialCards";
+import { resolveSocialCardRoute, SOCIAL_CARD_HEIGHT, SOCIAL_CARD_WIDTH, versionedSocialCardPath } from "../../data/socialCards";
 
 export const runtime = "nodejs";
 
@@ -19,10 +19,20 @@ const interFonts = Promise.all([
 const imageDataCache = new Map<string, Promise<string>>();
 const MAX_CACHED_SOURCE_IMAGES = 32;
 
-export async function GET(_request: Request, { params }: RouteContext) {
+export async function GET(request: Request, { params }: RouteContext) {
   const { segments } = await params;
-  const card = resolveSocialCardContent(segments);
-  if (!card) return new Response("Social card not found", { status:404, headers:{ "Cache-Control":"public, max-age=300" } });
+  const resolved = resolveSocialCardRoute(segments);
+  if (!resolved) return new Response("Social card not found", { status:404, headers:{ "Cache-Control":"public, max-age=300" } });
+  if (resolved.requestedRevision && !resolved.isCurrentVersion) {
+    return new Response(null, {
+      status:307,
+      headers:{
+        "Location":new URL(versionedSocialCardPath(resolved.kind, resolved.slugs, resolved.revision), request.url).toString(),
+        "Cache-Control":"public, max-age=300, s-maxage=300",
+      },
+    });
+  }
+  const card = resolved.content;
   const photo = await loadCachedImageDataUrl(card.image).catch(() => loadCachedImageDataUrl("/site/why-stock.webp")).catch(() => "");
   const logo = await loadCachedImageDataUrl("/brand/7tool-inverse.svg").catch(() => "");
   const fonts = await interFonts;
@@ -59,7 +69,9 @@ export async function GET(_request: Request, { params }: RouteContext) {
       height:SOCIAL_CARD_HEIGHT,
       fonts,
       headers:{
-        "Cache-Control":"public, max-age=31536000, s-maxage=31536000, immutable",
+        "Cache-Control":resolved.isCurrentVersion
+          ? "public, max-age=31536000, s-maxage=31536000, immutable"
+          : "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400",
         "Content-Disposition":"inline",
         "X-Content-Type-Options":"nosniff",
       },
