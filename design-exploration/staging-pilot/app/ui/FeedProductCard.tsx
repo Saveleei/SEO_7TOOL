@@ -7,7 +7,7 @@ import type { FeedProductCardModel, FeedProductVariantModel } from "../data/feed
 import { QuickOrderDialog } from "./QuickOrderDialog";
 import { AddRequestButton } from "./RequestCart";
 import { FeedAvailability } from "./FeedAvailability";
-import { VariantPickerDialog, type VariantPickerItem } from "./VariantPickerDialog";
+import { preloadVariantPickerItems, VariantPickerDialog, type VariantPickerItem } from "./VariantPickerDialog";
 
 type Props = {
   product: FeedProductCardModel;
@@ -21,6 +21,8 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
   const archetype = product.cardArchetype;
   const projectConfiguration = archetype.id === "project-system";
   const visibleVariantLabel = pluralizeCardVariants(product.selectedVariantCount, archetype.variantForms);
+  const variantsEndpoint = `/api/catalog-product-variants?product=${encodeURIComponent(product.slug)}`;
+  const warmVariants = () => preloadVariantPickerItems(variantsEndpoint);
   return <article className={`feed-product-card feed-product-card--${archetype.id} ${selected ? "feed-product-card--selected" : ""}`}>
     <a className="feed-product-media" href={`/p/${product.slug}`} aria-label={`Открыть ${product.title}`}>
       {product.image ? <Image src={product.image} alt={product.title} width={430} height={340} unoptimized /> : <span>Изображение уточняется</span>}
@@ -44,14 +46,14 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
         <div className="feed-product-price"><b>{product.price}</b><small>{product.price === "Цена по запросу" || product.variantCount > 1 ? archetype.priceRequestNote : "с НДС · подтвердим в КП"}</small></div>
         <FeedAvailability shippingPromise={product.shippingPromise} />
         <div className="feed-product-actions">
-          {directVariant ? <AddRequestButton item={{ id:`variant:${directVariant.id}`, title:directVariant.title || product.title, article:variantArticle(directVariant.sku), price:directVariant.price, image:directVariant.image, href:directVariant.href, shippingLabel:directVariant.shippingPromise.label, shippingDetail:directVariant.shippingPromise.detail }}>Добавить в КП</AddRequestButton> : <button type="button" aria-haspopup="dialog" onClick={() => setPickerOpen(true)}>{archetype.multipleAction} · {product.selectedVariantCount}</button>}
+          {directVariant ? <AddRequestButton item={{ id:`variant:${directVariant.id}`, title:directVariant.title || product.title, article:variantArticle(directVariant.sku), price:directVariant.price, image:directVariant.image, href:directVariant.href, shippingLabel:directVariant.shippingPromise.label, shippingDetail:directVariant.shippingPromise.detail }}>Добавить в КП</AddRequestButton> : <button type="button" aria-haspopup="dialog" onPointerEnter={warmVariants} onPointerDown={warmVariants} onFocus={warmVariants} onClick={() => setPickerOpen(true)}>{archetype.multipleAction} · {product.selectedVariantCount}</button>}
           {directVariant && <QuickOrderDialog item={{ id:`variant:${directVariant.id}`, title:directVariant.title || product.title, article:variantArticle(directVariant.sku), price:directVariant.price, image:directVariant.image, href:directVariant.href, shippingLabel:directVariant.shippingPromise.label, shippingDetail:directVariant.shippingPromise.detail }} available={directVariant.shippingPromise.available} productId={product.id} variantId={directVariant.id} category={product.categorySlug} placement="category_card" pageType="category" />}
           <a className="feed-all-characteristics" href={`/p/${product.slug}`} aria-label={`${archetype.detailAction}: ${product.title}`}>{archetype.detailAction}</a>
         </div>
         <div className="feed-product-assurance"><b>Проверим до оплаты</b><span>Точное исполнение · комплектность и документы · остаток и дата отгрузки</span></div>
       </div>
     </div>
-    {!directVariant && <VariantPickerDialog open={pickerOpen} onClose={() => setPickerOpen(false)} productId={product.id} productTitle={product.title} category={product.categorySlug} pageType="category" placement="category_card_size_picker" items={toPickerItems(product)} totalVariantCount={product.variantCount} fullProductHref={`/p/${product.slug}`} variantsEndpoint={`/api/catalog-product-variants?product=${encodeURIComponent(product.slug)}`} selectorLabel={isSizeLedProduct(product) ? "Размер" : "Исполнение"} />}
+    {!directVariant && <VariantPickerDialog open={pickerOpen} onClose={() => setPickerOpen(false)} productId={product.id} productTitle={product.title} category={product.categorySlug} pageType="category" placement="category_card_size_picker" items={toPickerItems(product)} totalVariantCount={product.variantCount} fullProductHref={`/p/${product.slug}`} variantsEndpoint={variantsEndpoint} selectorLabel={isSizeLedProduct(product) ? "Размер" : "Исполнение"} />}
   </article>;
 }
 

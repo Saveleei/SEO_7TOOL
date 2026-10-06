@@ -63,7 +63,7 @@ export async function processQuoteIntakeOutbox(options = {}) {
       });
       delivered += 1;
     } catch (error) {
-      const code = error instanceof DeliveryError ? error.code : error?.name === "TimeoutError" ? "TIMEOUT" : "DELIVERY_FAILED";
+      const code = deliveryFailureCode(error);
       const status = error instanceof DeliveryError ? error.httpStatus : null;
       await appendJournal(journalPath, failureRecord(record.requestId, attempts, now, code, status));
       failed += 1;
@@ -178,7 +178,10 @@ async function buildOutboundRequest(request, dataDir) {
 
 function normalizeAttachment(value, requestId, dataDir) {
   if (!value || typeof value !== "object") return null;
-  if (!REQUEST_ID_PATTERN.test(requestId) || !new RegExp(`^uploads/${requestId.replace(/[-]/gu, "\\-")}\\.[a-z0-9]+$`, "u").test(String(value.relativePath || ""))) throw new Error("Unsafe attachment path");
+  // requestId has already been constrained to ASCII letters, digits and hyphens,
+  // so it is safe to interpolate directly. Escaping `-` as `\-` outside a
+  // character class is invalid in Unicode-mode regular expressions.
+  if (!REQUEST_ID_PATTERN.test(requestId) || !new RegExp(`^uploads/${requestId}\\.[a-z0-9]+$`, "u").test(String(value.relativePath || ""))) throw new Error("Unsafe attachment path");
   const absolutePath = path.resolve(dataDir, value.relativePath);
   if (!absolutePath.startsWith(`${path.resolve(dataDir)}${path.sep}`)) throw new Error("Unsafe attachment path");
   return {
@@ -220,6 +223,17 @@ function compactItems(value) {
 function failureRecord(requestId, attempts, now, errorCode, httpStatus = null) {
   const delay = RETRY_DELAYS_MS[Math.min(attempts - 1, RETRY_DELAYS_MS.length - 1)];
   return { requestId, attemptedAt:now.toISOString(), status:"failed", attempts, errorCode, httpStatus, nextAttemptAt:new Date(now.getTime() + delay).toISOString() };
+}
+
+function deliveryFailureCode(error) {
+  if (error instanceof DeliveryError) return error.code;
+  if (error?.name === "TimeoutError") return "TIMEOUT";
+  if (error?.code === "ENOENT") return "ATTACHMENT_NOT_FOUND";
+  if (error instanceof SyntaxError) return "REQUEST_BUILD_FAILED";
+  const networkCode = String(error?.cause?.code || "");
+  return /^(?:ECONNRESET|ECONNREFUSED|ETIMEDOUT|EPIPE|UND_ERR_[A-Z_]+)$/u.test(networkCode)
+    ? `NETWORK_${networkCode}`
+    : "DELIVERY_FAILED";
 }
 
 async function appendJournal(filePath, value) {

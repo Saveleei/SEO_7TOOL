@@ -16,13 +16,15 @@ const interFonts = Promise.all([
   readFont("Inter-Black.ttf").then((data) => ({ name:"Inter", data, style:"normal" as const, weight:900 as const })),
 ]);
 
+const imageDataCache = new Map<string, Promise<string>>();
+const MAX_CACHED_SOURCE_IMAGES = 32;
+
 export async function GET(_request: Request, { params }: RouteContext) {
   const { segments } = await params;
   const card = resolveSocialCardContent(segments);
   if (!card) return new Response("Social card not found", { status:404, headers:{ "Cache-Control":"public, max-age=300" } });
-
-  const photo = await loadImageDataUrl(card.image).catch(() => loadImageDataUrl("/site/why-stock.webp")).catch(() => "");
-  const logo = await loadLocalSvgDataUrl("/brand/7tool-inverse.svg").catch(() => "");
+  const photo = await loadCachedImageDataUrl(card.image).catch(() => loadCachedImageDataUrl("/site/why-stock.webp")).catch(() => "");
+  const logo = await loadCachedImageDataUrl("/brand/7tool-inverse.svg").catch(() => "");
   const fonts = await interFonts;
   const title = clampText(card.title, 92);
   const context = clampText(card.context, 78);
@@ -57,12 +59,30 @@ export async function GET(_request: Request, { params }: RouteContext) {
       height:SOCIAL_CARD_HEIGHT,
       fonts,
       headers:{
-        "Cache-Control":"public, max-age=86400, s-maxage=604800, stale-while-revalidate=2592000",
+        "Cache-Control":"public, max-age=31536000, s-maxage=31536000, immutable",
         "Content-Disposition":"inline",
         "X-Content-Type-Options":"nosniff",
       },
     },
   );
+}
+
+function loadCachedImageDataUrl(source?: string): Promise<string> {
+  const cacheKey = source ?? "";
+  const cached = imageDataCache.get(cacheKey);
+  if (cached) {
+    imageDataCache.delete(cacheKey);
+    imageDataCache.set(cacheKey, cached);
+    return cached;
+  }
+  const loading = (cacheKey.endsWith(".svg") ? loadLocalSvgDataUrl(cacheKey) : loadImageDataUrl(cacheKey))
+    .catch((error) => {
+      imageDataCache.delete(cacheKey);
+      throw error;
+    });
+  imageDataCache.set(cacheKey, loading);
+  while (imageDataCache.size > MAX_CACHED_SOURCE_IMAGES) imageDataCache.delete(imageDataCache.keys().next().value!);
+  return loading;
 }
 
 async function loadImageDataUrl(source?: string): Promise<string> {
@@ -76,7 +96,7 @@ async function loadImageDataUrl(source?: string): Promise<string> {
   }
   const url = new URL(source);
   if (url.protocol !== "https:" || url.hostname !== "s3.export.k2tool.ru" || !url.pathname.startsWith("/pim/images/product/preview/")) throw new Error("External social image host is not allowed.");
-  const response = await fetch(url, { signal:AbortSignal.timeout(8_000), headers:{ "User-Agent":"7TOOL social card renderer" } });
+  const response = await fetch(url, { signal:AbortSignal.timeout(5_000), headers:{ "User-Agent":"7TOOL social card renderer" } });
   if (!response.ok) throw new Error(`Social image returned HTTP ${response.status}.`);
   const contentType = String(response.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
   if (!["image/jpeg", "image/png", "image/webp"].includes(contentType)) throw new Error("Unsupported social image type.");

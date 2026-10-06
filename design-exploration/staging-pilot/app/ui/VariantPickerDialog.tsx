@@ -19,6 +19,12 @@ export type VariantPickerItem = {
   shippingPromise: FeedShippingPromise;
 };
 
+const variantRequestCache = new Map<string, Promise<VariantPickerItem[]>>();
+
+export function preloadVariantPickerItems(endpoint: string): void {
+  void loadVariantPickerItems(endpoint).catch(() => undefined);
+}
+
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -60,11 +66,9 @@ function OpenVariantPickerDialog({ onClose, productId, productTitle, category, p
   useEffect(() => {
     if (!variantsEndpoint || items.length >= totalVariantCount) return;
     const controller = new AbortController();
-    void fetch(variantsEndpoint, { headers:{ Accept:"application/json" }, signal:controller.signal })
-      .then(async (response) => {
-        const payload = await response.json() as { ok?: boolean; variants?: unknown };
-        const loaded = Array.isArray(payload.variants) ? payload.variants.filter(isVariantPickerApiItem).map(toVariantPickerItem) : [];
-        if (!response.ok || !payload.ok || loaded.length < totalVariantCount) throw new Error("variant_list_unavailable");
+    void loadVariantPickerItems(variantsEndpoint, controller.signal)
+      .then((loaded) => {
+        if (loaded.length < totalVariantCount) throw new Error("variant_list_unavailable");
         setAvailableItems(loaded);
         setActiveId((current) => loaded.some((item) => item.id === current) ? current : loaded[0]?.id ?? "");
       })
@@ -122,10 +126,11 @@ function OpenVariantPickerDialog({ onClose, productId, productTitle, category, p
       </div>
       <div className="variant-picker-legend" aria-label="Обозначения"><span><i className="is-available" />В наличии</span><span><i />Наличие и срок уточним</span></div>
       <div className="variant-picker-results" aria-live="polite">
-        {variantsLoading ? <div className="variant-picker-loading" role="status"><b>Загружаем все {totalVariantCount} {variantWord(totalVariantCount, selectorLabel)}</b><span>Собираем полную матрицу размеров и актуального наличия.</span></div> : filteredItems.length > 0 ? <div className="variant-picker-grid" aria-label="Матрица размеров и наличия">{filteredItems.map((item) => {
+        {filteredItems.length > 0 ? <div className="variant-picker-grid" aria-label="Матрица размеров и наличия">{filteredItems.map((item) => {
           const active = item.id === selected?.id;
           return <button className={[active ? "active" : "", item.shippingPromise.available ? "is-available" : "is-unconfirmed"].filter(Boolean).join(" ")} type="button" aria-pressed={active} onClick={() => { setActiveId(item.id); track("variant_picker_select", item.id); }} key={item.id}><b>{item.label}</b><small>{item.price}</small><span><i aria-hidden="true" />{item.shippingPromise.available ? "В наличии" : "Уточним"}</span></button>;
         })}</div> : <div className="variant-picker-empty"><b>Совпадений нет</b><span>Измените размер или покажите все исполнения.</span><button type="button" onClick={() => { setQuery(""); setStockOnly(false); }}>Сбросить фильтр</button></div>}
+        {variantsLoading && <div className="variant-picker-loading variant-picker-loading--inline" role="status"><b>Показаны первые варианты — загружаем все {totalVariantCount}</b><span>Можно выбрать доступный размер уже сейчас.</span></div>}
         {variantsError && <div className="variant-picker-load-error" role="status"><span>{variantsError}</span>{fullProductHref && <a href={fullProductHref}>Открыть карточку товара →</a>}</div>}
       </div>
       {selected && <footer>
@@ -183,6 +188,24 @@ function isShippingPromise(value: unknown): value is FeedShippingPromise {
   return typeof promise.available === "boolean"
     && typeof promise.label === "string"
     && typeof promise.detail === "string";
+}
+
+function loadVariantPickerItems(endpoint: string, signal?: AbortSignal): Promise<VariantPickerItem[]> {
+  const cached = variantRequestCache.get(endpoint);
+  if (cached) return cached;
+  const request = fetch(endpoint, { headers:{ Accept:"application/json" }, signal })
+    .then(async (response) => {
+      const payload = await response.json() as { ok?: boolean; variants?: unknown };
+      const loaded = Array.isArray(payload.variants) ? payload.variants.filter(isVariantPickerApiItem).map(toVariantPickerItem) : [];
+      if (!response.ok || !payload.ok || loaded.length === 0) throw new Error("variant_list_unavailable");
+      return loaded;
+    })
+    .catch((error) => {
+      variantRequestCache.delete(endpoint);
+      throw error;
+    });
+  variantRequestCache.set(endpoint, request);
+  return request;
 }
 
 function toVariantPickerItem(variant: VariantPickerApiItem): VariantPickerItem {

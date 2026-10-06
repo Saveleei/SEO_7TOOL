@@ -72,6 +72,7 @@ test("full size list is loaded on demand in natural order", async () => {
   const payload = await response.json();
   assert.equal(payload.ok, true);
   assert.equal(payload.variants.length, 49);
+  assert.equal("keySpecs" in payload.variants[0], false);
   assert.deepEqual(payload.variants.slice(0, 5).map((variant) => variant.choiceLabel), ["Ø12 × 30 мм", "Ø13 × 30 мм", "Ø14 × 30 мм", "Ø15 × 30 мм", "Ø16 × 30 мм"]);
   assert.equal(payload.variants[0].sku, "LZHS-012");
 
@@ -97,10 +98,14 @@ test("category card variants show the buyer size first and keep actions readable
     assert.match(source, /VariantPickerDialog/u);
     assert.match(source, /toPickerItems/u);
     assert.match(source, /variantChoiceLabel/u);
-    assert.match(source, /variantsEndpoint=\{`\/api\/catalog-product-variants\?product=\$\{encodeURIComponent\(/u);
+    assert.match(source, /\/api\/catalog-product-variants\?product=\$\{encodeURIComponent\(/u);
+    assert.match(source, /variantsEndpoint=\{/u);
+    assert.match(source, /preloadVariantPickerItems/u);
   }
-  assert.match(picker, /fetch\(variantsEndpoint/u);
-  assert.match(picker, /Загружаем все \{totalVariantCount\}/u);
+  assert.match(picker, /fetch\(endpoint/u);
+  assert.match(picker, /preloadVariantPickerItems/u);
+  assert.match(picker, /Показаны первые варианты — загружаем все \{totalVariantCount\}/u);
+  assert.match(picker, /filteredItems\.length > 0/u);
   assert.match(picker, /aria-label="Матрица размеров и наличия"/u);
   assert.match(picker, /availableItems\.filter/u);
   assert.match(picker, /item\.shippingPromise\.available \? "is-available" : "is-unconfirmed"/u);
@@ -108,6 +113,7 @@ test("category card variants show the buyer size first and keep actions readable
   assert.match(picker, /Артикул \$\{selected\.sku\}/u);
   assert.match(picker, /Добавить в КП/u);
   assert.match(styles, /\.variant-picker-dialog \{[\s\S]*?max-height:min/u);
+  assert.match(styles, /\.variant-picker-loading--inline/u);
   assert.match(styles, /@media \(max-width:760px\)[\s\S]*?\.variant-picker-dialog \{ width:100%; height:100dvh/u);
 });
 

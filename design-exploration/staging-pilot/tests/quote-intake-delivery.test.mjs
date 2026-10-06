@@ -91,6 +91,48 @@ test("bridge forwards once with a stable submission id and records a PII-free re
   }
 });
 
+test("bridge forwards a requisites attachment as multipart form data", async () => {
+  const dataDir = await mkdtemp(path.join(os.tmpdir(), "7tool-intake-attachment-"));
+  const previous = snapshotEnv(envNames);
+  try {
+    enableBridge(dataDir);
+    const validation = validateQuoteRequest({ ...validRequest(), requestType:"quote" });
+    assert.equal(validation.ok, true);
+    const bytes = Buffer.from("test requisites document");
+    const saved = await saveQuoteRequest(validation.value, {
+      bytes,
+      extension:"pdf",
+      mime:"application/pdf",
+      size:bytes.length,
+      kind:"billing",
+      originalName:"requisites.pdf",
+    });
+    let call = null;
+    const fetchImpl = async (url, init) => {
+      call = { url, init };
+      return new Response(JSON.stringify({ ok:true, requestId:"7T-20260929-FED321", duplicate:false }), { status:200 });
+    };
+
+    const result = await processQuoteIntakeOutbox({ dataDir, endpoint:"https://7tool.ru/api/lead", enabled:true, fetchImpl, now:"2026-09-29T12:00:00.000Z" });
+
+    assert.equal(result.delivered, 1);
+    assert.equal(call.url, "https://7tool.ru/api/lead");
+    assert.equal(call.init.headers["content-type"], undefined);
+    assert.ok(call.init.body instanceof FormData);
+    const payload = JSON.parse(call.init.body.get("payload"));
+    const file = call.init.body.get("requisites");
+    assert.equal(payload.submissionId, `new-${saved.id}`);
+    assert.ok(file instanceof File);
+    assert.equal(file.name, "requisites.pdf");
+    assert.equal(file.type, "application/pdf");
+    assert.equal(file.size, bytes.length);
+    assert.equal(Buffer.compare(Buffer.from(await file.arrayBuffer()), bytes), 0);
+  } finally {
+    restoreEnv(previous);
+    await rm(dataDir, { recursive:true, force:true });
+  }
+});
+
 test("failed bridge attempts wait for backoff and retry idempotently", async () => {
   const dataDir = await mkdtemp(path.join(os.tmpdir(), "7tool-intake-retry-"));
   const previous = snapshotEnv(envNames);

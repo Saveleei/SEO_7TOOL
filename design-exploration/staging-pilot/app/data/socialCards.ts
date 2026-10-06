@@ -6,6 +6,7 @@ import { getProductionSubcategory } from "./productionCategoryGroups.ts";
 export const SOCIAL_CARD_WIDTH = 1200;
 export const SOCIAL_CARD_HEIGHT = 630;
 export const SOCIAL_CARD_CONTENT_TYPE = "image/png";
+export const SOCIAL_CARD_DESIGN_VERSION = "20261006.2";
 
 export type SocialCardKind = "category" | "subcategory" | "product";
 
@@ -21,8 +22,18 @@ export type SocialCardContent = {
 const SAFE_SLUG = /^[a-z0-9][a-z0-9-]{0,179}$/u;
 
 export function socialCardMetadataImage(kind: SocialCardKind, imageAlt: string, ...slugs: string[]) {
+  const content = resolveSocialCardContent([kind, ...slugs]);
+  const revision = stableRevision([
+    SOCIAL_CARD_DESIGN_VERSION,
+    kind,
+    ...slugs,
+    imageAlt,
+    content?.title ?? "",
+    content?.context ?? "",
+    content?.image ?? "",
+  ].join("|"));
   return {
-    url:`/social-card/${kind}/${slugs.map((slug) => encodeURIComponent(slug)).join("/")}.png`,
+    url:`/social-card/${kind}/${slugs.map((slug) => encodeURIComponent(slug)).join("/")}.png?v=${revision}`,
     width:SOCIAL_CARD_WIDTH,
     height:SOCIAL_CARD_HEIGHT,
     type:SOCIAL_CARD_CONTENT_TYPE,
@@ -127,4 +138,13 @@ function safeDecode(value: string): string {
   } catch {
     return "";
   }
+}
+
+function stableRevision(value: string): string {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36);
 }
