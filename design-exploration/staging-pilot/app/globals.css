@@ -6888,7 +6888,10 @@ body:has(.request-cart-dock) .mobile-manager-bubble { bottom:88px; }
   .mobile-action-bar .header-contact-panel { position:fixed; z-index:225; right:10px; bottom:calc(72px + env(safe-area-inset-bottom)); left:10px; width:auto; max-height:calc(100dvh - 100px); overflow:auto; }
   body.catalog-menu-open .mobile-action-bar { visibility:hidden; pointer-events:none; }
   .mobile-manager-bubble { display:none; }
-  .site-shell:has(.product-page) .mobile-manager-bubble,.site-shell:has(.feed-product-conversion-page) .mobile-manager-bubble { display:block; }
+  /* The bottom action bar already exposes the same manager menu on phones.
+     Keep the separate floating bubble hidden so it cannot cover product titles
+     or purchase information on narrow screens. */
+  .site-shell:has(.product-page) .mobile-manager-bubble,.site-shell:has(.feed-product-conversion-page) .mobile-manager-bubble { display:none; }
 
   .header-catalog-backdrop { display:none; }
   .header-catalog-panel { position:fixed; z-index:220; inset:0; max-height:none; overflow-x:hidden; overflow-y:auto; border:0; border-radius:0; background:#f4f6f2; box-shadow:none; overscroll-behavior:contain; }

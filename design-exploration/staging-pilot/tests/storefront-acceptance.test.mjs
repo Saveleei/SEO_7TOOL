@@ -47,7 +47,7 @@ test("all four contact channels emit only allowlisted non-personal context", () 
   assert.deepEqual(productDetail, { event:"click_messenger", channel:"telegram", page_type:"product", product_id:"test-product", variant_id:"A9409", placement:"product_manager" });
 });
 
-test("desktop navigation and mobile manager bubble expose one reusable four-channel contact menu", async () => {
+test("desktop navigation and compact manager controls expose one reusable four-channel contact menu", async () => {
   const header = await readFile(new URL("../app/ui/PilotHeader.tsx", import.meta.url), "utf8");
   const menu = await readFile(new URL("../app/ui/HeaderContactMenu.tsx", import.meta.url), "utf8");
   const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
@@ -70,6 +70,7 @@ test("desktop navigation and mobile manager bubble expose one reusable four-chan
   assert.match(styles, /header-contact-messenger-icon--max[^}]*#00bfff[^}]*#6e1aff[^}]*#9500ff/u);
   assert.match(styles, /header-contact-messenger-icon svg \{ width:24px; height:24px; display:block; \}/u);
   assert.match(styles, /\.mobile-manager-bubble \{[\s\S]{0,180}position:fixed[\s\S]{0,180}display:block/u);
+  assert.match(styles, /@media \(max-width:760px\)[\s\S]*\.site-shell:has\(\.product-page\) \.mobile-manager-bubble,\.site-shell:has\(\.feed-product-conversion-page\) \.mobile-manager-bubble \{ display:none; \}/u);
   assert.match(styles, /\.mobile-manager-online \{[\s\S]{0,220}background:#169b5f/u);
 });
 
