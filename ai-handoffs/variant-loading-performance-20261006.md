@@ -33,7 +33,7 @@ Reduce the time from opening the product-variant chooser to seeing actionable pr
 
 ## Status
 
-Implementation, local acceptance and isolated server-candidate acceptance complete; production remains unchanged pending explicit publication approval.
+Published to production after explicit owner approval.
 
 - Implementation commit: `fbb9f32`.
 
@@ -70,6 +70,17 @@ Implementation, local acceptance and isolated server-candidate acceptance comple
 - The temporary candidate process was stopped after acceptance. No PM2 process, Nginx route, symlink, feed, request data, credential or cron entry was changed.
 - Production remained `200`, `7tool-prod` remained online at PID `29075`, restart count `1`, unstable restarts `0`, and `/var/www/7tool-production-current` remained on `f5d090b`.
 
-## Remaining gate
+## Production publication
 
-- Publish this exact accepted candidate only after the owner explicitly approves the production switch; preserve the current `f5d090b` release as rollback and pre-warm the candidate before changing the production pointer.
+- Published implementation commit: `fbb9f32`.
+- Active immutable release and symlink target: `/var/www/7tool-release-20261006-variant-performance-fbb9f32`.
+- PM2 `7tool-prod`: online at PID `35024`, restart count `0`, unstable restarts `0`, exact release cwd/script path confirmed; saved PM2 state updated.
+- Previous production release retained for rollback: `/var/www/7tool-release-20261006-yandex-feed-admin-f5d090b`.
+- Rollback and quote-data backup: `/var/www/7tool-production-shared/backups/20261006T140710Z-before-variant-performance-fbb9f32`; archive SHA-256 `c7ce3a3195dbb415be502df37694ac9a6ab64cd7c51de8149759a82d3618c2c2` verified after the switch.
+- Stored request workspace remained present with the same 22 files; no request database, attachment, credential, catalog snapshot, feed scheduler, Nginx route or cron entry was rewritten.
+- Public acceptance returned `200` for homepage, catalog, priority categories, product page, robots, sitemap and Yandex feed; anonymous `/admin/catalog` still returned `307`; `/api/lead` GET still returned the expected `405` bridge response.
+- Public variant API returns 24 of 493 rows with `nextOffset=24` and 23,104-byte payload; full search returns the single exact `LZHS-060` row.
+- Live browser acceptance: progressive list `26/49`, exact final-page SKU search `1/1`, selected article preserved, zero desktop/mobile dialog overflow at 390×844 and no browser console errors.
+- Yandex feed remained at 4,092 offers, SHA-256 `68ddd05d71549d3224dc46fb6a0dc006b20cd4987be8d7e45f3dc96252a68f89`.
+- Two `Premature close` diagnostics were produced by aborted acceptance-browser static streams; the referenced JS chunk (162,726 bytes) and manager photo (112,832 bytes) subsequently downloaded completely with HTTP `200`.
+- Temporary candidate port `3264` was stopped after publication; disk headroom remained 14 GB.
