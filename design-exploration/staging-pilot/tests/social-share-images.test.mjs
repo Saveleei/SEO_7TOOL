@@ -71,7 +71,7 @@ test("renderer declares the shared social size and long-lived cache policy", asy
   assert.match(source, /Inter-Black\.ttf/u);
   assert.match(source, /fontFamily:"Inter"/u);
   assert.match(source, /const interFonts = Promise\.all\(\[/u);
-  assert.match(source, /\n      fonts,\n/u);
+  assert.match(source, /\r?\n      fonts,\r?\n/u);
   assert.match(source, /brand\/7tool-inverse\.svg/u);
   assert.match(source, /data:image\/svg\+xml;base64/u);
 });
