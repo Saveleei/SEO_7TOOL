@@ -33,14 +33,28 @@ Create a production-catalog-backed Yandex advertising feed with a fail-closed pa
 
 ## Status
 
-Ready for production publication.
+Published to production.
 
 ## Verified candidate
 
-- Generated from the active 2026-10-06 catalog snapshot: 24 categories and 4,070 eligible offers.
+- Generated from the active 2026-10-06 catalog snapshot used by the candidate: 24 categories and 4,070 eligible offers.
 - Exact parity audit: 0 missing, duplicate, blocked, stale-price, stale-stock, URL, image, vendor, SKU, currency, or category mismatches.
 - Full test suite: 404/404 passing.
 - ESLint: 0 errors (one existing `next/no-img-element` advisory for the Yandex Metrika noscript pixel).
 - Vinext production build: passed.
 - Loopback release smoke: 64/64 checks passing, including anonymous protection and authenticated access to `/admin/catalog`.
 - Responsive browser acceptance: SKU search, exact price/stock display, mobile layout, and no mobile horizontal overflow verified.
+
+## Production state
+
+- Published code commit: `f5d090b`.
+- Active immutable release: `/var/www/7tool-release-20261006-yandex-feed-admin-f5d090b`.
+- Active symlink: `/var/www/7tool-production-current` points to the release above.
+- PM2: `7tool-prod` is online from the exact new release path on port 3260; saved process state updated.
+- Current production catalog at publication: 4,337 product groups, 18,464 variants, 53 quality-blocked products.
+- Public YML audit: 4,092/4,092 advertisable variants present across 24 categories; zero critical mismatches and zero warnings.
+- Public acceptance: homepage, category, product and feed return 200; `/admin/catalog` redirects anonymous visitors and opens after administrator authentication.
+- The administrator password hash was corrected to the owner-provided password after a live login check detected the stale hash; the previous protected environment file is preserved as `storefront.env.before-yandex-feed-admin-f5d090b`.
+- Rollback release: `/var/www/7tool-release-20261006-social-share-cache-721a099`.
+- Rollback pointer: `/var/www/7tool-production-shared/backups/20261006-before-yandex-feed-admin-f5d090b`.
+- Server headroom after cleanup: 14 GB free disk, 2.1 GB available memory; the temporary candidate process and upload archive were removed.
