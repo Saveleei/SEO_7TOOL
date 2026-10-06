@@ -33,7 +33,7 @@ Reduce the time from opening the product-variant chooser to seeing actionable pr
 
 ## Status
 
-Implementation and local acceptance complete; production remains unchanged pending explicit publication approval.
+Implementation, local acceptance and isolated server-candidate acceptance complete; production remains unchanged pending explicit publication approval.
 
 - Implementation commit: `fbb9f32`.
 
@@ -58,6 +58,18 @@ Implementation and local acceptance complete; production remains unchanged pendi
 - Desktop browser: 12 embedded choices available before the API page completed; then 26 unique choices shown, progressive steps reached 48/49 and 49/49; `LZHS-060` search returned the one exact result and preserved that SKU after selection.
 - Mobile browser at 390×844: full-height dialog, fixed actionable footer, zero horizontal overflow in the document, dialog and results region; no console errors or warnings.
 
+## Isolated server candidate
+
+- Candidate release: `/var/www/7tool-release-20261006-variant-performance-fbb9f32`.
+- Uploaded archive SHA-256: `b7cb7a57cb98d8a3e814840827b0582af62c24e48957e956dd55a66fe35e823a`.
+- Production preflight: 18/18 checks passed against the current production-owned catalog and persistent directories.
+- Server-focused variant suite: 18/18 passed; focused ESLint passed; Vinext production build passed.
+- Loopback release smoke: 64/64 public, anonymous-protection, sign-in and authenticated staff-route checks passed using one-time candidate-only credentials. The first completely cold traversal exceeded the existing 15-second per-route smoke timeout; after warm-up the complete matrix passed, so any production switch must keep the current pre-warm gate.
+- Server response for the 493-variant product: 23,104 bytes; cold `Server-Timing` 397.6 ms and total 0.464 s; warm `Server-Timing` 53.8 ms and total 0.064 s.
+- Exact final-page SKU search returned only `LZHS-060` with the correct title, price, image, link and shipping state.
+- The temporary candidate process was stopped after acceptance. No PM2 process, Nginx route, symlink, feed, request data, credential or cron entry was changed.
+- Production remained `200`, `7tool-prod` remained online at PID `29075`, restart count `1`, unstable restarts `0`, and `/var/www/7tool-production-current` remained on `f5d090b`.
+
 ## Remaining gate
 
-- Create and smoke-test an isolated server candidate, then publish only after the owner explicitly approves the production switch.
+- Publish this exact accepted candidate only after the owner explicitly approves the production switch; preserve the current `f5d090b` release as rollback and pre-warm the candidate before changing the production pointer.
