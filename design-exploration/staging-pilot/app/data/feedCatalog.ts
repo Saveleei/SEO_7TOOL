@@ -641,6 +641,10 @@ export function getFeedProductPriceLabel(product: FeedProduct): string {
   return from;
 }
 
+export function getFeedCatalogRevision(): string {
+  return `${feedSnapshotSha256.slice(0, 12)}-${getRuntimeCatalogParameterOverrideRevision()}`;
+}
+
 export function toFeedProductCardModel(product: FeedProduct, activeFilters: FeedVariantFilter[] = [], preferAvailable = false, cardArchetypeOverride?: "fixtures"): FeedProductCardModel {
   const productImage = getFeedProductImage(product);
   const hasVariantSelection = activeFilters.length > 0 || preferAvailable;
@@ -687,7 +691,7 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
 
   return {
     id: product.id,
-    catalogRevision:`${feedSnapshotSha256.slice(0, 12)}-${getRuntimeCatalogParameterOverrideRevision()}`,
+    catalogRevision:getFeedCatalogRevision(),
     categorySlug: product.category,
     slug: product.slug,
     title: product.title,

@@ -47,6 +47,8 @@ type Props = {
   items: VariantPickerItem[];
   initialVariantId?: string;
   totalVariantCount?: number;
+  initialAvailableVariantCount?: number;
+  initialNextOffset?: number | null;
   fullProductHref?: string;
   variantsEndpoint?: string;
   selectorLabel?: "Размер" | "Исполнение";
@@ -57,18 +59,19 @@ export function VariantPickerDialog(props: Props) {
   return <OpenVariantPickerDialog {...props} />;
 }
 
-function OpenVariantPickerDialog({ onClose, productId, productTitle, category, pageType, placement, items, initialVariantId, totalVariantCount = items.length, fullProductHref, variantsEndpoint, selectorLabel = "Размер" }: Props) {
+function OpenVariantPickerDialog({ onClose, productId, productTitle, category, pageType, placement, items, initialVariantId, totalVariantCount = items.length, initialAvailableVariantCount, initialNextOffset, fullProductHref, variantsEndpoint, selectorLabel = "Размер" }: Props) {
   const requiresRemoteMatrix = Boolean(variantsEndpoint && items.length < totalVariantCount);
+  const needsInitialPage = requiresRemoteMatrix && initialNextOffset === undefined;
   const [query, setQuery] = useState("");
   const [stockOnly, setStockOnly] = useState(false);
   const [activeId, setActiveId] = useState(initialVariantId ?? items[0]?.id ?? "");
   const [availableItems, setAvailableItems] = useState(items);
-  const [nextOffset, setNextOffset] = useState<number | null>(requiresRemoteMatrix ? 0 : null);
+  const [nextOffset, setNextOffset] = useState<number | null>(requiresRemoteMatrix ? (initialNextOffset === undefined ? 0 : initialNextOffset) : null);
   const [remoteItems, setRemoteItems] = useState<VariantPickerItem[] | null>(null);
   const [remoteNextOffset, setRemoteNextOffset] = useState<number | null>(null);
   const [matchedVariantCount, setMatchedVariantCount] = useState(totalVariantCount);
-  const [availableVariantCount, setAvailableVariantCount] = useState(items.filter((item) => item.shippingPromise.available).length);
-  const [initialPageLoading, setInitialPageLoading] = useState(requiresRemoteMatrix);
+  const [availableVariantCount, setAvailableVariantCount] = useState(initialAvailableVariantCount ?? items.filter((item) => item.shippingPromise.available).length);
+  const [initialPageLoading, setInitialPageLoading] = useState(needsInitialPage);
   const [filterLoading, setFilterLoading] = useState(false);
   const [moreLoading, setMoreLoading] = useState(false);
   const [variantsError, setVariantsError] = useState("");
@@ -94,7 +97,7 @@ function OpenVariantPickerDialog({ onClose, productId, productTitle, category, p
   }
 
   useEffect(() => {
-    if (!variantsEndpoint || !requiresRemoteMatrix) return;
+    if (!variantsEndpoint || !needsInitialPage) return;
     const controller = new AbortController();
     void loadVariantPickerPage(variantsEndpoint, { offset:0 }, controller.signal)
       .then((page) => {
@@ -110,7 +113,7 @@ function OpenVariantPickerDialog({ onClose, productId, productTitle, category, p
         if (!controller.signal.aborted) setInitialPageLoading(false);
       });
     return () => controller.abort();
-  }, [requiresRemoteMatrix, variantsEndpoint]);
+  }, [needsInitialPage, variantsEndpoint]);
 
   useEffect(() => {
     if (!variantsEndpoint || !remoteFilterActive) return;

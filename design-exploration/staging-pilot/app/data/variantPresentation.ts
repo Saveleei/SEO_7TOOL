@@ -148,6 +148,12 @@ export function getProductVariantChoices(product: FeedProduct): ProductVariantCh
   return index.entries.map((entry) => materializeProductVariantChoice(product, index, entry));
 }
 
+export function getProductVariantChoice(product: FeedProduct, variantId: string): ProductVariantChoice | undefined {
+  const index = getProductVariantChoiceIndex(product);
+  const entry = index.entries.find((candidate) => candidate.variant.id === variantId);
+  return entry ? materializeProductVariantChoice(product, index, entry) : undefined;
+}
+
 export function getProductVariantChoicePage(product: FeedProduct, options: { offset?: number; limit?: number; query?: string; availableOnly?: boolean } = {}): ProductVariantChoicePage {
   const index = getProductVariantChoiceIndex(product);
   const offset = normalizeBoundedInteger(options.offset, 0, 50_000, 0);

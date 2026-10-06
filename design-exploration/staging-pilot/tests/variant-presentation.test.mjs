@@ -4,7 +4,7 @@ import test from "node:test";
 import { GET as getProductVariants } from "../app/api/catalog-product-variants/route.ts";
 import { getFeedVariantSpecs, toFeedProductCardModel } from "../app/data/feedCatalog.ts";
 import { publicProductPath } from "../app/data/publicUrls.ts";
-import { CATEGORY_VARIANT_PRESENTATION_RULES, getProductVariantChoicePage, getProductVariantChoices, getVariantChoicePresentation, selectDefaultVariant, sortVariantsForChoice } from "../app/data/variantPresentation.ts";
+import { CATEGORY_VARIANT_PRESENTATION_RULES, getProductVariantChoice, getProductVariantChoicePage, getProductVariantChoices, getVariantChoicePresentation, selectDefaultVariant, sortVariantsForChoice } from "../app/data/variantPresentation.ts";
 
 const snapshot = JSON.parse(await readFile(new URL("../../../7tool-source/src/lib/products.json", import.meta.url), "utf8"));
 const annularCutters = snapshot.products.find((product) => product.slug === "sverla-koronchatye-lzhs");
@@ -38,25 +38,41 @@ test("all cutter variants are sorted by diameter rather than article feed order"
   assert.equal(sorted.at(-1).sku, "LZHS-060");
 });
 
-test("product selector keeps the full size matrix inline and SKU secondary", async () => {
+test("product selector keeps the initial payload bounded and opens the paged full matrix", async () => {
   const page = await readFile(new URL("../app/product/[slug]/page.tsx", import.meta.url), "utf8");
   const purchase = await readFile(new URL("../app/ui/FeedProductPurchase.tsx", import.meta.url), "utf8");
   const picker = await readFile(new URL("../app/ui/VariantPickerDialog.tsx", import.meta.url), "utf8");
   assert.match(page, /sortVariantsForChoice\(product,/u);
-  assert.doesNotMatch(page, /allVariants\.filter[\s\S]{0,200}\.slice\(0, 12\)/u);
-  assert.match(page, /getProductVariantChoices\(product\)/u);
-  assert.match(page, /variants=\{allPurchaseVariants\}/u);
-  assert.doesNotMatch(page, /variantsEndpoint=/u);
-  assert.match(purchase, /sizeOnlySelector \? matchingVariants\.length/u);
+  assert.match(page, /getProductVariantChoicePage\(product, \{ limit:24 \}\)/u);
+  assert.match(page, /getProductVariantChoice\(product, primaryVariant\.id\)/u);
+  assert.match(page, /variants=\{initialPurchaseVariants\}/u);
+  assert.match(page, /totalVariantCount=\{initialPurchasePage\.totalVariantCount\}/u);
+  assert.match(page, /initialNextOffset=\{initialPurchasePage\.nextOffset\}/u);
+  assert.match(page, /variantsEndpoint=\{variantsEndpoint\}/u);
+  assert.doesNotMatch(page, /getProductVariantChoices\(product\)/u);
+  assert.match(purchase, /variants\.slice\(0, INITIAL_VARIANTS\)/u);
   assert.match(purchase, /feed-variant-options--sizes/u);
-  assert.match(purchase, /Показаны все \$\{totalVariantCount\}/u);
+  assert.match(purchase, /Сейчас показано \{collapsedVariantCount\} из \{totalVariantCount\}/u);
   assert.match(purchase, /feed-variant-availability-legend/u);
-  assert.doesNotMatch(purchase, /<VariantPickerDialog/u);
+  assert.match(purchase, /<VariantPickerDialog/u);
+  assert.match(purchase, /initialNextOffset=\{initialNextOffset\}/u);
+  assert.match(purchase, /initialAvailableVariantCount=\{availableVariantCount\}/u);
   assert.match(picker, /Найти по размеру или артикулу/u);
+  assert.match(picker, /initialNextOffset === undefined/u);
   assert.match(purchase, /feed-add-label--mobile">\{added \? "Добавлено" : "Добавить в КП"\}/u);
   assert.match(purchase, /<small>\{selected\.choiceContext[\s\S]*артикул \$\{selected\.sku\}/u);
   assert.doesNotMatch(purchase, /<b>\{variant\.sku/u);
   assert.doesNotMatch(purchase, /history\.replaceState/u);
+});
+
+test("a deep-linked variant can be materialized without serializing the full matrix", () => {
+  const exact = annularCutters.variants.find((variant) => variant.sku === "LZHS-060");
+  assert.ok(exact);
+  const choice = getProductVariantChoice(annularCutters, exact.id);
+  assert.equal(choice?.id, exact.id);
+  assert.equal(choice?.sku, "LZHS-060");
+  assert.equal(choice?.href, `${publicProductPath(annularCutters, exact)}#variants`);
+  assert.equal(getProductVariantChoice(annularCutters, "missing-variant"), undefined);
 });
 
 test("non-size execution choices keep complete decision labels visible", async () => {

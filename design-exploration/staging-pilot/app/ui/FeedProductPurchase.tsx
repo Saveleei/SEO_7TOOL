@@ -9,6 +9,7 @@ import { getProductPageArchetype } from "../data/productPageArchetypes";
 import type { FeedShippingPromise } from "../data/feedCatalog";
 import { QuickOrderDialog } from "./QuickOrderDialog";
 import { CompareToggleButton } from "./Comparison";
+import { VariantPickerDialog, type VariantPickerItem } from "./VariantPickerDialog";
 
 type PurchaseVariant = {
   id: string;
@@ -27,31 +28,30 @@ type PurchaseVariant = {
 };
 
 const INITIAL_VARIANTS = 12;
-const VARIANT_PAGE_SIZE = 24;
 
-export function FeedProductPurchase({ productId, productSlug, productTitle, productBrand, categorySlug, variants, totalVariantCount = variants.length, variantsEndpoint, selectedVariantId, hasComparableAlternatives = false }: { productId: string; productSlug: string; productTitle: string; productBrand: string; categorySlug: string; variants: PurchaseVariant[]; totalVariantCount?: number; variantsEndpoint?: string; selectedVariantId?: string; hasComparableAlternatives?: boolean }) {
-  const [availableVariants, setAvailableVariants] = useState(variants);
+export function FeedProductPurchase({ productId, productSlug, productTitle, productBrand, categorySlug, variants, totalVariantCount = variants.length, availableVariantCount, initialNextOffset, variantsEndpoint, selectedVariantId, hasComparableAlternatives = false }: { productId: string; productSlug: string; productTitle: string; productBrand: string; categorySlug: string; variants: PurchaseVariant[]; totalVariantCount?: number; availableVariantCount?: number; initialNextOffset?: number | null; variantsEndpoint?: string; selectedVariantId?: string; hasComparableAlternatives?: boolean }) {
   const [quantity, setQuantity] = useState(1);
-  const [variantsOpen, setVariantsOpen] = useState(false);
-  const [variantQuery, setVariantQuery] = useState("");
-  const [visibleVariantCount, setVisibleVariantCount] = useState(INITIAL_VARIANTS + VARIANT_PAGE_SIZE);
-  const [variantsLoading, setVariantsLoading] = useState(false);
-  const [variantsError, setVariantsError] = useState("");
+  const [pickerOpen, setPickerOpen] = useState(false);
   const { items, addItem, open } = useRequestCart();
   const pageArchetype = getProductPageArchetype(categorySlug);
-  const selected = useMemo(() => availableVariants.find((variant) => variant.id === selectedVariantId) ?? availableVariants[0], [availableVariants, selectedVariantId]);
-  const matchingVariants = useMemo(() => {
-    const query = normalizeSearch(variantQuery);
-    if (!query) return availableVariants;
-    return availableVariants.filter((variant) => normalizeSearch([variant.choiceLabel, variant.choiceContext, variant.sku].join(" ")).includes(query));
-  }, [availableVariants, variantQuery]);
+  const selected = useMemo(() => variants.find((variant) => variant.id === selectedVariantId) ?? variants[0], [selectedVariantId, variants]);
   const sizeOnlySelector = selected?.selectorLabel === "Размер";
   const visibleVariants = useMemo(() => {
-    const limit = sizeOnlySelector ? matchingVariants.length : variantsOpen || variantQuery ? visibleVariantCount : INITIAL_VARIANTS;
-    const initial = matchingVariants.slice(0, limit);
-    if (!selected || !matchingVariants.some((variant) => variant.id === selected.id) || initial.some((variant) => variant.id === selected.id)) return initial;
-    return [selected, ...initial].slice(0, limit);
-  }, [matchingVariants, selected, sizeOnlySelector, variantQuery, variantsOpen, visibleVariantCount]);
+    const initial = variants.slice(0, INITIAL_VARIANTS);
+    if (!selected || initial.some((variant) => variant.id === selected.id)) return initial;
+    return [selected, ...initial].slice(0, INITIAL_VARIANTS);
+  }, [selected, variants]);
+  const pickerItems = useMemo<VariantPickerItem[]>(() => variants.map((variant) => ({
+    id:variant.id,
+    sku:variant.sku,
+    title:variant.title,
+    label:variant.choiceLabel,
+    context:variant.choiceContext,
+    price:variant.price,
+    image:variant.image,
+    href:variant.href,
+    shippingPromise:variant.shippingPromise,
+  })), [variants]);
   const added = selected ? items.some((item) => item.id === `variant:${selected.id}`) : false;
   const collapsedVariantCount = Math.min(INITIAL_VARIANTS, totalVariantCount);
   const hiddenVariantCount = Math.max(0, totalVariantCount - collapsedVariantCount);
@@ -66,44 +66,22 @@ export function FeedProductPurchase({ productId, productSlug, productTitle, prod
     addItem({ id:`variant:${selected.id}`, title:selected.title || productTitle, article:selected.sku ? `Артикул ${selected.sku}` : "Артикул не указан в фиде", price:selected.price, quantity, image:selected.image, href:selected.href, shippingLabel:selected.shippingPromise.label, shippingDetail:selected.shippingPromise.detail }, { placement:"product_buybox", page_type:"product", product_id:productId, variant_id:selected.id, category:categorySlug });
   }
 
-  async function toggleAllVariants() {
-    if (variantsOpen) {
-      track("close_variant_list", "product_buybox");
-      setVariantsOpen(false);
-      setVariantQuery("");
-      return;
-    }
+  function openVariantPicker() {
     track("open_variant_list", "product_buybox");
-    setVariantsOpen(true);
-    if (!variantsEndpoint || availableVariants.length >= totalVariantCount || variantsLoading) return;
-    setVariantsLoading(true);
-    setVariantsError("");
-    try {
-      const response = await fetch(variantsEndpoint, { headers:{ Accept:"application/json" } });
-      const payload = await response.json() as { ok?: boolean; variants?: unknown };
-      const loaded = Array.isArray(payload.variants) ? payload.variants.filter(isPurchaseVariant) : [];
-      if (!response.ok || !payload.ok || loaded.length < totalVariantCount) throw new Error("variant_list_unavailable");
-      setAvailableVariants(loaded);
-    } catch {
-      setVariantsError("Не удалось загрузить все размеры. Повторите попытку или передайте размер менеджеру.");
-    } finally {
-      setVariantsLoading(false);
-    }
+    setPickerOpen(true);
   }
 
   if (!selected) return null;
 
   return <div className="feed-conversion-buybox" id="purchase">
-      {totalVariantCount > 1 && <div className="feed-conversion-variants"><div className="feed-variant-selector-head"><div><span>Выберите {selected.selectorLabel.toLocaleLowerCase("ru-RU")}</span><small>{sizeOnlySelector ? `Показаны все ${totalVariantCount} ${variantWord(totalVariantCount, selected.selectorLabel)}` : variantsOpen ? `Доступен полный список: ${totalVariantCount} ${variantWord(totalVariantCount, selected.selectorLabel)}` : `Сейчас показано ${collapsedVariantCount} из ${totalVariantCount}`}</small></div>{!sizeOnlySelector && totalVariantCount > INITIAL_VARIANTS && <button type="button" aria-expanded={variantsOpen} aria-controls="feed-product-variant-options" onClick={() => void toggleAllVariants()} disabled={variantsLoading}>{variantsLoading ? "Загружаем…" : variantsOpen ? "Свернуть" : `Все ${totalVariantCount} ${variantWord(totalVariantCount, selected.selectorLabel)}`}</button>}</div>
+      {totalVariantCount > 1 && <div className="feed-conversion-variants"><div className="feed-variant-selector-head"><div><span>Выберите {selected.selectorLabel.toLocaleLowerCase("ru-RU")}</span><small>Сейчас показано {collapsedVariantCount} из {totalVariantCount}</small></div>{totalVariantCount > INITIAL_VARIANTS && <button type="button" aria-haspopup="dialog" onClick={openVariantPicker}>{`Все ${totalVariantCount} ${variantWord(totalVariantCount, selected.selectorLabel)}`}</button>}</div>
         {sizeOnlySelector && <div className="feed-variant-availability-legend" aria-label="Обозначения наличия"><span><i className="is-available" />В наличии</span><span><i className="is-unconfirmed" />Наличие и срок уточним</span></div>}
-        {totalVariantCount > INITIAL_VARIANTS && (sizeOnlySelector || variantsOpen) && <label className="feed-variant-search"><span>Найти по размеру или артикулу</span><input type="search" value={variantQuery} disabled={variantsLoading} onChange={(event) => { setVariantQuery(event.target.value); setVisibleVariantCount(INITIAL_VARIANTS + VARIANT_PAGE_SIZE); }} placeholder="Например: 35 × 30" /></label>}
         <div className={["feed-variant-options", sizeOnlySelector ? "feed-variant-options--sizes" : ""].filter(Boolean).join(" ")} id="feed-product-variant-options">{visibleVariants.map((variant) => { const confirmedAvailable = variant.available && variant.shippingPromise.available; const availabilityLabel = confirmedAvailable ? "В наличии" : "Наличие и срок уточним"; return <a className={[variant.id === selected.id ? "active" : "", confirmedAvailable ? "is-available" : "is-unconfirmed", !sizeOnlySelector && variant.selectorImage ? "has-media" : ""].filter(Boolean).join(" ")} href={variant.href} aria-current={variant.id === selected.id ? "true" : undefined} aria-label={`Открыть ${variant.choiceLabel}${variant.sku ? `, артикул ${variant.sku}` : ""}, ${variant.price}. ${availabilityLabel}`} onClick={() => track("select_variant", "product_buybox", variant.id)} key={variant.id}>{!sizeOnlySelector && variant.selectorImage && <Image className="feed-variant-option-image" src={variant.selectorImage} alt="" width={52} height={52} unoptimized />}<span className="feed-variant-option-copy"><b>{variant.choiceLabel}</b>{!sizeOnlySelector && variant.choiceContext && <span>{variant.choiceContext}</span>}{!sizeOnlySelector && <small>{variant.price}</small>}</span>{sizeOnlySelector && <span className="feed-variant-option-status"><i aria-hidden="true" />{confirmedAvailable ? "В наличии" : "Уточним"}</span>}</a>; })}</div>
-        {!sizeOnlySelector && totalVariantCount > INITIAL_VARIANTS && !variantsOpen && <button className="feed-variant-reveal" type="button" aria-expanded="false" aria-controls="feed-product-variant-options" onClick={() => void toggleAllVariants()}><span><b>Есть ещё {hiddenVariantCount} {variantWord(hiddenVariantCount, selected.selectorLabel)}</b><small>Откройте полный ряд и найдите нужный параметр без перехода в каталог.</small></span><strong>Выбрать из всех {totalVariantCount} →</strong></button>}
-        {variantsError && <p className="feed-variant-load-error" role="status">{variantsError}</p>}
-        {matchingVariants.length === 0 && <div className="feed-variant-empty"><b>Такого размера в этой группе нет</b><span>Измените запрос или передайте параметры менеджеру.</span></div>}
-        {!sizeOnlySelector && (variantsOpen || variantQuery) && visibleVariants.length < matchingVariants.length && <button className="feed-variant-more" type="button" onClick={() => setVisibleVariantCount((count) => count + VARIANT_PAGE_SIZE)}>Показать ещё {Math.min(VARIANT_PAGE_SIZE, matchingVariants.length - visibleVariants.length)}</button>}
+        {totalVariantCount > INITIAL_VARIANTS && <button className="feed-variant-reveal" type="button" aria-haspopup="dialog" onClick={openVariantPicker}><span><b>Есть ещё {hiddenVariantCount} {variantWord(hiddenVariantCount, selected.selectorLabel)}</b><small>Полный поиск работает по размеру, артикулу и наличию без загрузки всей матрицы в страницу.</small></span><strong>Выбрать из всех {totalVariantCount} →</strong></button>}
         <div className="feed-selected-variant"><span>Выбрано</span><b>{selected.choiceLabel}</b><small>{selected.choiceContext ? `${selected.choiceContext} · ` : ""}{selected.sku ? `артикул ${selected.sku}` : "артикул не указан в фиде"}</small></div>
         <small className="feed-variant-help">Выбор обновляет всю карточку: фото, характеристики, цену, наличие и позицию в КП. Миниатюра показана только у исполнения с отличающимся фото поставщика.</small></div>}
+
+    {totalVariantCount > INITIAL_VARIANTS && <VariantPickerDialog open={pickerOpen} onClose={() => setPickerOpen(false)} productId={productId} productTitle={productTitle} category={categorySlug} pageType="product" placement="product_buybox_variant_picker" items={pickerItems} initialVariantId={selected.id} totalVariantCount={totalVariantCount} initialAvailableVariantCount={availableVariantCount} initialNextOffset={initialNextOffset} fullProductHref={`/p/${productSlug}`} variantsEndpoint={variantsEndpoint} selectorLabel={sizeOnlySelector ? "Размер" : "Исполнение"} />}
 
     <div className={selected.shippingPromise.available ? "feed-conversion-stock feed-conversion-stock--positive" : "feed-conversion-stock"}>
       <span>{selected.shippingPromise.label}</span>
@@ -130,10 +108,6 @@ export function FeedProductPurchase({ productId, productSlug, productTitle, prod
   </div>;
 }
 
-function normalizeSearch(value: string): string {
-  return value.toLocaleLowerCase("ru-RU").replace(/ё/gu, "е").replace(/[×хx*]/gu, "x").replace(/[^a-zа-я0-9]+/giu, " ").trim();
-}
-
 function variantWord(count: number, selectorLabel: PurchaseVariant["selectorLabel"]): string {
   const forms = selectorLabel === "Размер" ? ["размер", "размера", "размеров"] : ["исполнение", "исполнения", "исполнений"];
   const mod100 = count % 100;
@@ -142,30 +116,4 @@ function variantWord(count: number, selectorLabel: PurchaseVariant["selectorLabe
   if (mod10 === 1) return forms[0];
   if (mod10 >= 2 && mod10 <= 4) return forms[1];
   return forms[2];
-}
-
-function isPurchaseVariant(value: unknown): value is PurchaseVariant {
-  if (!value || typeof value !== "object") return false;
-  const variant = value as Partial<PurchaseVariant>;
-  return typeof variant.id === "string"
-    && typeof variant.sku === "string"
-    && typeof variant.title === "string"
-    && typeof variant.price === "string"
-    && typeof variant.available === "boolean"
-    && isShippingPromise(variant.shippingPromise)
-    && Array.isArray(variant.keySpecs)
-    && typeof variant.choiceLabel === "string"
-    && typeof variant.choiceContext === "string"
-    && (variant.selectorImage === undefined || typeof variant.selectorImage === "string")
-    && (variant.selectorLabel === "Размер" || variant.selectorLabel === "Параметры исполнения");
-}
-
-function isShippingPromise(value: unknown): value is FeedShippingPromise {
-  if (!value || typeof value !== "object") return false;
-  const promise = value as Partial<FeedShippingPromise>;
-  return typeof promise.available === "boolean"
-    && (promise.state === "today" || promise.state === "next-working-day" || promise.state === "unconfirmed")
-    && typeof promise.label === "string"
-    && typeof promise.shipmentLabel === "string"
-    && typeof promise.detail === "string";
 }

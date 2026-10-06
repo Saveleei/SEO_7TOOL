@@ -12,11 +12,11 @@ import { ProductRecommendationSystem } from "../../ui/ProductRecommendationSyste
 import { JsonLd } from "../../ui/JsonLd";
 import { AddRequestButton, RequestCartButton } from "../../ui/RequestCart";
 import { SocialShareButton } from "../../ui/SocialShareButton";
-import { formatFeedPrice, getFeedCategory, getFeedParameterLabel, getFeedProductAlternatives, getFeedProductImage, getFeedProductPriceLabel, getFeedProductRouteBySlug, getFeedVariantSpecs, type FeedParameter, type FeedVariant } from "../../data/feedCatalog";
+import { formatFeedPrice, getFeedCatalogRevision, getFeedCategory, getFeedParameterLabel, getFeedProductAlternatives, getFeedProductImage, getFeedProductPriceLabel, getFeedProductRouteBySlug, getFeedVariantSpecs, type FeedParameter, type FeedVariant } from "../../data/feedCatalog";
 import { getProductionSubcategory } from "../../data/productionCategoryGroups";
 import { getCategoryExpertProfile } from "../../data/categoryExpertProfiles.mjs";
 import { getProductPageArchetype } from "../../data/productPageArchetypes";
-import { getProductVariantChoices, getVariantChoicePresentation, selectDefaultVariant, sortVariantsForChoice } from "../../data/variantPresentation";
+import { getProductVariantChoice, getProductVariantChoicePage, getVariantChoicePresentation, selectDefaultVariant, sortVariantsForChoice } from "../../data/variantPresentation";
 import { getVariantShippingPromise } from "../../data/shippingPromise.mjs";
 import { canonicalUrl, createPublicMetadata, hasSearchParameters } from "../../data/seo";
 import { buildProductSeoKeywords } from "../../data/seoKeywords";
@@ -85,7 +85,12 @@ export default async function FeedProductPage({ params, searchParams }: RoutePro
   const fullSpecs = primaryVariant?.params.filter((parameter) => !/^(бренд|производитель)$/i.test(parameter.name)) ?? [];
   const descriptionParagraphs = product.description?.split(/\n\s*\n/).map((paragraph) => paragraph.trim()).filter((paragraph) => paragraph.length >= 60 && !paragraph.endsWith("?")).slice(0, 2) ?? [];
   const drillDescription = product.category === "stanki-sverlilnye" && primaryVariant ? buildDrillDescription(primaryVariant) : null;
-  const allPurchaseVariants = getProductVariantChoices(product);
+  const initialPurchasePage = getProductVariantChoicePage(product, { limit:24 });
+  const selectedPurchaseVariant = primaryVariant ? getProductVariantChoice(product, primaryVariant.id) : undefined;
+  const initialPurchaseVariants = selectedPurchaseVariant && !initialPurchasePage.variants.some((variant) => variant.id === selectedPurchaseVariant.id)
+    ? [selectedPurchaseVariant, ...initialPurchasePage.variants]
+    : initialPurchasePage.variants;
+  const variantsEndpoint = `/api/catalog-product-variants?product=${encodeURIComponent(product.slug)}&v=${encodeURIComponent(getFeedCatalogRevision())}`;
   const primaryPrice = formatFeedPrice(primaryVariant?.price) ?? getFeedProductPriceLabel(product);
   const primaryShipping = getVariantShippingPromise(primaryVariant);
   const primaryChoice = primaryVariant ? getVariantChoicePresentation(product, primaryVariant) : undefined;
@@ -118,7 +123,7 @@ export default async function FeedProductPage({ params, searchParams }: RoutePro
 
     <section className="feed-conversion-main"><div className="container feed-conversion-layout">
       <FeedProductGallery images={images} title={product.title} exactVariantImage={hasExactVariantImage} selectedVariantLabel={primaryChoice?.label} />
-      <div className="feed-conversion-summary"><p className="product-code">{product.brand}{primaryChoice ? ` · ${primaryChoice.label}` : ""}{primaryVariant?.sku ? ` · Артикул ${primaryVariant.sku}` : ""}</p><h1>{product.title}</h1><p className="feed-conversion-intro">{descriptionParagraphs[0] ?? "Параметры товара получены из фактического каталога поставщика. Точное исполнение, комплектацию и срок поставки подтвердит менеджер."}</p><SocialShareButton path={sharePath} title={product.title} /><div className="feed-product-buying-route" aria-label={pageArchetype.routeTitle}><div><span>{pageArchetype.badge}</span><b>{pageArchetype.routeTitle}</b><small>{pageArchetype.routeLead}</small></div><ol>{expertProfile.criteria.slice(0, 3).map((criterion: { title: string }, index: number) => <li key={criterion.title}><span>0{index + 1}</span>{criterion.title}</li>)}</ol><a href="#decision">Как проверить →</a></div><div id="variants" className="feed-variant-card--selected"><FeedProductPurchase productId={product.id} productSlug={product.slug} productTitle={product.title} productBrand={product.brand} categorySlug={product.category} variants={allPurchaseVariants} totalVariantCount={allPurchaseVariants.length} selectedVariantId={primaryVariant?.id} hasComparableAlternatives={alternatives.length > 0} /></div><ManagerContactCard compact placement="product_manager" productId={product.id} /></div>
+      <div className="feed-conversion-summary"><p className="product-code">{product.brand}{primaryChoice ? ` · ${primaryChoice.label}` : ""}{primaryVariant?.sku ? ` · Артикул ${primaryVariant.sku}` : ""}</p><h1>{product.title}</h1><p className="feed-conversion-intro">{descriptionParagraphs[0] ?? "Параметры товара получены из фактического каталога поставщика. Точное исполнение, комплектацию и срок поставки подтвердит менеджер."}</p><SocialShareButton path={sharePath} title={product.title} /><div className="feed-product-buying-route" aria-label={pageArchetype.routeTitle}><div><span>{pageArchetype.badge}</span><b>{pageArchetype.routeTitle}</b><small>{pageArchetype.routeLead}</small></div><ol>{expertProfile.criteria.slice(0, 3).map((criterion: { title: string }, index: number) => <li key={criterion.title}><span>0{index + 1}</span>{criterion.title}</li>)}</ol><a href="#decision">Как проверить →</a></div><div id="variants" className="feed-variant-card--selected"><FeedProductPurchase productId={product.id} productSlug={product.slug} productTitle={product.title} productBrand={product.brand} categorySlug={product.category} variants={initialPurchaseVariants} totalVariantCount={initialPurchasePage.totalVariantCount} availableVariantCount={initialPurchasePage.availableVariantCount} initialNextOffset={initialPurchasePage.nextOffset} variantsEndpoint={variantsEndpoint} selectedVariantId={primaryVariant?.id} hasComparableAlternatives={alternatives.length > 0} /></div><ManagerContactCard compact placement="product_manager" productId={product.id} /></div>
     </div></section>
 
     <nav className="product-jumpnav feed-conversion-jumpnav" aria-label="Разделы карточки"><div className="container"><a href="#decision">Подходит ли вам</a><a href="#specs">Характеристики</a><a href="#supply">Комплектация и документы</a><a href="#recommendations">{pageArchetype.recommendationJumpLabel}</a></div></nav>
