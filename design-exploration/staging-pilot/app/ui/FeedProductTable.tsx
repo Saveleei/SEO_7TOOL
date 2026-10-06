@@ -36,7 +36,7 @@ export function FeedProductTable({ products, columns }: { products: FeedProductC
       <p className="feed-table-note">Цена указана по данным поставщика. Наличие, срок и совместимость подтверждаем для выбранного исполнения в КП.</p>
     </div>
     <div className="feed-product-table-mobile">{products.map((product) => <MobileSeries product={product} columns={columns} selected={hasProduct(product.id)} onCompare={() => toggle(comparisonSelectionFromCard(product), "category_mobile")} onWarmVariants={() => warmProductVariants(product)} onOpenVariants={() => setPickerProductId(product.id)} key={product.id} />)}</div>
-    {pickerProduct && <VariantPickerDialog open onClose={() => setPickerProductId("")} productId={pickerProduct.id} productTitle={pickerProduct.title} category={pickerProduct.categorySlug} pageType="category" placement="category_table_size_picker" items={toPickerItems(pickerProduct, columns)} totalVariantCount={pickerProduct.variantCount} fullProductHref={`/p/${pickerProduct.slug}`} variantsEndpoint={`/api/catalog-product-variants?product=${encodeURIComponent(pickerProduct.slug)}`} selectorLabel={isSizeLedProduct(pickerProduct, columns) ? "Размер" : "Исполнение"} />}
+    {pickerProduct && <VariantPickerDialog open onClose={() => setPickerProductId("")} productId={pickerProduct.id} productTitle={pickerProduct.title} category={pickerProduct.categorySlug} pageType="category" placement="category_table_size_picker" items={toPickerItems(pickerProduct, columns)} totalVariantCount={pickerProduct.variantCount} fullProductHref={`/p/${pickerProduct.slug}`} variantsEndpoint={variantEndpoint(pickerProduct)} selectorLabel={isSizeLedProduct(pickerProduct, columns) ? "Размер" : "Исполнение"} />}
   </>;
 }
 
@@ -88,5 +88,9 @@ function isSizeLedProduct(product: FeedProductCardModel, columns: string[]): boo
 }
 
 function warmProductVariants(product: FeedProductCardModel): void {
-  preloadVariantPickerItems(`/api/catalog-product-variants?product=${encodeURIComponent(product.slug)}`);
+  preloadVariantPickerItems(variantEndpoint(product));
+}
+
+function variantEndpoint(product: FeedProductCardModel): string {
+  return `/api/catalog-product-variants?product=${encodeURIComponent(product.slug)}&v=${encodeURIComponent(product.catalogRevision)}`;
 }

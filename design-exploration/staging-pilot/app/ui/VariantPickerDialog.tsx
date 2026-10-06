@@ -6,6 +6,8 @@ import type { FeedShippingPromise } from "../data/feedCatalog";
 import { AddRequestButton } from "./RequestCart";
 
 const FOCUSABLE_SELECTOR = "a[href],button:not([disabled]),input:not([disabled]),[tabindex]:not([tabindex='-1'])";
+const VARIANT_PAGE_SIZE = 24;
+const SEARCH_DEBOUNCE_MS = 180;
 
 export type VariantPickerItem = {
   id: string;
@@ -19,10 +21,19 @@ export type VariantPickerItem = {
   shippingPromise: FeedShippingPromise;
 };
 
-const variantRequestCache = new Map<string, Promise<VariantPickerItem[]>>();
+type VariantPickerPage = {
+  items: VariantPickerItem[];
+  totalVariantCount: number;
+  availableVariantCount: number;
+  matchedVariantCount: number;
+  offset: number;
+  nextOffset: number | null;
+};
+
+const variantRequestCache = new Map<string, Promise<VariantPickerPage>>();
 
 export function preloadVariantPickerItems(endpoint: string): void {
-  void loadVariantPickerItems(endpoint).catch(() => undefined);
+  void loadVariantPickerPage(endpoint, { offset:0 }).catch(() => undefined);
 }
 
 type Props = {
@@ -47,40 +58,86 @@ export function VariantPickerDialog(props: Props) {
 }
 
 function OpenVariantPickerDialog({ onClose, productId, productTitle, category, pageType, placement, items, initialVariantId, totalVariantCount = items.length, fullProductHref, variantsEndpoint, selectorLabel = "Размер" }: Props) {
+  const requiresRemoteMatrix = Boolean(variantsEndpoint && items.length < totalVariantCount);
   const [query, setQuery] = useState("");
   const [stockOnly, setStockOnly] = useState(false);
   const [activeId, setActiveId] = useState(initialVariantId ?? items[0]?.id ?? "");
   const [availableItems, setAvailableItems] = useState(items);
-  const [variantsLoading, setVariantsLoading] = useState(Boolean(variantsEndpoint && items.length < totalVariantCount));
+  const [nextOffset, setNextOffset] = useState<number | null>(requiresRemoteMatrix ? 0 : null);
+  const [remoteItems, setRemoteItems] = useState<VariantPickerItem[] | null>(null);
+  const [remoteNextOffset, setRemoteNextOffset] = useState<number | null>(null);
+  const [matchedVariantCount, setMatchedVariantCount] = useState(totalVariantCount);
+  const [availableVariantCount, setAvailableVariantCount] = useState(items.filter((item) => item.shippingPromise.available).length);
+  const [initialPageLoading, setInitialPageLoading] = useState(requiresRemoteMatrix);
+  const [filterLoading, setFilterLoading] = useState(false);
+  const [moreLoading, setMoreLoading] = useState(false);
   const [variantsError, setVariantsError] = useState("");
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
-  const selected = availableItems.find((item) => item.id === activeId) ?? availableItems[0];
-  const availableCount = availableItems.filter((item) => item.shippingPromise.available).length;
+  const normalizedQuery = normalizeSearch(query);
+  const remoteFilterActive = requiresRemoteMatrix && Boolean(normalizedQuery || stockOnly);
+  const selectableItems = useMemo(() => mergeVariantItems(remoteItems ?? [], availableItems), [availableItems, remoteItems]);
+  const selected = selectableItems.find((item) => item.id === activeId) ?? selectableItems[0];
   const filteredItems = useMemo(() => {
-    const normalized = normalizeSearch(query);
-    return availableItems.filter((item) => (!stockOnly || item.shippingPromise.available) && (!normalized || normalizeSearch([item.label, item.context, item.sku].filter(Boolean).join(" ")).includes(normalized)));
-  }, [availableItems, query, stockOnly]);
+    if (remoteFilterActive) return remoteItems ?? [];
+    return availableItems.filter((item) => (!stockOnly || item.shippingPromise.available) && (!normalizedQuery || normalizeSearch([item.label, item.context, item.sku].filter(Boolean).join(" ")).includes(normalizedQuery)));
+  }, [availableItems, normalizedQuery, remoteFilterActive, remoteItems, stockOnly]);
+  const variantsLoading = initialPageLoading || filterLoading;
+  const activeNextOffset = remoteFilterActive ? remoteNextOffset : nextOffset;
+
+  function clearRemoteFilterState() {
+    setRemoteItems(null);
+    setRemoteNextOffset(null);
+    setMatchedVariantCount(totalVariantCount);
+    setFilterLoading(false);
+  }
 
   useEffect(() => {
-    if (!variantsEndpoint || items.length >= totalVariantCount) return;
+    if (!variantsEndpoint || !requiresRemoteMatrix) return;
     const controller = new AbortController();
-    void loadVariantPickerItems(variantsEndpoint, controller.signal)
-      .then((loaded) => {
-        if (loaded.length < totalVariantCount) throw new Error("variant_list_unavailable");
-        setAvailableItems(loaded);
-        setActiveId((current) => loaded.some((item) => item.id === current) ? current : loaded[0]?.id ?? "");
+    void loadVariantPickerPage(variantsEndpoint, { offset:0 }, controller.signal)
+      .then((page) => {
+        setAvailableItems((current) => mergeVariantItems(page.items, current));
+        setNextOffset(page.nextOffset);
+        setAvailableVariantCount(page.availableVariantCount);
       })
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === "AbortError") return;
-        setVariantsError("Не удалось загрузить всю матрицу. Откройте карточку товара или передайте размер менеджеру.");
+        setVariantsError("Не удалось догрузить следующие исполнения. Первые варианты уже доступны для выбора.");
       })
       .finally(() => {
-        if (!controller.signal.aborted) setVariantsLoading(false);
+        if (!controller.signal.aborted) setInitialPageLoading(false);
       });
     return () => controller.abort();
-  }, [items, totalVariantCount, variantsEndpoint]);
+  }, [requiresRemoteMatrix, variantsEndpoint]);
+
+  useEffect(() => {
+    if (!variantsEndpoint || !remoteFilterActive) return;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => {
+      setFilterLoading(true);
+      setVariantsError("");
+      void loadVariantPickerPage(variantsEndpoint, { offset:0, query, availableOnly:stockOnly }, controller.signal)
+        .then((page) => {
+          setRemoteItems(page.items);
+          setRemoteNextOffset(page.nextOffset);
+          setMatchedVariantCount(page.matchedVariantCount);
+          setAvailableVariantCount(page.availableVariantCount);
+        })
+        .catch((error: unknown) => {
+          if (error instanceof DOMException && error.name === "AbortError") return;
+          setVariantsError("Поиск по полной матрице временно недоступен. Можно открыть карточку товара или передать артикул менеджеру.");
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setFilterLoading(false);
+        });
+    }, SEARCH_DEBOUNCE_MS);
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [query, remoteFilterActive, stockOnly, totalVariantCount, variantsEndpoint]);
 
   useEffect(() => {
     returnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -101,6 +158,29 @@ function OpenVariantPickerDialog({ onClose, productId, productTitle, category, p
     window.dispatchEvent(new CustomEvent("7tool:prototype-event", { detail:{ event, placement, page_type:pageType, product_id:productId, variant_id:variantId, category } }));
   }
 
+  async function loadMoreVariants() {
+    if (!variantsEndpoint || activeNextOffset == null || moreLoading) return;
+    setMoreLoading(true);
+    setVariantsError("");
+    try {
+      const page = await loadVariantPickerPage(variantsEndpoint, { offset:activeNextOffset, query:remoteFilterActive ? query : "", availableOnly:remoteFilterActive && stockOnly });
+      if (remoteFilterActive) {
+        setRemoteItems((current) => mergeVariantItems(current ?? [], page.items));
+        setRemoteNextOffset(page.nextOffset);
+        setMatchedVariantCount(page.matchedVariantCount);
+      } else {
+        setAvailableItems((current) => mergeVariantItems(current, page.items));
+        setNextOffset(page.nextOffset);
+      }
+      setAvailableVariantCount(page.availableVariantCount);
+      track("variant_picker_load_more");
+    } catch {
+      setVariantsError("Не удалось загрузить следующую порцию. Уже показанные исполнения остаются доступными.");
+    } finally {
+      setMoreLoading(false);
+    }
+  }
+
   function trapFocus(event: ReactKeyboardEvent<HTMLDivElement>) {
     if (event.key !== "Tab") return;
     const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR) ?? []).filter((element) => element.offsetParent !== null);
@@ -117,20 +197,23 @@ function OpenVariantPickerDialog({ onClose, productId, productTitle, category, p
     <button className="variant-picker-backdrop" type="button" onClick={onClose} aria-label="Закрыть выбор размера" />
     <div className="variant-picker-dialog" ref={dialogRef}>
       <header>
-        <div><span>{productTitle}</span><h2 id={`variant-picker-title-${productId}`}>Выберите {selectorLabel.toLocaleLowerCase("ru-RU")}</h2><p id={`variant-picker-description-${productId}`}>{totalVariantCount} {variantWord(totalVariantCount, selectorLabel)} · {variantsLoading ? "проверяем наличие" : `${availableCount} с подтверждённым остатком`}</p></div>
+        <div><span>{productTitle}</span><h2 id={`variant-picker-title-${productId}`}>Выберите {selectorLabel.toLocaleLowerCase("ru-RU")}</h2><p id={`variant-picker-description-${productId}`}>{totalVariantCount} {variantWord(totalVariantCount, selectorLabel)} · {availableVariantCount} с подтверждённым остатком{initialPageLoading ? " · уточняем список" : ""}</p></div>
         <button ref={closeRef} type="button" onClick={onClose} aria-label="Закрыть">×</button>
       </header>
       <div className="variant-picker-tools">
-        <label><span>Найти по размеру или артикулу</span><input type="search" inputMode="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Например: 35 × 30" autoFocus /></label>
-        <div role="group" aria-label="Фильтр наличия"><button className={!stockOnly ? "active" : undefined} type="button" aria-pressed={!stockOnly} onClick={() => setStockOnly(false)}>Все · {variantsLoading ? totalVariantCount : availableItems.length}</button><button className={stockOnly ? "active" : undefined} type="button" aria-pressed={stockOnly} disabled={variantsLoading} onClick={() => { setStockOnly(true); track("variant_picker_stock_filter"); }}>В наличии · {availableCount}</button></div>
+        <label><span>Найти по размеру или артикулу</span><input type="search" inputMode="search" value={query} onChange={(event) => { clearRemoteFilterState(); setQuery(event.target.value); }} placeholder="Например: 35 × 30" autoFocus /></label>
+        <div role="group" aria-label="Фильтр наличия"><button className={!stockOnly ? "active" : undefined} type="button" aria-pressed={!stockOnly} onClick={() => { clearRemoteFilterState(); setStockOnly(false); }}>Все · {totalVariantCount}</button><button className={stockOnly ? "active" : undefined} type="button" aria-pressed={stockOnly} onClick={() => { clearRemoteFilterState(); setStockOnly(true); track("variant_picker_stock_filter"); }}>В наличии · {availableVariantCount}</button></div>
       </div>
       <div className="variant-picker-legend" aria-label="Обозначения"><span><i className="is-available" />В наличии</span><span><i />Наличие и срок уточним</span></div>
       <div className="variant-picker-results" aria-live="polite">
         {filteredItems.length > 0 ? <div className="variant-picker-grid" aria-label="Матрица размеров и наличия">{filteredItems.map((item) => {
           const active = item.id === selected?.id;
           return <button className={[active ? "active" : "", item.shippingPromise.available ? "is-available" : "is-unconfirmed"].filter(Boolean).join(" ")} type="button" aria-pressed={active} onClick={() => { setActiveId(item.id); track("variant_picker_select", item.id); }} key={item.id}><b>{item.label}</b><small>{item.price}</small><span><i aria-hidden="true" />{item.shippingPromise.available ? "В наличии" : "Уточним"}</span></button>;
-        })}</div> : <div className="variant-picker-empty"><b>Совпадений нет</b><span>Измените размер или покажите все исполнения.</span><button type="button" onClick={() => { setQuery(""); setStockOnly(false); }}>Сбросить фильтр</button></div>}
-        {variantsLoading && <div className="variant-picker-loading variant-picker-loading--inline" role="status"><b>Показаны первые варианты — загружаем все {totalVariantCount}</b><span>Можно выбрать доступный размер уже сейчас.</span></div>}
+        })}</div> : !filterLoading ? <div className="variant-picker-empty"><b>Совпадений нет</b><span>Измените размер или покажите все исполнения.</span><button type="button" onClick={() => { clearRemoteFilterState(); setQuery(""); setStockOnly(false); }}>Сбросить фильтр</button></div> : null}
+        {initialPageLoading && <div className="variant-picker-loading variant-picker-loading--inline" role="status"><b>Первые варианты уже доступны</b><span>Подгружаем следующую порцию, не блокируя выбор.</span></div>}
+        {filterLoading && <div className="variant-picker-loading variant-picker-loading--inline" role="status"><b>Ищем по всем {totalVariantCount} исполнениям</b><span>Поиск охватывает полную матрицу, включая ещё не показанные позиции.</span></div>}
+        {activeNextOffset != null && !variantsLoading && <button className="variant-picker-more" type="button" onClick={() => void loadMoreVariants()} disabled={moreLoading}>{moreLoading ? "Загружаем…" : `Показать ещё ${Math.min(VARIANT_PAGE_SIZE, Math.max(0, matchedVariantCount - activeNextOffset))}`}</button>}
+        {!variantsLoading && filteredItems.length > 0 && <p className="variant-picker-progress">Показано {filteredItems.length} из {matchedVariantCount}</p>}
         {variantsError && <div className="variant-picker-load-error" role="status"><span>{variantsError}</span>{fullProductHref && <a href={fullProductHref}>Открыть карточку товара →</a>}</div>}
       </div>
       {selected && <footer>
@@ -190,22 +273,58 @@ function isShippingPromise(value: unknown): value is FeedShippingPromise {
     && typeof promise.detail === "string";
 }
 
-function loadVariantPickerItems(endpoint: string, signal?: AbortSignal): Promise<VariantPickerItem[]> {
-  const cached = variantRequestCache.get(endpoint);
+function loadVariantPickerPage(endpoint: string, options: { offset: number; query?: string; availableOnly?: boolean }, signal?: AbortSignal): Promise<VariantPickerPage> {
+  const requestUrl = variantPageUrl(endpoint, options);
+  const cached = variantRequestCache.get(requestUrl);
   if (cached) return cached;
-  const request = fetch(endpoint, { headers:{ Accept:"application/json" }, signal })
+  const request = fetch(requestUrl, { headers:{ Accept:"application/json" }, signal })
     .then(async (response) => {
-      const payload = await response.json() as { ok?: boolean; variants?: unknown };
+      const payload = await response.json() as { ok?: boolean; variants?: unknown; totalVariantCount?: unknown; availableVariantCount?: unknown; matchedVariantCount?: unknown; offset?: unknown; nextOffset?: unknown };
       const loaded = Array.isArray(payload.variants) ? payload.variants.filter(isVariantPickerApiItem).map(toVariantPickerItem) : [];
-      if (!response.ok || !payload.ok || loaded.length === 0) throw new Error("variant_list_unavailable");
-      return loaded;
+      if (!response.ok || !payload.ok
+        || !isNonNegativeInteger(payload.totalVariantCount)
+        || !isNonNegativeInteger(payload.availableVariantCount)
+        || !isNonNegativeInteger(payload.matchedVariantCount)
+        || !isNonNegativeInteger(payload.offset)
+        || !(payload.nextOffset === null || isNonNegativeInteger(payload.nextOffset))
+        || (loaded.length === 0 && payload.matchedVariantCount > 0)) throw new Error("variant_list_unavailable");
+      return {
+        items:loaded,
+        totalVariantCount:payload.totalVariantCount,
+        availableVariantCount:payload.availableVariantCount,
+        matchedVariantCount:payload.matchedVariantCount,
+        offset:payload.offset,
+        nextOffset:payload.nextOffset,
+      };
     })
     .catch((error) => {
-      variantRequestCache.delete(endpoint);
+      variantRequestCache.delete(requestUrl);
       throw error;
     });
-  variantRequestCache.set(endpoint, request);
+  variantRequestCache.set(requestUrl, request);
   return request;
+}
+
+function variantPageUrl(endpoint: string, { offset, query = "", availableOnly = false }: { offset: number; query?: string; availableOnly?: boolean }): string {
+  const params = new URLSearchParams({ offset:String(offset), limit:String(VARIANT_PAGE_SIZE) });
+  if (query.trim()) params.set("q", query.trim());
+  if (availableOnly) params.set("stock", "available");
+  return `${endpoint}${endpoint.includes("?") ? "&" : "?"}${params.toString()}`;
+}
+
+function mergeVariantItems(primary: VariantPickerItem[], secondary: VariantPickerItem[]): VariantPickerItem[] {
+  const merged: VariantPickerItem[] = [];
+  const seen = new Set<string>();
+  for (const item of [...primary, ...secondary]) {
+    if (seen.has(item.id)) continue;
+    seen.add(item.id);
+    merged.push(item);
+  }
+  return merged;
+}
+
+function isNonNegativeInteger(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0;
 }
 
 function toVariantPickerItem(variant: VariantPickerApiItem): VariantPickerItem {

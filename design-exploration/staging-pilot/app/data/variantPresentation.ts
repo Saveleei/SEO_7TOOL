@@ -27,6 +27,29 @@ export type ProductVariantChoice = {
   href: string;
 };
 
+export type ProductVariantChoicePage = {
+  variants: ProductVariantChoice[];
+  totalVariantCount: number;
+  availableVariantCount: number;
+  matchedVariantCount: number;
+  offset: number;
+  nextOffset: number | null;
+};
+
+type ProductVariantChoiceIndexEntry = {
+  variant: FeedVariant;
+  presentation: VariantChoicePresentation;
+  searchText: string;
+};
+
+type ProductVariantChoiceIndex = {
+  entries: ProductVariantChoiceIndexEntry[];
+  exactVariantImageCounts: Map<string, number>;
+  productImage?: string;
+};
+
+const productVariantChoiceIndexCache = new WeakMap<FeedProduct, ProductVariantChoiceIndex>();
+
 type PresentationKind = "diameter-length" | "disc" | "thread" | "pipe-range" | "compressor" | "pack" | "capacity" | "laser" | "priority";
 type CategoryPresentationRule = {
   kind: PresentationKind;
@@ -121,40 +144,100 @@ export function selectDefaultVariant(product: FeedProduct, variants: FeedVariant
 }
 
 export function getProductVariantChoices(product: FeedProduct): ProductVariantChoice[] {
-  const variants = sortVariantsForChoice(product, product.variants.filter((variant) => variant.name || variant.sku));
-  const exactVariantImageCounts = countVariantImages(variants);
-  const productImage = firstImage(product.images);
-  const choices = variants.map((variant) => {
-    const choice = getVariantChoicePresentation(product, variant);
-    const shippingPromise = getVariantShippingPromise(variant);
-    const exactImage = variant.images?.[0] || firstImage(variant.images);
-    const selectorImage = getSelectorImage(exactImage, productImage, exactVariantImageCounts);
-    return {
-      id:variant.id,
-      sku:variant.sku,
-      title:variant.name || product.title,
-      price:formatFeedPrice(variant.price) ?? "Цена по запросу",
-      available:shippingPromise.available,
-      shippingPromise,
-      keySpecs:getFeedVariantSpecs(product, variant).slice(0, 4),
-      choiceLabel:choice.label,
-      choiceContext:choice.context,
-      selectorLabel:choice.selectorLabel,
-      image:exactImage ?? getFeedProductImage(product),
-      selectorImage,
-      href:`${publicProductPath(product, variant)}#variants`,
-    };
-  });
+  const index = getProductVariantChoiceIndex(product);
+  return index.entries.map((entry) => materializeProductVariantChoice(product, index, entry));
+}
+
+export function getProductVariantChoicePage(product: FeedProduct, options: { offset?: number; limit?: number; query?: string; availableOnly?: boolean } = {}): ProductVariantChoicePage {
+  const index = getProductVariantChoiceIndex(product);
+  const offset = normalizeBoundedInteger(options.offset, 0, 50_000, 0);
+  const limit = normalizeBoundedInteger(options.limit, 1, 60, 24);
+  const query = normalize(String(options.query ?? ""));
+  const confirmedEntries = index.entries.filter((entry) => hasConfirmedStock(entry.variant));
+  const confirmedStockIsUsable = confirmedEntries.length > 0 && getVariantShippingPromise(confirmedEntries[0].variant).available;
+  const availableVariantCount = confirmedStockIsUsable ? confirmedEntries.length : 0;
+  const matched = index.entries.filter((entry) => (!options.availableOnly || (confirmedStockIsUsable && hasConfirmedStock(entry.variant)))
+    && (!query || entry.searchText.includes(query)));
+  const pageEntries = matched.slice(offset, offset + limit);
+  const nextOffset = offset + pageEntries.length < matched.length ? offset + pageEntries.length : null;
+  return {
+    variants:pageEntries.map((entry) => materializeProductVariantChoice(product, index, entry)),
+    totalVariantCount:index.entries.length,
+    availableVariantCount,
+    matchedVariantCount:matched.length,
+    offset,
+    nextOffset,
+  };
+}
+
+function getProductVariantChoiceIndex(product: FeedProduct): ProductVariantChoiceIndex {
+  const cached = productVariantChoiceIndexCache.get(product);
+  if (cached) return cached;
+  const variants = product.variants.filter((variant) => variant.name || variant.sku);
+  const rows = variants.map((variant) => ({ variant, presentation:getVariantChoicePresentation(product, variant) }));
+  rows.sort((first, second) => compareVariantChoiceRows(first, second));
   const duplicateCounts = new Map<string, number>();
-  for (const choice of choices) {
-    const signature = normalize(`${choice.choiceLabel}|${choice.choiceContext}`);
+  for (const row of rows) {
+    const signature = normalize(`${row.presentation.label}|${row.presentation.context}`);
     duplicateCounts.set(signature, (duplicateCounts.get(signature) ?? 0) + 1);
   }
-  return choices.map((choice) => {
-    const signature = normalize(`${choice.choiceLabel}|${choice.choiceContext}`);
-    if ((duplicateCounts.get(signature) ?? 0) < 2 || !choice.sku) return choice;
-    return { ...choice, choiceContext:appendSecondaryReference(choice.choiceContext, choice.sku) };
+  const entries = rows.map(({ variant, presentation }) => {
+    const signature = normalize(`${presentation.label}|${presentation.context}`);
+    const resolvedPresentation = (duplicateCounts.get(signature) ?? 0) >= 2 && variant.sku
+      ? { ...presentation, context:appendSecondaryReference(presentation.context, variant.sku) }
+      : presentation;
+    return {
+      variant,
+      presentation:resolvedPresentation,
+      searchText:normalize([resolvedPresentation.label, resolvedPresentation.context, variant.sku, variant.name].filter(Boolean).join(" ")),
+    };
   });
+  const index = {
+    entries,
+    exactVariantImageCounts:countVariantImages(entries.map((entry) => entry.variant)),
+    productImage:firstImage(product.images),
+  };
+  productVariantChoiceIndexCache.set(product, index);
+  return index;
+}
+
+function materializeProductVariantChoice(product: FeedProduct, index: ProductVariantChoiceIndex, entry: ProductVariantChoiceIndexEntry): ProductVariantChoice {
+  const { variant, presentation } = entry;
+  const shippingPromise = getVariantShippingPromise(variant);
+  const exactImage = variant.images?.[0] || firstImage(variant.images);
+  return {
+    id:variant.id,
+    sku:variant.sku,
+    title:variant.name || product.title,
+    price:formatFeedPrice(variant.price) ?? "Цена по запросу",
+    available:shippingPromise.available,
+    shippingPromise,
+    keySpecs:getFeedVariantSpecs(product, variant).slice(0, 4),
+    choiceLabel:presentation.label,
+    choiceContext:presentation.context,
+    selectorLabel:presentation.selectorLabel,
+    image:exactImage ?? getFeedProductImage(product),
+    selectorImage:getSelectorImage(exactImage, index.productImage, index.exactVariantImageCounts),
+    href:`${publicProductPath(product, variant)}#variants`,
+  };
+}
+
+function compareVariantChoiceRows(first: { variant: FeedVariant; presentation: VariantChoicePresentation }, second: { variant: FeedVariant; presentation: VariantChoicePresentation }): number {
+  const a = first.presentation;
+  const b = second.presentation;
+  if (a.sizeLed && b.sizeLed) {
+    return numeric(a.diameter) - numeric(b.diameter)
+      || numeric(a.length) - numeric(b.length)
+      || a.context.localeCompare(b.context, "ru-RU", { numeric:true })
+      || first.variant.sku.localeCompare(second.variant.sku, "ru-RU", { numeric:true });
+  }
+  return a.label.localeCompare(b.label, "ru-RU", { numeric:true })
+    || a.context.localeCompare(b.context, "ru-RU", { numeric:true })
+    || first.variant.sku.localeCompare(second.variant.sku, "ru-RU", { numeric:true });
+}
+
+function normalizeBoundedInteger(value: number | undefined, minimum: number, maximum: number, fallback: number): number {
+  return Number.isInteger(value) ? Math.min(maximum, Math.max(minimum, Number(value))) : fallback;
 }
 
 function firstImage(images: string[] | undefined): string | undefined {

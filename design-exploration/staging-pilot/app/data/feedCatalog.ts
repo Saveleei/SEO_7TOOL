@@ -114,6 +114,7 @@ export type FeedProductVariantModel = {
 
 export type FeedProductCardModel = {
   id: string;
+  catalogRevision: string;
   categorySlug: string;
   slug: string;
   title: string;
@@ -686,6 +687,7 @@ export function toFeedProductCardModel(product: FeedProduct, activeFilters: Feed
 
   return {
     id: product.id,
+    catalogRevision:`${feedSnapshotSha256.slice(0, 12)}-${getRuntimeCatalogParameterOverrideRevision()}`,
     categorySlug: product.category,
     slug: product.slug,
     title: product.title,

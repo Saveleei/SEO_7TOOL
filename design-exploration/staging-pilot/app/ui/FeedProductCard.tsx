@@ -21,7 +21,7 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
   const archetype = product.cardArchetype;
   const projectConfiguration = archetype.id === "project-system";
   const visibleVariantLabel = pluralizeCardVariants(product.selectedVariantCount, archetype.variantForms);
-  const variantsEndpoint = `/api/catalog-product-variants?product=${encodeURIComponent(product.slug)}`;
+  const variantsEndpoint = variantEndpoint(product);
   const warmVariants = () => preloadVariantPickerItems(variantsEndpoint);
   return <article className={`feed-product-card feed-product-card--${archetype.id} ${selected ? "feed-product-card--selected" : ""}`}>
     <a className="feed-product-media" href={`/p/${product.slug}`} aria-label={`Открыть ${product.title}`}>
@@ -77,4 +77,8 @@ function toPickerItems(product: FeedProductCardModel): VariantPickerItem[] {
 
 function isSizeLedProduct(product: FeedProductCardModel): boolean {
   return product.variants.some((variant) => /[Ø⌀]\s*\d+.*[×xх]\s*\d+/iu.test(variantChoiceLabel(variant)) || variant.specs.some((spec) => /диаметр|длина|размер/iu.test(spec.label)));
+}
+
+function variantEndpoint(product: FeedProductCardModel): string {
+  return `/api/catalog-product-variants?product=${encodeURIComponent(product.slug)}&v=${encodeURIComponent(product.catalogRevision)}`;
 }

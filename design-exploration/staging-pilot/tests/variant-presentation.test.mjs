@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { GET as getProductVariants } from "../app/api/catalog-product-variants/route.ts";
-import { getFeedVariantSpecs } from "../app/data/feedCatalog.ts";
+import { getFeedVariantSpecs, toFeedProductCardModel } from "../app/data/feedCatalog.ts";
 import { publicProductPath } from "../app/data/publicUrls.ts";
-import { CATEGORY_VARIANT_PRESENTATION_RULES, getProductVariantChoices, getVariantChoicePresentation, selectDefaultVariant, sortVariantsForChoice } from "../app/data/variantPresentation.ts";
+import { CATEGORY_VARIANT_PRESENTATION_RULES, getProductVariantChoicePage, getProductVariantChoices, getVariantChoicePresentation, selectDefaultVariant, sortVariantsForChoice } from "../app/data/variantPresentation.ts";
 
 const snapshot = JSON.parse(await readFile(new URL("../../../7tool-source/src/lib/products.json", import.meta.url), "utf8"));
 const annularCutters = snapshot.products.find((product) => product.slug === "sverla-koronchatye-lzhs");
@@ -65,19 +65,56 @@ test("non-size execution choices keep complete decision labels visible", async (
   assert.match(styles, /@media \(max-width:760px\)[\s\S]*?\.feed-variant-options:not\(\.feed-variant-options--sizes\) \{ grid-template-columns:1fr; \}/u);
 });
 
-test("full size list is loaded on demand in natural order", async () => {
+test("variant API pages the full matrix, searches every row, and keeps responses bounded", async () => {
   const response = await getProductVariants(new Request("http://127.0.0.1/api/catalog-product-variants?product=sverla-koronchatye-lzhs"));
   assert.equal(response.status, 200);
-  assert.match(response.headers.get("cache-control") ?? "", /max-age=300/u);
+  assert.match(response.headers.get("cache-control") ?? "", /max-age=120/u);
   const payload = await response.json();
   assert.equal(payload.ok, true);
-  assert.equal(payload.variants.length, 49);
+  assert.equal(payload.totalVariantCount, 49);
+  assert.equal(payload.matchedVariantCount, 49);
+  assert.equal(payload.offset, 0);
+  assert.equal(payload.nextOffset, 24);
+  assert.equal(payload.variants.length, 24);
   assert.equal("keySpecs" in payload.variants[0], false);
   assert.deepEqual(payload.variants.slice(0, 5).map((variant) => variant.choiceLabel), ["Ø12 × 30 мм", "Ø13 × 30 мм", "Ø14 × 30 мм", "Ø15 × 30 мм", "Ø16 × 30 мм"]);
   assert.equal(payload.variants[0].sku, "LZHS-012");
 
+  const secondResponse = await getProductVariants(new Request("http://127.0.0.1/api/catalog-product-variants?product=sverla-koronchatye-lzhs&offset=24&limit=24"));
+  const secondPayload = await secondResponse.json();
+  assert.equal(secondPayload.variants.length, 24);
+  assert.equal(secondPayload.offset, 24);
+  assert.equal(secondPayload.nextOffset, 48);
+
+  const finalResponse = await getProductVariants(new Request("http://127.0.0.1/api/catalog-product-variants?product=sverla-koronchatye-lzhs&offset=48&limit=24"));
+  const finalPayload = await finalResponse.json();
+  assert.equal(finalPayload.variants.length, 1);
+  assert.equal(finalPayload.variants[0].sku, "LZHS-060");
+  assert.equal(finalPayload.nextOffset, null);
+
+  const searchResponse = await getProductVariants(new Request("http://127.0.0.1/api/catalog-product-variants?product=sverla-koronchatye-lzhs&q=LZHS-060"));
+  const searchPayload = await searchResponse.json();
+  assert.equal(searchPayload.matchedVariantCount, 1);
+  assert.deepEqual(searchPayload.variants.map((variant) => variant.sku), ["LZHS-060"]);
+
+  const biggestProduct = snapshot.products.reduce((largest, product) => product.variants.length > largest.variants.length ? product : largest, snapshot.products[0]);
+  assert.ok(biggestProduct.variants.length > 400);
+  const biggestResponse = await getProductVariants(new Request(`http://127.0.0.1/api/catalog-product-variants?product=${biggestProduct.slug}&limit=500`));
+  const biggestBody = await biggestResponse.text();
+  const biggestPayload = JSON.parse(biggestBody);
+  assert.equal(biggestPayload.totalVariantCount, biggestProduct.variants.length);
+  assert.equal(biggestPayload.variants.length, 60);
+  assert.ok(Buffer.byteLength(biggestBody) < 70_000, `paged response is unexpectedly large: ${Buffer.byteLength(biggestBody)} bytes`);
+
+  const directPage = getProductVariantChoicePage(biggestProduct, { limit:24 });
+  assert.equal(directPage.variants.length, 24);
+  assert.equal(directPage.nextOffset, 24);
+
   const invalid = await getProductVariants(new Request("http://127.0.0.1/api/catalog-product-variants?product=../secret"));
   assert.equal(invalid.status, 400);
+
+  const overlongQuery = await getProductVariants(new Request(`http://127.0.0.1/api/catalog-product-variants?product=sverla-koronchatye-lzhs&q=${"a".repeat(101)}`));
+  assert.equal(overlongQuery.status, 400);
 });
 
 test("compatible accessory cards lead with working size and keep article as reference", async () => {
@@ -99,12 +136,18 @@ test("category card variants show the buyer size first and keep actions readable
     assert.match(source, /toPickerItems/u);
     assert.match(source, /variantChoiceLabel/u);
     assert.match(source, /\/api\/catalog-product-variants\?product=\$\{encodeURIComponent\(/u);
+    assert.match(source, /&v=\$\{encodeURIComponent\(product\.catalogRevision\)\}/u);
     assert.match(source, /variantsEndpoint=\{/u);
     assert.match(source, /preloadVariantPickerItems/u);
   }
-  assert.match(picker, /fetch\(endpoint/u);
+  const cardModel = toFeedProductCardModel(annularCutters);
+  assert.match(cardModel.catalogRevision, /^[a-f0-9]{12}-\d+$/u);
+  assert.match(picker, /fetch\(requestUrl/u);
   assert.match(picker, /preloadVariantPickerItems/u);
-  assert.match(picker, /Показаны первые варианты — загружаем все \{totalVariantCount\}/u);
+  assert.match(picker, /Первые варианты уже доступны/u);
+  assert.match(picker, /Показать ещё/u);
+  assert.match(picker, /Показано \{filteredItems\.length\} из \{matchedVariantCount\}/u);
+  assert.match(picker, /SEARCH_DEBOUNCE_MS/u);
   assert.match(picker, /filteredItems\.length > 0/u);
   assert.match(picker, /aria-label="Матрица размеров и наличия"/u);
   assert.match(picker, /availableItems\.filter/u);
