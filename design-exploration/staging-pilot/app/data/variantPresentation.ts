@@ -8,6 +8,7 @@ export type VariantChoicePresentation = {
   selectorLabel: "Размер" | "Параметры исполнения";
   sizeLed: boolean;
   diameter?: number;
+  width?: number;
   length?: number;
 };
 
@@ -90,6 +91,8 @@ export const CATEGORY_VARIANT_PRESENTATION_RULES: Readonly<Record<string, Catego
 });
 
 export function getVariantChoicePresentation(product: FeedProduct, variant: FeedVariant): VariantChoicePresentation {
+  const plateSize = magneticPlateSizeChoice(product, variant);
+  if (plateSize) return plateSize;
   const rule = CATEGORY_VARIANT_PRESENTATION_RULES[product.category];
   const categoryChoice = rule ? buildCategoryChoice(rule, variant) : undefined;
   if (categoryChoice) return categoryChoice;
@@ -124,7 +127,7 @@ export function sortVariantsForChoice(product: FeedProduct, variants: FeedVarian
     const a = presentations.get(first.id)!;
     const b = presentations.get(second.id)!;
     if (a.sizeLed && b.sizeLed) {
-      return numeric(a.diameter) - numeric(b.diameter)
+      return numeric(a.width ?? a.diameter) - numeric(b.width ?? b.diameter)
         || numeric(a.length) - numeric(b.length)
         || a.context.localeCompare(b.context, "ru-RU", { numeric:true })
         || first.sku.localeCompare(second.sku, "ru-RU", { numeric:true });
@@ -232,7 +235,7 @@ function compareVariantChoiceRows(first: { variant: FeedVariant; presentation: V
   const a = first.presentation;
   const b = second.presentation;
   if (a.sizeLed && b.sizeLed) {
-    return numeric(a.diameter) - numeric(b.diameter)
+    return numeric(a.width ?? a.diameter) - numeric(b.width ?? b.diameter)
       || numeric(a.length) - numeric(b.length)
       || a.context.localeCompare(b.context, "ru-RU", { numeric:true })
       || first.variant.sku.localeCompare(second.variant.sku, "ru-RU", { numeric:true });
@@ -240,6 +243,23 @@ function compareVariantChoiceRows(first: { variant: FeedVariant; presentation: V
   return a.label.localeCompare(b.label, "ru-RU", { numeric:true })
     || a.context.localeCompare(b.context, "ru-RU", { numeric:true })
     || first.variant.sku.localeCompare(second.variant.sku, "ru-RU", { numeric:true });
+}
+
+function magneticPlateSizeChoice(product: FeedProduct, variant: FeedVariant): VariantChoicePresentation | undefined {
+  if (product.category !== "magnitnaya-osnastka" || !/плит/iu.test(`${product.title} ${variant.name ?? ""}`)) return undefined;
+  const match = String(variant.name || "").match(/(?:^|\s)(\d{2,4}(?:[.,]\d+)?)\s*[×xх]\s*(\d{2,4}(?:[.,]\d+)?)\s*мм(?:\s|,|$)/iu);
+  if (!match) return undefined;
+  const width = Number.parseFloat(match[1].replace(",", "."));
+  const length = Number.parseFloat(match[2].replace(",", "."));
+  if (!Number.isFinite(width) || !Number.isFinite(length)) return undefined;
+  return finalizeChoice({
+    label:`${formatNumber(width)} × ${formatNumber(length)} мм`,
+    context:"",
+    selectorLabel:"Размер",
+    sizeLed:true,
+    width,
+    length,
+  });
 }
 
 function normalizeBoundedInteger(value: number | undefined, minimum: number, maximum: number, fallback: number): number {

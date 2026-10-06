@@ -197,8 +197,8 @@ function OpenVariantPickerDialog({ onClose, productId, productTitle, category, p
   if (typeof document === "undefined") return null;
 
   const dialog = <div className="variant-picker-layer" role="dialog" aria-modal="true" aria-labelledby={`variant-picker-title-${productId}`} aria-describedby={`variant-picker-description-${productId}`} onKeyDown={trapFocus}>
-    <button className="variant-picker-backdrop" type="button" onClick={onClose} aria-label="Закрыть выбор размера" />
-    <div className="variant-picker-dialog" ref={dialogRef}>
+    <button className="variant-picker-backdrop" type="button" onClick={onClose} aria-label={`Закрыть выбор: ${selectorLabel.toLocaleLowerCase("ru-RU")}`} />
+    <div className={`variant-picker-dialog variant-picker-dialog--${selectorLabel === "Размер" ? "sizes" : "executions"}`} ref={dialogRef}>
       <header>
         <div><span>{productTitle}</span><h2 id={`variant-picker-title-${productId}`}>Выберите {selectorLabel.toLocaleLowerCase("ru-RU")}</h2><p id={`variant-picker-description-${productId}`}>{totalVariantCount} {variantWord(totalVariantCount, selectorLabel)} · {availableVariantCount} с подтверждённым остатком{initialPageLoading ? " · уточняем список" : ""}</p></div>
         <button ref={closeRef} type="button" onClick={onClose} aria-label="Закрыть">×</button>
@@ -211,7 +211,7 @@ function OpenVariantPickerDialog({ onClose, productId, productTitle, category, p
       <div className="variant-picker-results" aria-live="polite">
         {filteredItems.length > 0 ? <div className="variant-picker-grid" aria-label="Матрица размеров и наличия">{filteredItems.map((item) => {
           const active = item.id === selected?.id;
-          return <button className={[active ? "active" : "", item.shippingPromise.available ? "is-available" : "is-unconfirmed"].filter(Boolean).join(" ")} type="button" aria-pressed={active} onClick={() => { setActiveId(item.id); track("variant_picker_select", item.id); }} key={item.id}><b>{item.label}</b><small>{item.price}</small><span><i aria-hidden="true" />{item.shippingPromise.available ? "В наличии" : "Уточним"}</span></button>;
+          return <button className={[active ? "active" : "", item.shippingPromise.available ? "is-available" : "is-unconfirmed"].filter(Boolean).join(" ")} type="button" aria-pressed={active} onClick={() => { setActiveId(item.id); track("variant_picker_select", item.id); }} key={item.id}><b>{item.label}</b>{item.context && <em>{item.context}</em>}<small>{item.price}</small><span><i aria-hidden="true" />{item.shippingPromise.available ? "В наличии" : "Уточним"}</span></button>;
         })}</div> : !filterLoading ? <div className="variant-picker-empty"><b>Совпадений нет</b><span>Измените размер или покажите все исполнения.</span><button type="button" onClick={() => { clearRemoteFilterState(); setQuery(""); setStockOnly(false); }}>Сбросить фильтр</button></div> : null}
         {initialPageLoading && <div className="variant-picker-loading variant-picker-loading--inline" role="status"><b>Первые варианты уже доступны</b><span>Подгружаем следующую порцию, не блокируя выбор.</span></div>}
         {filterLoading && <div className="variant-picker-loading variant-picker-loading--inline" role="status"><b>Ищем по всем {totalVariantCount} исполнениям</b><span>Поиск охватывает полную матрицу, включая ещё не показанные позиции.</span></div>}

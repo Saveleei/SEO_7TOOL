@@ -8,6 +8,7 @@ import { CATEGORY_VARIANT_PRESENTATION_RULES, getProductVariantChoice, getProduc
 
 const snapshot = JSON.parse(await readFile(new URL("../../../7tool-source/src/lib/products.json", import.meta.url), "utf8"));
 const annularCutters = snapshot.products.find((product) => product.slug === "sverla-koronchatye-lzhs");
+const magneticPlates = snapshot.products.find((product) => product.slug === "plity-magnitnye-heden");
 
 test("annular cutter choices lead with size instead of supplier article", () => {
   assert.ok(annularCutters);
@@ -38,6 +39,15 @@ test("all cutter variants are sorted by diameter rather than article feed order"
   assert.equal(sorted.at(-1).sku, "LZHS-060");
 });
 
+test("magnetic plate choices extract supplier dimensions and remove the repeated series name", () => {
+  assert.ok(magneticPlates);
+  const choices = getProductVariantChoices(magneticPlates);
+  assert.equal(choices.length, 19);
+  assert.deepEqual(choices.slice(0, 4).map((choice) => choice.choiceLabel), ["100 × 175 мм", "100 × 200 мм", "125 × 250 мм", "130 × 70 мм"]);
+  assert.ok(choices.every((choice) => choice.selectorLabel === "Размер"));
+  assert.ok(choices.every((choice) => !/плита|heden/iu.test(choice.choiceLabel)));
+});
+
 test("product selector keeps the initial payload bounded and opens the paged full matrix", async () => {
   const page = await readFile(new URL("../app/product/[slug]/page.tsx", import.meta.url), "utf8");
   const purchase = await readFile(new URL("../app/ui/FeedProductPurchase.tsx", import.meta.url), "utf8");
@@ -57,6 +67,8 @@ test("product selector keeps the initial payload bounded and opens the paged ful
   assert.match(purchase, /<VariantPickerDialog/u);
   assert.match(purchase, /initialNextOffset=\{initialNextOffset\}/u);
   assert.match(purchase, /initialAvailableVariantCount=\{availableVariantCount\}/u);
+  assert.match(purchase, /Открыть удобный выбор/u);
+  assert.match(purchase, /totalVariantCount > 1 && <VariantPickerDialog/u);
   assert.match(picker, /Найти по размеру или артикулу/u);
   assert.match(picker, /initialNextOffset === undefined/u);
   assert.match(purchase, /feed-add-label--mobile">\{added \? "Добавлено" : "Добавить в КП"\}/u);
@@ -166,6 +178,8 @@ test("category card variants show the buyer size first and keep actions readable
   assert.match(picker, /SEARCH_DEBOUNCE_MS/u);
   assert.match(picker, /filteredItems\.length > 0/u);
   assert.match(picker, /aria-label="Матрица размеров и наличия"/u);
+  assert.match(picker, /variant-picker-dialog--\$\{selectorLabel === "Размер" \? "sizes" : "executions"\}/u);
+  assert.match(picker, /item\.context && <em>\{item\.context\}<\/em>/u);
   assert.match(picker, /availableItems\.filter/u);
   assert.match(picker, /item\.shippingPromise\.available \? "is-available" : "is-unconfirmed"/u);
   assert.match(picker, /<b>\{item\.label\}<\/b>/u);

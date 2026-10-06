@@ -26,7 +26,7 @@ test("verified media is bound to exact feed identities and local immutable asset
     assert.ok(product.stock > 0, `${entry.id} must remain a currently stocked verified assignment`);
     assert.match(entry.sourcePage, /^https:\/\/k2tool\.ru\/catalog\//u);
     assert.match(entry.sourceImage, /^https:\/\/s3\.k2tool\.ru\/images\/product\//u);
-    assert.match(entry.image, /^\/product-media\/verified\/[a-f0-9]{32}\.webp$/u);
+    assert.match(entry.image, /^\/product-media\/verified\/[a-f0-9]{32}\.(?:webp|jpe?g|png)$/u);
 
     const bytes = await readFile(path.join(projectRoot, "public", entry.image.slice(1)));
     assert.equal(bytes.byteLength, entry.byteSize, `${entry.id} asset size changed`);

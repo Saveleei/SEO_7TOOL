@@ -18,7 +18,10 @@ const interFonts = Promise.all([
 ]);
 
 const imageDataCache = new Map<string, Promise<string>>();
-const MAX_CACHED_SOURCE_IMAGES = 32;
+const MAX_CACHED_SOURCE_IMAGES = 8;
+const MAX_CONCURRENT_RENDERERS = 2;
+const renderWaiters: Array<() => void> = [];
+let activeRenderers = 0;
 
 export async function GET(_request: Request, { params }: RouteContext) {
   const { segments } = await params;
@@ -33,14 +36,14 @@ export async function GET(_request: Request, { params }: RouteContext) {
       },
     });
   }
-  const card = resolved.content;
-  const photo = await loadCachedImageDataUrl(card.image).catch(() => loadCachedImageDataUrl("/site/why-stock.webp")).catch(() => "");
-  const logo = await loadCachedImageDataUrl("/brand/7tool-inverse.svg").catch(() => "");
-  const fonts = await interFonts;
-  const title = clampText(card.title, 92);
-  const context = clampText(card.context, 78);
-
-  return new ImageResponse(
+  return withRenderSlot(async () => {
+    const card = resolved.content;
+    const photo = await loadCachedImageDataUrl(card.image).catch(() => loadCachedImageDataUrl("/site/why-stock.webp")).catch(() => "");
+    const logo = await loadCachedImageDataUrl("/brand/7tool-inverse.svg").catch(() => "");
+    const fonts = await interFonts;
+    const title = clampText(card.title, 92);
+    const context = clampText(card.context, 78);
+    const image = new ImageResponse(
     <div style={{ width:"100%", height:"100%", display:"flex", color:"#fff", background:"#07172d", fontFamily:"Inter" }}>
       <div style={{ width:"54%", height:"100%", display:"flex", flexDirection:"column", justifyContent:"space-between", padding:"64px 54px 54px 66px", background:"linear-gradient(135deg, #06152b 0%, #0a2444 100%)" }}>
         {logo
@@ -76,8 +79,24 @@ export async function GET(_request: Request, { params }: RouteContext) {
         "Content-Disposition":"inline",
         "X-Content-Type-Options":"nosniff",
       },
-    },
-  );
+      },
+    );
+    const bytes = await image.arrayBuffer();
+    return new Response(bytes, { status:200, headers:image.headers });
+  });
+}
+
+async function withRenderSlot<T>(render: () => Promise<T>): Promise<T> {
+  if (activeRenderers >= MAX_CONCURRENT_RENDERERS) {
+    await new Promise<void>((resolve) => renderWaiters.push(resolve));
+  }
+  activeRenderers += 1;
+  try {
+    return await render();
+  } finally {
+    activeRenderers -= 1;
+    renderWaiters.shift()?.();
+  }
 }
 
 function loadCachedImageDataUrl(source?: string): Promise<string> {

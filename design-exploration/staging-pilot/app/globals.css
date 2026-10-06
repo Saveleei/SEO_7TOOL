@@ -8178,3 +8178,96 @@ h1,h2,h3,.hero h1,.page-hero h1,.section-heading h2,.assurance-section .section-
   .manager-workspace-nav { order:2; }
   .manager-header-actions .manager-session-control { order:1; align-self:center; }
 }
+
+/* Mobile variant and comparison workflow — dimension first, one decision per screen. */
+.variant-picker-dialog--executions .variant-picker-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.variant-picker-grid>button em { display:block; margin-top:4px; color:inherit; font-size:var(--type-caption); font-style:normal; line-height:1.3; opacity:.78; }
+.comparison-mobile-view,.comparison-mobile-stack { display:none; }
+
+@media (max-width:760px) {
+  .variant-picker-dialog--sizes .variant-picker-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .variant-picker-dialog--executions .variant-picker-grid { grid-template-columns:1fr; }
+  .variant-picker-dialog--executions .variant-picker-grid>button { min-height:92px; }
+  .variant-picker-dialog--executions .variant-picker-grid>button b { font-size:15px; line-height:1.3; }
+  .variant-picker-dialog--executions .variant-picker-grid>button em { font-size:12px; }
+
+  body:has(.product-mobile-buybar) .comparison-tray {
+    left:10px;
+    right:auto;
+    bottom:74px;
+    width:auto;
+    max-width:calc(100% - 20px);
+    min-width:0;
+    grid-template-columns:auto auto 40px;
+    gap:7px;
+    padding:7px 8px 7px 10px;
+  }
+  body:has(.product-mobile-buybar) .comparison-tray>div { display:flex; align-items:center; }
+  body:has(.product-mobile-buybar) .comparison-tray>div>span,
+  body:has(.product-mobile-buybar) .comparison-tray>div>small { display:none; }
+  body:has(.product-mobile-buybar) .comparison-tray>div>b { margin:0; white-space:nowrap; }
+  body:has(.product-mobile-buybar) .comparison-tray>a,
+  body:has(.product-mobile-buybar) .comparison-tray>button { min-height:40px; }
+  body:has(.product-mobile-buybar) .mobile-manager-bubble { bottom:132px; }
+
+  .comparison-mobile-view {
+    display:grid;
+    grid-template-columns:1.25fr 1fr .72fr;
+    gap:6px;
+    margin-bottom:12px;
+    padding:5px;
+    border:1px solid #d7ddd6;
+    border-radius:8px;
+    background:#f5f7f4;
+  }
+  .comparison-mobile-view>button { min-height:44px; padding:6px 8px; border:0; border-radius:6px; background:transparent; color:#4c554e; font:750 12px/1.25 var(--font-interface); }
+  .comparison-mobile-view>button.active { background:#242b26; color:#fff; box-shadow:0 3px 12px rgba(22,29,24,.18); }
+  .comparison-mobile-stack { display:block; }
+  .comparison-full-table { display:none; }
+  .comparison-full-table.is-mobile-visible { display:block; }
+  .comparison-mobile-key {
+    position:sticky;
+    z-index:8;
+    top:76px;
+    display:flex;
+    gap:7px;
+    overflow-x:auto;
+    margin:0 -14px 12px;
+    padding:7px 14px;
+    border-block:1px solid #dfe4de;
+    background:rgba(255,255,255,.98);
+    box-shadow:0 7px 18px rgba(19,25,21,.07);
+    scrollbar-width:none;
+  }
+  .comparison-mobile-key>a { min-width:min(58vw,220px); display:grid; grid-template-columns:48px minmax(0,1fr); align-items:center; gap:8px; padding:7px; border:1px solid #d5dbd4; border-radius:7px; background:#fff; color:#252b27; }
+  .comparison-mobile-key>a>span:first-child { width:48px; height:48px; display:grid; place-items:center; overflow:hidden; border-radius:5px; background:#f2f5f1; color:#8e350f; font-weight:850; }
+  .comparison-mobile-key img { width:48px; height:48px; object-fit:contain; }
+  .comparison-mobile-key b,.comparison-mobile-key strong { display:block; }
+  .comparison-mobile-key b { color:#8e350f; font-size:var(--type-caption); }
+  .comparison-mobile-key strong { overflow:hidden; margin-top:2px; font-size:12px; line-height:1.25; text-overflow:ellipsis; white-space:nowrap; }
+  .comparison-mobile-rows { display:grid; gap:9px; }
+  .comparison-mobile-row { overflow:hidden; border:1px solid #d8ddd7; border-radius:8px; background:#fff; }
+  .comparison-mobile-row>h2 { margin:0; padding:9px 11px; border-bottom:1px solid #e1e5df; background:#f6f8f5; font-size:14px; line-height:1.3; }
+  .comparison-mobile-row>div { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .comparison-mobile-row>div>div { min-width:0; min-height:66px; display:grid; grid-template-columns:28px minmax(0,1fr); align-items:start; gap:7px; padding:10px; border-top:1px solid #edf0ec; border-left:1px solid #edf0ec; }
+  .comparison-mobile-row>div>div:nth-child(-n+2) { border-top:0; }
+  .comparison-mobile-row>div>div:nth-child(odd) { border-left:0; }
+  .comparison-mobile-row span { width:28px; height:24px; display:grid; place-items:center; border-radius:4px; background:#202722; color:#fff; font-size:var(--type-caption); font-weight:850; }
+  .comparison-mobile-row b { min-width:0; font-size:13px; line-height:1.35; overflow-wrap:anywhere; }
+  .comparison-mobile-same { display:grid; gap:5px; padding:18px; border:1px dashed #c7cdc6; border-radius:8px; color:#5e665f; text-align:center; }
+  .comparison-mobile-same b { color:#252b27; font-size:15px; }
+  .comparison-mobile-actions { display:grid; gap:10px; margin-top:14px; }
+  .comparison-mobile-actions>article { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:9px 12px; padding:13px; border:1px solid #d6dcd5; border-left:4px solid #c94a12; border-radius:8px; background:#fff; }
+  .comparison-mobile-actions header { min-width:0; }
+  .comparison-mobile-actions header>span,.comparison-mobile-actions header>b,.comparison-mobile-actions header>small { display:block; }
+  .comparison-mobile-actions header>span { color:#9a3a12; font-size:var(--type-caption); font-weight:850; text-transform:uppercase; }
+  .comparison-mobile-actions header>b { margin-top:3px; font-size:14px; line-height:1.3; }
+  .comparison-mobile-actions header>small { margin-top:3px; color:#59625b; font-size:12px; line-height:1.3; }
+  .comparison-mobile-actions>article>div { text-align:right; }
+  .comparison-mobile-actions>article>div>strong,.comparison-mobile-actions>article>div>em { display:block; }
+  .comparison-mobile-actions>article>div>strong { font-size:17px; white-space:nowrap; }
+  .comparison-mobile-actions>article>div>em { margin-top:3px; color:#087044; font-size:var(--type-caption); font-style:normal; }
+  .comparison-mobile-actions>article>a,
+  .comparison-mobile-actions>article>button { min-height:44px; display:flex; align-items:center; justify-content:center; padding:6px 10px; border:1px solid #252b27; border-radius:5px; background:#252b27; color:#fff; font:800 13px/1.2 var(--font-interface); text-align:center; }
+  .comparison-mobile-actions>article>button:last-child { border-color:#cbd1ca; background:#fff; color:#505851; }
+}

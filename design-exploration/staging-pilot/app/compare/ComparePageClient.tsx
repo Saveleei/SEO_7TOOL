@@ -30,10 +30,13 @@ type ComparisonProduct = {
 
 type ApiResponse = { ok: boolean; items?: ComparisonProduct[]; missing?: string[]; message?: string };
 type ComparisonResult = { requestKey: string; products: ComparisonProduct[]; missing: string[]; error: string };
+type MobileComparisonRow = { label: string; values: string[] };
+type MobileComparisonView = "differences" | "all" | "table";
 
 export function ComparePageClient() {
   const { items: selections, restored, remove, clear } = useComparison();
   const [result, setResult] = useState<ComparisonResult>({ requestKey:"", products:[], missing:[], error:"" });
+  const [mobileView, setMobileView] = useState<MobileComparisonView>("differences");
   const requestKey = JSON.stringify(selections.map(({ slug, variantId }) => ({ slug, variantId })));
 
   useEffect(() => {
@@ -61,6 +64,12 @@ export function ComparePageClient() {
     const labels = Array.from(new Set(products.flatMap((product) => product.specs.map((spec) => spec.label))));
     return labels.slice(0, 16).map((label) => ({ label, values:products.map((product) => product.specs.find((spec) => spec.label === label)?.value ?? "") }));
   }, [products]);
+  const mobileRows = useMemo<MobileComparisonRow[]>(() => [
+    { label:"Наличие и срок", values:products.map((product) => product.shippingLabel) },
+    { label:"Выбранный уровень", values:products.map((product) => [product.modeLabel, product.choiceLabel].filter(Boolean).join(" · ")) },
+    ...rows,
+  ], [products, rows]);
+  const differentMobileRows = useMemo(() => mobileRows.filter((row) => new Set(row.values.map(normalizeComparisonValue)).size > 1), [mobileRows]);
 
   if (!restored || loading) return <ComparisonState title="Обновляем данные из каталога" copy="Проверяем актуальные цены, наличие и характеристики выбранных товаров." loading />;
   if (error) return <ComparisonState title="Сравнение временно не загрузилось" copy={error} retry />;
@@ -77,8 +86,14 @@ export function ComparePageClient() {
 
     <section className="compare-section comparison-dynamic-page"><div className="container">
       <div className="comparison-toolbar"><p>{missing.length > 0 ? `${missing.length} сохранённых позиций больше нет в текущем фиде.` : `Выбрано ${products.length} из 4. Можно вернуться в каталог и заменить любой товар.`}</p><button type="button" onClick={() => clear("comparison_page")}>Очистить сравнение</button></div>
-      <p className="compare-scroll-hint" id="compare-scroll-hint">На узком экране проведите по таблице влево или вправо. Названия параметров закреплены слева.</p>
-      <div className="compare-scroll" tabIndex={0} aria-describedby="compare-scroll-hint"><table className="comparison-table comparison-table--dynamic">
+      <p className="compare-scroll-hint" id="compare-scroll-hint">На телефоне сначала показаны различия. Можно открыть все параметры или классическую таблицу.</p>
+      <div className="comparison-mobile-view" role="group" aria-label="Вид мобильного сравнения">
+        <button className={mobileView === "differences" ? "active" : undefined} type="button" aria-pressed={mobileView === "differences"} onClick={() => setMobileView("differences")}>Только различия</button>
+        <button className={mobileView === "all" ? "active" : undefined} type="button" aria-pressed={mobileView === "all"} onClick={() => setMobileView("all")}>Все параметры</button>
+        <button className={mobileView === "table" ? "active" : undefined} type="button" aria-pressed={mobileView === "table"} onClick={() => setMobileView("table")}>Таблица</button>
+      </div>
+      {mobileView !== "table" && <MobileComparisonStack products={products} rows={mobileView === "differences" ? differentMobileRows : mobileRows} onRemove={(product) => remove(product.productId, "comparison_page")} />}
+      <div className={["compare-scroll", "comparison-full-table", mobileView === "table" ? "is-mobile-visible" : ""].filter(Boolean).join(" ")} tabIndex={0} aria-describedby="compare-scroll-hint"><table className="comparison-table comparison-table--dynamic">
         <caption className="visually-hidden">Сравнение выбранных товаров по цене, наличию и рабочим характеристикам</caption>
         <thead><tr><th scope="col">Параметр</th>{products.map((product) => <th scope="col" key={product.key}><ComparisonProductCard product={product} onRemove={() => remove(product.productId, "comparison_page")} /></th>)}</tr></thead>
         <tbody>
@@ -95,6 +110,22 @@ export function ComparePageClient() {
 
 function ComparisonProductCard({ product, onRemove }: { product: ComparisonProduct; onRemove: () => void }) {
   return <article className="comparison-product-card">{product.image ? <Image src={product.image} alt="" width={220} height={150} unoptimized /> : <span className="comparison-product-fallback">Фото уточняется</span>}<small>{product.modeLabel}</small><b>{product.brand}</b><strong>{product.title}</strong><em>{product.choiceLabel}</em><div className="comparison-table__price"><small>{product.mode === "variant" ? "Цена исполнения" : "Цена серии"}</small><strong>{product.price}</strong></div><Link href={product.href}>Открыть товар →</Link><button type="button" onClick={onRemove} aria-label={`Убрать из сравнения: ${product.title}`}>Убрать</button></article>;
+}
+
+function MobileComparisonStack({ products, rows, onRemove }: { products: ComparisonProduct[]; rows: MobileComparisonRow[]; onRemove: (product: ComparisonProduct) => void }) {
+  return <div className="comparison-mobile-stack">
+    <nav className="comparison-mobile-key" aria-label="Сопоставляемые товары">{products.map((product, index) => <Link href={product.href} key={product.key}><span>{product.image ? <Image src={product.image} alt="" width={48} height={48} unoptimized /> : indexLabel(index)}</span><span><b>{indexLabel(index)} · {product.brand}</b><strong>{product.choiceLabel || product.title}</strong></span></Link>)}</nav>
+    {rows.length > 0 ? <div className="comparison-mobile-rows">{rows.map((row) => <article className="comparison-mobile-row" key={row.label}><h2>{row.label}</h2><div>{row.values.map((value, index) => <div key={`${products[index]?.key}-${row.label}`}><span>{indexLabel(index)}</span><b>{value || "Нет данных в фиде"}</b></div>)}</div></article>)}</div> : <div className="comparison-mobile-same"><b>По загруженным параметрам различий нет</b><span>Откройте «Все параметры» или запросите проверку комплектации у инженера.</span></div>}
+    <div className="comparison-mobile-actions">{products.map((product, index) => <article key={`${product.key}-mobile-action`}><header><span>{indexLabel(index)} · {product.modeLabel}</span><b>{product.title}</b><small>{product.choiceLabel}</small></header><div><strong>{product.price}</strong>{product.available && <em>{product.shippingLabel}</em>}</div>{product.mode === "variant" && product.variantId ? <AddRequestButton item={{ id:`variant:${product.variantId}`, title:product.title, article:product.sku ? `Артикул ${product.sku}` : "Артикул не указан в фиде", price:product.price, image:product.image, href:product.href, shippingLabel:product.shippingLabel, shippingDetail:product.shippingDetail }}>Добавить в КП</AddRequestButton> : <Link href={product.href}>Выбрать исполнение</Link>}<button type="button" onClick={() => onRemove(product)}>Убрать</button></article>)}</div>
+  </div>;
+}
+
+function indexLabel(index: number): string {
+  return String(index + 1).padStart(2, "0");
+}
+
+function normalizeComparisonValue(value: string): string {
+  return String(value || "").toLocaleLowerCase("ru-RU").replace(/ё/gu, "е").replace(/\s+/gu, " ").trim() || "__missing__";
 }
 
 function ComparisonState({ title, copy, loading = false, retry = false, empty = false }: { title: string; copy: string; loading?: boolean; retry?: boolean; empty?: boolean }) {

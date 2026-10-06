@@ -31,6 +31,10 @@ test("comparison page has empty, one-product and table states", () => {
   assert.match(page, /Цена и следующий шаг/u);
   assert.match(page, /Получить рекомендацию/u);
   assert.match(page, /Нет данных в фиде/u);
+  assert.match(page, /Только различия/u);
+  assert.match(page, /Все параметры/u);
+  assert.match(page, /comparison-mobile-stack/u);
+  assert.match(page, /comparison-full-table/u);
 });
 
 test("catalog cards, table and exact product variant share one comparison provider", () => {
@@ -59,4 +63,7 @@ test("responsive tray and comparison table account for mobile actions", () => {
   assert.match(css, /body:has\(\.comparison-tray\) \.mobile-manager-bubble/u);
   assert.match(css, /\.comparison-table--dynamic thead th:first-child[^]*position:sticky/u);
   assert.match(css, /\.comparison-product-card>img[^]*object-fit:contain/u);
+  assert.match(css, /body:has\(\.product-mobile-buybar\) \.comparison-tray/u);
+  assert.match(css, /\.comparison-mobile-view/u);
+  assert.match(css, /\.comparison-mobile-row>div \{ display:grid; grid-template-columns:repeat\(2/u);
 });
