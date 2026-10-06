@@ -2,6 +2,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { ImageResponse } from "next/og";
+import { SEO_SITE_ORIGIN } from "../../data/seoIndexing.mjs";
 import { resolveSocialCardRoute, SOCIAL_CARD_HEIGHT, SOCIAL_CARD_WIDTH, versionedSocialCardPath } from "../../data/socialCards";
 
 export const runtime = "nodejs";
@@ -19,7 +20,7 @@ const interFonts = Promise.all([
 const imageDataCache = new Map<string, Promise<string>>();
 const MAX_CACHED_SOURCE_IMAGES = 32;
 
-export async function GET(request: Request, { params }: RouteContext) {
+export async function GET(_request: Request, { params }: RouteContext) {
   const { segments } = await params;
   const resolved = resolveSocialCardRoute(segments);
   if (!resolved) return new Response("Social card not found", { status:404, headers:{ "Cache-Control":"public, max-age=300" } });
@@ -27,7 +28,7 @@ export async function GET(request: Request, { params }: RouteContext) {
     return new Response(null, {
       status:307,
       headers:{
-        "Location":new URL(versionedSocialCardPath(resolved.kind, resolved.slugs, resolved.revision), request.url).toString(),
+        "Location":new URL(versionedSocialCardPath(resolved.kind, resolved.slugs, resolved.revision), SEO_SITE_ORIGIN).toString(),
         "Cache-Control":"public, max-age=300, s-maxage=300",
       },
     });

@@ -105,6 +105,8 @@ test("renderer declares the shared social size and long-lived cache policy", asy
   assert.match(source, /max-age=31536000, s-maxage=31536000, immutable/u);
   assert.match(source, /max-age=300, s-maxage=3600, stale-while-revalidate=86400/u);
   assert.match(source, /status:307/u);
+  assert.match(source, /SEO_SITE_ORIGIN/u);
+  assert.doesNotMatch(source, /request\.url/u);
   assert.match(source, /X-Content-Type-Options/u);
   assert.match(source, /s3\.export\.k2tool\.ru/u);
   assert.match(source, /objectFit:"contain"/u);
