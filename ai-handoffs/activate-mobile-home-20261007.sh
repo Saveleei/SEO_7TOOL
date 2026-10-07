@@ -8,8 +8,9 @@ expected_active="/var/www/7tool-release-20261007-category-conversion-e740edc"
 active_link="/var/www/7tool-production-current"
 shared="/var/www/7tool-production-shared"
 new_app="$release/design-exploration/staging-pilot"
-backup="$shared/backups/20261007-before-mobile-home-activation-r2"
+backup="$shared/backups/20261007-before-mobile-home-activation-r3"
 log="/var/www/mobile-home-activation-20261007.log"
+production_port="3260"
 switched="0"
 
 exec 9>/var/lock/7tool-production-deploy.lock
@@ -43,8 +44,9 @@ rollback() {
     set -a
     . "$shared/storefront.env"
     set +a
+    export PORT="$production_port"
     PM2_APP_NAME=7tool-prod pm2 start "$active_app/ecosystem.production.config.cjs" --update-env
-    wait_for_health 3260
+    wait_for_health "$production_port"
     pm2 save
   fi
   echo "ACTIVATION_FAILED exit=$exit_code"
@@ -73,6 +75,7 @@ echo "BACKUP=$backup"
 set -a
 . "$shared/storefront.env"
 set +a
+export PORT="$production_port"
 
 cd "$new_app"
 node scripts/validate-production-config.mjs
@@ -83,7 +86,7 @@ switched="1"
 
 pm2 delete 7tool-prod
 PM2_APP_NAME=7tool-prod pm2 start "$new_app/ecosystem.production.config.cjs" --update-env
-wait_for_health 3260
+wait_for_health "$production_port"
 
 [[ "$(readlink -f "$active_link")" == "$release" ]]
 [[ "$(pm2 pid 7tool-prod)" =~ ^[0-9]+$ ]]
