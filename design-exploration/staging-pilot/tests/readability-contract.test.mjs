@@ -58,3 +58,23 @@ test("mobile dense controls retain readable targets and discoverable horizontal 
   assert.match(contract, /\.catalog-hero h1 \{[\s\S]*overflow-wrap:break-word;[\s\S]*hyphens:auto;/u);
   assert.match(contract, /@media \(max-width:340px\) \{[\s\S]*\.section-heading h2,\.assurance-section \.section-heading h2 \{ font-size:27px; \}/u);
 });
+
+test("desktop quote count stays readable without enlarging the header action", async () => {
+  const styles = await readFile(stylesUrl, "utf8");
+
+  assert.match(styles, /\.header-row>\.request-cart-trigger b \{[^}]*box-sizing:border-box;[^}]*min-width:22px;[^}]*height:22px;[^}]*padding:0 5px;[^}]*font-size:12px;[^}]*font-variant-numeric:tabular-nums;/u);
+  assert.match(styles, /\.request-cart-trigger \{ min-height:44px;/u);
+});
+
+test("email remains directly available in the desktop header and mobile catalog menu", async () => {
+  const [header, menu, styles] = await Promise.all([
+    readFile(new URL("../app/ui/PilotHeader.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/ui/HeaderCatalogMenu.tsx", import.meta.url), "utf8"),
+    readFile(stylesUrl, "utf8"),
+  ]);
+
+  assert.match(header, /className="header-email"[^>]*mailto:\$\{siteContact\.email\}/u);
+  assert.match(menu, /header-catalog-service-links[\s\S]*mailto:\$\{siteContact\.email\}[\s\S]*Email: \{siteContact\.email\}/u);
+  assert.match(styles, /\.header-email \{ min-height:44px;[^}]*display:flex;/u);
+  assert.match(styles, /@media \(min-width:1280px\) \{\s*\.header-row \{ grid-template-columns:132px auto minmax\(220px,1fr\) auto auto auto auto auto;/u);
+});

@@ -22,6 +22,8 @@ img { display:block; max-width:100%; }
 .header-quote { background:var(--ink); color:var(--white); }
 .header-search { min-height:44px; display:flex; align-items:center; gap:10px; padding:0 14px; border:1px solid var(--line); border-radius:6px; color:#777872; font-size:12px; }
 .header-search>span:first-child { color:var(--ink); font-size:23px; line-height:1; transform:rotate(-20deg); }
+.header-email { min-height:44px; display:flex; justify-content:center; flex-direction:column; padding:0 8px; border-radius:6px; }
+.header-email:hover { background:var(--surface); color:#87330f; }
 .header-email span,.header-email b { display:block; white-space:nowrap; }
 .header-email span { color:var(--muted); font-size:10px; }
 .header-email b { font-size:14px; }
@@ -5027,6 +5029,7 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
 .header-row>.request-cart-trigger,.mobile-action-bar .request-cart-trigger { border-color:var(--action-dark); background:var(--action-dark); color:#fff; }
 .header-row>.request-cart-trigger:hover,.mobile-action-bar .request-cart-trigger:hover { border-color:var(--action-dark-hover); background:var(--action-dark-hover); }
 .header-row>.request-cart-trigger b,.mobile-action-bar .request-cart-trigger b { background:var(--orange); color:var(--ink); }
+.header-row>.request-cart-trigger b { box-sizing:border-box; min-width:22px; height:22px; padding:0 5px; border-radius:999px; font-size:12px; font-weight:850; line-height:1; font-variant-numeric:tabular-nums; }
 
 @media (max-width:1050px) {
   .header-catalog-grid { grid-template-columns:1fr 1fr; max-height:min(650px,calc(100vh - 150px)); overflow:auto; }
@@ -5056,6 +5059,12 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
 /* Public trust and procurement pages. */
 @media (min-width:1101px) {
   .header-row { grid-template-columns:132px auto minmax(220px,1fr) auto auto auto auto; }
+}
+@media (min-width:1101px) and (max-width:1279px) {
+  .header-email { display:none; }
+}
+@media (min-width:1280px) {
+  .header-row { grid-template-columns:132px auto minmax(220px,1fr) auto auto auto auto auto; }
 }
 .header-info-link { min-height:44px; display:inline-flex; align-items:center; padding:0 10px; color:#454b46; font-size:10px; font-weight:800; white-space:nowrap; }
 .header-info-link:hover { color:#8d350f; }
@@ -6217,7 +6226,7 @@ body:has(.manager-request-page) .request-cart-dock,body:has(.quote-builder-page)
 @media (min-width:1600px) {
   .site-header .header-row,
   .homepage-main .container { width:min(1560px,calc(100% - 96px)); max-width:none; }
-  .site-header .header-row { grid-template-columns:142px auto minmax(400px,1fr) auto auto auto auto; gap:14px; }
+  .site-header .header-row { grid-template-columns:142px auto minmax(400px,1fr) auto auto auto auto auto; gap:14px; }
   .homepage-main .hero-grid { min-height:620px; grid-template-columns:minmax(0,1.05fr) minmax(560px,.95fr); gap:58px; padding-block:42px; }
   .homepage-main .hero h1 { max-width:850px; font-size:62px; }
   .homepage-main .hero-catalog-card { min-height:520px; padding:28px; }

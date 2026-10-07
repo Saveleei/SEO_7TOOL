@@ -160,6 +160,7 @@ export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[
         <Link href="/payment" onClick={closeMenu}>Оплата и отсрочка</Link>
         <Link href="/warranty" onClick={closeMenu}>Гарантия и сервис</Link>
         <Link href="/contacts" onClick={closeMenu}>Контакты и реквизиты</Link>
+        <a href={`mailto:${siteContact.email}?subject=Запрос%20с%20сайта%207TOOL`} onClick={closeMenu}>Email: {siteContact.email}</a>
       </nav>
       <footer>
         <div><b>Не знаете категорию?</b><span>Опишите операцию, материал и условия работы — инженер предложит подходящие варианты.</span></div>
