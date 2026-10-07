@@ -6,7 +6,7 @@ umask 077
 release_sha="3cf5b98"
 expected_archive_sha="8ed390bf5b5b570868149471d53594f84f5838ccdd7be68a6d3cac739c71c6f7"
 archive="/var/www/${release_sha}.tar.gz"
-release="/var/www/7tool-release-20261007-mobile-home-${release_sha}"
+release="/var/www/7tool-release-20261007-mobile-home-${release_sha}-r2"
 shared="/var/www/7tool-production-shared"
 active_link="/var/www/7tool-production-current"
 candidate_port="3265"
@@ -21,7 +21,7 @@ active="$(readlink -f "$active_link")"
 expected_active="/var/www/7tool-release-20261007-category-conversion-e740edc"
 active_app="$active/design-exploration/staging-pilot"
 new_app="$release/design-exploration/staging-pilot"
-backup="$shared/backups/20261007-before-mobile-home-${release_sha}"
+backup="$shared/backups/20261007-before-mobile-home-${release_sha}-r2"
 candidate_pid=""
 switched="0"
 
@@ -96,7 +96,7 @@ set +a
 cd "$new_app"
 node scripts/validate-production-config.mjs
 node --test tests/home-mobile-navigation.test.mjs tests/homepage-launch-pass.test.mjs tests/baymard-responsive-ux.test.mjs
-pnpm run build
+npm run build
 
 PORT="$candidate_port" nohup sh scripts/start-production.sh > "$release/candidate.log" 2>&1 &
 candidate_pid=$!
