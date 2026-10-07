@@ -13,15 +13,15 @@ test("every category exposes one consistent list and grid switch", async () => {
 
   assert.match(page, /requestedView === "grid" \|\| requestedView === "cards" \? "grid" : "list"/u);
   assert.match(page, /aria-label="Вид товаров"/u);
-  assert.match(page, />Списком<\/a>/u);
-  assert.match(page, />Плиткой<\/a>/u);
+  assert.match(page, /<span>Списком<\/span><\/a>/u);
+  assert.match(page, /<span>Плиткой<\/span><\/a>/u);
   assert.match(page, /view === "list" && canUseTable/u);
   assert.match(list, /feed-product-grid--\$\{layout\}/u);
-  assert.match(css, /\.feed-product-grid--grid \{ grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/u);
-  assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.feed-product-grid--grid \{ grid-template-columns:1fr; \}/u);
+  assert.match(css, /\.category-page-shell \.feed-product-grid--grid \{[\s\S]*?grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/u);
+  assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.feed-product-grid--grid \{ grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/u);
 });
 
-test("selection help is inserted once after the first three products", async () => {
+test("selection help is inserted after a complete first row", async () => {
   const [page, list, table] = await Promise.all([
     read("../app/catalog/category/[slug]/page.tsx"),
     read("../app/ui/FeedProductList.tsx"),
@@ -30,7 +30,7 @@ test("selection help is inserted once after the first three products", async () 
 
   assert.match(page, /result\.page !== 1 \|\| result\.products\.length === 0 \? undefined/u);
   assert.match(page, /after=\{inlineSelectionAssistant\}/u);
-  assert.match(list, /Math\.min\(2, products\.length - 1\)/u);
+  assert.match(list, /Math\.min\(layout === "grid" \? 3 : 2, products\.length - 1\)/u);
   assert.match(table, /Math\.min\(3, products\.length\)/u);
   assert.equal((table.match(/\{after && <div className="category-feed-assistant">\{after\}<\/div>\}/gu) ?? []).length, 1);
 });

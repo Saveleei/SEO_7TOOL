@@ -72,7 +72,7 @@ test("homepage popular links prioritize annular cutters over compressors", async
   assert.doesNotMatch(shortcuts, /href="\/c\/kompressory"/u);
 });
 
-test("trust section exposes verifiable evidence instead of unsupported claims", async () => {
+test("trust section exposes photo-first verifiable evidence instead of unsupported claims", async () => {
   const [section, css] = await Promise.all([
     read("../app/ui/TrustSection.tsx"),
     read("../app/globals.css"),
@@ -86,13 +86,14 @@ test("trust section exposes verifiable evidence instead of unsupported claims", 
     assert.match(presentation.href, /^\/(company|warranty|delivery|ordering|catalog)$/u);
   }
   assert.equal(DEFAULT_TRUST_CONTENT_SETTINGS.cards.length, 6);
-  assert.match(section, /6 реальных фотосюжетов/u);
+  assert.match(section, /6 реальных фотографий/u);
   assert.match(section, /assurance-photo-card/u);
   assert.match(section, /assurance-photo-card__media/u);
-  assert.match(section, /presentation\.proofs\.map/u);
-  for (const href of ["/company", "/warranty", "/delivery", "/ordering"]) assert.match(section, new RegExp(`href="${href}"`, "u"));
+  assert.doesNotMatch(section, /card\.text|presentation\.proofs|card\.outcome/u);
+  assert.match(section, /УПД и закрывающие документы/u);
+  assert.match(section, /href="\/company"/u);
   assert.match(css, /grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/u);
-  assert.match(css, /\.assurance-evidence-links/u);
-  assert.match(section, /assurance-mobile-toggle/u);
-  assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.assurance-grid \{ width:100%; max-width:none; display:grid; grid-template-columns:1fr/u);
+  assert.match(css, /\.assurance-summary \{[\s\S]*?grid-template-columns:minmax\(0,1fr\) minmax\(0,1fr\) auto;/u);
+  assert.doesNotMatch(section, /assurance-mobile-toggle/u);
+  assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.assurance-grid \{[\s\S]*?display:flex;[\s\S]*?overflow-x:auto;/u);
 });

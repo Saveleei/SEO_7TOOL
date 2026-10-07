@@ -43,7 +43,7 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
 
       <div className="feed-product-commercial">
         <label className="feed-compare-check"><input type="checkbox" aria-label={`Сравнить ${product.title}`} checked={selected} onChange={onCompare} /> Сравнить</label>
-        <div className="feed-product-price"><b>{product.price}</b><small>{product.price === "Цена по запросу" || product.variantCount > 1 ? archetype.priceRequestNote : "с НДС · подтвердим в КП"}</small></div>
+        <div className="feed-product-price"><b>{product.price}</b><small>{product.variantCount > 1 ? "с НДС · зависит от исполнения" : "с НДС · подтвердим в КП"}</small></div>
         <FeedAvailability shippingPromise={product.shippingPromise} />
         <div className="feed-product-actions">
           {directVariant ? <AddRequestButton item={{ id:`variant:${directVariant.id}`, title:directVariant.title || product.title, article:variantArticle(directVariant.sku), price:directVariant.price, image:directVariant.image, href:directVariant.href, shippingLabel:directVariant.shippingPromise.label, shippingDetail:directVariant.shippingPromise.detail }}>Добавить в КП</AddRequestButton> : <button type="button" aria-haspopup="dialog" data-variant-count={product.selectedVariantCount} onPointerEnter={warmVariants} onPointerDown={warmVariants} onFocus={warmVariants} onClick={() => setPickerOpen(true)}>{archetype.multipleAction} · {product.selectedVariantCount}</button>}

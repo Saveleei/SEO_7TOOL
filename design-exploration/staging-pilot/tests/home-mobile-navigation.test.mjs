@@ -36,8 +36,10 @@ test("mobile catalog is a focus-contained full-screen navigation surface", async
   assert.match(menu, /event\.key !== "Tab"/u);
   assert.match(menu, /closeButtonRef\.current\?\.focus/u);
   assert.match(menu, /role="dialog" aria-modal="true"/u);
-  assert.match(menu, /Доставка по России/u);
-  assert.match(menu, /Гарантия и сервис/u);
+  assert.match(menu, /header-catalog-mobile-contact/u);
+  assert.match(menu, /siteContact\.phoneHref/u);
+  assert.match(menu, /mailto:\$\{siteContact\.email\}/u);
+  assert.doesNotMatch(menu, /header-catalog-service-links/u);
   assert.match(menu, /header-catalog-subcategory-media/u);
   assert.match(menu, /subcategory\.image/u);
   assert.match(css, /\.header-catalog-panel \{ position:fixed; z-index:220; inset:0;/u);
@@ -63,8 +65,8 @@ test("homepage first screen pairs visual assortment with editable warehouse evid
   assert.match(firstScreen, /\.hero-mobile-trust-points \{[\s\S]*?grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/u);
   assert.match(css, /\.homepage-main \.hero-grid>\.hero-catalog-card \{ display:none; \}/u);
   assert.match(css, /\.assurance-grid \{ display:grid; grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/u);
-  assert.match(css, /\.assurance-grid \{ width:100%; max-width:none; display:grid; grid-template-columns:1fr/u);
-  assert.match(css, /\.assurance-grid \.assurance-photo-card--secondary \{ display:none/u);
+  assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.assurance-grid \{[\s\S]*?display:flex;[\s\S]*?overflow-x:auto;/u);
+  assert.doesNotMatch(page, /assurance-photo-card--secondary/u);
 });
 
 test("manager contact has an explicit close state and a full photo inside the panel", async () => {

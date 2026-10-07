@@ -68,8 +68,9 @@ test("trust photography keeps copy on a separate readable surface", async () => 
     read("../app/globals.css"),
   ]);
   assert.match(section, /assurance-photo-card__media/u);
-  assert.match(section, /presentation\.proofs\.map/u);
-  assert.match(section, /паллетное и мелкоячеистое хранение/u);
+  assert.doesNotMatch(section, /presentation\.proofs|card\.text|card\.outcome/u);
+  assert.match(section, /assurance-summary/u);
+  assert.match(section, /УПД и закрывающие документы/u);
   assert.match(homepage, /orderTrustCardsForDisplay\(trustContent\.cards\)\.slice\(0, 3\)/u);
   assert.match(homepage, /hero-evidence-link__copy/u);
   assert.match(css, /\.assurance-photo-card__media[\s\S]*?position:relative/u);

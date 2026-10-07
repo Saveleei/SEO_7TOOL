@@ -101,7 +101,7 @@ test("category quick filters lead directly into results and keep help progressiv
   assert.doesNotMatch(page, /category-live-summary/u);
   assert.match(page, /className="feed-results" id="feed-results-list"/u);
   assert.match(page, /after=\{inlineSelectionAssistant\}/u);
-  assert.match(list, /insertionIndex = Math\.min\(2, products\.length - 1\)/u);
+  assert.match(list, /insertionIndex = Math\.min\(layout === "grid" \? 3 : 2, products\.length - 1\)/u);
   assert.match(styles, /\.category-feed-assistant \{[^}]*grid-column:1\/-1/us);
   assert.match(styles, /\.feed-promoted-filters>div:not\(\.feed-priority-choice\)>div \{[^}]*flex-wrap:nowrap[^}]*overflow-x:auto/us);
 });

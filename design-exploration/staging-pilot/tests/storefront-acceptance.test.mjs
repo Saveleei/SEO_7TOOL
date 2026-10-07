@@ -90,7 +90,9 @@ test("header catalog exposes task-aligned category cross-navigation and stays ke
   assert.match(catalogMenu, /setAttribute\("inert"/u);
   assert.match(catalogMenu, /document\.addEventListener\("pointerdown"/u);
   assert.match(catalogMenu, /event\.key !== "Escape"/u);
-  assert.match(catalogMenu, /href="\/#production-categories"/u);
+  assert.match(catalogMenu, /href="\/\?request=spec#quick-order"/u);
+  assert.match(catalogMenu, /className="header-catalog-manager"/u);
+  assert.doesNotMatch(catalogMenu, /header-catalog-service-links/u);
   assert.match(contacts, /<span>Связаться<\/span>/u);
   assert.match(cart, /<span>КП<\/span>/u);
   assert.doesNotMatch(catalogMenu, /артикул|sku/iu);

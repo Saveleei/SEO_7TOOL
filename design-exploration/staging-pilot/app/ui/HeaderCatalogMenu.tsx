@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -111,21 +112,32 @@ export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[
         <div><span>Каталог 7TOOL</span><b>Все {formatCategoryCount(uniqueCategoryCount)} <em className="header-catalog-title-detail">оборудования и оснастки</em></b><small>Категории сгруппированы по производственным задачам. Режущий инструмент также показан рядом с подходящим оборудованием.</small></div>
         <Link href="/catalog" onClick={closeMenu}>Открыть весь каталог →</Link>
       </header>
-      <div className="header-catalog-explorer" aria-label="Все направления и категории каталога">
-        {groups.map((group) => <section className="header-catalog-section" key={group.slug}>
-          <Link className="header-catalog-section__title" href={group.href} data-conversion-action="catalog_direction_open" data-conversion-value={group.slug} onClick={closeMenu}>
-            <span>{group.id}</span>
-            <span><b>{group.title}</b><small>{group.accent}</small></span>
-            <i aria-hidden="true">→</i>
-          </Link>
-          <nav aria-label={`Категории: ${group.title}`}>
-            {group.subcategories.map((subcategory) => <Link href={subcategory.href} data-conversion-action="catalog_category_open" data-conversion-value={subcategory.slug} key={subcategory.slug} onClick={closeMenu}>
-              <span className="header-catalog-subcategory-media"><HomepageCategoryMedia src={subcategory.image} alt="" sizes="44px" /></span>
-              <b>{subcategory.label}</b>
+      <div className="header-catalog-body">
+        <div className="header-catalog-explorer" aria-label="Все направления и категории каталога">
+          {groups.map((group) => <section className="header-catalog-section" key={group.slug}>
+            <Link className="header-catalog-section__title" href={group.href} data-conversion-action="catalog_direction_open" data-conversion-value={group.slug} onClick={closeMenu}>
+              <span>{group.id}</span>
+              <span><b>{group.title}</b><small>{group.accent}</small></span>
               <i aria-hidden="true">→</i>
-            </Link>)}
-          </nav>
-        </section>)}
+            </Link>
+            <nav aria-label={`Категории: ${group.title}`}>
+              {group.subcategories.map((subcategory) => <Link href={subcategory.href} data-conversion-action="catalog_category_open" data-conversion-value={subcategory.slug} key={subcategory.slug} onClick={closeMenu}>
+                <span className="header-catalog-subcategory-media"><HomepageCategoryMedia src={subcategory.image} alt="" sizes="58px" /></span>
+                <b>{subcategory.label}</b>
+                <i aria-hidden="true">→</i>
+              </Link>)}
+            </nav>
+          </section>)}
+        </div>
+        <aside className="header-catalog-manager" aria-label="Помощь менеджера с подбором">
+          <Image src={siteContact.photo} alt={`${siteContact.managerName}, менеджер 7TOOL`} width={72} height={72} />
+          <span>Помощь с подбором</span>
+          <b>{siteContact.managerName}</b>
+          <p>Проверит исполнение, наличие и комплектность. Подготовит КП со счётом, УПД и закрывающими документами.</p>
+          <a href={siteContact.phoneHref} onClick={closeMenu}><small>Позвонить</small><strong>{siteContact.phone}</strong></a>
+          <a href={`mailto:${siteContact.email}?subject=Помощь%20с%20подбором%20оборудования`} onClick={closeMenu}><small>Написать на почту</small><strong>{siteContact.email}</strong></a>
+          <Link href="/?request=spec#quick-order" onClick={closeMenu}>Отправить задачу или список →</Link>
+        </aside>
       </div>
       <div className="header-catalog-grid header-catalog-grid--mobile">
         {groups.map((group) => {
@@ -154,15 +166,11 @@ export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[
           </section>;
         })}
       </div>
-      <nav className="header-catalog-service-links" aria-label="Информация для покупателей">
-        <Link href="/#production-categories" onClick={closeMenu}>Подбор по задаче</Link>
-        <Link href="/company" onClick={closeMenu}>О компании</Link>
-        <Link href="/delivery" onClick={closeMenu}>Доставка по России</Link>
-        <Link href="/payment" onClick={closeMenu}>Оплата и отсрочка</Link>
-        <Link href="/warranty" onClick={closeMenu}>Гарантия и сервис</Link>
-        <Link href="/contacts" onClick={closeMenu}>Контакты и реквизиты</Link>
-        <a href={`mailto:${siteContact.email}?subject=Запрос%20с%20сайта%207TOOL`} onClick={closeMenu}>Email: {siteContact.email}</a>
-      </nav>
+      <div className="header-catalog-mobile-contact" aria-label="Контакты для помощи с подбором">
+        <span>Нужна помощь с выбором?</span>
+        <a href={siteContact.phoneHref} onClick={closeMenu}>{siteContact.phone}</a>
+        <a href={`mailto:${siteContact.email}?subject=Помощь%20с%20подбором%20оборудования`} onClick={closeMenu}>{siteContact.email}</a>
+      </div>
     </div>
   </details>;
 }

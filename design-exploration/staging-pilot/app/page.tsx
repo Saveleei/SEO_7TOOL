@@ -61,7 +61,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
               </div>
               <Link className="hero-specification-link" href="/?request=spec#quick-order" data-home-action="upload_specification"><span aria-hidden="true">↥</span>Запросить КП по ТЗ или списку позиций</Link>
               <nav className="hero-mobile-trust-points" aria-label="Условия работы">
-                <Link href="/ordering"><span aria-hidden="true">✓</span>Счёт с НДС</Link>
+                <Link href="/ordering"><span aria-hidden="true">✓</span>НДС · УПД</Link>
                 <Link href="/delivery"><span aria-hidden="true">✓</span>Доставка по России</Link>
                 <a href="#production-categories"><span aria-hidden="true">✓</span>Проверка совместимости</a>
               </nav>
@@ -105,7 +105,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
           <div className="container proof-grid">
             <div><Link href="/delivery"><strong>Доставка по России</strong><span>стоимость и срок подтверждаем до оплаты</span></Link></div>
             <div><Link href="/payment"><strong>Отсрочка платежа</strong><span>возможна для организаций после согласования</span></Link></div>
-            <div><Link href="/ordering"><strong>Счёт с НДС</strong><span>цена и комплектность указаны в КП</span></Link></div>
+            <div><Link href="/ordering"><strong>Счёт с НДС и УПД</strong><span>УПД и закрывающие документы</span></Link></div>
             <div><Link href="/warranty"><strong>Гарантия</strong><span>условия и документы указываем до оплаты</span></Link></div>
           </div>
         </section>

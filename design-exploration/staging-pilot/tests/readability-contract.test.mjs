@@ -74,7 +74,7 @@ test("email remains directly available in the desktop header and mobile catalog 
   ]);
 
   assert.match(header, /className="header-email"[^>]*mailto:\$\{siteContact\.email\}/u);
-  assert.match(menu, /header-catalog-service-links[\s\S]*mailto:\$\{siteContact\.email\}[\s\S]*Email: \{siteContact\.email\}/u);
+  assert.match(menu, /header-catalog-mobile-contact[\s\S]*mailto:\$\{siteContact\.email\}[\s\S]*\{siteContact\.email\}/u);
   assert.match(styles, /\.header-email \{ min-height:44px;[^}]*display:flex;/u);
   assert.match(styles, /@media \(min-width:1280px\) \{\s*\.header-row \{ grid-template-columns:132px auto minmax\(220px,1fr\) auto auto auto auto auto;/u);
 });

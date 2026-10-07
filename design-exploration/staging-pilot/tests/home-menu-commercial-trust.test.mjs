@@ -9,6 +9,7 @@ test("homepage presents the four commercial trust conditions with honest qualifi
   for (const text of ["Доставка по России", "Отсрочка платежа", "Счёт с НДС", "Гарантия"]) {
     assert.match(page, new RegExp(text, "u"));
   }
+  assert.match(page, /УПД и закрывающие документы/u);
   for (const href of ["/delivery", "/payment", "/ordering", "/warranty"]) {
     assert.match(page, new RegExp(`href="${href}"`, "u"));
   }
