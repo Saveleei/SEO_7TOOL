@@ -106,7 +106,7 @@ export function SmartSearch({ placement }: { placement: "header" | "hero" }) {
         aria-activedescendant={activeIndex >= 0 ? `${panelId}-option-${activeIndex}` : undefined}
         role="combobox"
         autoComplete="off"
-        placeholder={placement === "hero" ? "Например, магнитный станок Ø35 или снять фаску" : "Модель, товар или задача"}
+        placeholder={placement === "hero" ? "Например, магнитный станок Ø35 или снять фаску" : "Модель / артикул"}
       />
       <button type="submit">Найти</button>
     </form>

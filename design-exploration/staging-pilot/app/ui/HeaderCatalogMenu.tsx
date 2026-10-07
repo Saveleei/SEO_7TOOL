@@ -109,7 +109,7 @@ export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[
     <div className="header-catalog-panel" ref={panelRef} role="dialog" aria-modal="true" aria-label="Каталог и навигация 7TOOL">
       <div className="header-catalog-mobile-top">
         <Link className="header-catalog-mobile-brand" href="/" aria-label="7TOOL — главная" onClick={closeMenu}><span aria-hidden="true" /></Link>
-        <form action="/search" role="search"><label className="sr-only" htmlFor="mobile-catalog-search">Найти товар</label><input id="mobile-catalog-search" name="q" type="search" placeholder="Модель, товар или задача" /><button type="submit" aria-label="Найти">⌕</button></form>
+        <form action="/search" role="search"><label className="sr-only" htmlFor="mobile-catalog-search">Найти товар</label><input id="mobile-catalog-search" name="q" type="search" placeholder="Название или модель" /><button type="submit" aria-label="Найти">⌕</button></form>
         <button ref={closeButtonRef} type="button" aria-label="Закрыть меню" onClick={closeMenu}>×</button>
       </div>
       <header>

@@ -10,7 +10,7 @@ import { ProcurementWorkbench } from "./ui/ProcurementWorkbench";
 import { TrustSection } from "./ui/TrustSection";
 import { siteContact } from "./data/contactConfig";
 import { getHomepageContentSettings } from "./data/homepageContentStore";
-import { homepageAssetUrl } from "./data/homepageContentModel";
+import { DEFAULT_HOMEPAGE_CONTENT_SETTINGS, homepageAssetUrl } from "./data/homepageContentModel";
 import { getHomepageKeyCategories, getProductionCategoryGroups, pilotFeedCategorySlugs } from "./data/productionCategoryGroups";
 import { getTrustContentSettings } from "./data/trustContentStore";
 import { orderTrustCardsForDisplay, trustCardImageUrl } from "./data/trustContentModel";
@@ -34,6 +34,15 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
     const category = keyCategoryBySlug.get(item.id);
     return category ? [{ ...category, label:item.title, image:item.imageAssetId ? homepageAssetUrl(item.imageAssetId) : category.image, imageAlt:item.imageAlt, imageFit:item.imageFit, imagePosition:item.imagePosition }] : [];
   });
+  const mobileHeroTitle = homepageContent.hero.title === DEFAULT_HOMEPAGE_CONTENT_SETTINGS.hero.title
+    ? "Оборудование и оснастка для металлообработки"
+    : homepageContent.hero.title;
+  const mobileHeroEyebrow = homepageContent.hero.eyebrow === DEFAULT_HOMEPAGE_CONTENT_SETTINGS.hero.eyebrow
+    ? "Сверление · резка · кромка · сварка"
+    : homepageContent.hero.eyebrow;
+  const mobileHeroIntro = homepageContent.hero.intro === DEFAULT_HOMEPAGE_CONTENT_SETTINGS.hero.intro
+    ? "Оборудование, инструмент и оснастка. Подберём исполнение, подтвердим цену и срок поставки."
+    : homepageContent.hero.intro;
   const categoryCount = new Set(categoryGroups.flatMap((group) => group.subcategories.map((subcategory) => subcategory.slug))).size;
   return (
     <div className="site-shell">
@@ -43,17 +52,22 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
         <section className="hero" id="top">
           <div className="container hero-grid">
             <div className="hero-copy">
-              <p className="eyebrow">{homepageContent.hero.eyebrow}</p>
-              <h1>{homepageContent.hero.title}</h1>
-              <p className="hero-lead">{homepageContent.hero.intro}</p>
+              <p className="eyebrow"><span className="hero-eyebrow-desktop">{homepageContent.hero.eyebrow}</span><span className="hero-eyebrow-mobile">{mobileHeroEyebrow}</span></p>
+              <h1><span className="hero-title-desktop">{homepageContent.hero.title}</span><span className="hero-title-mobile">{mobileHeroTitle}</span></h1>
+              <p className="hero-lead"><span className="hero-lead-desktop">{homepageContent.hero.intro}</span><span className="hero-lead-mobile">{mobileHeroIntro}</span></p>
               <div className="hero-primary-actions">
                 <Link className="button button-dark" href="/catalog" data-home-action="open_catalog">Открыть каталог</Link>
-                <a className="button button-quiet" href="#production-categories" data-home-action="choose_task">Выбрать по задаче</a>
+                <a className="button button-quiet" href="#production-categories" data-home-action="choose_task">Подбор по задаче</a>
               </div>
-              <Link className="hero-specification-link" href="/?request=spec#quick-order" data-home-action="upload_specification">Есть ТЗ или список позиций? Передать файл без письма →</Link>
+              <Link className="hero-specification-link" href="/?request=spec#quick-order" data-home-action="upload_specification"><span aria-hidden="true">↥</span>Загрузить ТЗ или список позиций</Link>
+              <nav className="hero-mobile-trust-points" aria-label="Условия работы">
+                <Link href="/ordering"><span aria-hidden="true">✓</span>Счёт с НДС</Link>
+                <Link href="/delivery"><span aria-hidden="true">✓</span>Доставка по России</Link>
+                <a href="#production-categories"><span aria-hidden="true">✓</span>Проверка совместимости</a>
+              </nav>
               <div className="hero-mobile-catalog-preview" aria-label="Быстрый вход в каталог">
-                <HomepageCategoryTiles categories={homepageKeyCategories.slice(0, 3)} compact />
-                <Link href="/catalog">Все разделы каталога →</Link>
+                <HomepageCategoryTiles categories={homepageKeyCategories.slice(0, 4)} compact />
+                <Link href="/catalog">Все {formatCategoryCount(categoryCount)} →</Link>
               </div>
               <nav className="hero-category-shortcuts" aria-label="Популярные категории">
                 <span>Часто ищут:</span>

@@ -13,7 +13,8 @@ test("responsive type and control contract stays readable across the buying path
   assert.match(contract, /text-rendering:optimizeLegibility/u);
   assert.match(contract, /:where\(a,button,input,select,textarea,summary\):focus-visible/u);
   assert.match(contract, /\.feed-product-actions button,\.feed-product-actions>a,[\s\S]*?min-height:44px/u);
-  assert.match(contract, /@media \(max-width:760px\)[\s\S]*?\.homepage-main \.hero-primary-actions \{ grid-template-columns:1fr; \}/u);
+  const firstScreen = contract.slice(contract.lastIndexOf("/* Mobile homepage first-screen refinement"));
+  assert.match(firstScreen, /\.homepage-main \.hero-primary-actions \{ grid-template-columns:minmax\(0,1\.08fr\) minmax\(0,\.92fr\);/u);
   assert.match(contract, /@media \(max-width:760px\)[\s\S]*?\.feed-mobile-order-actions>button \{ min-height:48px;/u);
   assert.match(contract, /@media \(prefers-reduced-motion:reduce\)/u);
 });

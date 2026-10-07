@@ -8516,3 +8516,128 @@ h1,h2,h3,.hero h1,.page-hero h1,.section-heading h2,.assurance-section .section-
    The first screen combines product recognition with verifiable warehouse evidence;
    mobile navigation borrows the persistent access pattern without copying retail UI. */
 .sr-only { position:absolute!important; width:1px!important; height:1px!important; padding:0!important; margin:-1px!important; overflow:hidden!important; clip:rect(0,0,0,0)!important; white-space:nowrap!important; border:0!important; }
+
+/* Mobile homepage first-screen refinement — 2026-10-07.
+   Keep both buying routes visible, expose the assortment without a hidden
+   carousel and preserve 44 px touch targets while reclaiming vertical space. */
+.hero-eyebrow-mobile,.hero-title-mobile,.hero-lead-mobile,.hero-mobile-trust-points { display:none; }
+
+@media (max-width:760px) {
+  body { padding-bottom:calc(64px + env(safe-area-inset-bottom)); }
+  .site-header .header-row {
+    min-height:60px;
+    grid-template-columns:96px minmax(0,1fr) 44px;
+    gap:7px;
+    padding-block:6px;
+  }
+  .site-header .brand img { width:96px; }
+  .mobile-action-bar {
+    min-height:64px;
+    padding:4px 6px max(4px,env(safe-area-inset-bottom));
+  }
+  .mobile-action-bar>a,.mobile-action-bar>button,.mobile-action-bar>.request-cart-trigger,.mobile-action-bar>.header-contact-menu>summary { min-height:52px; }
+
+  .homepage-main .hero-grid { padding-block:18px 20px; }
+  .homepage-main .hero h1 {
+    max-width:390px;
+    margin:7px 0 10px;
+    font-size:clamp(29px,8.25vw,34px);
+    line-height:1.04;
+    letter-spacing:-.035em;
+  }
+  .hero-eyebrow-desktop,.hero-title-desktop,.hero-lead-desktop { display:none; }
+  .hero-eyebrow-mobile,.hero-title-mobile,.hero-lead-mobile { display:inline; }
+  .homepage-main .hero-lead { max-width:410px; margin-bottom:12px; font-size:14px; line-height:1.45; }
+  .homepage-main .hero-primary-actions { grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr); gap:7px; }
+  .homepage-main .hero-primary-actions .button { min-width:0; min-height:46px; padding-inline:7px; font-size:13px; line-height:1.2; }
+  .homepage-main .hero-specification-link {
+    min-height:42px;
+    display:flex;
+    justify-content:center;
+    gap:7px;
+    margin-top:7px;
+    padding:7px 10px;
+    border:1px solid #d6dbd4;
+    border-radius:6px;
+    background:#fff;
+    color:#7f310f;
+    font-size:13px;
+    font-weight:800;
+    text-align:center;
+  }
+  .homepage-main .hero-specification-link>span { font-size:17px; line-height:1; }
+  .hero-mobile-trust-points {
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:5px;
+    margin:8px 0 12px;
+  }
+  .hero-mobile-trust-points>a {
+    min-width:0;
+    min-height:44px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    padding:6px 4px;
+    border-radius:5px;
+    background:#edf2ec;
+    color:#38423a;
+    font-size:var(--type-caption);
+    font-weight:750;
+    line-height:1.2;
+    text-align:center;
+  }
+  .hero-mobile-trust-points span { color:#087247; font-weight:900; }
+
+  .hero-mobile-catalog-preview {
+    width:100%;
+    max-width:none;
+    margin:0 0 12px;
+    overflow:visible;
+  }
+  .hero-mobile-catalog-preview .homepage-category-tiles--hero {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:7px;
+    overflow:visible;
+    padding:0;
+  }
+  .hero-mobile-catalog-preview .homepage-category-tiles--hero .homepage-category-tile {
+    width:auto;
+    min-width:0;
+    height:114px;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 58px;
+    flex:none;
+    border-radius:7px;
+  }
+  .hero-mobile-catalog-preview .homepage-category-tile-copy { padding:10px 2px 9px 9px; }
+  .hero-mobile-catalog-preview .homepage-category-tile-copy small { font-size:var(--type-caption); line-height:1.2; }
+  .hero-mobile-catalog-preview .homepage-category-tile-copy>b,
+  .hero-mobile-catalog-preview .homepage-category-tile--2 .homepage-category-tile-copy>b { margin-top:5px; font-size:13px; line-height:1.18; }
+  .hero-mobile-catalog-preview .homepage-category-tile-copy>span { display:none!important; }
+  .hero-mobile-catalog-preview .homepage-category-tile-media { margin:7px 7px 7px 0; }
+  .hero-mobile-catalog-preview>a {
+    width:100%;
+    min-height:42px;
+    justify-content:center;
+    margin:7px 0 0;
+    border:1px solid #cfd6ce;
+    border-radius:6px;
+    background:#fff;
+    font-size:13px;
+  }
+  .homepage-main+.proof-strip,.homepage-main .proof-strip { display:none; }
+}
+
+@media (max-width:340px) {
+  .site-header .header-row { grid-template-columns:86px minmax(0,1fr) 42px; gap:5px; }
+  .site-header .brand img { width:86px; }
+  .homepage-main .hero h1 { font-size:28px; }
+  .homepage-main .hero-primary-actions .button { padding-inline:5px; font-size:12px; }
+  .hero-mobile-trust-points>a { font-size:var(--type-caption); }
+  .hero-mobile-catalog-preview .homepage-category-tiles--hero .homepage-category-tile { grid-template-columns:minmax(0,1fr) 50px; }
+  .hero-mobile-catalog-preview .homepage-category-tile-copy>b,
+  .hero-mobile-catalog-preview .homepage-category-tile--2 .homepage-category-tile-copy>b { font-size:12px; }
+}

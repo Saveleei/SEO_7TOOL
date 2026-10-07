@@ -52,11 +52,15 @@ test("homepage first screen pairs visual assortment with editable warehouse evid
   ]);
 
   assert.match(page, /hero-mobile-catalog-preview/u);
-  assert.match(page, /homepageKeyCategories\.slice\(0, 3\)/u);
+  assert.match(page, /homepageKeyCategories\.slice\(0, 4\)/u);
+  assert.match(page, /Сверление · резка · кромка · сварка/u);
+  assert.match(page, /hero-title-mobile/u);
   assert.match(page, /orderTrustCardsForDisplay\(trustContent\.cards\)\.slice\(0, 3\)\.map/u);
   assert.match(page, /trustCardImageUrl\(card\)/u);
   assert.match(page, /Реальные склад, комплектация и отгрузка/u);
-  assert.match(css, /\.hero-mobile-catalog-preview \.homepage-category-tiles--hero \{ display:flex/u);
+  const firstScreen = css.slice(css.lastIndexOf("/* Mobile homepage first-screen refinement"));
+  assert.match(firstScreen, /\.hero-mobile-catalog-preview \.homepage-category-tiles--hero \{[\s\S]*?display:grid;[\s\S]*?grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/u);
+  assert.match(firstScreen, /\.hero-mobile-trust-points \{[\s\S]*?grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/u);
   assert.match(css, /\.homepage-main \.hero-grid>\.hero-catalog-card \{ display:none; \}/u);
   assert.match(css, /\.assurance-grid \{ display:grid; grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/u);
   assert.match(css, /\.assurance-grid \{ width:100%; max-width:none; display:grid; grid-template-columns:1fr/u);
