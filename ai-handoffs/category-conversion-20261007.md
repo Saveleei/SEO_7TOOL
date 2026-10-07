@@ -19,4 +19,4 @@
   - `node --test tests/*.test.mjs`: 411 passed;
   - ESLint: 0 errors (one pre-existing `YandexMetrika.tsx` `<img>` warning);
   - `vinext build`: passed.
-- Commit SHA: pending.
+- Implementation commit: `f822ab2` (`feat: streamline category conversion journey`).
