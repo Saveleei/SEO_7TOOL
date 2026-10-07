@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import { pluralizeCardVariants } from "../data/categoryCardArchetypes.mjs";
 import type { FeedProductCardModel, FeedProductVariantModel } from "../data/feedCatalog";
 import { QuickOrderDialog } from "./QuickOrderDialog";
@@ -10,7 +10,6 @@ import { AddRequestButton } from "./RequestCart";
 import { FeedAvailability } from "./FeedAvailability";
 import { preloadVariantPickerItems, VariantPickerDialog, type VariantPickerItem } from "./VariantPickerDialog";
 import { comparisonSelectionFromCard, useComparison } from "./Comparison";
-import { VariantAvailabilityMatrix } from "./VariantAvailabilityMatrix";
 
 export function FeedProductTable({ products, columns }: { products: FeedProductCardModel[]; columns: string[] }) {
   const [pickerProductId, setPickerProductId] = useState("");
@@ -24,15 +23,12 @@ export function FeedProductTable({ products, columns }: { products: FeedProductC
         <thead><tr><th>{tableIdentity}</th>{columns.map((column) => <th key={column}>{column}</th>)}<th>Цена</th><th><span className="visually-hidden">Действия</span></th></tr></thead>
         <tbody>{products.map((product) => {
           const directVariant = product.selectedVariantCount === 1 ? product.variants[0] : undefined;
-          return <Fragment key={product.id}>
-            <tr className={`feed-product-row feed-product-row--${product.cardArchetype.id}`}>
+          return <tr className={`feed-product-row feed-product-row--${product.cardArchetype.id}`} key={product.id}>
               <td><div className={product.image ? "feed-table-product" : "feed-table-product feed-table-product--no-image"}>{product.image && <Link href={`/p/${product.slug}`} tabIndex={-1} aria-hidden="true"><Image src={product.image} alt="" width={86} height={74} unoptimized /></Link>}<div><em>{product.cardArchetype.badge}</em><span>{product.brand}{product.sku ? ` · серия ${product.sku}` : ""}</span><Link href={`/p/${product.slug}`}>{product.title}</Link><small>{variantLabel(product.selectedVariantCount, product.cardArchetype.variantForms)}{product.selectedVariantCount !== product.variantCount ? ` из ${product.variantCount}` : ""}</small>{product.matchReasons.length > 0 && <div className="feed-table-match">Подходит: {product.matchReasons.join(" · ")}</div>}</div></div></td>
               {columns.map((column) => <td key={column}><span className="feed-table-cell-label">{column}</span>{product.specs.find((spec) => spec.label === column)?.value ?? "—"}</td>)}
               <td className="feed-table-price"><b>{product.price}</b><small>{product.price === "Цена по запросу" || product.variantCount > 1 ? product.cardArchetype.priceRequestNote : "с НДС · подтвердим в КП"}</small><FeedAvailability shippingPromise={product.shippingPromise} count={product.availableVariantCount} /></td>
               <td><div className="feed-table-actions"><label className="feed-compare-check"><input type="checkbox" aria-label={`Сравнить ${product.title}`} checked={hasProduct(product.id)} onChange={() => toggle(comparisonSelectionFromCard(product), "category_table")} /> Сравнить</label>{directVariant ? <><AddRequestButton item={{ id:`variant:${directVariant.id}`, title:directVariant.title || product.title, article:variantArticle(directVariant.sku), price:directVariant.price, image:directVariant.image, href:directVariant.href, shippingLabel:directVariant.shippingPromise.label, shippingDetail:directVariant.shippingPromise.detail }}>Добавить в КП</AddRequestButton><QuickOrderDialog item={{ id:`variant:${directVariant.id}`, title:directVariant.title || product.title, article:variantArticle(directVariant.sku), price:directVariant.price, image:directVariant.image, href:directVariant.href, shippingLabel:directVariant.shippingPromise.label, shippingDetail:directVariant.shippingPromise.detail }} available={directVariant.shippingPromise.available} productId={product.id} variantId={directVariant.id} category={product.categorySlug} placement="category_table" pageType="category" /></> : <button className="feed-variant-toggle" type="button" aria-haspopup="dialog" onPointerEnter={() => warmProductVariants(product)} onPointerDown={() => warmProductVariants(product)} onFocus={() => warmProductVariants(product)} onClick={() => setPickerProductId(product.id)}>{product.cardArchetype.multipleAction} · {product.selectedVariantCount}</button>}<a className="feed-all-characteristics" href={`/p/${product.slug}`} aria-label={`${product.cardArchetype.detailAction}: ${product.title}`}>{product.cardArchetype.detailAction}</a></div></td>
-            </tr>
-            {!directVariant && <tr className="feed-product-availability-row"><td colSpan={columns.length + 3}><VariantAvailabilityMatrix compact variants={product.variants} totalVariantCount={product.variantCount} availableVariantCount={product.availableVariantCount} onWarm={() => warmProductVariants(product)} onOpen={() => setPickerProductId(product.id)} /></td></tr>}
-          </Fragment>;
+            </tr>;
         })}</tbody>
       </table>
       <p className="feed-table-note">Цена указана по данным поставщика. Наличие, срок и совместимость подтверждаем для выбранного исполнения в КП.</p>
@@ -57,7 +53,6 @@ function MobileSeries({ product, columns, selected, onCompare, onWarmVariants, o
       <div className={product.image ? "feed-mobile-series-head" : "feed-mobile-series-head feed-mobile-series-head--no-image"}>{product.image && <Image src={product.image} alt="" width={92} height={78} unoptimized />}<div><em>{product.cardArchetype.badge}</em><span>{product.brand}{product.sku ? ` · ${product.sku}` : ""}</span><b>{product.title}</b><small>{variantLabel(product.selectedVariantCount, product.cardArchetype.variantForms)}{product.selectedVariantCount !== product.variantCount ? ` из ${product.variantCount}` : ""}</small></div></div>
       {compareControl}
       <dl>{columns.map((column) => <div key={column}><dt>{column}</dt><dd>{product.specs.find((spec) => spec.label === column)?.value ?? "—"}</dd></div>)}</dl>
-      <VariantAvailabilityMatrix compact limit={4} variants={product.variants} totalVariantCount={product.variantCount} availableVariantCount={product.availableVariantCount} onWarm={onWarmVariants} onOpen={onOpenVariants} />
       <div className="feed-mobile-series-commercial"><div><b>{product.price}</b><FeedAvailability shippingPromise={product.shippingPromise} /></div><button type="button" aria-haspopup="dialog" onPointerEnter={onWarmVariants} onPointerDown={onWarmVariants} onFocus={onWarmVariants} onClick={onOpenVariants}>{product.cardArchetype.multipleAction} · {product.selectedVariantCount}</button></div>
       <Link className="feed-mobile-all-variants" href={`/p/${product.slug}`}>{product.cardArchetype.detailAction} →</Link>
   </article>;

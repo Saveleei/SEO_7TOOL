@@ -153,11 +153,10 @@ test("compatible accessory cards lead with working size and keep article as refe
 });
 
 test("category card variants show the buyer size first and keep actions readable", async () => {
-  const [card, table, picker, matrix, styles] = await Promise.all([
+  const [card, table, picker, styles] = await Promise.all([
     readFile(new URL("../app/ui/FeedProductCard.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/ui/FeedProductTable.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/ui/VariantPickerDialog.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/ui/VariantAvailabilityMatrix.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
   ]);
   for (const source of [card, table]) {
@@ -186,14 +185,9 @@ test("category card variants show the buyer size first and keep actions readable
   assert.match(picker, /<b>\{item\.label\}<\/b>/u);
   assert.match(picker, /Артикул \$\{selected\.sku\}/u);
   assert.match(picker, /Добавить в КП/u);
-  assert.match(card, /<VariantAvailabilityMatrix/u);
-  assert.match(table, /<VariantAvailabilityMatrix/u);
-  assert.match(matrix, /Матрица доступности/u);
-  assert.match(matrix, /variant\.choiceLabel/u);
-  assert.match(matrix, /variant\.shippingPromise\.available \? "В наличии" : "Уточним"/u);
-  assert.match(matrix, /Открыть полный выбор/u);
-  assert.match(styles, /\.variant-availability-matrix--sizes \.variant-availability-grid \{ grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/u);
-  assert.match(styles, /\.variant-availability-matrix--executions \.variant-availability-grid \{ grid-template-columns:minmax\(0,1fr\)/u);
+  assert.doesNotMatch(card, /VariantAvailabilityMatrix|Матрица доступности/u);
+  assert.doesNotMatch(table, /VariantAvailabilityMatrix|Матрица доступности/u);
+  assert.doesNotMatch(styles, /variant-availability-matrix|variant-availability-grid/u);
   assert.match(styles, /\.variant-picker-dialog \{[\s\S]*?max-height:min/u);
   assert.match(styles, /\.variant-picker-loading--inline/u);
   assert.match(styles, /@media \(max-width:760px\)[\s\S]*?\.variant-picker-dialog \{ width:100%; height:100dvh/u);
@@ -235,7 +229,7 @@ test("all feed choices stay readable and never use SKU as the primary label", ()
   assert.equal(choiceCount, snapshotVariantCount);
 });
 
-test("category matrix leads with the actual industrial decision parameter", () => {
+test("variant picker choices lead with the actual industrial decision parameter", () => {
   const tap = findVariant("metchiki", (variant) => variant.sku === "20.1820-002");
   assert.equal(getVariantChoicePresentation(tap.product, tap.variant).label, "M3");
   assert.match(getVariantChoicePresentation(tap.product, tap.variant).context, /DIN 371/u);

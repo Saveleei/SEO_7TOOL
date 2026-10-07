@@ -8,7 +8,6 @@ import { QuickOrderDialog } from "./QuickOrderDialog";
 import { AddRequestButton } from "./RequestCart";
 import { FeedAvailability } from "./FeedAvailability";
 import { preloadVariantPickerItems, VariantPickerDialog, type VariantPickerItem } from "./VariantPickerDialog";
-import { VariantAvailabilityMatrix } from "./VariantAvailabilityMatrix";
 
 type Props = {
   product: FeedProductCardModel;
@@ -54,7 +53,6 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
         <div className="feed-product-assurance"><b>Проверим до оплаты</b><span>Точное исполнение · комплектность и документы · остаток и дата отгрузки</span></div>
       </div>
     </div>
-    {!directVariant && <VariantAvailabilityMatrix variants={product.variants} totalVariantCount={product.variantCount} availableVariantCount={product.availableVariantCount} onWarm={warmVariants} onOpen={() => setPickerOpen(true)} />}
     {!directVariant && <VariantPickerDialog open={pickerOpen} onClose={() => setPickerOpen(false)} productId={product.id} productTitle={product.title} category={product.categorySlug} pageType="category" placement="category_card_size_picker" items={toPickerItems(product)} totalVariantCount={product.variantCount} fullProductHref={`/p/${product.slug}`} variantsEndpoint={variantsEndpoint} selectorLabel={isSizeLedProduct(product) ? "Размер" : "Исполнение"} />}
   </article>;
 }
