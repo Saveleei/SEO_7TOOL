@@ -58,7 +58,7 @@ homepage="$(mktemp)"
 curl -fsS "http://127.0.0.1:${candidate_port}/" > "$homepage"
 grep -q 'header-catalog-section' "$homepage"
 ! grep -q 'header-catalog-manager' "$homepage"
-grep -q 'Сверла и зенковки' "$homepage"
+grep -q 'Свёрла и зенковки' "$homepage"
 rm -f "$homepage"
 
 curl -fsS "http://127.0.0.1:${candidate_port}/catalog" >/dev/null

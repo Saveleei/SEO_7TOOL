@@ -77,7 +77,7 @@ SMOKE_BASE_URL="http://127.0.0.1:${candidate_port}" node scripts/smoke-release-c
 
 curl -fsS "http://127.0.0.1:${candidate_port}/" | grep -q 'header-catalog-section'
 ! curl -fsS "http://127.0.0.1:${candidate_port}/" | grep -q 'header-catalog-manager'
-curl -fsS "http://127.0.0.1:${candidate_port}/" | grep -q 'Сверла и зенковки'
+curl -fsS "http://127.0.0.1:${candidate_port}/" | grep -q 'Свёрла и зенковки'
 curl -fsS "http://127.0.0.1:${candidate_port}/catalog" >/dev/null
 curl -fsS "http://127.0.0.1:${candidate_port}/c/koronchatye-sverla" >/dev/null
 curl -fsS "http://127.0.0.1:${candidate_port}/c/stanki-sverlilnye" >/dev/null
