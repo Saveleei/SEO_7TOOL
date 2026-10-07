@@ -4,7 +4,7 @@ import Image from "next/image";
 import { canManager, type ManagerActor } from "../data/managerAccess";
 import { siteContact } from "../data/contactConfig";
 import { isQuoteIntakeDeliveryEnabled, isQuoteTestContour } from "../data/quoteRequestStore";
-import { getCanonicalCatalogGroups, pilotFeedCategorySlugs } from "../data/productionCategoryGroups";
+import { getProductionCategoryGroups, pilotFeedCategorySlugs } from "../data/productionCategoryGroups";
 import { HeaderCatalogMenu } from "./HeaderCatalogMenu";
 import { HeaderContactMenu } from "./HeaderContactMenu";
 import { HeaderSearch } from "./HeaderSearch";
@@ -13,7 +13,7 @@ import { MobileBottomNavigation } from "./MobileBottomNavigation";
 import { RequestCartButton } from "./RequestCart";
 
 export function PilotHeader({ managerMode = false, managerActor = null }: { managerMode?: boolean; managerActor?: ManagerActor | null }) {
-  const categoryGroups = managerMode ? [] : getCanonicalCatalogGroups(pilotFeedCategorySlugs);
+  const categoryGroups = managerMode ? [] : getProductionCategoryGroups(pilotFeedCategorySlugs);
   const testContour = isQuoteTestContour();
   const intakeDelivery = isQuoteIntakeDeliveryEnabled();
   return (

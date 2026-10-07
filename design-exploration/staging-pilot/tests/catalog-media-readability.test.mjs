@@ -38,12 +38,12 @@ test("homepage task navigation keeps readable type and removes the accidental th
 test("desktop tablet and mobile layouts preserve legible media and hit targets", async () => {
   const css = await read("../app/globals.css");
 
-  assert.match(css, /\.header-catalog-grid nav>a \{ min-height:74px; grid-template-columns:64px minmax\(0,1fr\) 14px;/u);
+  assert.match(css, /\.header-catalog-section>nav>a \{ min-height:43px; display:grid; grid-template-columns:42px minmax\(0,1fr\) 14px;/u);
   assert.match(css, /\.category-page-shell \.category-assortment-shortcuts>\.container>div>a,[\s\S]*?min-height:96px;[\s\S]*?grid-template-columns:76px minmax\(0,1fr\) 38px;/u);
   assert.match(css, /@media \(max-width:1200px\) and \(min-width:761px\)[\s\S]*?\.homepage-task-paths \{ grid-template-columns:repeat\(2,minmax\(0,1fr\)\); \}/u);
   assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.homepage-task-paths \{ grid-template-columns:1fr;/u);
   assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.homepage-task-path\[data-expanded="true"\] \.homepage-task-path__subcategories>a:nth-child\(n\) \{ min-height:88px;[^}]*grid-template-columns:64px minmax\(0,1fr\) 16px;/u);
-  assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.header-catalog-grid>section\[data-expanded="true"\]>nav>a \{ min-height:76px;/u);
+  assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.header-catalog-grid--mobile>section\[data-expanded="true"\]>nav>a \{ min-height:64px;/u);
   assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.category-page-shell \.category-assortment-shortcuts>\.container>div>a,[\s\S]*?min-height:92px;/u);
 });
 

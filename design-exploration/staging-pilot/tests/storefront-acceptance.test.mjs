@@ -75,13 +75,13 @@ test("desktop navigation and compact manager controls expose one reusable four-c
   assert.match(styles, /\.mobile-manager-online \{[\s\S]{0,220}background:#169b5f/u);
 });
 
-test("header catalog separates canonical browsing from task selection and stays keyboard-dismissable", async () => {
+test("header catalog exposes task-aligned category cross-navigation and stays keyboard-dismissable", async () => {
   const header = await readFile(new URL("../app/ui/PilotHeader.tsx", import.meta.url), "utf8");
   const catalogMenu = await readFile(new URL("../app/ui/HeaderCatalogMenu.tsx", import.meta.url), "utf8");
   const contacts = await readFile(new URL("../app/ui/HeaderContactMenu.tsx", import.meta.url), "utf8");
   const cart = await readFile(new URL("../app/ui/RequestCart.tsx", import.meta.url), "utf8");
   assert.match(header, /HeaderCatalogMenu groups=\{categoryGroups\}/u);
-  assert.match(header, /getCanonicalCatalogGroups/u);
+  assert.match(header, /getProductionCategoryGroups/u);
   assert.match(header, /href="\/#production-categories"/u);
   assert.match(catalogMenu, /group\.subcategories\.map/u);
   assert.doesNotMatch(catalogMenu, /slice\(0, 3\)|Все категории направления/u);

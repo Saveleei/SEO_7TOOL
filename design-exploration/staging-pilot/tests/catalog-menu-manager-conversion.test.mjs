@@ -5,35 +5,31 @@ import { buildContactClickDetail } from "../app/data/contactAnalytics.mjs";
 
 const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
 
-test("catalog navigation keeps products first and adds a factual manager route below them", async () => {
-  const [menu, contactMenu, css] = await Promise.all([
+test("catalog navigation keeps category discovery concise and leaves help in the persistent contact controls", async () => {
+  const [menu, header, css] = await Promise.all([
     read("../app/ui/HeaderCatalogMenu.tsx"),
-    read("../app/ui/HeaderContactMenu.tsx"),
+    read("../app/ui/PilotHeader.tsx"),
     read("../app/globals.css"),
   ]);
 
-  const categories = menu.indexOf('className="header-catalog-explorer"');
-  const manager = menu.indexOf('className="header-catalog-manager"');
-  assert.ok(categories >= 0 && manager > categories, "manager help must follow the category navigation");
-  assert.match(menu, /data-contact-placement="catalog_menu_manager"/u);
-  assert.match(menu, /siteContact\.photo/u);
-  assert.match(menu, /siteContact\.phoneHref/u);
-  assert.match(menu, /siteContact\.telegramUrl/u);
-  assert.match(menu, /siteContact\.maxUrl/u);
-  assert.match(menu, /Передать задачу или ТЗ/u);
-  assert.match(menu, /Модель знать не обязательно/u);
+  assert.match(menu, /className="header-catalog-explorer"/u);
+  assert.match(menu, /className="header-catalog-service-links"/u);
+  assert.match(menu, /Подбор по задаче/u);
+  assert.match(menu, /mailto:\$\{siteContact\.email\}/u);
+  assert.doesNotMatch(menu, /header-catalog-manager/u);
+  assert.doesNotMatch(menu, /siteContact\.photo|siteContact\.phoneHref|siteContact\.telegramUrl|siteContact\.maxUrl/u);
   assert.doesNotMatch(menu, /header-catalog-mobile-contact/u);
-  assert.match(contactMenu, /export function TelegramIcon/u);
-  assert.match(contactMenu, /export function MaxIcon/u);
-  assert.match(css, /\.header-catalog-manager \{[\s\S]*?grid-template-columns/u);
-  assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.header-catalog-manager \{ grid-template-columns:minmax\(0,1fr\) minmax\(0,1fr\)/u);
+  assert.match(header, /<HeaderContactMenu placement="desktop_header"/u);
+  assert.match(header, /<HeaderContactMenu compact placement="mobile_manager_bubble"/u);
+  assert.match(css, /\.header-catalog-service-links \{ display:flex;/u);
+  assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.header-catalog-service-links \{ display:grid; grid-template-columns:1fr 1fr;/u);
 });
 
 test("manager messenger analytics keep placement context without personal data", () => {
   const detail = buildContactClickDetail({
     href:"https://t.me/saveleei",
     pathname:"/c/stanki-sverlilnye",
-    context:{ placement:"catalog_menu_manager", category:"stanki-sverlilnye" },
+    context:{ placement:"desktop_header", category:"stanki-sverlilnye" },
   });
 
   assert.deepEqual(detail, {
@@ -41,7 +37,7 @@ test("manager messenger analytics keep placement context without personal data",
     channel:"telegram",
     page_type:"category",
     category:"stanki-sverlilnye",
-    placement:"catalog_menu_manager",
+    placement:"desktop_header",
   });
   assert.doesNotMatch(JSON.stringify(detail), /saveleei|962|info@/u);
 });

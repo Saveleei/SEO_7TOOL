@@ -35,21 +35,27 @@ test("selection help is inserted once after the first three products", async () 
   assert.equal((table.match(/\{after && <div className="category-feed-assistant">\{after\}<\/div>\}/gu) ?? []).length, 1);
 });
 
-test("catalog desktop navigation uses a direction rail and a direct category panel", async () => {
-  const [menu, analytics, sanitizer, css] = await Promise.all([
+test("catalog desktop navigation exposes every direction while mobile keeps compact disclosure", async () => {
+  const [menu, header, groups, analytics, sanitizer, css] = await Promise.all([
     read("../app/ui/HeaderCatalogMenu.tsx"),
+    read("../app/ui/PilotHeader.tsx"),
+    read("../app/data/productionCategoryGroups.ts"),
     read("../app/ui/ConversionAnalytics.tsx"),
     read("../app/data/conversionAnalytics.mjs"),
     read("../app/globals.css"),
   ]);
 
   assert.match(menu, /className="header-catalog-explorer"/u);
-  assert.match(menu, /className="header-catalog-directions"/u);
-  assert.match(menu, /className="header-catalog-active"/u);
+  assert.match(menu, /className="header-catalog-section"/u);
+  assert.match(menu, /className="header-catalog-grid header-catalog-grid--mobile"/u);
+  assert.doesNotMatch(menu, /role="tab"|role="tabpanel"|header-catalog-directions|header-catalog-active/u);
   assert.match(menu, /data-conversion-action="catalog_category_open"/u);
+  assert.match(header, /getProductionCategoryGroups\(pilotFeedCategorySlugs\)/u);
+  assert.match(groups, /slug:"drilling"[\s\S]*?slug:"koronchatye-sverla"[\s\S]*?slug:"sverla-i-zenkovki"[\s\S]*?slug:"metchiki"/u);
   assert.match(analytics, /category_listing_action/u);
   assert.match(sanitizer, /"catalog_navigation", "category_listing_action"/u);
-  assert.match(css, /\.header-catalog-explorer \{ display:grid; grid-template-columns:280px minmax\(0,1fr\)/u);
+  assert.match(css, /\.header-catalog-explorer \{ display:grid; grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/u);
+  assert.match(css, /@media \(max-width:1180px\) and \(min-width:761px\)[\s\S]*?\.header-catalog-explorer \{ grid-template-columns:repeat\(2,minmax\(0,1fr\)\); \}/u);
   assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.header-catalog-explorer \{ display:none; \}/u);
 });
 
