@@ -43,26 +43,29 @@ echo "TARGET=$release"
 
 [[ -d "$active_app" ]] || { echo "Active application directory is missing."; exit 1; }
 printf '%s  %s\n' "$archive_sha256" "$archive" | sha256sum -c -
-[[ ! -e "$release" ]] || { echo "Target release already exists: $release"; exit 1; }
-
-mkdir -p "$release"
-rsync -a --exclude node_modules --exclude dist "$active/" "$release/"
-ln -s "$active_app/node_modules" "$new_app/node_modules"
-
-tar -xzf "$archive" -C "$release"
+if [[ ! -e "$release" ]]; then
+  mkdir -p "$release"
+  rsync -a --exclude node_modules --exclude dist "$active/" "$release/"
+  ln -s "$active_app/node_modules" "$new_app/node_modules"
+  tar -xzf "$archive" -C "$release"
+else
+  [[ "$(readlink -f "$release")" != "$active" ]] || { echo "Refusing to reuse the active release."; exit 1; }
+  echo "REUSING_CANDIDATE=$release"
+fi
 
 grep -q 'header-catalog-section' "$new_app/app/ui/HeaderCatalogMenu.tsx"
 ! grep -q 'header-catalog-manager' "$new_app/app/ui/HeaderCatalogMenu.tsx"
+
+cd "$new_app"
+npm test
+npm run lint
 
 set -a
 . "$shared/storefront.env"
 set +a
 export PORT="$candidate_port"
 
-cd "$new_app"
 node scripts/validate-production-config.mjs
-npm test
-npm run lint
 node scripts/build-catalog-presentation.mjs
 node scripts/build-legacy-subcategories.mjs
 node node_modules/vinext/dist/cli.js build
