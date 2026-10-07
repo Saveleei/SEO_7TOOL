@@ -15,6 +15,8 @@ flock -n 9 || { echo "Another production deployment is already running."; exit 1
 
 exec > >(tee -a "$log") 2>&1
 
+trap 'echo "VERIFY_FAILED line=$LINENO"' ERR
+
 cleanup() {
   pm2 delete "$candidate_name" >/dev/null 2>&1 || true
 }
