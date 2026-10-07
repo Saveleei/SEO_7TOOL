@@ -6,7 +6,7 @@
 - Goal: shorten the path to category products, move the compact selection CTA into the product feed, provide consistent list/grid controls, compact mobile product cards, and improve the catalog menu hierarchy without changing public URLs.
 - Intended scope: category route/components and related styles under `design-exploration/staging-pilot/app`, plus focused regression tests.
 - Acceptance: products appear materially earlier; mobile cards remain compact and readable; every category supports list/grid views; selection help appears once after the first three product groups; catalog navigation exposes directions and direct category links; SEO URLs and metadata remain unchanged; responsive and automated checks pass.
-- Production: not authorized by this task; no deployment or live mutations.
+- Production: published to `https://7tool.ru/` on 2026-10-07 after explicit user approval.
 - Implemented:
   - compact category hero and progressive disclosure for sibling/scope navigation;
   - product-first category flow with horizontal decision rails on tablet/mobile;
@@ -20,3 +20,13 @@
   - ESLint: 0 errors (one pre-existing `YandexMetrika.tsx` `<img>` warning);
   - `vinext build`: passed.
 - Implementation commit: `f822ab2` (`feat: streamline category conversion journey`).
+- Production release:
+  - source commit: `e740edc` (implementation plus verification handoff);
+  - immutable directory: `/var/www/7tool-release-20261007-category-conversion-e740edc`;
+  - active symlink: `/var/www/7tool-production-current`;
+  - PM2 process: `7tool-prod`, port `3260`, restart count `0` after the final start;
+  - production preflight: 18 checks passed;
+  - critical public smoke: home, catalog, grid category, drilling-machine category, magnetic tooling category and product returned `200`; `/admin/catalog` returned `307`;
+  - browser production QA: list/grid labels, 12 product cards, one inline selection assistant, zero duplicate availability matrices, six catalog directions and no horizontal document overflow;
+  - request-data backup: `/var/www/7tool-production-shared/backups/category-conversion-e740edc/quote-data.tar.gz`;
+  - rollback release: `/var/www/7tool-release-20261007-hide-matrix-ca8a7c4`; its dependencies are linked to the verified release dependency tree so it can be restarted if required.
