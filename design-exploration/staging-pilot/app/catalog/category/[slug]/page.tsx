@@ -164,6 +164,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const promotedFacetPriorities = activeSubsegment?.promotedFacetKeywords ?? activeShortcut?.promotedFacetKeywords;
   const promotedFacetLimit = slug === "koronchatye-sverla" ? 4 : slug === "sverla-i-zenkovki" || slug === "borfrezy" || slug === "stanki-sverlilnye" || slug === "lentochnopilnye-stanki" ? 3 : 2;
   const promotedFacets = selectCategoryFacets(slug, result.facets, promotedFacetLimit, promotedFacetPriorities);
+  const quickPromotedFacets = promotedFacets.slice(0, 2);
   const assistantFacets = selectCategoryAssistantFacets(slug, technicalFacets).map((facet) => {
     const rule = getCategorySelectionRule(slug, facet.keyword);
     const selectedOption = rule.mode === "exact"
@@ -328,7 +329,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
     {subsegmentShortcuts.length > 0 && segment && <nav className="category-type-navigation" aria-label={`Виды раздела «${activeShortcut?.label ?? "Сверлильные станки"}»`}><div className="container"><header><span>Виды оборудования</span><b>Уточните исполнение — или смотрите весь раздел</b></header><div><Link className={!subsegment ? "active" : undefined} aria-current={!subsegment ? "page" : undefined} href={`/c/${slug}?segment=${encodeURIComponent(segment)}#products`}><b>Все виды</b><small>{getFeedCategoryProductCountForQuery(slug, { productType, segment }).toLocaleString("ru-RU")}</small></Link>{subsegmentShortcuts.map((item) => <Link className={item.id === subsegment ? "active" : undefined} aria-current={item.id === subsegment ? "page" : undefined} href={`/c/${slug}?segment=${encodeURIComponent(segment)}&drill_type=${encodeURIComponent(item.id)}#products`} key={item.id}><span><b>{item.label}</b><small>{item.copy}</small></span><em>{item.count.toLocaleString("ru-RU")}</em></Link>)}</div></div></nav>}
 
     <section className="section feed-category-listing" id="products"><div className="container">
-      <div className="section-heading feed-category-heading"><div><p className="eyebrow">Товары и исполнения</p><h2>{listingTitle}</h2></div><p>Быстрые параметры — ниже. Полный фильтр открывается отдельно.</p></div>
+      <div className="section-heading feed-category-heading"><div><p className="eyebrow">Товары и исполнения</p><h2>{listingTitle}</h2></div><p>Товары — сразу ниже. Остальные параметры доступны в полном фильтре.</p></div>
 
       {promotedFacets.length > 0 && <nav className={`feed-promoted-filters${slug === "borfrezy" ? " feed-promoted-filters--burr" : ""}${slug === "stanki-sverlilnye" ? " feed-promoted-filters--equipment" : ""}${slug === "karetki-svarochnye" ? " feed-promoted-filters--welding" : ""}`} aria-label="Быстрые фильтры">
         <div className="feed-priority-choice"><span>Показывать сначала</span><div>
@@ -337,7 +338,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
             ? <PromotedFilterLink className={inStockOnly ? "active" : undefined} current={inStockOnly} href={categoryUrl(slug, rawSearchParams, { toggleKey:"availability", toggleValue:"in-stock" })}>В наличии<small>свежие данные</small></PromotedFilterLink>
             : <span className="feed-promoted-unavailable">Наличие уточняем<small>через менеджера</small></span>}
         </div></div>
-        {promotedFacets.map((facet) => {
+        {quickPromotedFacets.map((facet) => {
           const promotedOptionLimit = slug === "koronchatye-sverla" && facet.keyword === "рабочая длина" ? 6 : facet.numeric ? 5 : 6;
           const preferredOptions = slug === "koronchatye-sverla" && facet.keyword === "рабочая длина"
             ? ["110 мм"]
@@ -353,7 +354,9 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
           })}</div></div>;
         })}
         <OpenFullFiltersLink toggleId={`feed-filters-${slug}`} />
+        <a className="feed-promoted-engineer" href={activeSelectorHref}>Подбор инженером →</a>
       </nav>}
+      {promotedFacets.length > 0 && <div className="feed-mobile-filter-actions"><OpenFullFiltersLink toggleId={`feed-filters-${slug}`} /><a href={activeSelectorHref}>Подбор инженером →</a></div>}
 
       <div className="feed-catalog-layout">
         <AutoApplyFilterPanel

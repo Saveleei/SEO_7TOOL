@@ -27,12 +27,13 @@ export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[
       if (open) {
         returnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
         if (window.matchMedia("(max-width: 760px)").matches) window.requestAnimationFrame(() => closeButtonRef.current?.focus());
-      }
+      } else setExpandedGroup("");
     };
     const closeFromOutside = (event: PointerEvent) => {
       if (menu?.open && event.target instanceof Node && !menu.contains(event.target)) {
         menu.removeAttribute("open");
         setIsOpen(false);
+        setExpandedGroup("");
       }
     };
     const closeFromKeyboard = (event: KeyboardEvent) => {
@@ -50,6 +51,7 @@ export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[
       event.preventDefault();
       menu.removeAttribute("open");
       setIsOpen(false);
+      setExpandedGroup("");
       returnFocusRef.current?.focus();
     };
     const openFromMobileNavigation = () => {

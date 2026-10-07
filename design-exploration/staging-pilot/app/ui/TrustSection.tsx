@@ -20,7 +20,7 @@ export function TrustSection({ content }: { content: TrustContentSettings }) {
         const presentation = TRUST_CARD_PRESENTATION[card.id];
         return <article className={`assurance-photo-card${index >= 3 ? " assurance-photo-card--secondary" : ""}`} key={card.id}>
           <div className="assurance-photo-card__media"><Image src={trustCardImageUrl(card)} alt={card.imageAlt} width={520} height={300} unoptimized={Boolean(card.imageAssetId)} /><span>{trustCardDisplayKicker(card, index)}</span></div>
-          <div className="assurance-photo-card__content"><h3>{card.title}</h3><p>{card.text}</p><ul className="assurance-proof-list">{presentation.proofs.map((proof) => <li key={proof}>{proof}</li>)}</ul><div className="assurance-outcome"><small>Что получает покупатель</small><b>{card.outcome}</b></div><Link href={presentation.href}>{presentation.linkLabel} →</Link></div>
+          <div className="assurance-photo-card__content"><h3>{card.title}</h3><p>{card.text}</p><ul className="assurance-proof-list assurance-proof-list--single">{presentation.proofs.map((proof) => <li key={proof}>{proof}</li>).slice(0, 1)}</ul><div className="assurance-outcome"><small>Что получает покупатель</small><b>{card.outcome}</b></div><Link href={presentation.href}>{presentation.linkLabel} →</Link></div>
         </article>;
       })}
     </div>

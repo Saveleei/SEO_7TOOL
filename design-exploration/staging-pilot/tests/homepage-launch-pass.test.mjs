@@ -16,7 +16,7 @@ test("homepage hero keeps three distinct launch paths readable on mobile", async
   assert.match(page, /data-home-action="choose_task"/u);
   assert.match(page, /data-home-action="upload_specification"/u);
   assert.match(page, /\?request=spec#quick-order/u);
-  assert.match(page, /Загрузить ТЗ или список позиций/u);
+  assert.match(page, /Запросить КП по ТЗ или списку позиций/u);
   assert.match(page, /hero-mobile-trust-points/u);
   assert.match(analytics, /new Set\(\["open_catalog", "choose_task", "upload_specification"\]\)/u);
   assert.match(analytics, /event:"homepage_action", page_type:"homepage", placement:"hero", action/u);

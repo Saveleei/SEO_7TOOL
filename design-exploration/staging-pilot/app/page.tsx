@@ -59,7 +59,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
                 <Link className="button button-dark" href="/catalog" data-home-action="open_catalog">Открыть каталог</Link>
                 <a className="button button-quiet" href="#production-categories" data-home-action="choose_task">Подбор по задаче</a>
               </div>
-              <Link className="hero-specification-link" href="/?request=spec#quick-order" data-home-action="upload_specification"><span aria-hidden="true">↥</span>Загрузить ТЗ или список позиций</Link>
+              <Link className="hero-specification-link" href="/?request=spec#quick-order" data-home-action="upload_specification"><span aria-hidden="true">↥</span>Запросить КП по ТЗ или списку позиций</Link>
               <nav className="hero-mobile-trust-points" aria-label="Условия работы">
                 <Link href="/ordering"><span aria-hidden="true">✓</span>Счёт с НДС</Link>
                 <Link href="/delivery"><span aria-hidden="true">✓</span>Доставка по России</Link>
