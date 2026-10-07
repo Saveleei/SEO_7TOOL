@@ -12,5 +12,5 @@
   - production `vinext build`: passed;
   - desktop visual QA at 1536 px: email fits without collision; KP badge verified with counts 1 and 2;
   - mobile visual QA at 390 px: six direction accordions remain readable, email is a full-width menu action, no horizontal overflow.
-- Commit: pending.
+- Commit: `0d983bf` (amended commit keeps this task content together).
 - Reviewer focus: desktop header alignment at zero, one-digit and multi-digit counts; verify mobile action bar is unchanged.
