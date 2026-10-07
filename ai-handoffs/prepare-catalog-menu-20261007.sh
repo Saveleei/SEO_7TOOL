@@ -6,7 +6,8 @@ umask 077
 release="/var/www/7tool-release-20261007-catalog-menu-7e9f523"
 active_link="/var/www/7tool-production-current"
 shared="/var/www/7tool-production-shared"
-source_checkout="/root/7tool-catalog-menu-src-7e9f523"
+archive="/root/catalog-menu-7e9f523.tar.gz"
+archive_sha256="8d16f5cbb30b841a6f4e3167b6dc4d828d18611cdf1c2fb3b451d86e99ce5ec3"
 candidate_name="7tool-catalog-menu-candidate"
 candidate_port="3265"
 log="/var/www/catalog-menu-candidate-20261007.log"
@@ -41,29 +42,14 @@ echo "ACTIVE=$active"
 echo "TARGET=$release"
 
 [[ -d "$active_app" ]] || { echo "Active application directory is missing."; exit 1; }
-[[ -f "$source_checkout/design-exploration/staging-pilot/app/ui/HeaderCatalogMenu.tsx" ]] || {
-  echo "Deployment source checkout is missing."
-  exit 1
-}
+printf '%s  %s\n' "$archive_sha256" "$archive" | sha256sum -c -
 [[ ! -e "$release" ]] || { echo "Target release already exists: $release"; exit 1; }
 
 mkdir -p "$release"
 rsync -a --exclude node_modules --exclude dist "$active/" "$release/"
 ln -s "$active_app/node_modules" "$new_app/node_modules"
 
-files=(
-  "design-exploration/staging-pilot/app/globals.css"
-  "design-exploration/staging-pilot/app/ui/HeaderCatalogMenu.tsx"
-  "design-exploration/staging-pilot/app/ui/PilotHeader.tsx"
-  "design-exploration/staging-pilot/tests/catalog-media-readability.test.mjs"
-  "design-exploration/staging-pilot/tests/catalog-menu-manager-conversion.test.mjs"
-  "design-exploration/staging-pilot/tests/category-conversion-layout.test.mjs"
-  "design-exploration/staging-pilot/tests/storefront-acceptance.test.mjs"
-)
-
-for file in "${files[@]}"; do
-  install -D -m 0644 "$source_checkout/$file" "$release/$file"
-done
+tar -xzf "$archive" -C "$release"
 
 grep -q 'header-catalog-section' "$new_app/app/ui/HeaderCatalogMenu.tsx"
 ! grep -q 'header-catalog-manager' "$new_app/app/ui/HeaderCatalogMenu.tsx"
