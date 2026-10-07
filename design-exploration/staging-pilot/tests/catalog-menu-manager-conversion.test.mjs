@@ -12,7 +12,7 @@ test("catalog navigation keeps products first and adds a factual manager route b
     read("../app/globals.css"),
   ]);
 
-  const categories = menu.indexOf('className="header-catalog-grid"');
+  const categories = menu.indexOf('className="header-catalog-explorer"');
   const manager = menu.indexOf('className="header-catalog-manager"');
   assert.ok(categories >= 0 && manager > categories, "manager help must follow the category navigation");
   assert.match(menu, /data-contact-placement="catalog_menu_manager"/u);

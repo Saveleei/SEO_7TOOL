@@ -1,5 +1,6 @@
 const ALLOWED_EVENTS = new Set([
   "PHONE_CLICK", "EMAIL_CLICK", "click_messenger", "homepage_action",
+  "catalog_navigation", "category_listing_action",
   "view_category", "apply_filter", "open_product", "view_product",
   "add_to_quote", "remove_from_quote", "change_quote_quantity", "open_quote", "submit_quote", "quote_success", "quote_error",
   "open_quick_order", "submit_quick_order", "quick_order_success", "quick_order_error",

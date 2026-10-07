@@ -1,0 +1,22 @@
+# Category conversion implementation
+
+- Agent: Codex
+- Branch: `codex/category-conversion-20261007`
+- Base commit: `ca8a7c48d7caf54f202b36bd126a0a1a3ddc96aa`
+- Goal: shorten the path to category products, move the compact selection CTA into the product feed, provide consistent list/grid controls, compact mobile product cards, and improve the catalog menu hierarchy without changing public URLs.
+- Intended scope: category route/components and related styles under `design-exploration/staging-pilot/app`, plus focused regression tests.
+- Acceptance: products appear materially earlier; mobile cards remain compact and readable; every category supports list/grid views; selection help appears once after the first three product groups; catalog navigation exposes directions and direct category links; SEO URLs and metadata remain unchanged; responsive and automated checks pass.
+- Production: not authorized by this task; no deployment or live mutations.
+- Implemented:
+  - compact category hero and progressive disclosure for sibling/scope navigation;
+  - product-first category flow with horizontal decision rails on tablet/mobile;
+  - universal list/grid switch and compact mobile product cards;
+  - selection assistant inserted after the third product, including split dense tables;
+  - two-pane desktop catalog menu with the existing mobile accordion preserved;
+  - privacy-safe analytics for catalog navigation and listing-view changes.
+- Verification:
+  - browser: 320, 390, 1024 and 1440 px; no document-width collisions; menu, list/grid, dense rows and inline selection checked;
+  - `node --test tests/*.test.mjs`: 411 passed;
+  - ESLint: 0 errors (one pre-existing `YandexMetrika.tsx` `<img>` warning);
+  - `vinext build`: passed.
+- Commit SHA: pending.

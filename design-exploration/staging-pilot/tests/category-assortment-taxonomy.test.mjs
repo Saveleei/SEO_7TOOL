@@ -125,6 +125,7 @@ test("category page preserves family context and uses engineer-first handoff whe
   assert.match(page, /name="family" value=\{family\}/u);
   assert.match(page, /removeKey:"family"/u);
   assert.match(page, /activeShortcut\?\.selectionMode/u);
-  assert.match(page, /id="category-selector" open/u);
+  assert.match(page, /className="category-feed-help" id=\{slug === "stanki-sverlilnye" \? "drill-selector" : "category-selector"\}/u);
+  assert.doesNotMatch(page, /id="category-selector" open/u);
   assert.match(page, /Заказать подбор инженера/u);
 });

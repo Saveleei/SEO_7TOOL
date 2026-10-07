@@ -197,8 +197,8 @@ test("drilling machines expose feed-backed subcategories and kinds without mixin
   assert.match(page, /name="drill_type"/u);
   assert.match(page, /category-type-navigation/u);
   assert.match(page, /Виды оборудования/u);
-  assert.match(page, /drill-scope-guide/u);
-  assert.match(page, /drill-engineer-request/u);
+  assert.match(page, /category-scope-after-results/u);
+  assert.match(page, /category-feed-help/u);
   assert.equal(profile.assortmentShortcuts.find((item) => item.segment === "drill-rail").selectionMode, "engineer");
   assert.equal(profile.assortmentShortcuts.find((item) => item.segment === "drill-special").selectionMode, "engineer");
   assert.equal(profile.assortmentShortcuts.find((item) => item.productType === "accessories").selectionMode, "engineer");

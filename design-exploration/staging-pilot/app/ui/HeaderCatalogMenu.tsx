@@ -19,6 +19,9 @@ export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [expandedGroup, setExpandedGroup] = useState("");
+  const [activeGroupSlug, setActiveGroupSlug] = useState("");
+  const routeGroupSlug = groups.find((group) => group.subcategories.some((subcategory) => pathname.startsWith(subcategory.href)))?.slug ?? groups[0]?.slug ?? "";
+  const activeGroup = groups.find((group) => group.slug === (activeGroupSlug || routeGroupSlug)) ?? groups[0];
 
   useEffect(() => {
     const menu = menuRef.current;
@@ -34,6 +37,7 @@ export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[
       if (menu?.open && event.target instanceof Node && !menu.contains(event.target)) {
         menu.removeAttribute("open");
         setIsOpen(false);
+        setActiveGroupSlug("");
       }
     };
     const closeFromKeyboard = (event: KeyboardEvent) => {
@@ -51,6 +55,7 @@ export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[
       event.preventDefault();
       menu.removeAttribute("open");
       setIsOpen(false);
+      setActiveGroupSlug("");
       returnFocusRef.current?.focus();
     };
     const openFromMobileNavigation = () => {
@@ -89,6 +94,7 @@ export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[
     menuRef.current?.removeAttribute("open");
     setIsOpen(false);
     setExpandedGroup("");
+    setActiveGroupSlug("");
     returnFocusRef.current?.focus();
   };
 
@@ -110,7 +116,34 @@ export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[
         <div><span>Каталог 7TOOL</span><b>Оборудование и оснастка по разделам</b><small>Каждая категория показана один раз. Подбор по операции — отдельным сценарием.</small></div>
         <Link href="/catalog" onClick={closeMenu}>Открыть весь каталог →</Link>
       </header>
-      <div className="header-catalog-grid">
+      <div className="header-catalog-explorer">
+        <nav className="header-catalog-directions" aria-label="Направления каталога" role="tablist">
+          {groups.map((group) => <button
+            className={activeGroup?.slug === group.slug ? "active" : undefined}
+            type="button"
+            role="tab"
+            aria-selected={activeGroup?.slug === group.slug}
+            aria-controls="header-catalog-active-categories"
+            data-conversion-action="catalog_direction_select"
+            data-conversion-value={group.slug}
+            onPointerEnter={() => setActiveGroupSlug(group.slug)}
+            onFocus={() => setActiveGroupSlug(group.slug)}
+            onClick={() => setActiveGroupSlug(group.slug)}
+            key={group.slug}
+          ><span>{group.id}</span><span><b>{group.title}</b><small>{formatCategoryCount(group.subcategories.length)} · {(group.productCount ?? 0).toLocaleString("ru-RU")} серий</small></span><i aria-hidden="true">→</i></button>)}
+        </nav>
+        {activeGroup && <section className="header-catalog-active" id="header-catalog-active-categories" role="tabpanel">
+          <header><div><span>{activeGroup.id} · направление</span><h2>{activeGroup.title}</h2><p>{activeGroup.accent}</p></div><Link href={activeGroup.href} data-conversion-action="catalog_direction_open" data-conversion-value={activeGroup.slug} onClick={closeMenu}>Обзор направления →</Link></header>
+          <nav aria-label={`Категории: ${activeGroup.title}`}>
+            {activeGroup.subcategories.map((subcategory) => <Link href={subcategory.href} data-conversion-action="catalog_category_open" data-conversion-value={subcategory.slug} key={subcategory.slug} onClick={closeMenu}>
+              <span className="header-catalog-subcategory-media"><HomepageCategoryMedia src={subcategory.image} alt="" sizes="64px" /></span>
+              <span><b>{subcategory.label}</b><small>{formatSeriesCount(subcategory.count ?? 0)}</small></span>
+              <i aria-hidden="true">→</i>
+            </Link>)}
+          </nav>
+        </section>}
+      </div>
+      <div className="header-catalog-grid header-catalog-grid--mobile">
         {groups.map((group) => {
           const isExpanded = expandedGroup === group.slug;
           const navigationId = `catalog-group-${group.slug}`;
@@ -132,7 +165,7 @@ export function HeaderCatalogMenu({ groups }: { groups: ProductionCategoryGroup[
               <i aria-hidden="true">{isExpanded ? "−" : "+"}</i>
             </button>
             <nav id={navigationId} aria-label={`Категории: ${group.title}`}>
-              {group.subcategories.map((subcategory) => <Link href={subcategory.href} key={subcategory.slug} onClick={closeMenu}>
+              {group.subcategories.map((subcategory) => <Link href={subcategory.href} data-conversion-action="catalog_category_open" data-conversion-value={subcategory.slug} key={subcategory.slug} onClick={closeMenu}>
                 <span className="header-catalog-subcategory-media"><HomepageCategoryMedia src={subcategory.image} alt="" sizes="(max-width: 760px) 58px, 52px" /></span>
                 <span><b>{subcategory.label}</b><small>{formatSeriesCount(subcategory.count ?? 0)}</small></span>
                 <i aria-hidden="true">→</i>

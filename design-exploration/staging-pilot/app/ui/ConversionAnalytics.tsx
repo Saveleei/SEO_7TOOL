@@ -42,12 +42,28 @@ export function useConversionAnalytics(counterId: number | null = null) {
       });
     }
 
+    function trackInterfaceAction(event: MouseEvent) {
+      const element = event.target instanceof Element ? event.target.closest<HTMLElement>("[data-conversion-action]") : null;
+      const action = element?.dataset.conversionAction;
+      if (!element || !action || event.button !== 0) return;
+      const category = element.dataset.conversionValue ?? window.location.pathname.match(/^\/c\/([^/]+)/u)?.[1];
+      record({
+        event:action.startsWith("catalog_") ? "catalog_navigation" : "category_listing_action",
+        action,
+        placement:element.closest(".header-catalog-panel") ? "catalog_menu" : "category_page",
+        page_type:window.location.pathname.startsWith("/c/") ? "category" : "other",
+        category,
+      });
+    }
+
     window.addEventListener("7tool:prototype-event", receive);
     document.addEventListener("click", trackProductOpen);
+    document.addEventListener("click", trackInterfaceAction);
     record(resolvePageView(window.location));
     return () => {
       window.removeEventListener("7tool:prototype-event", receive);
       document.removeEventListener("click", trackProductOpen);
+      document.removeEventListener("click", trackInterfaceAction);
     };
   }, [counterId]);
 }
