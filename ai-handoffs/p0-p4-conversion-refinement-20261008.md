@@ -40,3 +40,13 @@ This pass implements the agreed buyer-path priorities without changing the produ
 - Product title and identity now precede the gallery on mobile.
 - Trust cards keep the real photograph, concise evidence and buyer outcome while removing repeated proof lists.
 
+## Preview deployment
+
+- Activated on `new.7tool.ru` at `2026-10-07T22:27:54Z` (server UTC timestamp).
+- Active application: `/var/www/7tool-release-20261008-p0-p4-bfc30d4/design-exploration/staging-pilot`.
+- Preview process: `7tool-storefront-new`, PID `134657`, port `3243`.
+- Production process `7tool-prod` retained PID `132298`; `7tool.ru` was not switched.
+- Rollback record: `/var/www/7tool-new-shared/backups/20261008-before-p0-p4-bfc30d4`.
+- Post-activation public checks passed for the homepage, catalogue, category, product and comparison routes.
+- Public preview checks reconfirmed the noindex meta policy, disallowing robots policy, empty sitemap, disabled production Metrica and absence of horizontal overflow at 390/320 px.
+- Server filesystem after activation: 38 GB total, 6.8 GB available (83% used). The release itself occupies approximately 149 MB.
