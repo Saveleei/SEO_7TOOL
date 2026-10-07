@@ -18,5 +18,24 @@
   - ESLint: 0 ошибок, 1 ранее существовавший warning в `YandexMetrika.tsx`.
   - `vinext build`: успешно.
   - Визуально проверено на 1440×900, 820×900, 390×844 и 320×700; горизонтального переполнения нет.
-- Публикация: не выполнялась; требуется отдельное явное разрешение пользователя.
-- Статус: готов кандидат к ревью/публикации.
+- Серверная проверка кандидата:
+  - release: `/var/www/7tool-release-20261007-catalog-menu-7e9f523`;
+  - production preflight: 10/10;
+  - server ESLint: 0 ошибок, 1 ранее существовавший warning в `YandexMetrika.tsx`;
+  - production Vinext build: успешно;
+  - public candidate smoke на `127.0.0.1:3265`: главная, каталог, компания, контакты, две категории, товар, robots, sitemap и динамический фид — успешно; анонимные admin/test маршруты — 307;
+  - повторный полный `npm test` на копии production использовал уже заполненные stateful-каталоги и дал 374/411 из-за конфликтов повторного создания записей; релизный гейт использовал чистый локальный прогон 411/411 и независимый server smoke.
+- Публикация:
+  - пользователь подтвердил финальное переключение;
+  - активный release: `/var/www/7tool-release-20261007-catalog-menu-7e9f523`;
+  - active link: `/var/www/7tool-production-current`;
+  - PM2: `7tool-prod`, PID `118449`, CWD нового release;
+  - backup: `/var/www/7tool-production-shared/backups/20261007-before-catalog-menu-7e9f523`;
+  - предыдущий release `/var/www/7tool-release-20261007-mobile-home-3cf5b98-r2` сохранён для rollback и как источник общего `node_modules`;
+  - cron, shared env, quote-data, фиды и URL не изменялись; admin на публичном домене возвращает 307;
+  - свободно 12 ГБ из 38 ГБ, использование 71%.
+- Post-deploy QA на `https://7tool.ru/?release=7e9f523`:
+  - desktop: 6/6 направлений видимы, блок менеджера отсутствует, ширина меню не создаёт горизонтального overflow;
+  - mobile: 6 компактных строк направлений, desktop-сетка скрыта, панель равна ширине viewport и имеет `overflow-x:hidden`;
+  - аккордеон «Сверление и резьба» раскрывается, показывает 6 категорий и все 3 перекрёстные ссылки на режущий инструмент.
+- Статус: опубликовано и проверено на production.
