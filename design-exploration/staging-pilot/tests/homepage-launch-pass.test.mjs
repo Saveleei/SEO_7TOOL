@@ -67,11 +67,10 @@ test("homepage production tasks expose large image-led category paths", async ()
   assert.match(css, /\.homepage-task-path\[data-expanded="true"\] \.homepage-task-path__subcategories/u);
 });
 
-test("homepage popular links prioritize annular cutters over compressors", async () => {
+test("homepage hero avoids repeating categories already visible in the visual catalog", async () => {
   const page = await read("../app/page.tsx");
-  const shortcuts = page.slice(page.indexOf('className="hero-category-shortcuts"'), page.indexOf('className="hero-direct-contacts"'));
-  assert.match(shortcuts, /href="\/c\/koronchatye-sverla">Корончатые сверла/u);
-  assert.doesNotMatch(shortcuts, /href="\/c\/kompressory"/u);
+  assert.doesNotMatch(page, /className="hero-category-shortcuts"/u);
+  assert.match(page, /<HomepageCategoryTiles categories=\{homepageKeyCategories\} compact \/>/u);
 });
 
 test("trust section exposes photo-first verifiable evidence instead of unsupported claims", async () => {

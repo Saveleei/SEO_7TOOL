@@ -68,13 +68,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
                 <HomepageCategoryTiles categories={homepageKeyCategories.slice(0, 4)} compact />
                 <Link href="/catalog">Все {formatCategoryCount(categoryCount)} →</Link>
               </div>
-              <nav className="hero-category-shortcuts" aria-label="Популярные категории">
-                <span>Часто ищут:</span>
-                <Link href="/c/stanki-sverlilnye">Магнитные станки</Link>
-                <Link href="/c/kromkorezy-dlya-trub">Кромкорезы для труб</Link>
-                <Link href="/c/borfrezy">Борфрезы</Link>
-                <Link href="/c/koronchatye-sverla">Корончатые сверла</Link>
-              </nav>
               <div className="hero-direct-contacts" data-contact-placement="homepage_hero">
                 <span>Нужно быстро уточнить возможность поставки?</span>
                 <a href={siteContact.phoneHref}><small>Позвонить</small><b>{siteContact.phone}</b></a>

@@ -9788,3 +9788,19 @@ h1,h2,h3,.hero h1,.page-hero h1,.section-heading h2,.assurance-section .section-
   .category-page-shell .feed-product-grid--mobile-grid .feed-product-specs dt { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
   .category-page-shell .feed-product-grid--mobile-grid .feed-product-specs dd { margin-top:2px; text-align:left; }
 }
+
+/* Stage 3: a shorter desktop hero gives the visual catalog priority without
+   repeating the same destinations as text chips in the copy column. */
+@media (min-width:1181px) {
+  .homepage-main .hero-grid { min-height:620px; padding-block:34px; }
+  .homepage-main .hero h1 { max-width:720px; font-size:clamp(48px,3.75vw,58px); line-height:1; }
+  .homepage-main .hero-catalog-card { min-height:560px; }
+  .homepage-main .homepage-category-tiles--hero { grid-auto-rows:132px; }
+  .homepage-main .homepage-category-tiles--hero .homepage-category-tile,
+  .homepage-main .homepage-category-tiles--hero .homepage-category-tile--1,
+  .homepage-main .homepage-category-tiles--hero .homepage-category-tile--2,
+  .homepage-main .homepage-category-tiles--hero .homepage-category-tile--3,
+  .homepage-main .homepage-category-tiles--hero .homepage-category-tile--4,
+  .homepage-main .homepage-category-tiles--hero .homepage-category-tile--5,
+  .homepage-main .homepage-category-tiles--hero .homepage-category-tile--6 { grid-template-columns:minmax(0,1fr) 122px; }
+}
