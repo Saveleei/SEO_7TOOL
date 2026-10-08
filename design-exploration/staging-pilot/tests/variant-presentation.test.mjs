@@ -320,12 +320,16 @@ test("product comparison keeps price columns stable", async () => {
 });
 
 test("selected execution drives every server-rendered product area", async () => {
-  const page = await readFile(new URL("../app/product/[slug]/page.tsx", import.meta.url), "utf8");
+  const [page, purchase] = await Promise.all([
+    readFile(new URL("../app/product/[slug]/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/ui/FeedProductPurchase.tsx", import.meta.url), "utf8"),
+  ]);
   assert.match(page, /const primaryVariant = allVariants\.find\(\(variant\) => variant\.id === selectedVariantId\)/u);
   assert.match(page, /primaryVariant\?\.images/u);
   assert.match(page, /getFeedVariantSpecs\(product, primaryVariant\)/u);
   assert.match(page, /formatFeedPrice\(primaryVariant\?\.price\)/u);
-  assert.match(page, /id:`variant:\$\{primaryVariant\.id\}`/u);
+  assert.match(page, /selectedVariantId=\{primaryVariant\?\.id\}/u);
+  assert.match(purchase, /id:`variant:\$\{selected\.id\}`/u);
   assert.match(page, /selectedProductContext/u);
   assert.match(page, /expertProfile\.criteria/u);
   assert.doesNotMatch(page, /Сообщите материал, толщину и глубину отверстия/u);

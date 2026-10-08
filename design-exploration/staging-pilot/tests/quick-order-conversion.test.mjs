@@ -38,22 +38,19 @@ test("analytics contains product context but no client contacts", async () => {
   assert.doesNotMatch(tracker, /phone|company|comment|email/ui);
 });
 
-test("category cards, table rows and product buybox expose the same exact-variant action", async () => {
+test("category cards, table rows and product buybox expose one exact-variant quote action", async () => {
   const [card, table, purchase] = await Promise.all([
     readFile(new URL("../app/ui/FeedProductCard.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/ui/FeedProductTable.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/ui/FeedProductPurchase.tsx", import.meta.url), "utf8"),
   ]);
-  assert.match(card, /<QuickOrderDialog[\s\S]*placement="category_card"/u);
-  assert.match(table, /placement="category_table"/u);
-  assert.match(table, /placement="category_mobile"/u);
-  assert.match(purchase, /placement="product_buybox"/u);
-  assert.match(purchase, /items\.length > 0 && <button className="feed-open-quote"/u);
   for (const source of [card, table, purchase]) {
     assert.match(source, /Получить КП/u);
     assert.doesNotMatch(source, /feed-quote-secondary|>В запрос</u);
-    assert.match(source, /feed-quote-quick/u);
+    assert.doesNotMatch(source, /feed-quote-quick|feed-open-quote|QuickOrderDialog/u);
   }
+  assert.doesNotMatch(card, /feed-all-characteristics/u);
+  assert.doesNotMatch(table, /feed-all-characteristics|feed-mobile-all-variants/u);
 });
 
 test("all public exact-variant entry points use one quote action label", async () => {

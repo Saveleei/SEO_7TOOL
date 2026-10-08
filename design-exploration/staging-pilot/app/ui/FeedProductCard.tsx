@@ -4,7 +4,6 @@ import Image from "next/image";
 import { useState } from "react";
 import { pluralizeCardVariants } from "../data/categoryCardArchetypes.mjs";
 import type { FeedProductCardModel, FeedProductVariantModel } from "../data/feedCatalog";
-import { QuickOrderDialog } from "./QuickOrderDialog";
 import { AddRequestButton } from "./RequestCart";
 import { FeedAvailability } from "./FeedAvailability";
 import { preloadVariantPickerItems, VariantPickerDialog, type VariantPickerItem } from "./VariantPickerDialog";
@@ -47,9 +46,7 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
         <div className="feed-product-actions">
           {directVariant ? <>
             <AddRequestButton className="feed-quote-primary" openAfterAdd item={{ id:`variant:${directVariant.id}`, title:directVariant.title || product.title, article:variantArticle(directVariant.sku), price:directVariant.price, image:directVariant.image, href:directVariant.href, shippingLabel:directVariant.shippingPromise.label, shippingDetail:directVariant.shippingPromise.detail }}>Получить КП</AddRequestButton>
-            <QuickOrderDialog className="feed-quote-quick" item={{ id:`variant:${directVariant.id}`, title:directVariant.title || product.title, article:variantArticle(directVariant.sku), price:directVariant.price, image:directVariant.image, href:directVariant.href, shippingLabel:directVariant.shippingPromise.label, shippingDetail:directVariant.shippingPromise.detail }} available={directVariant.shippingPromise.available} productId={product.id} variantId={directVariant.id} category={product.categorySlug} placement="category_card" pageType="category" />
           </> : <button type="button" aria-haspopup="dialog" data-variant-count={product.selectedVariantCount} onPointerEnter={warmVariants} onPointerDown={warmVariants} onFocus={warmVariants} onClick={() => setPickerOpen(true)}>{archetype.multipleAction} · {product.selectedVariantCount}</button>}
-          <a className="feed-all-characteristics" href={`/p/${product.slug}`} aria-label={`Перейти к товару: ${product.title}`}>Перейти к товару →</a>
         </div>
       </div>
     </div>

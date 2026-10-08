@@ -56,9 +56,9 @@ test("product page surfaces the scenario before purchase and carries it through 
   assert.match(page, /data-product-archetype=\{pageArchetype\.id\}/u);
   assert.match(purchase, /feed-quote-primary[\s\S]*Получить КП/u);
   assert.doesNotMatch(purchase, /feed-quote-secondary|>В запрос</u);
-  assert.match(purchase, /feed-quote-quick/u);
+  assert.doesNotMatch(purchase, /feed-quote-quick|feed-open-quote|QuickOrderDialog/u);
   assert.match(purchase, /pageArchetype\.fitAction/u);
-  assert.match(purchase, /pageArchetype\.compareAction/u);
+  assert.match(purchase, />Сравнить<\/button>/u);
   assert.match(recommendations, /heading=\{pageArchetype\.comparisonTitle\}/u);
   assert.match(recommendations, /pageArchetype\.compatibilityTitle/u);
   assert.match(comparison, /\{heading\}/u);

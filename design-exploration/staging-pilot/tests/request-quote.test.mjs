@@ -79,15 +79,17 @@ test("invoice requisites are optional, progressive and size-bounded", async () =
   assert.match(styles, /\.request-cart-requisites>summary \{[^}]*cursor:pointer/us);
 });
 
-test("mobile product buybar opens the existing quote instead of changing its quantity", async () => {
-  const [component, page, styles] = await Promise.all([
+test("product page exposes one quote action instead of a duplicated mobile buybar", async () => {
+  const [component, page, purchase, styles] = await Promise.all([
     readFile(new URL("../app/ui/RequestCart.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/product/[slug]/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/ui/FeedProductPurchase.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
   ]);
   assert.match(component, /added && \(openWhenAdded \|\| openAfterAdd\)/u);
   assert.match(component, /added && \(openWhenAdded \|\| openAfterAdd\) \? "Открыть КП" : addedLabel/u);
-  assert.match(page, /<AddRequestButton openWhenAdded item=/u);
+  assert.doesNotMatch(page, /product-mobile-buybar|<AddRequestButton openWhenAdded item=/u);
+  assert.match(purchase, /\{added \? "Открыть КП" : "Получить КП"\}/u);
   assert.match(styles, /\.site-shell:has\(\.feed-product-conversion-page\) \.mobile-action-bar \{ display:none; \}/u);
   assert.match(styles, /\.request-cart-item-copy \{ padding-right:68px; \}/u);
 });

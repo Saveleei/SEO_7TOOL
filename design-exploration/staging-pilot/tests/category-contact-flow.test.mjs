@@ -147,17 +147,17 @@ test("selection criteria end with one compact conversion block", async () => {
   assert.match(styles, /grid-template-areas:"heading \." "criteria manager" "note manager" "conversion manager"/u);
 });
 
-test("product cards use readable actions and a native full-details navigation", async () => {
+test("product cards use readable actions and make media and titles the product navigation", async () => {
   const card = await readFile(new URL("../app/ui/FeedProductCard.tsx", import.meta.url), "utf8");
   const list = await readFile(new URL("../app/ui/FeedProductList.tsx", import.meta.url), "utf8");
   const table = await readFile(new URL("../app/ui/FeedProductTable.tsx", import.meta.url), "utf8");
   const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
   assert.match(card, /<a className="feed-product-media" href=/u);
   assert.match(card, /<h3><a href=/u);
-  assert.match(card, /<a className="feed-all-characteristics" href=/u);
+  assert.doesNotMatch(card, /feed-all-characteristics/u);
   assert.match(list, /<FeedProductCard product=\{product\}/u);
   assert.match(card, /href=\{`\/p\/\$\{product\.slug\}`\}/u);
-  assert.match(table, /<a className="feed-all-characteristics" href=/u);
+  assert.doesNotMatch(table, /feed-all-characteristics/u);
   assert.doesNotMatch(card, /from "next\/link"/u);
   assert.doesNotMatch(list, /from "next\/link"/u);
   assert.match(styles, /\.feed-product-identity h3>a \{[^}]*display:block/us);
@@ -219,7 +219,7 @@ test("an exact category result can be added without an extra reveal", async () =
   assert.match(card, /product\.selectedVariantCount === 1 \? product\.variants\[0\]/u);
   assert.match(card, /<AddRequestButton className="feed-quote-primary" openAfterAdd[^>]*directVariant\.id[\s\S]*>Получить КП<\/AddRequestButton>/u);
   assert.doesNotMatch(card, /feed-quote-secondary|>В запрос<\/AddRequestButton>/u);
-  assert.match(card, /<QuickOrderDialog className="feed-quote-quick"/u);
+  assert.doesNotMatch(card, /QuickOrderDialog|feed-quote-quick/u);
 });
 
 test("guided selectors make engineer consultation primary and product results secondary", async () => {
