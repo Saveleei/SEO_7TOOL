@@ -99,6 +99,13 @@ export function getCategoryCardArchetypeSlugs() {
   return Object.keys(categoryCardArchetypeIds);
 }
 
+export function getDefaultMobileCatalogView(categorySlug) {
+  const archetype = getCategoryCardArchetype(categorySlug);
+  return archetype.id === "machine" || archetype.id === "mobile-processing" || archetype.id === "project-system"
+    ? "list"
+    : "grid";
+}
+
 export function pluralizeCardVariants(count, forms) {
   const modulo100 = count % 100;
   const modulo10 = count % 10;

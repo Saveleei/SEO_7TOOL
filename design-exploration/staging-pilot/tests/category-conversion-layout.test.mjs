@@ -4,9 +4,10 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
 
-test("categories keep a desktop table while defaulting mobile to a two-column grid", async () => {
-  const [page, viewSwitch, list, table, css] = await Promise.all([
+test("categories select the default mobile layout by product archetype", async () => {
+  const [page, archetypes, viewSwitch, list, table, css] = await Promise.all([
     read("../app/catalog/category/[slug]/page.tsx"),
+    read("../app/data/categoryCardArchetypes.mjs"),
     read("../app/ui/CatalogViewSwitch.tsx"),
     read("../app/ui/FeedProductList.tsx"),
     read("../app/ui/FeedProductTable.tsx"),
@@ -15,22 +16,26 @@ test("categories keep a desktop table while defaulting mobile to a two-column gr
 
   assert.match(page, /requestedView === "grid" \|\| requestedView === "cards" \? "grid" : requestedView === "list" \? "list" : "auto"/u);
   assert.match(page, /const desktopView = view === "auto" \? canUseTable \? "list" : "grid" : view/u);
-  assert.match(page, /const mobileView = view === "auto" \? "grid" : view/u);
+  assert.match(page, /const mobileView = view === "auto" \? getDefaultMobileCatalogView\(slug\) : view/u);
+  assert.match(archetypes, /getDefaultMobileCatalogView/u);
+  assert.match(archetypes, /archetype\.id === "machine" \|\| archetype\.id === "mobile-processing" \|\| archetype\.id === "project-system"/u);
   assert.match(page, /<CatalogViewSwitch mode="desktop"/u);
   assert.match(page, /<CatalogViewSwitch mode="mobile"/u);
   assert.match(viewSwitch, /aria-label="Вид товаров"/u);
-  assert.match(viewSwitch, /mode === "desktop" \? "Таблицей" : "Списком"/u);
+  assert.match(viewSwitch, /mode === "desktop" \? "Таблица" : "Список"/u);
   assert.match(viewSwitch, /<span>Плиткой<\/span>/u);
   assert.match(viewSwitch, /7tool:catalog-view:v1/u);
   assert.match(viewSwitch, /window\.location\.replace/u);
-  assert.match(page, /\(view === "list" \|\| view === "auto"\) && canUseTable/u);
-  assert.match(page, /mobileLayout=\{view === "auto" \? "grid" : "list"\}/u);
-  assert.match(list, /feed-product-grid--\$\{layout\}/u);
+  assert.match(page, /desktopView === "list" && canUseTable/u);
+  assert.match(page, /mobileLayout=\{mobileView\}/u);
+  assert.match(list, /feed-product-grid--\$\{layout\} feed-product-grid--mobile-\$\{mobileLayout\}/u);
   assert.match(table, /mobileLayout = "list"/u);
-  assert.match(table, /feed-product-grid--mobile-default/u);
+  assert.match(table, /feed-product-grid--mobile-grid/u);
   assert.match(table, /mobileLayout === "grid" \? 4 : 3/u);
   assert.match(css, /\.category-page-shell \.feed-product-grid--grid \{[\s\S]*?grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/u);
   assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.feed-product-grid--grid \{ grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/u);
+  assert.match(css, /\.category-page-shell \.feed-product-grid--mobile-list \{[\s\S]*?grid-template-columns:1fr!important/u);
+  assert.match(css, /\.category-page-shell \.feed-product-grid--mobile-grid \.feed-product-card--precision-tooling \.feed-product-specs/u);
   assert.match(css, /\.category-page-shell \.feed-view-switch--mobile \{ display:none; \}/u);
   assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.category-page-shell \.feed-view-switch--desktop \{ display:none; \}[\s\S]*?\.category-page-shell \.feed-view-switch--mobile \{ display:flex; \}/u);
 });

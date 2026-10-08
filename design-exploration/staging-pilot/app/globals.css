@@ -8665,6 +8665,140 @@ h1,h2,h3,.hero h1,.page-hero h1,.section-heading h2,.assurance-section .section-
   .hero-mobile-catalog-preview .homepage-category-tile--2 .homepage-category-tile-copy>b { font-size:12px; }
 }
 
+/* Product-card decision system — 2026-10-08.
+   Equipment defaults to a readable mobile list; compact visual assortments
+   retain a two-column grid with the two decisive specifications visible. */
+@media (min-width:761px) {
+  .category-page-shell .feed-product-grid--list { gap:8px; }
+  .category-page-shell .feed-product-grid--list .feed-product-card,
+  .category-page-shell .feed-product-grid--list .feed-product-card--machine,
+  .category-page-shell .feed-product-grid--list .feed-product-card--project-system,
+  .category-page-shell .feed-product-grid--list .feed-product-card--precision-tooling,
+  .category-page-shell .feed-product-grid--list .feed-product-card--process-supply {
+    grid-template-columns:156px minmax(0,1fr);
+  }
+  .category-page-shell .feed-product-grid--list .feed-product-media {
+    min-height:218px;
+    background:#fff;
+  }
+  .category-page-shell .feed-product-grid--list .feed-product-media img,
+  .category-page-shell .feed-product-grid--list .feed-product-card--precision-tooling .feed-product-media img,
+  .category-page-shell .feed-product-grid--list .feed-product-card--process-supply .feed-product-media img {
+    width:92%;
+    height:158px;
+    transform:none;
+  }
+  .category-page-shell .feed-product-grid--list .feed-product-card:hover .feed-product-media img { transform:scale(1.035); }
+  .category-page-shell .feed-product-grid--list .feed-product-identity { padding:14px; }
+  .category-page-shell .feed-product-grid--list .feed-product-specs { padding:11px 14px; }
+  .category-page-shell .feed-product-grid--list .feed-product-commercial { padding:13px; }
+}
+
+@media (max-width:760px) {
+  .category-page-shell .feed-product-grid--mobile-list {
+    grid-template-columns:1fr!important;
+    gap:8px;
+  }
+  .category-page-shell .feed-product-grid--mobile-list .feed-product-card,
+  .category-page-shell .feed-product-grid--mobile-list .feed-product-card--machine,
+  .category-page-shell .feed-product-grid--mobile-list .feed-product-card--mobile-processing,
+  .category-page-shell .feed-product-grid--mobile-list .feed-product-card--project-system,
+  .category-page-shell .feed-product-grid--mobile-list .feed-product-card--precision-tooling,
+  .category-page-shell .feed-product-grid--mobile-list .feed-product-card--fixtures,
+  .category-page-shell .feed-product-grid--mobile-list .feed-product-card--process-supply {
+    display:grid;
+    grid-template-columns:106px minmax(0,1fr);
+  }
+  .category-page-shell .feed-product-grid--mobile-list .feed-product-media {
+    width:auto;
+    min-height:132px;
+    height:100%;
+    grid-column:1;
+    grid-row:1;
+    background:#fff;
+  }
+  .category-page-shell .feed-product-grid--mobile-list .feed-product-media img,
+  .category-page-shell .feed-product-grid--mobile-list .feed-product-card--precision-tooling .feed-product-media img,
+  .category-page-shell .feed-product-grid--mobile-list .feed-product-card--process-supply .feed-product-media img {
+    width:92%;
+    height:112px;
+  }
+  .category-page-shell .feed-product-grid--mobile-list .feed-product-copy { display:contents; }
+  .category-page-shell .feed-product-grid--mobile-list .feed-product-identity {
+    min-width:0;
+    grid-column:2;
+    grid-row:1;
+    padding:10px 11px;
+  }
+  .category-page-shell .feed-product-grid--mobile-list .feed-product-kind,
+  .category-page-shell .feed-product-grid--mobile-list .feed-product-task-label { display:none; }
+  .category-page-shell .feed-product-grid--mobile-list .feed-product-identity h3 {
+    display:-webkit-box;
+    overflow:hidden;
+    margin:4px 0 5px;
+    font-size:15px;
+    line-height:1.25;
+    -webkit-box-orient:vertical;
+    -webkit-line-clamp:3;
+  }
+  .category-page-shell .feed-product-grid--mobile-list .feed-product-identity>p { font-size:var(--type-caption); }
+  .category-page-shell .feed-product-grid--mobile-list .feed-product-specs {
+    grid-column:1/-1;
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    padding:0;
+    border:0;
+    border-top:1px solid #e4e8e2;
+  }
+  .category-page-shell .feed-product-grid--mobile-list .feed-product-specs>div {
+    min-height:52px;
+    display:block;
+    padding:7px 10px;
+    border:0;
+    border-right:1px solid #e8ebe6;
+  }
+  .category-page-shell .feed-product-grid--mobile-list .feed-product-specs>div:nth-child(n+3) { display:none; }
+  .category-page-shell .feed-product-grid--mobile-list .feed-product-specs>div:nth-child(2) { border-right:0; }
+  .category-page-shell .feed-product-grid--mobile-list .feed-product-specs dd { margin-top:2px; text-align:left; }
+  .category-page-shell .feed-product-grid--mobile-list .feed-product-commercial {
+    grid-column:1/-1;
+    margin:0;
+    padding:9px 10px 10px;
+    border-top:1px solid #e4e8e2;
+  }
+
+  .category-page-shell .feed-product-grid--mobile-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .category-page-shell .feed-product-grid--mobile-grid .feed-product-card--precision-tooling .feed-product-specs,
+  .category-page-shell .feed-product-grid--mobile-grid .feed-product-card--fixtures .feed-product-specs,
+  .category-page-shell .feed-product-grid--mobile-grid .feed-product-card--process-supply .feed-product-specs {
+    display:grid;
+    grid-template-columns:1fr;
+    padding:0 9px 6px;
+    border:0;
+  }
+  .category-page-shell .feed-product-grid--mobile-grid .feed-product-card--precision-tooling .feed-product-specs>div,
+  .category-page-shell .feed-product-grid--mobile-grid .feed-product-card--fixtures .feed-product-specs>div,
+  .category-page-shell .feed-product-grid--mobile-grid .feed-product-card--process-supply .feed-product-specs>div {
+    min-height:0;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:5px;
+    padding:5px 0;
+    border:0;
+    border-top:1px solid #ecefea;
+  }
+  .category-page-shell .feed-product-grid--mobile-grid .feed-product-specs>div:nth-child(n+3) { display:none; }
+  .category-page-shell .feed-product-grid--mobile-grid .feed-product-specs dt,
+  .category-page-shell .feed-product-grid--mobile-grid .feed-product-specs dd {
+    min-width:0;
+    margin:0;
+    font-size:var(--type-caption);
+    line-height:1.25;
+  }
+  .category-page-shell .feed-product-grid--mobile-grid .feed-product-specs dd { text-align:right; }
+  .category-page-shell .feed-availability { white-space:nowrap; }
+}
+
 /* Final B2B quote hierarchy: one КП action and a short phone request. */
 .feed-product-actions:has(.feed-quote-primary) { grid-template-columns:1fr 1fr; }
 .feed-product-actions:has(.feed-quote-primary)>.feed-quote-primary { grid-column:1/-1; }
@@ -9625,4 +9759,32 @@ h1,h2,h3,.hero h1,.page-hero h1,.section-heading h2,.assurance-section .section-
   .hero-mobile-catalog-preview .homepage-category-tiles--hero .homepage-category-tile--4 { height:148px; grid-template-rows:88px minmax(0,1fr); }
   .hero-mobile-catalog-preview .homepage-category-tile-copy>b,
   .hero-mobile-catalog-preview .homepage-category-tile--2 .homepage-category-tile-copy>b { font-size:12px; }
+}
+
+/* Stage 2 final precedence — this block intentionally closes the stylesheet. */
+@media (min-width:761px) {
+  .category-page-shell .feed-product-grid--list .feed-product-card,
+  .category-page-shell .feed-product-grid--list .feed-product-card--machine,
+  .category-page-shell .feed-product-grid--list .feed-product-card--project-system,
+  .category-page-shell .feed-product-grid--list .feed-product-card--precision-tooling,
+  .category-page-shell .feed-product-grid--list .feed-product-card--process-supply { grid-template-columns:156px minmax(0,1fr); }
+  .category-page-shell .feed-product-grid--list .feed-product-media { min-height:218px; background:#fff; }
+  .category-page-shell .feed-product-grid--list .feed-product-media img,
+  .category-page-shell .feed-product-grid--list .feed-product-card--precision-tooling .feed-product-media img,
+  .category-page-shell .feed-product-grid--list .feed-product-card--process-supply .feed-product-media img { width:92%; height:158px; transform:none; }
+  .category-page-shell .feed-product-grid--list .feed-product-card:hover .feed-product-media img { transform:scale(1.035); }
+}
+
+@media (max-width:760px) {
+  .category-page-shell .feed-product-grid--mobile-grid .feed-product-card--precision-tooling .feed-product-specs,
+  .category-page-shell .feed-product-grid--mobile-grid .feed-product-card--fixtures .feed-product-specs,
+  .category-page-shell .feed-product-grid--mobile-grid .feed-product-card--process-supply .feed-product-specs { display:grid; grid-template-columns:1fr; padding:0 9px 6px; border:0; }
+  .category-page-shell .feed-product-grid--mobile-grid .feed-product-card--precision-tooling .feed-product-specs>div,
+  .category-page-shell .feed-product-grid--mobile-grid .feed-product-card--fixtures .feed-product-specs>div,
+  .category-page-shell .feed-product-grid--mobile-grid .feed-product-card--process-supply .feed-product-specs>div { min-height:0; display:block; padding:5px 0; border:0; border-top:1px solid #ecefea; }
+  .category-page-shell .feed-product-grid--mobile-grid .feed-product-specs>div:nth-child(n+3) { display:none; }
+  .category-page-shell .feed-product-grid--mobile-grid .feed-product-specs dt,
+  .category-page-shell .feed-product-grid--mobile-grid .feed-product-specs dd { min-width:0; margin:0; font-size:var(--type-caption); line-height:1.25; overflow-wrap:normal; word-break:normal; }
+  .category-page-shell .feed-product-grid--mobile-grid .feed-product-specs dt { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
+  .category-page-shell .feed-product-grid--mobile-grid .feed-product-specs dd { margin-top:2px; text-align:left; }
 }

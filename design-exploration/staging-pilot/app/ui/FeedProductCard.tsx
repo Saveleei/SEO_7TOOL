@@ -33,7 +33,7 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
         {product.taskLabel && <em className="feed-product-task-label">{product.taskLabel}</em>}
         <span>{product.brand}{product.sku ? ` · ${product.sku}` : ""}</span>
         <h3><a href={`/p/${product.slug}`}>{product.title}</a></h3>
-        <p>{product.selectedVariantCount !== product.variantCount ? `${visibleVariantLabel} подходит из ${product.variantCount}` : product.variantCount > 1 ? `${visibleVariantLabel} в одной товарной группе` : visibleVariantLabel}</p>
+        {product.variantCount > 1 && <p>{product.selectedVariantCount !== product.variantCount ? `${visibleVariantLabel} подходит из ${product.variantCount}` : `${visibleVariantLabel} в одной товарной группе`}</p>}
         {product.matchReasons.length > 0 && <div className="feed-product-match" aria-label="Почему товар подходит"><b>Подходит по выбранным параметрам</b>{product.matchReasons.map((reason) => <span key={reason}>{reason}</span>)}</div>}
       </div>
 
@@ -42,7 +42,7 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
       <div className="feed-product-commercial">
         <label className="feed-compare-check"><input type="checkbox" aria-label={`Сравнить ${product.title}`} checked={selected} onChange={onCompare} /> Сравнить</label>
         <div className="feed-product-price"><b>{product.price}</b><small>{product.variantCount > 1 ? "с НДС · зависит от исполнения" : "с НДС · подтвердим в КП"}</small></div>
-        <FeedAvailability shippingPromise={product.shippingPromise} />
+        <FeedAvailability shippingPromise={product.shippingPromise} compact />
         <div className="feed-product-actions">
           {directVariant ? <>
             <AddRequestButton className="feed-quote-primary" openAfterAdd item={{ id:`variant:${directVariant.id}`, title:directVariant.title || product.title, article:variantArticle(directVariant.sku), price:directVariant.price, image:directVariant.image, href:directVariant.href, shippingLabel:directVariant.shippingPromise.label, shippingDetail:directVariant.shippingPromise.detail }}>Получить КП</AddRequestButton>

@@ -4,10 +4,15 @@ type FeedAvailabilityProps = {
   shippingPromise: FeedShippingPromise;
   count?: number;
   exact?: boolean;
+  compact?: boolean;
 };
 
-export function FeedAvailability({ shippingPromise, count, exact = false }: FeedAvailabilityProps) {
-  const label = shippingPromise.available
+export function FeedAvailability({ shippingPromise, count, exact = false, compact = false }: FeedAvailabilityProps) {
+  const label = compact
+    ? shippingPromise.available
+      ? typeof count === "number" ? `В наличии: ${count}` : "В наличии"
+      : "Наличие уточним"
+    : shippingPromise.available
     ? typeof count === "number"
       ? `${count} ${variantWord(count)} в наличии · ${shippingPromise.shipmentLabel}`
       : exact ? shippingPromise.label : `В наличии · ${shippingPromise.shipmentLabel}`
@@ -15,7 +20,7 @@ export function FeedAvailability({ shippingPromise, count, exact = false }: Feed
 
   return <div className="feed-availability-block">
     <span className={shippingPromise.available ? "feed-availability feed-availability--positive" : "feed-availability"}>{label}</span>
-    <small>{shippingPromise.detail}</small>
+    {!compact && <small>{shippingPromise.detail}</small>}
   </div>;
 }
 

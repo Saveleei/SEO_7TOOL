@@ -20,6 +20,7 @@ import { SocialShareButton } from "../../../ui/SocialShareButton";
 import { TestRequestForm } from "../../../ui/TestRequestForm";
 import { AutoApplyFilterPanel, AutoApplySortForm } from "../../../ui/AutoApplyFilters";
 import { buildCategoryQueryContext, findCategorySelectionOption, getCategorySelectionRule } from "../../../data/categorySelection.mjs";
+import { getDefaultMobileCatalogView } from "../../../data/categoryCardArchetypes.mjs";
 import { getCategoryExpertProfile, selectCategoryAssistantFacets, selectCategoryFacets } from "../../../data/categoryExpertProfiles.mjs";
 import { getFeedCategory, getFeedCategoryPage, getFeedCategoryProductCountForQuery, getFeedCategoryProductType, getFeedCategoryRecoverySuggestions, getFeedProductImage, getFeedTableColumns, getGuidedFacetOptions, getPromotedFacetOptions, prefersDenseFeedTable, type FeedCategoryQuery, type FeedCategorySegment, type FeedCategorySort, type FeedCategorySubsegment, type FeedFacet, type FeedProductType, type FeedVariantFilter, toFeedProductCardModel } from "../../../data/feedCatalog";
 import { getProductionSubcategory } from "../../../data/productionCategoryGroups";
@@ -150,7 +151,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const canUseTable = prefersDenseFeedTable(slug);
   const view = requestedView === "grid" || requestedView === "cards" ? "grid" : requestedView === "list" ? "list" : "auto";
   const desktopView = view === "auto" ? canUseTable ? "list" : "grid" : view;
-  const mobileView = view === "auto" ? "grid" : view;
+  const mobileView = view === "auto" ? getDefaultMobileCatalogView(slug) : view;
   const activeFilterCount = Object.values(filters).reduce((sum, values) => sum + values.length, 0) + Object.keys(numericMinimums).length + Object.keys(numericMaximums).length + (search ? 1 : 0) + (inStockOnly ? 1 : 0) + (productTypeChanged ? 1 : 0) + (segment ? 1 : 0) + (subsegment ? 1 : 0) + (family ? 1 : 0);
   const selectorHref = slug === "borfrezy" ? "#burr-selector" : slug === "stanki-sverlilnye" ? "#drill-selector" : "#category-selector";
   const activeSelectorHref = browsingAccessories ? "#category-selector" : selectorHref;
@@ -423,7 +424,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
             <PromotedFilterLink className="feed-reset-all" href={`/c/${slug}#products`}>Очистить всё</PromotedFilterLink>
           </nav>}
 
-          {result.products.length > 0 ? (view === "list" || view === "auto") && canUseTable ? <FeedProductTable products={productCards} columns={tableColumns} after={inlineSelectionAssistant} mobileLayout={view === "auto" ? "grid" : "list"} /> : <FeedProductList products={productCards} layout={view === "auto" ? "grid" : view} after={inlineSelectionAssistant} /> : <div className="feed-state feed-state--guided"><span>Нет точных совпадений</span><h2>Не нужно начинать подбор заново</h2><p>{emptyCopy}</p>
+          {result.products.length > 0 ? desktopView === "list" && canUseTable ? <FeedProductTable products={productCards} columns={tableColumns} after={inlineSelectionAssistant} mobileLayout={mobileView} /> : <FeedProductList products={productCards} layout={desktopView} mobileLayout={mobileView} after={inlineSelectionAssistant} /> : <div className="feed-state feed-state--guided"><span>Нет точных совпадений</span><h2>Не нужно начинать подбор заново</h2><p>{emptyCopy}</p>
             {recoverySuggestions.length > 0 && <nav className="feed-recovery-options" aria-label="Как расширить результаты"><b>Сохранить остальные условия и:</b>{recoverySuggestions.map((suggestion) => <Link href={categoryUrl(slug, rawSearchParams, { removeKeys:suggestion.removeKeys })} key={suggestion.removeKeys.join("|")}><span>{suggestion.label}</span><small>{suggestion.resultCount.toLocaleString("ru-RU")} {pluralizeProductGroups(suggestion.resultCount)}</small></Link>)}</nav>}
             <div className="feed-state-actions"><Link className="button" href={`/c/${slug}#products`}>Сбросить все условия</Link><a className="button button-orange" href={activeSelectorHref}>{slug === "borfrezy" ? "Изменить подбор формы" : "Изменить условия подбора"}</a></div>
             <details className="feed-zero-request"><summary>Не ослаблять требования — передать инженеру</summary><TestRequestForm compact primaryContact="phone" context={activeQueryContext} buttonLabel="Заказать проверку параметров" /></details>

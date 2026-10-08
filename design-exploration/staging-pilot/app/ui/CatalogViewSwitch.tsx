@@ -50,7 +50,7 @@ export function CatalogViewSwitch({ mode, activeView, explicitView, listHref, gr
   }
 
   return <nav className={`feed-view-switch feed-view-switch--${mode}`} aria-label="Вид товаров">
-    <a className={activeView === "list" ? "active" : undefined} aria-current={activeView === "list" ? "page" : undefined} data-conversion-action="listing_view_list" href={listHref} onClick={() => remember("list")}><i aria-hidden="true">☷</i><span>{mode === "desktop" ? "Таблицей" : "Списком"}</span></a>
+    <a className={activeView === "list" ? "active" : undefined} aria-current={activeView === "list" ? "page" : undefined} data-conversion-action="listing_view_list" href={listHref} onClick={() => remember("list")}><i aria-hidden="true">☷</i><span>{mode === "desktop" ? "Таблица" : "Список"}</span></a>
     <a className={activeView === "grid" ? "active" : undefined} aria-current={activeView === "grid" ? "page" : undefined} data-conversion-action="listing_view_grid" href={gridHref} onClick={() => remember("grid")}><i aria-hidden="true">▦</i><span>Плиткой</span></a>
   </nav>;
 }

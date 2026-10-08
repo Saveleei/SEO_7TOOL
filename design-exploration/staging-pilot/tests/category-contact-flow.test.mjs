@@ -214,7 +214,7 @@ test("an exact category result can be added without an extra reveal", async () =
   const page = await readFile(new URL("../app/catalog/category/[slug]/page.tsx", import.meta.url), "utf8");
   const list = await readFile(new URL("../app/ui/FeedProductList.tsx", import.meta.url), "utf8");
   const card = await readFile(new URL("../app/ui/FeedProductCard.tsx", import.meta.url), "utf8");
-  assert.match(page, /<FeedProductList products=\{productCards\} layout=\{view === "auto" \? "grid" : view\} after=\{inlineSelectionAssistant\} \/>/u);
+  assert.match(page, /<FeedProductList products=\{productCards\} layout=\{desktopView\} mobileLayout=\{mobileView\} after=\{inlineSelectionAssistant\} \/>/u);
   assert.doesNotMatch(list, /directSingleVariant/u);
   assert.match(card, /product\.selectedVariantCount === 1 \? product\.variants\[0\]/u);
   assert.match(card, /<AddRequestButton className="feed-quote-primary" openAfterAdd[^>]*directVariant\.id[\s\S]*>Получить КП<\/AddRequestButton>/u);
