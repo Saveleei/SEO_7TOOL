@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { ProductionCategoryGroup } from "../data/productionCategoryGroups";
+import { HomepageCategoryMedia } from "./HomepageCategoryMedia";
 
 export function HomepageTaskPaths({ groups }: { groups: ProductionCategoryGroup[] }) {
   const [expandedGroup, setExpandedGroup] = useState("");
@@ -18,7 +19,8 @@ export function HomepageTaskPaths({ groups }: { groups: ProductionCategoryGroup[
           <button type="button" aria-controls={navigationId} aria-expanded={expanded} aria-label={`${expanded ? "Свернуть" : "Показать"} подразделы: ${group.title}`} onClick={() => setExpandedGroup(expanded ? "" : group.slug)}><span>{expanded ? "Свернуть" : "Разделы"}</span><i aria-hidden="true">{expanded ? "−" : "+"}</i></button>
         </header>
         <nav className="homepage-task-path__subcategories" id={navigationId} aria-label={`Подразделы: ${group.title}`}>
-          {group.subcategories.slice(0, 4).map((category) => <Link href={category.href} key={category.slug}>
+          {group.subcategories.slice(0, 3).map((category) => <Link href={category.href} key={category.slug}>
+            <span className="homepage-task-path__subcategory-media"><HomepageCategoryMedia src={category.image ?? group.image} alt="" sizes="(max-width: 760px) 72px, (max-width: 1180px) 78px, 96px" /></span>
             <span className="homepage-task-path__subcategory-copy"><b>{category.label}</b><small>{formatSeriesCount(category.count ?? 0)}</small></span>
             <i aria-hidden="true">→</i>
           </Link>)}

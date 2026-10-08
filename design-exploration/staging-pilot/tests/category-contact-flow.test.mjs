@@ -214,6 +214,6 @@ test("an exact category result can be added without an extra reveal", async () =
   assert.doesNotMatch(list, /directSingleVariant/u);
   assert.match(card, /product\.selectedVariantCount === 1 \? product\.variants\[0\]/u);
   assert.match(card, /<AddRequestButton className="feed-quote-primary" openAfterAdd[^>]*directVariant\.id[\s\S]*>Получить КП<\/AddRequestButton>/u);
-  assert.match(card, /<AddRequestButton className="feed-quote-secondary"[^>]*directVariant\.id[\s\S]*>В запрос<\/AddRequestButton>/u);
+  assert.doesNotMatch(card, /feed-quote-secondary|>В запрос<\/AddRequestButton>/u);
   assert.match(card, /<QuickOrderDialog className="feed-quote-quick"/u);
 });

@@ -42,24 +42,28 @@ test("homepage category media replaces failed supplier images without layout shi
   assert.match(css, /Grainger visual-entry completion[\s\S]*?max-width:100%;[\s\S]*?overflow-wrap:anywhere;/u);
 });
 
-test("homepage production tasks expose compact direct category paths without duplicating product imagery", async () => {
+test("homepage production tasks expose large image-led category paths", async () => {
   const [paths, css] = await Promise.all([
     read("../app/ui/HomepageTaskPaths.tsx"),
     read("../app/globals.css"),
   ]);
 
   assert.match(paths, /homepage-task-path__subcategories/u);
-  assert.match(paths, /group\.subcategories\.slice\(0, 4\)/u);
+  assert.match(paths, /group\.subcategories\.slice\(0, 3\)/u);
   assert.match(paths, /category\.href/u);
   assert.match(paths, /homepage-task-path__action/u);
   assert.doesNotMatch(paths, /homepage-task-path__more/u);
   assert.match(paths, /formatCategoryCount\(group\.subcategories\.length\)/u);
-  assert.doesNotMatch(paths, /HomepageCategoryMedia|homepage-task-path__subcategory-media/u);
-  assert.doesNotMatch(paths, /group\.representativeImage|group\.image/u);
+  assert.match(paths, /HomepageCategoryMedia/u);
+  assert.match(paths, /homepage-task-path__subcategory-media/u);
+  assert.match(paths, /category\.image \?\? group\.image/u);
+  assert.doesNotMatch(paths, /group\.representativeImage/u);
   assert.match(css, /\.homepage-task-paths \{ align-items:stretch; \}/u);
   const completion = css.slice(css.lastIndexOf("/* Grainger visual-entry completion"));
-  assert.match(completion, /\.production-task-section \.homepage-task-path__header \{[\s\S]*?min-height:80px;/u);
-  assert.match(completion, /\.production-task-section \.homepage-task-path__subcategories>a \{[\s\S]*?min-height:50px;[\s\S]*?grid-template-columns:minmax\(0,1fr\) 14px;/u);
+  assert.match(completion, /\.production-task-section \.homepage-task-path__header \{[\s\S]*?min-height:78px;/u);
+  assert.match(completion, /\.production-task-section \.homepage-task-path__subcategories \{ grid-template-columns:1fr; \}/u);
+  assert.match(completion, /\.production-task-section \.homepage-task-path__subcategories>a \{[\s\S]*?min-height:112px;[\s\S]*?grid-template-columns:96px minmax\(0,1fr\) 15px;/u);
+  assert.match(completion, /\.production-task-section \.homepage-task-path__subcategory-media \{ width:96px; height:96px; \}/u);
   assert.match(css, /\.homepage-task-path\[data-expanded="true"\] \.homepage-task-path__subcategories/u);
 });
 

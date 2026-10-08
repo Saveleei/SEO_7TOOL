@@ -72,7 +72,7 @@ test("product selector keeps the initial payload bounded and opens the paged ful
   assert.match(picker, /Найти по размеру или артикулу/u);
   assert.match(picker, /initialNextOffset === undefined/u);
   assert.match(purchase, /className="feed-quote-primary"[\s\S]*\{added \? "Открыть КП" : "Получить КП"\}/u);
-  assert.match(purchase, /feed-quote-secondary added/u);
+  assert.doesNotMatch(purchase, /feed-quote-secondary|>В запрос</u);
   assert.match(purchase, /<small>\{selected\.choiceContext[\s\S]*артикул \$\{selected\.sku\}/u);
   assert.doesNotMatch(purchase, /<b>\{variant\.sku/u);
   assert.doesNotMatch(purchase, /history\.replaceState/u);
@@ -185,7 +185,7 @@ test("category card variants show the buyer size first and keep actions readable
   assert.match(picker, /item\.shippingPromise\.available \? "is-available" : "is-unconfirmed"/u);
   assert.match(picker, /<b>\{item\.label\}<\/b>/u);
   assert.match(picker, /Артикул \$\{selected\.sku\}/u);
-  assert.match(picker, />В запрос<\/AddRequestButton>/u);
+  assert.doesNotMatch(picker, /feed-quote-secondary|>В запрос<\/AddRequestButton>/u);
   assert.match(picker, />Получить КП<\/AddRequestButton>/u);
   assert.doesNotMatch(card, /VariantAvailabilityMatrix|Матрица доступности/u);
   assert.doesNotMatch(table, /VariantAvailabilityMatrix|Матрица доступности/u);

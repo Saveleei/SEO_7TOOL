@@ -51,7 +51,7 @@ test("category cards, table rows and product buybox expose the same exact-varian
   assert.match(purchase, /items\.length > 0 && <button className="feed-open-quote"/u);
   for (const source of [card, table, purchase]) {
     assert.match(source, /Получить КП/u);
-    assert.match(source, /В запрос/u);
+    assert.doesNotMatch(source, /feed-quote-secondary|>В запрос</u);
     assert.match(source, /feed-quote-quick/u);
   }
 });
