@@ -120,7 +120,7 @@ for route in /catalog /company /contacts /c/stanki-sverlilnye /compare; do
   curl -fsS "http://127.0.0.1:${candidate_port}${route}" >/dev/null
 done
 
-admin_status="$(curl -sS -o /dev/null -w '%{http_code}' "http://127.0.0.1:${candidate_port}/admin/catalog")"
+admin_status="$(curl --retry 4 --retry-delay 1 --retry-connrefused --max-time 60 -sS -o /dev/null -w '%{http_code}' "http://127.0.0.1:${candidate_port}/admin/catalog")"
 [[ "$admin_status" =~ ^30[2378]$ ]]
 
 echo "CANDIDATE_RELEASE=$release"
