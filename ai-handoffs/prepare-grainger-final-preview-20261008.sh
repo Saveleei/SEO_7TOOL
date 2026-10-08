@@ -47,26 +47,32 @@ echo "TARGET=$release"
 
 [[ -d "$active_app/node_modules" ]] || { echo "Preview node_modules is missing."; exit 1; }
 [[ -f "$shared/new.env" ]] || { echo "Preview environment is missing."; exit 1; }
-[[ ! -e "$release" ]] || { echo "Target release already exists: $release"; exit 1; }
 
-curl -fsSL "https://github.com/Saveleei/SEO_7TOOL/archive/${source_sha}.tar.gz" -o "$archive"
-mkdir -p "$release"
-tar -xzf "$archive" -C "$release" --strip-components=1
-printf '%s\n' "$source_sha" > "$release/.release-sha"
-rm -f "$archive"
+if [[ -e "$release" ]]; then
+  [[ -f "$release/.release-sha" ]] || { echo "Existing target has no release marker: $release"; exit 1; }
+  [[ "$(cat "$release/.release-sha")" == "$source_sha" ]] || { echo "Existing target source mismatch: $release"; exit 1; }
+  [[ -d "$app" ]] || { echo "Existing target application is incomplete: $app"; exit 1; }
+  echo "REUSING_VERIFIED_TARGET=$release"
+else
+  curl -fsSL "https://github.com/Saveleei/SEO_7TOOL/archive/${source_sha}.tar.gz" -o "$archive"
+  mkdir -p "$release"
+  tar -xzf "$archive" -C "$release" --strip-components=1
+  printf '%s\n' "$source_sha" > "$release/.release-sha"
+  rm -f "$archive"
+fi
 
 old_lock_sha="$(sha256sum "$active_app/pnpm-lock.yaml" | awk '{print $1}')"
 new_lock_sha="$(sha256sum "$app/pnpm-lock.yaml" | awk '{print $1}')"
 [[ "$old_lock_sha" == "$new_lock_sha" ]] || { echo "Dependency lock changed."; exit 1; }
-ln -s "$active_app/node_modules" "$app/node_modules"
+if [[ ! -e "$app/node_modules" ]]; then
+  ln -s "$active_app/node_modules" "$app/node_modules"
+fi
+[[ -d "$app/node_modules" ]] || { echo "Candidate node_modules is unavailable."; exit 1; }
 
 grep -q 'Grainger visual-entry completion' "$app/app/globals.css"
 grep -q 'formatCompactSeriesCount' "$app/app/ui/HomepageCategoryTiles.tsx"
 ! grep -q 'feed-product-assurance' "$app/app/ui/FeedProductCard.tsx"
 ! grep -q 'HomepageCategoryMedia' "$app/app/ui/HomepageTaskPaths.tsx"
-
-cd "$app"
-node --test tests/homepage-launch-pass.test.mjs tests/home-mobile-navigation.test.mjs tests/home-category-conversion.test.mjs tests/readability-contract.test.mjs tests/visual-content-pass.test.mjs tests/grainger-catalog-refinement.test.mjs
 
 set -a
 . "$shared/new.env"
@@ -76,8 +82,10 @@ export SEO_INDEXING_ENABLED="0"
 export QUOTE_TEST_MODE="1"
 export NEXT_PUBLIC_SITE_URL="https://new.7tool.ru"
 
+cd "$app"
 node scripts/build-catalog-presentation.mjs
 node scripts/build-legacy-subcategories.mjs
+node --test tests/homepage-launch-pass.test.mjs tests/home-mobile-navigation.test.mjs tests/home-category-conversion.test.mjs tests/readability-contract.test.mjs tests/visual-content-pass.test.mjs tests/grainger-catalog-refinement.test.mjs
 node node_modules/vinext/dist/cli.js build
 
 pm2 delete "$candidate_name" >/dev/null 2>&1 || true
