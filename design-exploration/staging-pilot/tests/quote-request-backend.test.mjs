@@ -8,6 +8,7 @@ import { getQuoteRequestAttachment, listQuoteRequestSummaries, saveQuoteRequest 
 import { GET as downloadAttachment } from "../app/api/quote-requests/[id]/attachment/route.ts";
 
 const validInput = {
+  contactName:"Иван Петров",
   email:"buyer@example.test",
   phone:"+7 900 000-00-00",
   company:"Тестовая компания",
@@ -25,10 +26,11 @@ const validInput = {
   items:[{ id:"variant:A9409", title:"LENZ STEYR-35", article:"Артикул STEYR-35", price:"47 999 ₽", quantity:1, href:"/p/test" }],
 };
 
-test("server validation requires usable contacts, consent, items and idempotency", () => {
+test("server validation requires only phone among contact fields", () => {
   const valid = validateQuoteRequest(validInput);
   assert.equal(valid.ok, true);
   assert.equal(valid.value.requestType, "quote");
+  assert.equal(valid.value.contactName, "Иван Петров");
   const invalid = validateQuoteRequest({ ...validInput, email:"bad", phone:"123", consent:"", items:[], idempotencyKey:"bad" });
   assert.equal(invalid.ok, false);
   assert.deepEqual(Object.keys(invalid.fieldErrors).sort(), ["consent", "email", "items", "phone", "request"]);
@@ -39,7 +41,7 @@ test("selection requests require a phone but do not invent an email address", ()
   assert.equal(selection.ok, true);
   assert.equal(selection.value.requestType, "selection");
   assert.equal(selection.value.email, "");
-  assert.equal(validateQuoteRequest({ ...validInput, email:"" }).ok, false);
+  assert.equal(validateQuoteRequest({ ...validInput, contactName:"", email:"", company:"", city:"" }).ok, true);
   assert.equal(validateQuoteRequest({ ...validInput, requestType:"selection", email:"bad" }).ok, false);
 });
 
@@ -48,6 +50,7 @@ test("quick orders accept a phone-only contact but keep server validation", () =
   assert.equal(quickOrder.ok, true);
   assert.equal(quickOrder.value.requestType, "quick_order");
   assert.equal(quickOrder.value.email, "");
+  assert.equal(validateQuoteRequest({ ...validInput, requestType:"quote", contactName:"", email:"", company:"", city:"" }).ok, true);
   assert.equal(validateQuoteRequest({ ...validInput, requestType:"quick_order", email:"", phone:"123" }).ok, false);
   assert.equal(validateQuoteRequest({ ...validInput, requestType:"quick_order", email:"bad" }).ok, false);
 });
@@ -106,6 +109,7 @@ test("a request is durably appended before confirmation and duplicate retries re
     const summaries = await listQuoteRequestSummaries(10, { dataDir });
     assert.equal(summaries.length, 1);
     assert.equal(summaries[0].requestType, "quote");
+    assert.equal(summaries[0].contactName, "Иван Петров");
     assert.equal(summaries[0].email, "bu***@example.test");
     assert.equal(summaries[0].phone, "+7 *** ***-0000");
     assert.equal(summaries[0].billingProvided, true);

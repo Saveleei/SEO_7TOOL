@@ -90,11 +90,16 @@ export function QuickOrderDialog({ item, available, productId, variantId, catego
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submitting) return;
+    const formData = new FormData(event.currentTarget);
+    const requisitesFile = formData.get("billing_file");
+    if (requisitesFile instanceof File && requisitesFile.size > 10 * 1024 * 1024) {
+      setFormError("Файл реквизитов больше 10 МБ. Выберите файл меньшего размера.");
+      return;
+    }
     setSubmitting(true);
     setFormError("");
     track("submit_quick_order");
     if (!idempotencyKeyRef.current) idempotencyKeyRef.current = crypto.randomUUID();
-    const formData = new FormData(event.currentTarget);
     formData.set("request_type", "quick_order");
     formData.set("idempotency_key", idempotencyKeyRef.current);
     formData.set("items", JSON.stringify([{ ...item, quantity }]));
@@ -117,9 +122,9 @@ export function QuickOrderDialog({ item, available, productId, variantId, catego
   return <>
     <button className={["quick-order-trigger", className].filter(Boolean).join(" ")} type="button" onClick={openDialog} aria-haspopup="dialog">{mode.triggerLabel}</button>
     {open && <div className="quick-order-layer" role="dialog" aria-modal="true" aria-labelledby={`quick-order-title-${variantId}`} aria-describedby={`quick-order-description-${variantId}`} onKeyDown={trapFocus}>
-      <button className="quick-order-backdrop" type="button" onClick={closeDialog} aria-label="Закрыть быстрый заказ" />
+      <button className="quick-order-backdrop" type="button" onClick={closeDialog} aria-label="Закрыть быстрый запрос" />
       <div ref={dialogRef} className="quick-order-dialog">
-        <header><div><span>{mode.id === "order" ? "Один товар · один контакт" : "Уточнение без длинной формы"}</span><h2 id={`quick-order-title-${variantId}`}>{sent ? "Запрос принят" : mode.title}</h2><p id={`quick-order-description-${variantId}`}>{sent ? `Номер ${requestNumber}. Менеджер получил выбранное исполнение и свяжется по указанному телефону.` : mode.lead}</p></div><button ref={closeRef} type="button" onClick={closeDialog} aria-label="Закрыть">×</button></header>
+        <header><div><span>Один товар · обязательный только телефон</span><h2 id={`quick-order-title-${variantId}`}>{sent ? "Запрос принят" : mode.title}</h2><p id={`quick-order-description-${variantId}`}>{sent ? `Номер ${requestNumber}. Менеджер получил выбранное исполнение и свяжется по указанному телефону.` : mode.lead}</p></div><button ref={closeRef} type="button" onClick={closeDialog} aria-label="Закрыть">×</button></header>
         {sent ? <section className="quick-order-success" role="status"><div><span aria-hidden="true">✓</span><div><b>{requestNumber}</b><p>Повторно вводить данные не нужно. Цена, остаток и срок будут подтверждены до оплаты.</p></div></div><ManagerContactCard compact placement="quick_order_success" productId={productId} /><button type="button" onClick={closeDialog}>Вернуться к товару</button></section> : <>
           <section className="quick-order-product" aria-label="Выбранный товар">
             {item.image ? <Image src={item.image} alt="" width={76} height={76} unoptimized /> : <span className="quick-order-product-placeholder" aria-hidden="true">7T</span>}
@@ -130,8 +135,11 @@ export function QuickOrderDialog({ item, available, productId, variantId, catego
             <input className="request-cart-honeypot" name="website" type="text" tabIndex={-1} autoComplete="off" aria-hidden="true" />
             <input name="check_availability" type="hidden" value="on" />
             <label>Телефон для связи <span>*</span><input name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+7 999 000-00-00" required autoFocus /></label>
+            <label>Имя <small>необязательно</small><input name="contact_name" type="text" autoComplete="name" maxLength={120} placeholder="Как к вам обращаться" /></label>
+            <label>Email <small>необязательно</small><input name="email" type="email" autoComplete="email" placeholder="name@company.ru" /></label>
             <label>Компания <small>необязательно</small><input name="company" type="text" autoComplete="organization" placeholder="Название организации" /></label>
             <label className="quick-order-form-wide">Комментарий <small>необязательно</small><textarea name="comment" rows={3} placeholder="Когда удобно позвонить или что важно уточнить" /></label>
+            <details className="quick-order-requisites quick-order-form-wide"><summary><span>Прикрепить реквизиты</span><small>необязательно</small></summary><div><p>Если нужен счёт, можно сразу приложить карточку организации.</p><label>ИНН<input name="billing_inn" type="text" inputMode="numeric" autoComplete="off" pattern="[0-9]{10}|[0-9]{12}" placeholder="10 или 12 цифр" /></label><label className="quick-order-file">Карточка организации<input name="billing_file" type="file" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" /><small>PDF, JPG или PNG · до 10 МБ</small></label></div></details>
             <label className="quick-order-consent quick-order-form-wide"><input name="consent" type="checkbox" defaultChecked required /><span>Я согласен с <a href="/soglasie-na-obrabotku" target="_blank">обработкой персональных данных</a></span></label>
             {formError && <div className="quick-order-error quick-order-form-wide" role="alert">{formError}</div>}
             <div className="quick-order-submit quick-order-form-wide"><button type="submit" disabled={submitting}>{submitting ? "Надёжно сохраняем…" : mode.submitLabel}</button><small>Менеджер сначала подтвердит цену, наличие и срок. Оплата на этом шаге не производится.</small></div>

@@ -12,14 +12,18 @@ test("quick order is offered only for an exact available variant with a fixed pr
   assert.equal(getQuickOrderMode({ available:true, price:"Цена по запросу" }).id, "request");
 });
 
-test("the short form reuses the protected request API without collecting excessive data", async () => {
+test("the short form reuses the protected request API and keeps only phone mandatory", async () => {
   const source = await readFile(new URL("../app/ui/QuickOrderDialog.tsx", import.meta.url), "utf8");
   assert.match(source, /formData\.set\("request_type", "quick_order"\)/u);
   assert.match(source, /crypto\.randomUUID\(\)/u);
   assert.match(source, /JSON\.stringify\(\[\{ \.\.\.item, quantity \}\]\)/u);
   assert.match(source, /name="phone"[\s\S]*required/u);
   assert.match(source, /name="consent"[\s\S]*defaultChecked required/u);
-  assert.doesNotMatch(source, /name="email"/u);
+  assert.match(source, /name="contact_name"/u);
+  assert.match(source, /name="email"/u);
+  assert.doesNotMatch(source, /name="email"[^>]*required/u);
+  assert.match(source, /name="billing_file"/u);
+  assert.match(source, /requisitesFile\.size > 10 \* 1024 \* 1024/u);
   assert.match(source, /X-Requested-With":"7tool-quick-order"/u);
 });
 
@@ -45,6 +49,11 @@ test("category cards, table rows and product buybox expose the same exact-varian
   assert.match(table, /placement="category_mobile"/u);
   assert.match(purchase, /placement="product_buybox"/u);
   assert.match(purchase, /items\.length > 0 && <button className="feed-open-quote"/u);
+  for (const source of [card, table, purchase]) {
+    assert.match(source, /Получить КП/u);
+    assert.match(source, /В запрос/u);
+    assert.match(source, /feed-quote-quick/u);
+  }
 });
 
 test("the dialog is keyboard accessible and becomes a mobile bottom sheet", async () => {

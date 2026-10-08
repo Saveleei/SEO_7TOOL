@@ -79,6 +79,7 @@ test("bridge forwards once with a stable submission id and records a PII-free re
     assert.equal(calls[0].url, "https://7tool.ru/api/lead");
     assert.equal(calls[0].payload.submissionId, `new-${saved.id}`);
     assert.equal(calls[0].payload.type, "one_click");
+    assert.equal(calls[0].payload.name, "Иван Петров");
     assert.equal(calls[0].payload.extra.newRequestId, saved.id);
     assert.equal(calls[0].redirect, "error");
     const receipt = JSON.parse((await readFile(path.join(dataDir, "request-intake-delivery.jsonl"), "utf8")).trim());
@@ -201,6 +202,7 @@ test("worker recognizes direct execution through a stable release symlink", asyn
 function validRequest() {
   return {
     requestType:"quick_order",
+    contactName:"Иван Петров",
     email:"buyer@example.test",
     phone:"+7 900 000-00-00",
     company:"Тестовый завод",

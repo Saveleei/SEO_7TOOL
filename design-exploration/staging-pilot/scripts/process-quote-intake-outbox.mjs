@@ -84,6 +84,7 @@ export function toProductionLeadPayload(request) {
   return {
     type,
     submissionId:`new-${request.id}`,
+    name:clean(request.contactName, 120),
     phone:clean(request.phone, 40),
     email:clean(request.email, 160),
     company:clean(request.company, 180),

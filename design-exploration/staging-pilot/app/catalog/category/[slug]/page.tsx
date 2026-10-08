@@ -6,6 +6,7 @@ import { JsonLd } from "../../../ui/JsonLd";
 import { BurrSelectionAssistant } from "../../../ui/BurrSelectionAssistant";
 import { BurrShapeMark } from "../../../ui/BurrShapeMark";
 import { CategorySelectionAssistant } from "../../../ui/CategorySelectionAssistant";
+import { CatalogViewSwitch } from "../../../ui/CatalogViewSwitch";
 import { DrillSelectionAssistant } from "../../../ui/DrillSelectionAssistant";
 import { FeedProductList } from "../../../ui/FeedProductList";
 import { FeedProductTable } from "../../../ui/FeedProductTable";
@@ -148,7 +149,7 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
   const tableColumns = getFeedTableColumns(productCards);
   const canUseTable = prefersDenseFeedTable(slug);
   const view = requestedView === "grid" || requestedView === "cards" ? "grid" : requestedView === "list" ? "list" : "auto";
-  const desktopView = view === "auto" ? "list" : view;
+  const desktopView = view === "auto" ? canUseTable ? "list" : "grid" : view;
   const mobileView = view === "auto" ? "grid" : view;
   const activeFilterCount = Object.values(filters).reduce((sum, values) => sum + values.length, 0) + Object.keys(numericMinimums).length + Object.keys(numericMaximums).length + (search ? 1 : 0) + (inStockOnly ? 1 : 0) + (productTypeChanged ? 1 : 0) + (segment ? 1 : 0) + (subsegment ? 1 : 0) + (family ? 1 : 0);
   const selectorHref = slug === "borfrezy" ? "#burr-selector" : slug === "stanki-sverlilnye" ? "#drill-selector" : "#category-selector";
@@ -386,8 +387,8 @@ export default async function SubcategoryPage({ params, searchParams }: RoutePro
 
         <div className="feed-results" id="feed-results-list">
           <div className="feed-results-toolbar"><p><b>{result.total.toLocaleString("ru-RU")}</b> {pluralizeProductGroups(result.total)}{result.total > 0 && <span> · показаны {start}–{end}</span>}</p><div className="feed-toolbar-controls">
-            <nav className="feed-view-switch feed-view-switch--desktop" aria-label="Вид товаров"><a className={desktopView === "list" ? "active" : undefined} aria-current={desktopView === "list" ? "page" : undefined} data-conversion-action="listing_view_list" href={categoryUrl(slug, rawSearchParams, { setKey:"view", setValue:"list" })}><i aria-hidden="true">☷</i><span>Таблицей</span></a><a className={desktopView === "grid" ? "active" : undefined} aria-current={desktopView === "grid" ? "page" : undefined} data-conversion-action="listing_view_grid" href={categoryUrl(slug, rawSearchParams, { setKey:"view", setValue:"grid" })}><i aria-hidden="true">▦</i><span>Плиткой</span></a></nav>
-            <nav className="feed-view-switch feed-view-switch--mobile" aria-label="Вид товаров"><a className={mobileView === "list" ? "active" : undefined} aria-current={mobileView === "list" ? "page" : undefined} data-conversion-action="listing_view_list" href={categoryUrl(slug, rawSearchParams, { setKey:"view", setValue:"list" })}><i aria-hidden="true">☷</i><span>Списком</span></a><a className={mobileView === "grid" ? "active" : undefined} aria-current={mobileView === "grid" ? "page" : undefined} data-conversion-action="listing_view_grid" href={categoryUrl(slug, rawSearchParams, { setKey:"view", setValue:"grid" })}><i aria-hidden="true">▦</i><span>Плиткой</span></a></nav>
+            <CatalogViewSwitch mode="desktop" activeView={desktopView} explicitView={view === "auto" ? undefined : view} listHref={categoryUrl(slug, rawSearchParams, { setKey:"view", setValue:"list" })} gridHref={categoryUrl(slug, rawSearchParams, { setKey:"view", setValue:"grid" })} />
+            <CatalogViewSwitch mode="mobile" activeView={mobileView} explicitView={view === "auto" ? undefined : view} listHref={categoryUrl(slug, rawSearchParams, { setKey:"view", setValue:"list" })} gridHref={categoryUrl(slug, rawSearchParams, { setKey:"view", setValue:"grid" })} />
             <AutoApplySortForm action={`/c/${slug}`}>
               {requestedView && <input type="hidden" name="view" value={requestedView} />}
               {requestedProductType && <input type="hidden" name="kind" value={requestedProductType} />}

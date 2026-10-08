@@ -61,9 +61,11 @@ export function FeedProductPurchase({ productId, productSlug, productTitle, prod
     window.dispatchEvent(new CustomEvent("7tool:prototype-event", { detail:{ event, placement, page_type:"product", product_id:productId, variant_id:trackedVariantId } }));
   }
 
-  function addSelected() {
+  function addSelected(openQuote = false) {
     if (!selected) return;
-    addItem({ id:`variant:${selected.id}`, title:selected.title || productTitle, article:selected.sku ? `Артикул ${selected.sku}` : "Артикул не указан в фиде", price:selected.price, quantity, image:selected.image, href:selected.href, shippingLabel:selected.shippingPromise.label, shippingDetail:selected.shippingPromise.detail }, { placement:"product_buybox", page_type:"product", product_id:productId, variant_id:selected.id, category:categorySlug });
+    if (!added) addItem({ id:`variant:${selected.id}`, title:selected.title || productTitle, article:selected.sku ? `Артикул ${selected.sku}` : "Артикул не указан в фиде", price:selected.price, quantity, image:selected.image, href:selected.href, shippingLabel:selected.shippingPromise.label, shippingDetail:selected.shippingPromise.detail }, { placement:"product_buybox", page_type:"product", product_id:productId, variant_id:selected.id, category:categorySlug });
+    else if (!openQuote) addItem({ id:`variant:${selected.id}`, title:selected.title || productTitle, article:selected.sku ? `Артикул ${selected.sku}` : "Артикул не указан в фиде", price:selected.price, quantity, image:selected.image, href:selected.href, shippingLabel:selected.shippingPromise.label, shippingDetail:selected.shippingPromise.detail }, { placement:"product_buybox", page_type:"product", product_id:productId, variant_id:selected.id, category:categorySlug });
+    if (openQuote) open();
   }
 
   function openVariantPicker() {
@@ -92,8 +94,9 @@ export function FeedProductPurchase({ productId, productSlug, productTitle, prod
 
     <div className="feed-conversion-purchase-actions">
       <div className="quantity-control" aria-label="Количество"><button type="button" aria-label="Уменьшить количество" onClick={() => setQuantity((value) => Math.max(1, value - 1))}>−</button><b>{quantity}</b><button type="button" aria-label="Увеличить количество" onClick={() => setQuantity((value) => value + 1)}>+</button></div>
-      <button className={added ? "added" : undefined} type="button" onClick={addSelected} aria-label={added ? "Добавлено в коммерческое предложение" : pageArchetype.primaryAction}><span className="feed-add-label feed-add-label--full">{added ? "Добавлено в КП" : pageArchetype.primaryAction}</span><span className="feed-add-label feed-add-label--mobile">{added ? "Добавлено" : "Добавить в КП"}</span></button>
-      <QuickOrderDialog item={{ id:`variant:${selected.id}`, title:selected.title || productTitle, article:selected.sku ? `Артикул ${selected.sku}` : "Артикул не указан в фиде", price:selected.price, quantity, image:selected.image, href:selected.href, shippingLabel:selected.shippingPromise.label, shippingDetail:selected.shippingPromise.detail }} available={selected.shippingPromise.available} productId={productId} variantId={selected.id} category={categorySlug} placement="product_buybox" pageType="product" quantity={quantity} />
+      <button className="feed-quote-primary" type="button" onClick={() => addSelected(true)}>{added ? "Открыть КП" : "Получить КП"}</button>
+      <button className={added ? "feed-quote-secondary added" : "feed-quote-secondary"} type="button" onClick={() => addSelected(false)}>{added ? "В запросе · ещё +1" : "В запрос"}</button>
+      <QuickOrderDialog className="feed-quote-quick" item={{ id:`variant:${selected.id}`, title:selected.title || productTitle, article:selected.sku ? `Артикул ${selected.sku}` : "Артикул не указан в фиде", price:selected.price, quantity, image:selected.image, href:selected.href, shippingLabel:selected.shippingPromise.label, shippingDetail:selected.shippingPromise.detail }} available={selected.shippingPromise.available} productId={productId} variantId={selected.id} category={categorySlug} placement="product_buybox" pageType="product" quantity={quantity} />
       {items.length > 0 && <button className="feed-open-quote" type="button" onClick={() => { track("open_quote", "product_buybox"); open(); }}>Открыть КП · {items.length}</button>}
     </div>
 

@@ -25,16 +25,16 @@ test("category pages use a visual taxonomy before immediate product results", as
 });
 
 test("catalog controls use a compact Grainger-like switch without losing Russian B2B actions", async () => {
-  const [page, table, card, list, css] = await Promise.all([
-    read("../app/catalog/category/[slug]/page.tsx"),
+  const [viewSwitch, table, card, list, css] = await Promise.all([
+    read("../app/ui/CatalogViewSwitch.tsx"),
     read("../app/ui/FeedProductTable.tsx"),
     read("../app/ui/FeedProductCard.tsx"),
     read("../app/ui/FeedProductList.tsx"),
     read("../app/globals.css"),
   ]);
 
-  assert.match(page, /aria-hidden="true">☷<\/i><span>Списком<\/span>/u);
-  assert.match(page, /aria-hidden="true">▦<\/i><span>Плиткой<\/span>/u);
+  assert.match(viewSwitch, /aria-hidden="true">☷<\/i>/u);
+  assert.match(viewSwitch, /aria-hidden="true">▦<\/i><span>Плиткой<\/span>/u);
   assert.match(table, /с НДС · зависит от исполнения/u);
   assert.match(card, /с НДС · зависит от исполнения/u);
   assert.match(list, /layout === "grid" \? 3 : 2/u);

@@ -38,6 +38,7 @@ type StoredRequestSource = {
 };
 type ValidatedQuote = {
   requestType: "quote" | "selection" | "quick_order";
+  contactName: string;
   email: string;
   phone: string;
   company: string;
@@ -60,6 +61,7 @@ export type QuoteRequestSummary = {
   statusLabel: string;
   itemCount: number;
   totalQuantity: number;
+  contactName: string;
   email: string;
   phone: string;
   company: string;
@@ -165,6 +167,7 @@ export async function getQuoteRequestDetail(requestId: string, options: StoreOpt
   const requestEvents = eventsFor(events, record.id);
   return {
     ...toSummary(record, requestEvents, options),
+    contactName:record.contactName || "",
     emailFull:record.email,
     phoneFull:record.phone,
     comment:record.comment,
@@ -366,6 +369,7 @@ function toSummary(record: StoredQuote, events: StoredEvent[], options: StoreOpt
     statusLabel:getStatusLabel(workflow.status),
     itemCount:record.items.length,
     totalQuantity:record.items.reduce((sum, item) => sum + item.quantity, 0),
+    contactName:record.contactName || "",
     email:maskEmail(record.email),
     phone:maskPhone(record.phone),
     company:record.company,
@@ -428,6 +432,7 @@ function hasBillingDetails(record: StoredQuote): boolean {
 function toStoredInput(input: ValidatedQuote): Omit<ValidatedQuote, "idempotencyKey"> {
   return {
     requestType:input.requestType,
+    contactName:input.contactName,
     email:input.email,
     phone:input.phone,
     company:input.company,

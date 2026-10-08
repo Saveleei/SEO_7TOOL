@@ -5,20 +5,24 @@ import test from "node:test";
 const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
 
 test("categories keep a desktop table while defaulting mobile to a two-column grid", async () => {
-  const [page, list, table, css] = await Promise.all([
+  const [page, viewSwitch, list, table, css] = await Promise.all([
     read("../app/catalog/category/[slug]/page.tsx"),
+    read("../app/ui/CatalogViewSwitch.tsx"),
     read("../app/ui/FeedProductList.tsx"),
     read("../app/ui/FeedProductTable.tsx"),
     read("../app/globals.css"),
   ]);
 
   assert.match(page, /requestedView === "grid" \|\| requestedView === "cards" \? "grid" : requestedView === "list" \? "list" : "auto"/u);
-  assert.match(page, /const desktopView = view === "auto" \? "list" : view/u);
+  assert.match(page, /const desktopView = view === "auto" \? canUseTable \? "list" : "grid" : view/u);
   assert.match(page, /const mobileView = view === "auto" \? "grid" : view/u);
-  assert.match(page, /aria-label="Вид товаров"/u);
-  assert.match(page, /<span>Списком<\/span><\/a>/u);
-  assert.match(page, /<span>Таблицей<\/span><\/a>/u);
-  assert.match(page, /<span>Плиткой<\/span><\/a>/u);
+  assert.match(page, /<CatalogViewSwitch mode="desktop"/u);
+  assert.match(page, /<CatalogViewSwitch mode="mobile"/u);
+  assert.match(viewSwitch, /aria-label="Вид товаров"/u);
+  assert.match(viewSwitch, /mode === "desktop" \? "Таблицей" : "Списком"/u);
+  assert.match(viewSwitch, /<span>Плиткой<\/span>/u);
+  assert.match(viewSwitch, /7tool:catalog-view:v1/u);
+  assert.match(viewSwitch, /window\.location\.replace/u);
   assert.match(page, /\(view === "list" \|\| view === "auto"\) && canUseTable/u);
   assert.match(page, /mobileLayout=\{view === "auto" \? "grid" : "list"\}/u);
   assert.match(list, /feed-product-grid--\$\{layout\}/u);

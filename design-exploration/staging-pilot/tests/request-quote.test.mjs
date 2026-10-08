@@ -42,7 +42,10 @@ test("quote drawer keeps the shortest B2B path and only submits to the local API
   const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
   assert.match(component, /window\.localStorage\.setItem\(STORAGE_KEY/u);
   assert.match(component, /Email для КП/u);
-  assert.match(component, /Телефон для уточнения/u);
+  assert.match(component, /Телефон для связи/u);
+  assert.match(component, /name="phone"[^>]*required/u);
+  assert.doesNotMatch(component, /name="email"[^>]*required/u);
+  assert.match(component, /name="contact_name"/u);
   assert.match(component, /Сохранить запрос КП/u);
   assert.match(component, /defaultChecked required/u);
   assert.match(component, /fetch\("\/api\/quote-requests"/u);
@@ -55,6 +58,12 @@ test("quote drawer keeps the shortest B2B path and only submits to the local API
   assert.doesNotMatch(component, /fetch\("https?:|mailto:/u);
   assert.match(styles, /\.request-cart-drawer \{[^}]*width:min\(720px,100%\)/us);
   assert.match(styles, /\.request-cart-form input,\.request-cart-form textarea \{[^}]*font:[^;]*14px/us);
+  assert.match(component, /function RequestAddConfirmation/u);
+  assert.match(component, /Продолжить выбор/u);
+  assert.match(component, /Открыть запрос КП/u);
+  assert.match(styles, /\.request-add-layer \{[^}]*position:fixed;[^}]*z-index:460/us);
+  assert.match(styles, /\.request-cart-layer \{[^}]*position:fixed;[^}]*z-index:440/us);
+  assert.match(styles, /@media \(max-width:760px\)[\s\S]*\.request-add-layer \{ align-items:end; padding:0; \}/u);
 });
 
 test("invoice requisites are optional, progressive and size-bounded", async () => {
@@ -76,8 +85,8 @@ test("mobile product buybar opens the existing quote instead of changing its qua
     readFile(new URL("../app/product/[slug]/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
   ]);
-  assert.match(component, /if \(added && openWhenAdded\) open\(\); else addItem\(item\);/u);
-  assert.match(component, /added && openWhenAdded \? "Открыть КП" : addedLabel/u);
+  assert.match(component, /added && \(openWhenAdded \|\| openAfterAdd\)/u);
+  assert.match(component, /added && \(openWhenAdded \|\| openAfterAdd\) \? "Открыть КП" : addedLabel/u);
   assert.match(page, /<AddRequestButton openWhenAdded item=/u);
   assert.match(styles, /\.site-shell:has\(\.feed-product-conversion-page\) \.mobile-action-bar \{ display:none; \}/u);
   assert.match(styles, /\.request-cart-item-copy \{ padding-right:68px; \}/u);

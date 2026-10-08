@@ -24,9 +24,11 @@ type RequestCartValue = {
   addItem: (item: RequestItem, analytics?: QuoteItemAnalytics) => void;
   open: () => void;
   close: () => void;
+  closeConfirmation: () => void;
   updateQuantity: (id: string, quantity: number) => void;
   remove: (id: string) => void;
   isOpen: boolean;
+  confirmationItem: RequestItem | null;
 };
 
 type QuoteItemAnalytics = {
@@ -44,6 +46,7 @@ const RequestCartContext = createContext<RequestCartValue | null>(null);
 export function RequestCartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<RequestItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [confirmationItem, setConfirmationItem] = useState<RequestItem | null>(null);
   const [restored, setRestored] = useState(false);
 
   useEffect(() => {
@@ -72,6 +75,7 @@ export function RequestCartProvider({ children }: { children: ReactNode }) {
         ? current.map((currentItem) => currentItem.id === item.id ? { ...currentItem, ...item, quantity:Math.min(999, (currentItem.quantity ?? 1) + (item.quantity ?? 1)) } : currentItem)
         : [...current, { ...item, quantity:item.quantity ?? 1 }];
     });
+    setConfirmationItem({ ...item, quantity:item.quantity ?? 1 });
     trackQuote("add_to_quote", { ...inferQuoteItemAnalytics(item), ...analytics });
   }
 
@@ -85,6 +89,7 @@ export function RequestCartProvider({ children }: { children: ReactNode }) {
   }
 
   function open() {
+    setConfirmationItem(null);
     setIsOpen(true);
     void refreshShippingPromises();
     trackQuote("open_quote", { placement:"quote_trigger", item_count:items.length });
@@ -112,8 +117,9 @@ export function RequestCartProvider({ children }: { children: ReactNode }) {
   }
 
   const close = useCallback(() => setIsOpen(false), []);
-  const value = { items, isOpen, addItem, open, close, updateQuantity, remove };
-  return <RequestCartContext.Provider value={value}>{children}<RequestCartDock /><RequestCartDrawer /></RequestCartContext.Provider>;
+  const closeConfirmation = useCallback(() => setConfirmationItem(null), []);
+  const value = { items, isOpen, confirmationItem, addItem, open, close, closeConfirmation, updateQuantity, remove };
+  return <RequestCartContext.Provider value={value}>{children}<RequestAddConfirmation /><RequestCartDock /><RequestCartDrawer /></RequestCartContext.Provider>;
 }
 
 export function useRequestCart(): RequestCartValue {
@@ -128,13 +134,17 @@ export function RequestCartButton({ compact = false }: { compact?: boolean }) {
   return <button className={compact ? "request-cart-trigger request-cart-trigger--compact" : "request-cart-trigger"} type="button" onClick={open} aria-label={`Открыть запрос КП, позиций: ${items.length}, единиц: ${totalQuantity}`}>{compact ? <><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h11l3 3v14H5zm10 1.8v2.2h2.2M8 11h8M8 15h8" /></svg><span>КП</span></> : <span>КП</span>}{items.length > 0 && <b>{items.length}</b>}</button>;
 }
 
-export function AddRequestButton({ item, className, children, openWhenAdded = false }: { item: RequestItem; className?: string; children?: ReactNode; openWhenAdded?: boolean }) {
+export function AddRequestButton({ item, className, children, openWhenAdded = false, openAfterAdd = false }: { item: RequestItem; className?: string; children?: ReactNode; openWhenAdded?: boolean; openAfterAdd?: boolean }) {
   const { items, addItem, open } = useRequestCart();
   const added = items.some((current) => current.id === item.id);
   const buttonClassName = [className, added ? "request-item-added" : ""].filter(Boolean).join(" ") || undefined;
-  const activate = () => { if (added && openWhenAdded) open(); else addItem(item); };
+  const activate = () => {
+    if (added && (openWhenAdded || openAfterAdd)) { open(); return; }
+    addItem(item);
+    if (openAfterAdd) open();
+  };
   const addedLabel = added ? "Добавлено · ещё +1" : children ?? "В запрос";
-  const buttonLabel = added && openWhenAdded ? "Открыть КП" : addedLabel;
+  const buttonLabel = added && (openWhenAdded || openAfterAdd) ? "Открыть КП" : addedLabel;
   return <button className={buttonClassName} type="button" onClick={activate} aria-live="polite">{buttonLabel}</button>;
 }
 
@@ -151,10 +161,50 @@ function inferQuoteItemAnalytics(item: RequestItem): QuoteItemAnalytics {
 }
 
 function RequestCartDock() {
-  const { items, isOpen, open } = useRequestCart();
+  const { items, isOpen, confirmationItem, open } = useRequestCart();
   const { totalQuantity } = summarizeRequest(items);
-  if (items.length === 0 || isOpen) return null;
+  if (items.length === 0 || isOpen || confirmationItem) return null;
   return <div className="request-cart-dock" role="status" aria-live="polite"><div><span>Черновик КП</span><b>{items.length} поз. · {totalQuantity} шт.</b></div><button type="button" onClick={open}>Проверить запрос</button></div>;
+}
+
+function RequestAddConfirmation() {
+  const { items, confirmationItem, closeConfirmation, open } = useRequestCart();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const continueRef = useRef<HTMLButtonElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+  const currentItem = confirmationItem ? items.find((item) => item.id === confirmationItem.id) ?? confirmationItem : null;
+  const summary = useMemo(() => summarizeRequest(items), [items]);
+
+  useEffect(() => {
+    if (!confirmationItem) return;
+    returnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    continueRef.current?.focus();
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === "Escape") closeConfirmation(); };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => { window.removeEventListener("keydown", closeOnEscape); returnFocusRef.current?.focus(); };
+  }, [confirmationItem, closeConfirmation]);
+
+  function trapFocus(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "Tab") return;
+    const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR) ?? []).filter((element) => element.offsetParent !== null);
+    const first = focusable[0];
+    const last = focusable.at(-1);
+    if (!first || !last) return;
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  }
+
+  if (!currentItem) return null;
+  const media = currentItem.image ? <Image src={currentItem.image} alt="" width={76} height={76} unoptimized /> : <span aria-hidden="true">7T</span>;
+  return <div className="request-add-layer" role="dialog" aria-modal="true" aria-labelledby="request-add-title" onKeyDown={trapFocus}>
+    <button className="request-add-backdrop" type="button" onClick={closeConfirmation} aria-label="Закрыть подтверждение" />
+    <div ref={dialogRef} className="request-add-confirmation">
+      <header><div><span>Добавлено в запрос КП</span><h2 id="request-add-title">Позиция сохранена</h2></div><button type="button" onClick={closeConfirmation} aria-label="Закрыть">×</button></header>
+      <section><div className="request-add-media">{media}</div><div><b>{currentItem.title}</b><span>{currentItem.article}</span>{currentItem.shippingLabel && <small>{currentItem.shippingLabel}</small>}</div><div><strong>{currentItem.price || "Цена по запросу"}</strong><span>{currentItem.quantity ?? 1} шт.</span></div></section>
+      <p>В запросе: <b>{items.length} поз. · {summary.totalQuantity} шт.</b></p>
+      <footer><button ref={continueRef} type="button" onClick={closeConfirmation}>Продолжить выбор</button><button type="button" onClick={open}>Открыть запрос КП</button></footer>
+    </div>
+  </div>;
 }
 
 function RequestCartDrawer() {
@@ -255,9 +305,10 @@ function RequestCartDrawer() {
 
         <form className="request-cart-form" onSubmit={submit}>
           <input className="request-cart-honeypot" name="website" type="text" tabIndex={-1} autoComplete="off" aria-hidden="true" />
-          <div className="request-cart-form-heading"><span>Контакты и требования</span><h3>Куда отправить КП</h3><p>Поля со звёздочкой нужны, чтобы менеджер мог уточнить задачу и вернуть предложение.</p></div>
-          <label>Email для КП <span>*</span><input name="email" type="email" autoComplete="email" placeholder="name@company.ru" required /></label>
-          <label>Телефон для уточнения <span>*</span><input name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+7 999 000-00-00" required /></label>
+          <div className="request-cart-form-heading"><span>Контакты и требования</span><h3>Как связаться по запросу</h3><p>Обязателен только телефон. Остальные данные можно добавить, чтобы ускорить подготовку КП и счёта.</p></div>
+          <label>Телефон для связи <span>*</span><input name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+7 999 000-00-00" required /></label>
+          <label>Имя <small>необязательно</small><input name="contact_name" type="text" autoComplete="name" maxLength={120} placeholder="Как к вам обращаться" /></label>
+          <label>Email для КП <small>необязательно</small><input name="email" type="email" autoComplete="email" placeholder="name@company.ru" /></label>
           <label>Компания<input name="company" type="text" autoComplete="organization" placeholder="Название, необязательно" /></label>
           <label>Город поставки<input name="city" type="text" autoComplete="address-level2" placeholder="Например, Екатеринбург" /></label>
           <details className="request-cart-wide request-cart-requisites"><summary><span>Нужен счёт после подтверждения?</span><small>Добавить реквизиты · необязательно</small></summary><div><p>Укажите ИНН или приложите карточку организации. Остальные поля вручную заполнять не нужно.</p><label>ИНН организации<input name="billing_inn" type="text" inputMode="numeric" autoComplete="off" pattern="[0-9]{10}|[0-9]{12}" placeholder="10 или 12 цифр" /></label><span>или</span><label className="request-cart-file">Карточка организации<input name="billing_file" type="file" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" /><small>PDF, JPG или PNG · до 10 МБ</small></label><strong>Счёт подготовят только после подтверждения цены, наличия, комплектации и даты отгрузки.</strong></div></details>
