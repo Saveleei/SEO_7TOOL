@@ -7,6 +7,7 @@ import { PUBLIC_RELEASE_ROUTES } from "../scripts/smoke-release-candidate.mjs";
 test("feed products remain discoverable and render safely without media or an article", async () => {
   const snapshot = JSON.parse(await readFile(new URL("../../../7tool-source/src/lib/products.json", import.meta.url), "utf8"));
   const productPage = await readFile(new URL("../app/product/[slug]/page.tsx", import.meta.url), "utf8");
+  const productPurchase = await readFile(new URL("../app/ui/FeedProductPurchase.tsx", import.meta.url), "utf8");
   const variantPresentation = await readFile(new URL("../app/data/variantPresentation.ts", import.meta.url), "utf8");
   const catalog = await readFile(new URL("../app/data/feedCatalog.ts", import.meta.url), "utf8");
   const card = await readFile(new URL("../app/ui/FeedProductCard.tsx", import.meta.url), "utf8");
@@ -21,7 +22,7 @@ test("feed products remain discoverable and render safely without media or an ar
   assert.doesNotMatch(rankedProducts, /filter[\s\S]*getFeedProductImage/u);
   assert.match(variantPresentation, /variant\.images\?\.\[0\]/u);
   assert.match(productPage, /primaryVariant\.images\?\.\[0\]/u);
-  assert.match(productPage, /Артикул не указан в фиде/u);
+  assert.match(productPurchase, /Артикул не указан в фиде/u);
   assert.match(card, /Артикул не указан в фиде/u);
   assert.match(table, /Артикул не указан в фиде/u);
   assert.ok(PUBLIC_RELEASE_ROUTES.includes(`/p/${missingMedia[0].slug}`));

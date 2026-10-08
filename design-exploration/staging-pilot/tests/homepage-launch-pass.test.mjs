@@ -68,9 +68,14 @@ test("homepage production tasks expose large image-led category paths", async ()
 });
 
 test("homepage hero avoids repeating categories already visible in the visual catalog", async () => {
-  const page = await read("../app/page.tsx");
+  const [page, css] = await Promise.all([read("../app/page.tsx"), read("../app/globals.css")]);
   assert.doesNotMatch(page, /className="hero-category-shortcuts"/u);
   assert.match(page, /<HomepageCategoryTiles categories=\{homepageKeyCategories\} compact \/>/u);
+  const responsiveBridge = css.slice(css.lastIndexOf("/* Stage 6: bridge the 760/768 px breakpoint"));
+  assert.match(responsiveBridge, /@media \(min-width:761px\) and \(max-width:900px\)/u);
+  assert.match(responsiveBridge, /\.homepage-main \.hero-grid \{[\s\S]*?grid-template-columns:1fr;/u);
+  assert.match(responsiveBridge, /\.homepage-main \.hero h1 \{ max-width:690px; font-size:48px;/u);
+  assert.match(responsiveBridge, /category-assortment-shortcuts--segments>\.container>div \{ grid-template-columns:repeat\(4,minmax\(0,1fr\)\); \}/u);
 });
 
 test("trust section exposes photo-first verifiable evidence instead of unsupported claims", async () => {

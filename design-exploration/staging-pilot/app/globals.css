@@ -9831,3 +9831,26 @@ h1,h2,h3,.hero h1,.page-hero h1,.section-heading h2,.assurance-section .section-
   .feed-product-support-actions>a { width:100%; padding-inline:8px; }
   .feed-variant-options--sizes { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
+
+/* Stage 6: bridge the 760/768 px breakpoint and reserve space for fixed tools. */
+@media (min-width:761px) and (max-width:900px) {
+  .homepage-main .hero-grid {
+    min-height:0;
+    grid-template-columns:1fr;
+    gap:26px;
+    padding-block:32px;
+  }
+  .homepage-main .hero h1 { max-width:690px; font-size:48px; line-height:1.01; }
+  .homepage-main .hero-lead { max-width:680px; }
+  .homepage-main .hero-catalog-card { min-height:0; }
+
+  .category-sibling-navigation--before-products { display:none; }
+  .category-sibling-navigation--after-products { display:block; margin-top:-1px; }
+  .category-page-shell .category-assortment-shortcuts>.container>div,
+  .category-page-shell .category-assortment-shortcuts--segments>.container>div { grid-template-columns:repeat(4,minmax(0,1fr)); }
+}
+
+@media (max-width:760px) {
+  body:has(.comparison-tray) { padding-bottom:calc(148px + env(safe-area-inset-bottom)); }
+  .comparison-tray>a { min-width:0; overflow-wrap:anywhere; line-height:1.15; }
+}

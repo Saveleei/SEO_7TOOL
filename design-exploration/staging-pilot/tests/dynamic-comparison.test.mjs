@@ -37,7 +37,7 @@ test("comparison page has empty, one-product and table states", () => {
   assert.match(page, /comparison-full-table/u);
 });
 
-test("catalog cards, table and exact product variant share one comparison provider", () => {
+test("catalog cards and table share persistent comparison while product variants open exact comparison", () => {
   const layout = read("app/layout.tsx");
   const list = read("app/ui/FeedProductList.tsx");
   const table = read("app/ui/FeedProductTable.tsx");
@@ -47,8 +47,9 @@ test("catalog cards, table and exact product variant share one comparison provid
   assert.match(table, /category_table/u);
   assert.match(table, /category_mobile/u);
   assert.match(read("app/ui/Comparison.tsx"), /product\.selectedVariantCount === 1[\s\S]*variantId:exactVariant\?\.id/u);
-  assert.match(purchase, /variantId:selected\.id/u);
-  assert.match(purchase, /CompareToggleButton/u);
+  assert.match(purchase, /PRODUCT_COMPARISON_EVENT/u);
+  assert.match(purchase, /open_comparison/u);
+  assert.doesNotMatch(purchase, /CompareToggleButton/u);
 });
 
 test("comparison analytics are allowlisted and privacy-safe", () => {
@@ -68,6 +69,8 @@ test("responsive tray and comparison table account for mobile actions", () => {
   assert.match(css, /body:has\(\.product-mobile-buybar\) \.comparison-tray \{[^}]*left:max\(10px,env\(safe-area-inset-left\)\);[^}]*right:max\(10px,env\(safe-area-inset-right\)\);[^}]*transform:none;/u);
   assert.match(css, /grid-template-columns:minmax\(52px,auto\) minmax\(116px,1fr\) 40px/u);
   assert.match(css, /body:has\(\.product-mobile-buybar\) \.comparison-tray>a,[^}]*min-height:44px/u);
+  assert.match(css, /body:has\(\.comparison-tray\) \{ padding-bottom:calc\(148px \+ env\(safe-area-inset-bottom\)\); \}/u);
+  assert.match(css, /\.comparison-tray>a \{ min-width:0; overflow-wrap:anywhere; line-height:1\.15; \}/u);
   assert.match(comparison, /href=\{`\/c\/\$\{items\[0\]\.category\}`\} aria-label="Добавить ещё товар для сравнения">Добавить ещё товар<\/Link>/u);
   assert.doesNotMatch(comparison, /<button type="button" disabled>Добавьте ещё товар<\/button>/u);
   assert.match(css, /\.comparison-mobile-view/u);

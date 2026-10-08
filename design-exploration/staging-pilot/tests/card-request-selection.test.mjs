@@ -33,7 +33,7 @@ test("table view carries exact variant media and links into the quote request", 
   assert.match(source, /<VariantPickerDialog/u);
   assert.match(source, /image:variant\.image, href:variant\.href/u);
   assert.ok((source.match(/image:directVariant\.image, href:directVariant\.href/gu)?.length ?? 0) >= 2);
-  assert.match(source, /<QuickOrderDialog[\s\S]*id:`variant:\$\{directVariant\.id\}`/u);
+  assert.match(source, /<AddRequestButton[\s\S]*id:`variant:\$\{directVariant\.id\}`/u);
   assert.match(picker, /id:`variant:\$\{selected\.id\}`/u);
   assert.match(picker, /href:selected\.href/u);
 });
