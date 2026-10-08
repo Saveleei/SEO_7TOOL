@@ -8,15 +8,16 @@ import type { FeedProductCardModel, FeedProductVariantModel } from "../data/feed
 import { QuickOrderDialog } from "./QuickOrderDialog";
 import { AddRequestButton } from "./RequestCart";
 import { FeedAvailability } from "./FeedAvailability";
+import { FeedProductCard } from "./FeedProductCard";
 import { preloadVariantPickerItems, VariantPickerDialog, type VariantPickerItem } from "./VariantPickerDialog";
 import { comparisonSelectionFromCard, useComparison } from "./Comparison";
 
-export function FeedProductTable({ products, columns, after }: { products: FeedProductCardModel[]; columns: string[]; after?: ReactNode }) {
+export function FeedProductTable({ products, columns, after, mobileLayout = "list" }: { products: FeedProductCardModel[]; columns: string[]; after?: ReactNode; mobileLayout?: "list" | "grid" }) {
   const [pickerProductId, setPickerProductId] = useState("");
   const { hasProduct, toggle } = useComparison();
   const tableIdentity = products[0]?.cardArchetype.tableIdentity ?? "Товарная серия";
   const pickerProduct = products.find((product) => product.id === pickerProductId);
-  const splitIndex = after ? Math.min(3, products.length) : products.length;
+  const splitIndex = after ? Math.min(mobileLayout === "grid" ? 4 : 3, products.length) : products.length;
   const firstProducts = products.slice(0, splitIndex);
   const remainingProducts = products.slice(splitIndex);
 
@@ -44,14 +45,16 @@ export function FeedProductTable({ products, columns, after }: { products: FeedP
     </div>;
   }
 
-  const renderMobile = (items: FeedProductCardModel[]) => items.map((product) => <MobileSeries product={product} columns={columns} selected={hasProduct(product.id)} onCompare={() => toggle(comparisonSelectionFromCard(product), "category_mobile")} onWarmVariants={() => warmProductVariants(product)} onOpenVariants={() => setPickerProductId(product.id)} key={product.id} />);
+  const renderMobile = (items: FeedProductCardModel[]) => mobileLayout === "grid"
+    ? <div className="feed-product-grid feed-product-grid--grid feed-product-grid--mobile-default">{items.map((product) => <FeedProductCard product={product} selected={hasProduct(product.id)} onCompare={() => toggle(comparisonSelectionFromCard(product), "category_mobile_grid")} key={product.id} />)}</div>
+    : items.map((product) => <MobileSeries product={product} columns={columns} selected={hasProduct(product.id)} onCompare={() => toggle(comparisonSelectionFromCard(product), "category_mobile")} onWarmVariants={() => warmProductVariants(product)} onOpenVariants={() => setPickerProductId(product.id)} key={product.id} />);
 
   return <>
     {renderTable(firstProducts)}
-    <div className="feed-product-table-mobile">{renderMobile(firstProducts)}</div>
+    <div className={`feed-product-table-mobile feed-product-table-mobile--${mobileLayout}`}>{renderMobile(firstProducts)}</div>
     {after && <div className="category-feed-assistant">{after}</div>}
     {renderTable(remainingProducts, true)}
-    {remainingProducts.length > 0 && <div className="feed-product-table-mobile feed-product-table-mobile--continuation">{renderMobile(remainingProducts)}</div>}
+    {remainingProducts.length > 0 && <div className={`feed-product-table-mobile feed-product-table-mobile--${mobileLayout} feed-product-table-mobile--continuation`}>{renderMobile(remainingProducts)}</div>}
     {pickerProduct && <VariantPickerDialog open onClose={() => setPickerProductId("")} productId={pickerProduct.id} productTitle={pickerProduct.title} category={pickerProduct.categorySlug} pageType="category" placement="category_table_size_picker" items={toPickerItems(pickerProduct, columns)} totalVariantCount={pickerProduct.variantCount} fullProductHref={`/p/${pickerProduct.slug}`} variantsEndpoint={variantEndpoint(pickerProduct)} selectorLabel={isSizeLedProduct(pickerProduct, columns) ? "Размер" : "Исполнение"} />}
   </>;
 }

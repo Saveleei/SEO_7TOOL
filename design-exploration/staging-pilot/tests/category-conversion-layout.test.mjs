@@ -4,21 +4,31 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
 
-test("every category exposes one consistent list and grid switch", async () => {
-  const [page, list, css] = await Promise.all([
+test("categories keep a desktop table while defaulting mobile to a two-column grid", async () => {
+  const [page, list, table, css] = await Promise.all([
     read("../app/catalog/category/[slug]/page.tsx"),
     read("../app/ui/FeedProductList.tsx"),
+    read("../app/ui/FeedProductTable.tsx"),
     read("../app/globals.css"),
   ]);
 
-  assert.match(page, /requestedView === "grid" \|\| requestedView === "cards" \? "grid" : "list"/u);
+  assert.match(page, /requestedView === "grid" \|\| requestedView === "cards" \? "grid" : requestedView === "list" \? "list" : "auto"/u);
+  assert.match(page, /const desktopView = view === "auto" \? "list" : view/u);
+  assert.match(page, /const mobileView = view === "auto" \? "grid" : view/u);
   assert.match(page, /aria-label="Вид товаров"/u);
   assert.match(page, /<span>Списком<\/span><\/a>/u);
+  assert.match(page, /<span>Таблицей<\/span><\/a>/u);
   assert.match(page, /<span>Плиткой<\/span><\/a>/u);
-  assert.match(page, /view === "list" && canUseTable/u);
+  assert.match(page, /\(view === "list" \|\| view === "auto"\) && canUseTable/u);
+  assert.match(page, /mobileLayout=\{view === "auto" \? "grid" : "list"\}/u);
   assert.match(list, /feed-product-grid--\$\{layout\}/u);
+  assert.match(table, /mobileLayout = "list"/u);
+  assert.match(table, /feed-product-grid--mobile-default/u);
+  assert.match(table, /mobileLayout === "grid" \? 4 : 3/u);
   assert.match(css, /\.category-page-shell \.feed-product-grid--grid \{[\s\S]*?grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/u);
   assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.feed-product-grid--grid \{ grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/u);
+  assert.match(css, /\.category-page-shell \.feed-view-switch--mobile \{ display:none; \}/u);
+  assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.category-page-shell \.feed-view-switch--desktop \{ display:none; \}[\s\S]*?\.category-page-shell \.feed-view-switch--mobile \{ display:flex; \}/u);
 });
 
 test("selection help is inserted after a complete first row", async () => {
@@ -31,7 +41,7 @@ test("selection help is inserted after a complete first row", async () => {
   assert.match(page, /result\.page !== 1 \|\| result\.products\.length === 0 \? undefined/u);
   assert.match(page, /after=\{inlineSelectionAssistant\}/u);
   assert.match(list, /Math\.min\(layout === "grid" \? 3 : 2, products\.length - 1\)/u);
-  assert.match(table, /Math\.min\(3, products\.length\)/u);
+  assert.match(table, /Math\.min\(mobileLayout === "grid" \? 4 : 3, products\.length\)/u);
   assert.equal((table.match(/\{after && <div className="category-feed-assistant">\{after\}<\/div>\}/gu) ?? []).length, 1);
 });
 

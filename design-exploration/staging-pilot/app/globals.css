@@ -9246,6 +9246,7 @@ h1,h2,h3,.hero h1,.page-hero h1,.section-heading h2,.assurance-section .section-
   border-radius:0;
   background:transparent;
 }
+.category-page-shell .feed-view-switch--mobile { display:none; }
 .category-page-shell .feed-view-switch a {
   gap:5px;
   min-height:36px;
@@ -9295,6 +9296,8 @@ h1,h2,h3,.hero h1,.page-hero h1,.section-heading h2,.assurance-section .section-
     border-radius:4px;
     box-shadow:none;
   }
+  .category-page-shell .feed-view-switch--desktop { display:none; }
+  .category-page-shell .feed-view-switch--mobile { display:flex; }
   .category-page-shell .feed-view-switch a { min-height:42px; }
 }
 
