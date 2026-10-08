@@ -65,6 +65,11 @@ Adapt the useful catalogue patterns from Grainger Canada to the smaller 7TOOL B2
 
 ## Release state
 
-- No public host was changed.
-- Candidate is ready for commit and `new.7tool.ru` preview cutover with indexing disabled.
-- Obtain action-time user confirmation immediately before changing the preview host.
+- Published source commit: `5f71c6d0f26512dae8129c40c6a102fc3981b382`.
+- Preview release: `/var/www/7tool-release-20261008-grainger-5f71c6d/design-exploration/staging-pilot`.
+- `new.7tool.ru` was switched to the candidate after explicit user approval. The preview PM2 process is online with zero restarts after cutover.
+- Indexing remains disabled: the public response has `X-Robots-Tag: noindex, nofollow, noarchive`, the HTML has `noindex, nofollow, nocache`, and `robots.txt` disallows `/`.
+- Public smoke checks passed for the homepage, category grid/list, product page and mobile catalogue menu. Production `7tool.ru` remained online and its release pointer, configuration and data were not changed.
+- Previous preview release retained: `/var/www/7tool-release-20261008-p0-p4-bfc30d4/design-exploration/staging-pilot`.
+- Rollback record: `/var/www/7tool-new-shared/backups/20261008-before-grainger-5f71c6d.txt`.
+- Server disk usage after release: 95% (`2.1G` free). Expanding storage or performing a reviewed cleanup is the next operational priority; no server files were deleted during this deployment.
