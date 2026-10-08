@@ -95,4 +95,17 @@ After the first preview review, the candidate was refined locally without anothe
 - Browser QA passed at 1440, 1024, 768, 390 and 320 px.
 - Confirmed no horizontal overflow at all five widths.
 - Confirmed mobile category rows no longer overlap and the 1024 px long category name does not enter the image area.
-- This completion pass is a local/source candidate only. It has not replaced the currently published `new.7tool.ru` release.
+- This completion pass was subsequently deployed to `new.7tool.ru` after explicit user approval; the deployment details are recorded below.
+
+## Final completion deployment
+
+- Feature source commit: `0edcb35a3fea232e0a59d5821ddd0dff7a42a291`.
+- Deployment-guard commit: `ccba1ac` (includes resilient streamed-HTML checks in both prepare and activation scripts).
+- Active preview application: `/var/www/7tool-release-20261008-grainger-final-0edcb35/design-exploration/staging-pilot`.
+- Preview PM2 PID after activation: `180926`.
+- Production PM2 PID remained `179655` before and after activation; `https://7tool.ru/` continued to return HTTP 200.
+- Activation completed with `GRAINGER_FINAL_ACTIVATION_OK`; the pre-switch state is retained in `/var/www/7tool-new-shared/backups/20261008-before-grainger-final-0edcb35`.
+- Indexing remains disabled: public `X-Robots-Tag` is `noindex, nofollow, noarchive`, the HTML robots meta is `noindex, nofollow, nocache`, `robots.txt` disallows `/`, the sitemap has no URLs, and Yandex Metrika is absent.
+- Independent public checks passed for the homepage, category grid, product conversion block and production availability. The old mobile `НДС · УПД` copy and repeated product-card “Проверим до оплаты” block are absent.
+- Post-deployment browser QA passed on desktop and at 390 px: the homepage and category page have no horizontal overflow; the mobile header, first screen, category taxonomy and bottom navigation are readable and unobstructed.
+- Server disk after activation: 97% used with approximately 1.4 GB free. No server files were deleted during this deployment.
