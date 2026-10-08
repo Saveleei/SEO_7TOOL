@@ -37,5 +37,5 @@ Complete the agreed B2B buying flow for the staging storefront: clear variant-fi
 - Automated checks: 415 tests passed; lint passed with one existing `YandexMetrika.tsx` image warning; production build passed.
 - Visual QA passed at 1440, 390, and 320 px with no horizontal overflow. Confirmed the two-column mobile grid, mobile bottom-sheet confirmation, visible quote drawer, and phone-only contact requirement.
 - No customer form was submitted, no external test lead was sent, and no staging or production deployment was performed.
-- Commit: `f6948a4`.
+- Implementation commit: `afd5244`.
 - Reviewer focus: exercise a confirmed-in-stock exact variant to visually review the optional short-form attachment disclosure against live catalog data; automated coverage passes.
