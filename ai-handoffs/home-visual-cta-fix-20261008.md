@@ -18,4 +18,4 @@
 
 ## Commit
 
-`b6ae9d0` (implementation; final amended SHA recorded by Git history)
+Implementation: `a1597b7`
