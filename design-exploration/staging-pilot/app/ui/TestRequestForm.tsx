@@ -58,7 +58,7 @@ export function TestRequestForm({ compact = false, context = "Опишите о�
       {primaryContact === "email" && <label>Рабочая почта<input name="email" type="email" autoComplete="email" placeholder="name@company.ru" /></label>}
       <label>Телефон для связи<input name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+7 999 000-00-00" required /></label>
       <label>Имя или компания<input name="company" type="text" autoComplete="organization" maxLength={160} placeholder="Необязательно" /></label>
-      <label>Что требуется<textarea name="comment" rows={compact ? 3 : 4} defaultValue={context} maxLength={2000} required /></label>
+      <label>Что требуется<textarea name="comment" rows={compact ? 3 : 4} defaultValue={context} maxLength={2000} /></label>
       <label className="request-form-check"><input name="consent" type="checkbox" defaultChecked required /> <span>Я согласен с <a href="/soglasie-na-obrabotku" target="_blank">обработкой персональных данных</a></span></label>
       {formError && <p className="form-error" role="alert">{formError}</p>}
       <button type="submit" disabled={submitting}>{submitting ? "Сохраняем задачу…" : buttonLabel ?? (compact ? "Передать задачу инженеру" : "Отправить задачу")}</button>

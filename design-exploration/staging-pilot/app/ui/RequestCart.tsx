@@ -143,7 +143,7 @@ export function AddRequestButton({ item, className, children, openWhenAdded = fa
     addItem(item);
     if (openAfterAdd) open();
   };
-  const addedLabel = added ? "Добавлено · ещё +1" : children ?? "В запрос";
+  const addedLabel = added ? "Добавлено · ещё +1" : children ?? "Получить КП";
   const buttonLabel = added && (openWhenAdded || openAfterAdd) ? "Открыть КП" : addedLabel;
   return <button className={buttonClassName} type="button" onClick={activate} aria-live="polite">{buttonLabel}</button>;
 }

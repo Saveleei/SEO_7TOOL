@@ -2794,6 +2794,10 @@ body:has(.feed-compare-tray) .request-cart-dock { bottom:96px; }
 .burr-result-shapes b { font-size:11px; }
 .burr-result-actions { display:grid; gap:7px; }
 .burr-result-actions>.button { width:100%; min-height:44px; font-size:11px; }
+.burr-result-actions>.contact-dialog-trigger { width:100%; min-height:44px; padding:0 14px; border:1px solid var(--cta); border-radius:5px; background:var(--cta); color:#fff; font-family:inherit; font-size:11px; font-weight:850; cursor:pointer; }
+.burr-result-actions>.contact-dialog-trigger:hover { border-color:var(--cta-hover); background:var(--cta-hover); }
+.burr-result-actions>.burr-result-secondary { border:1px solid #cfd1cd; background:#fff; color:var(--ink); }
+.burr-result-actions>.burr-result-secondary:hover { border-color:#929990; background:#f5f6f3; }
 .burr-result-actions>details { border:1px solid #cfd1cd; border-radius:5px; background:#fff; }
 .burr-result-actions>details>summary { min-height:42px; display:flex; align-items:center; justify-content:center; padding:0 12px; color:var(--ink); font-size:10px; font-weight:850; list-style:none; cursor:pointer; }
 .burr-result-actions>details>summary::-webkit-details-marker { display:none; }

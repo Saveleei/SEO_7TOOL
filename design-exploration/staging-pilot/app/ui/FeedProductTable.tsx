@@ -75,7 +75,7 @@ function MobileSeries({ product, columns, selected, onCompare, onWarmVariants, o
       {compareControl}
       <dl>{columns.map((column) => <div key={column}><dt>{column}</dt><dd>{product.specs.find((spec) => spec.label === column)?.value ?? "—"}</dd></div>)}</dl>
       <div className="feed-mobile-series-commercial"><div><b>{product.price}</b><FeedAvailability shippingPromise={product.shippingPromise} /></div><button type="button" aria-haspopup="dialog" onPointerEnter={onWarmVariants} onPointerDown={onWarmVariants} onFocus={onWarmVariants} onClick={onOpenVariants}>{product.cardArchetype.multipleAction} · {product.selectedVariantCount}</button></div>
-      <Link className="feed-mobile-all-variants" href={`/p/${product.slug}`}>{product.cardArchetype.detailAction} →</Link>
+      <Link className="feed-mobile-all-variants" href={`/p/${product.slug}`}>Перейти к товару →</Link>
   </article>;
 }
 

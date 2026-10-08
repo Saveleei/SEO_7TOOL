@@ -12,8 +12,10 @@ test("burr quick filters prioritize manufacturer and omit the duplicated shape r
 
 test("guided selection asks for a phone after the preliminary result", async () => {
   const source = await readFile(new URL("../app/ui/BurrSelectionAssistant.tsx", import.meta.url), "utf8");
-  assert.match(source, /primaryContact="phone"/u);
-  assert.match(source, /Заказать звонок инженера/u);
+  assert.match(source, /<ContactRequestDialog/u);
+  assert.match(source, /buttonLabel="Консультация с инженером"/u);
+  assert.match(source, /<button className="button burr-result-secondary"/u);
+  assert.ok(source.indexOf("Консультация с инженером") < source.indexOf("Показать подходящие товары"));
 });
 
 test("send parameters opens a local callback form instead of composing an email", async () => {
@@ -26,6 +28,8 @@ test("send parameters opens a local callback form instead of composing an email"
   assert.match(assistant, /Передать задачу инженеру/u);
   assert.match(dialog, /Телефон для связи/u);
   assert.match(dialog, /defaultChecked required/u);
+  assert.doesNotMatch(dialog, /name="comment"[^>]*required/u);
+  assert.doesNotMatch(shortForm, /name="comment"[^>]*required/u);
   assert.match(dialog, /event\.preventDefault\(\)/u);
   assert.doesNotMatch(dialog, /mailto:/u);
   for (const source of [dialog, shortForm]) {
@@ -216,4 +220,17 @@ test("an exact category result can be added without an extra reveal", async () =
   assert.match(card, /<AddRequestButton className="feed-quote-primary" openAfterAdd[^>]*directVariant\.id[\s\S]*>Получить КП<\/AddRequestButton>/u);
   assert.doesNotMatch(card, /feed-quote-secondary|>В запрос<\/AddRequestButton>/u);
   assert.match(card, /<QuickOrderDialog className="feed-quote-quick"/u);
+});
+
+test("guided selectors make engineer consultation primary and product results secondary", async () => {
+  const sources = await Promise.all([
+    readFile(new URL("../app/ui/CategorySelectionAssistant.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/ui/BurrSelectionAssistant.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/ui/DrillSelectionAssistant.tsx", import.meta.url), "utf8"),
+  ]);
+  for (const source of sources) {
+    assert.match(source, /buttonLabel="Консультация с инженером"/u);
+    assert.match(source, /className="button burr-result-secondary"/u);
+    assert.ok(source.indexOf("Консультация с инженером") < source.indexOf("burr-result-secondary"));
+  }
 });

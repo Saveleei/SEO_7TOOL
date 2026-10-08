@@ -42,7 +42,7 @@ function SearchProductCard({ product }: { product: CatalogSearchHit }) {
   return <article className="search-product-card">
     <Link className="search-product-image" href={product.href}>{product.image ? <Image src={product.image} alt={product.title} width={260} height={210} unoptimized /> : <span>Изображение уточняется</span>}</Link>
     <div className="search-product-main"><small>{product.eyebrow}</small><h3><Link href={product.href}>{product.title}</Link></h3><p>{product.meta}</p>{product.specs?.length ? <ul>{product.specs.map((spec) => <li key={spec}>{spec}</li>)}</ul> : null}</div>
-    <div className="search-product-buy"><b>{product.price}</b><span className={product.availability?.startsWith("В наличии") || product.availability?.startsWith("Есть") ? "available" : undefined}>{product.availability}</span><small>{product.availabilityDetail}</small><div>{product.requestItem ? <AddRequestButton item={product.requestItem}>Добавить в КП</AddRequestButton> : <Link className="search-product-primary" href={product.href}>Выбрать исполнение</Link>}<Link href={product.href}>Все характеристики</Link></div></div>
+    <div className="search-product-buy"><b>{product.price}</b><span className={product.availability?.startsWith("В наличии") || product.availability?.startsWith("Есть") ? "available" : undefined}>{product.availability}</span><small>{product.availabilityDetail}</small><div>{product.requestItem ? <AddRequestButton item={product.requestItem}>Получить КП</AddRequestButton> : <Link className="search-product-primary" href={product.href}>Выбрать исполнение</Link>}<Link href={product.href}>Все характеристики</Link></div></div>
   </article>;
 }
 

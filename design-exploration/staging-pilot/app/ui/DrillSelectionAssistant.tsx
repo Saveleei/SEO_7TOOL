@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { buildDrillDiameterOptions, buildDrillSelectionUrl, drillWorkOptions, resolveReverseFacetValue } from "../data/drillSelection.mjs";
-import { TestRequestForm } from "./TestRequestForm";
+import { ContactRequestDialog } from "./ContactRequestDialog";
 
 type FacetOption = { value: string; label: string; count: number };
 
@@ -108,7 +108,7 @@ export function DrillSelectionAssistant({
         {showThreadingChoice && <fieldset><legend><span>{showWorkChoice ? "03" : "02"}</span> Нужен реверс или нарезание резьбы?</legend><div className="drill-diameter-options"><button className={!threading ? "active" : undefined} type="button" onClick={() => setThreading(false)} aria-pressed={!threading}>Не требуется</button><button className={threading ? "active" : undefined} type="button" onClick={() => setThreading(true)} aria-pressed={threading}>Требуется</button></div><small>{threading ? "В выдаче оставим модели с реверсом. Возможность нарезания резьбы проверим отдельно." : "Не ограничиваем выдачу по реверсу."}</small></fieldset>}
         {lockedSubsegment && <div className="drill-selector-locked"><span>Вид оборудования сохранён</span><b>{selectorTitle}</b><a href={`/c/stanki-sverlilnye?segment=${encodeURIComponent(lockedSegment ?? "")}#products`}>Изменить вид</a></div>}
       </div>
-      <section className="burr-finder-result" aria-live="polite"><div><span>Предварительный результат</span><h4>{recommendation.title}</h4><p>{recommendation.note}</p><small>Наличие и пригодность для конкретной операции подтверждаются после выбора модели.</small></div><div className="burr-result-actions"><button className="button button-orange" type="button" onClick={showProducts}>Показать подходящие станки</button><details><summary>Проверить с инженером</summary><TestRequestForm compact primaryContact="phone" context={requestContext} buttonLabel="Заказать звонок инженера" /></details></div></section>
+      <section className="burr-finder-result" aria-live="polite"><div><span>Предварительный результат</span><h4>{recommendation.title}</h4><p>{recommendation.note}</p><small>Наличие и пригодность для конкретной операции подтверждаются после выбора модели.</small></div><div className="burr-result-actions"><ContactRequestDialog categoryTitle={requestContext} buttonLabel="Консультация с инженером" /><button className="button burr-result-secondary" type="button" onClick={showProducts}>Показать подходящие станки</button></div></section>
     </div>
   </details>;
 }

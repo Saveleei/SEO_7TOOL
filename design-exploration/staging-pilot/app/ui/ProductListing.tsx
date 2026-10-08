@@ -67,7 +67,7 @@ export function ProductListing() {
                   <p className="catalog-reason"><b>Подходит:</b> {product.fit}</p>
                   <dl><div><dt>Корончатое сверло</dt><dd>до {product.diameter} мм</dd></div><div><dt>Шпиндель</dt><dd>{product.spindle}</dd></div><div><dt>Мощность</dt><dd>{product.power.toLocaleString("ru-RU")} Вт</dd></div><div><dt>Реверс</dt><dd>{product.reverse ? "Есть" : "Нет"}</dd></div><div><dt>Масса</dt><dd>{product.weight}</dd></div></dl>
                   <div className="catalog-price"><div><b>{product.price}</b><span>ориентировочная цена с НДС · подтвердим в КП</span></div></div>
-                  <div className="catalog-actions"><AddRequestButton item={{ id: product.model, title: product.title, article: `Артикул ${product.model}`, price: product.price }}>В запрос</AddRequestButton>{product.href ? <Link href={product.href}>Подробнее</Link> : <button type="button" onClick={() => toggleCompare(product.model)}>{selected ? "Добавлено" : "В сравнение"}</button>}</div>
+                  <div className="catalog-actions"><AddRequestButton item={{ id: product.model, title: product.title, article: `Артикул ${product.model}`, price: product.price }}>Получить КП</AddRequestButton>{product.href ? <Link href={product.href}>Подробнее</Link> : <button type="button" onClick={() => toggleCompare(product.model)}>{selected ? "Добавлено" : "В сравнение"}</button>}</div>
                 </div>
               </article>;
             })}

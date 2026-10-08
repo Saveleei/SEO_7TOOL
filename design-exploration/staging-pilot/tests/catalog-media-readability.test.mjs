@@ -18,13 +18,13 @@ test("catalog navigation media uses one uncropped containment contract", async (
   assert.match(css, /\.category-assortment-shortcut-media img \{[^}]*inset:7px!important;[^}]*object-fit:contain!important;[^}]*padding:0!important;/u);
 });
 
-test("homepage task navigation keeps readable type and removes the accidental third row", async () => {
+test("homepage task navigation keeps three large image-led entrances per direction", async () => {
   const [paths, css] = await Promise.all([
     read("../app/ui/HomepageTaskPaths.tsx"),
     read("../app/globals.css"),
   ]);
 
-  assert.match(paths, /group\.subcategories\.slice\(0, 4\)/u);
+  assert.match(paths, /group\.subcategories\.slice\(0, 3\)/u);
   assert.doesNotMatch(paths, /homepage-task-path__more/u);
   assert.match(paths, /formatCategoryCount\(group\.subcategories\.length\)/u);
   assert.match(css, /\/\* Final task-navigation overrides[\s\S]*?\.homepage-task-path \{[^}]*min-height:0;[^}]*height:100%;/u);

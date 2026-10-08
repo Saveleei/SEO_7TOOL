@@ -10,7 +10,7 @@ export function FeedAvailability({ shippingPromise, count, exact = false }: Feed
   const label = shippingPromise.available
     ? typeof count === "number"
       ? `${count} ${variantWord(count)} в наличии · ${shippingPromise.shipmentLabel}`
-      : exact ? shippingPromise.label : `Есть исполнения в наличии · ${shippingPromise.shipmentLabel}`
+      : exact ? shippingPromise.label : `В наличии · ${shippingPromise.shipmentLabel}`
     : shippingPromise.label;
 
   return <div className="feed-availability-block">

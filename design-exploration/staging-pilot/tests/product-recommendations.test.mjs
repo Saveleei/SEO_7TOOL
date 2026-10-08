@@ -124,7 +124,7 @@ test("buy-box comparison opens an accessible feed-grounded decision dialog", asy
   assert.match(comparison, /role="dialog" aria-modal="true"/u);
   assert.match(comparison, /heading = "Похожие модели по выбранному исполнению"/u);
   assert.match(comparison, /\{keepAction\}/u);
-  assert.match(comparison, /Добавить в КП/u);
+  assert.match(comparison, /Получить КП/u);
   assert.match(comparison, /comparison_add_to_quote/u);
   assert.match(comparison, /target_product_id:option\.productId, target_variant_id:option\.id/u);
   assert.doesNotMatch(comparison, /phone:|email:|name:/u);

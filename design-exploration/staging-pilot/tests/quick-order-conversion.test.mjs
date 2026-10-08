@@ -56,6 +56,26 @@ test("category cards, table rows and product buybox expose the same exact-varian
   }
 });
 
+test("all public exact-variant entry points use one quote action label", async () => {
+  const sources = await Promise.all([
+    readFile(new URL("../app/ui/RequestCart.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/ui/ProductListing.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/ui/ProductRecommendationSystem.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/ui/ProductComparisonDialog.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/product/[slug]/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/search/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/compare/ComparePageClient.tsx", import.meta.url), "utf8"),
+  ]);
+  for (const source of sources) assert.doesNotMatch(source, />В запрос<|Добавить в КП/u);
+  assert.match(sources[0], /children \?\? "Получить КП"/u);
+});
+
+test("series availability uses the concise in-stock wording", async () => {
+  const source = await readFile(new URL("../app/ui/FeedAvailability.tsx", import.meta.url), "utf8");
+  assert.match(source, /`В наличии · \$\{shippingPromise\.shipmentLabel\}`/u);
+  assert.doesNotMatch(source, /Есть исполнения в наличии/u);
+});
+
 test("the dialog is keyboard accessible and becomes a mobile bottom sheet", async () => {
   const [source, styles] = await Promise.all([
     readFile(new URL("../app/ui/QuickOrderDialog.tsx", import.meta.url), "utf8"),
