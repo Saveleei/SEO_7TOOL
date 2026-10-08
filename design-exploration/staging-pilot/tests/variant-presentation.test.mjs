@@ -60,14 +60,15 @@ test("product selector keeps the initial payload bounded and opens the paged ful
   assert.match(page, /initialNextOffset=\{initialPurchasePage\.nextOffset\}/u);
   assert.match(page, /variantsEndpoint=\{variantsEndpoint\}/u);
   assert.doesNotMatch(page, /getProductVariantChoices\(product\)/u);
+  assert.match(purchase, /const INITIAL_VARIANTS = 6;/u);
   assert.match(purchase, /variants\.slice\(0, INITIAL_VARIANTS\)/u);
   assert.match(purchase, /feed-variant-options--sizes/u);
-  assert.match(purchase, /Сейчас показано \{collapsedVariantCount\} из \{totalVariantCount\}/u);
+  assert.match(purchase, /Быстрый выбор: \{collapsedVariantCount\} из \{totalVariantCount\}/u);
   assert.match(purchase, /feed-variant-availability-legend/u);
   assert.match(purchase, /<VariantPickerDialog/u);
   assert.match(purchase, /initialNextOffset=\{initialNextOffset\}/u);
   assert.match(purchase, /initialAvailableVariantCount=\{availableVariantCount\}/u);
-  assert.match(purchase, /Открыть удобный выбор/u);
+  assert.match(purchase, /Открыть полный выбор/u);
   assert.match(purchase, /totalVariantCount > 1 && <VariantPickerDialog/u);
   assert.match(picker, /Найти по размеру или артикулу/u);
   assert.match(picker, /initialNextOffset === undefined/u);
@@ -305,7 +306,7 @@ test("product selector explains exact media without filling every size with a du
   const purchase = await readFile(new URL("../app/ui/FeedProductPurchase.tsx", import.meta.url), "utf8");
   const gallery = await readFile(new URL("../app/ui/FeedProductGallery.tsx", import.meta.url), "utf8");
   assert.match(purchase, /variant\.selectorImage && <Image/u);
-  assert.match(purchase, /Миниатюра показана только у исполнения с отличающимся фото поставщика/u);
+  assert.match(purchase, /Фото, цена и наличие относятся к выбранному исполнению/u);
   assert.match(gallery, /Фото выбранного исполнения/u);
   assert.match(gallery, /Проверенное фото товара из товарной группы — исполнение сверяем по параметрам/u);
 });

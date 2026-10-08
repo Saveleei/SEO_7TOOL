@@ -9813,3 +9813,21 @@ h1,h2,h3,.hero h1,.page-hero h1,.section-heading h2,.assurance-section .section-
   .category-sibling-navigation--before-products { display:none; }
   .category-sibling-navigation--after-products { display:block; margin-top:-1px; }
 }
+
+/* Stage 5: the commercial decision precedes the full variant matrix. */
+.feed-selected-variant--primary { margin:0 0 10px; }
+.feed-conversion-purchase-actions { grid-template-columns:92px minmax(0,1fr); }
+.feed-conversion-variants { margin-top:14px; padding-top:14px; border-top:1px solid var(--product-line); }
+.feed-product-support-actions { display:flex; align-items:center; gap:8px; margin-top:10px; }
+.feed-product-support-actions .social-share-button,
+.feed-product-support-actions>a { min-height:40px; display:inline-flex; align-items:center; justify-content:center; margin:0; padding:0 12px; border:1px solid var(--product-line); border-radius:5px; background:#fff; color:#3d443f; font-size:12px; font-weight:750; text-decoration:none; }
+.feed-product-support-actions>a:hover { border-color:#7d857e; color:#1f2521; }
+
+@media (max-width:760px) {
+  .feed-conversion-gallery-main { min-height:260px; }
+  .feed-conversion-gallery-main>img { height:220px; }
+  .feed-product-support-actions { display:grid; grid-template-columns:1fr 1fr; }
+  .feed-product-support-actions .social-share-button,
+  .feed-product-support-actions>a { width:100%; padding-inline:8px; }
+  .feed-variant-options--sizes { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}

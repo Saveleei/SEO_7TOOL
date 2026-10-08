@@ -40,7 +40,7 @@ test("priority categories use the appropriate industrial purchase scenario", () 
   assert.equal(getProductPageArchetype("stanki-lazernoy-rezki").id, "project-system");
 });
 
-test("product page surfaces the scenario before purchase and carries it through comparison and quote", async () => {
+test("product page prioritizes the commercial decision and carries the scenario through comparison and quote", async () => {
   const [page, purchase, recommendations, comparison, styles] = await Promise.all([
     readFile(new URL("../app/product/[slug]/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/ui/FeedProductPurchase.tsx", import.meta.url), "utf8"),
@@ -50,8 +50,8 @@ test("product page surfaces the scenario before purchase and carries it through 
   ]);
 
   assert.match(page, /getProductPageArchetype\(product\.category\)/u);
-  assert.match(page, /className="feed-product-buying-route"/u);
-  assert.match(page, /expertProfile\.criteria\.slice\(0, 3\)/u);
+  assert.doesNotMatch(page, /className="feed-product-buying-route"/u);
+  assert.match(page, /className="feed-product-support-actions"/u);
   assert.match(page, /categorySlug=\{product\.category\}/u);
   assert.match(page, /data-product-archetype=\{pageArchetype\.id\}/u);
   assert.match(purchase, /feed-quote-primary[\s\S]*Получить КП/u);
@@ -63,8 +63,10 @@ test("product page surfaces the scenario before purchase and carries it through 
   assert.match(recommendations, /pageArchetype\.compatibilityTitle/u);
   assert.match(comparison, /\{heading\}/u);
   assert.match(comparison, /\{keepAction\}/u);
-  assert.match(styles, /\.feed-product-buying-route \{/u);
-  assert.match(styles, /@media \(max-width:760px\)[\s\S]*\.feed-product-buying-route \{ grid-template-columns:1fr/u);
+  assert.ok(purchase.indexOf("feed-selected-variant--primary") < purchase.indexOf("feed-conversion-stock"));
+  assert.ok(purchase.indexOf("feed-conversion-stock") < purchase.indexOf("feed-conversion-variants"));
+  assert.match(styles, /\.feed-product-support-actions \{ display:flex/u);
+  assert.match(styles, /\.feed-conversion-purchase-actions \{ grid-template-columns:92px minmax\(0,1fr\); \}/u);
 });
 
 test("tooling and equipment actions do not collapse into generic model copy", () => {

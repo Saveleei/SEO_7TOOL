@@ -69,7 +69,6 @@ test("product page uses exact variants, honest supply states and local callback 
   const recommendations = await readFile(new URL("../app/ui/ProductRecommendationSystem.tsx", import.meta.url), "utf8");
   assert.match(page, /<ProductRecommendationSystem product=\{product\} variant=\{primaryVariant\}/u);
   assert.match(page, /pageArchetype\.supplyIntro/u);
-  assert.match(page, /id:`variant:\$\{primaryVariant\.id\}`/u);
   assert.doesNotMatch(page, /Система охлаждения|Страховочный ремень|1 100 Вт/u);
   assert.match(recommendations, /pageArchetype\.compatibilityTitle/u);
   assert.match(recommendations, /pageArchetype\.kitTitle/u);
@@ -80,6 +79,7 @@ test("product page uses exact variants, honest supply states and local callback 
   assert.match(recommendations, /Артикул \$\{variant\.sku\}/u);
   assert.doesNotMatch(recommendations, /mailto:/u);
   assert.match(purchase, /id:`variant:\$\{selected\.id\}`/u);
+  assert.match(purchase, /initialVariantId=\{selected\.id\}/u);
   assert.match(purchase, /ContactRequestDialog/u);
   assert.doesNotMatch(purchase, /mailto:/u);
 });
