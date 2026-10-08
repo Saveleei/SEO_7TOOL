@@ -40,6 +40,20 @@ test("categories select the default mobile layout by product archetype", async (
   assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.category-page-shell \.feed-view-switch--desktop \{ display:none; \}[\s\S]*?\.category-page-shell \.feed-view-switch--mobile \{ display:flex; \}/u);
 });
 
+test("mobile sibling discovery follows products while desktop navigation stays above them", async () => {
+  const [page, css] = await Promise.all([
+    read("../app/catalog/category/[slug]/page.tsx"),
+    read("../app/globals.css"),
+  ]);
+  const before = page.indexOf("category-sibling-navigation--before-products");
+  const products = page.indexOf('id="products"');
+  const after = page.indexOf("category-sibling-navigation--after-products");
+  assert.ok(before >= 0 && before < products);
+  assert.ok(after > products);
+  assert.match(page, /decisionShortcuts\.slice\(0, 4\)/u);
+  assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.category-sibling-navigation--before-products \{ display:none; \}[\s\S]*?\.category-sibling-navigation--after-products \{ display:block;/u);
+});
+
 test("selection help is inserted after a complete first row", async () => {
   const [page, list, table] = await Promise.all([
     read("../app/catalog/category/[slug]/page.tsx"),

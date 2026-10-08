@@ -9804,3 +9804,12 @@ h1,h2,h3,.hero h1,.page-hero h1,.section-heading h2,.assurance-section .section-
   .homepage-main .homepage-category-tiles--hero .homepage-category-tile--5,
   .homepage-main .homepage-category-tiles--hero .homepage-category-tile--6 { grid-template-columns:minmax(0,1fr) 122px; }
 }
+
+/* Stage 4: sibling discovery stays before products on desktop, but follows the
+   first product set on phones so a buyer reaches stock and prices sooner. */
+.category-sibling-navigation--after-products { display:none; }
+
+@media (max-width:760px) {
+  .category-sibling-navigation--before-products { display:none; }
+  .category-sibling-navigation--after-products { display:block; margin-top:-1px; }
+}
