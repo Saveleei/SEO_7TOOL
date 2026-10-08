@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { ProductionCategoryGroup } from "../data/productionCategoryGroups";
-import { HomepageCategoryMedia } from "./HomepageCategoryMedia";
 
 export function HomepageTaskPaths({ groups }: { groups: ProductionCategoryGroup[] }) {
   const [expandedGroup, setExpandedGroup] = useState("");
@@ -20,7 +19,6 @@ export function HomepageTaskPaths({ groups }: { groups: ProductionCategoryGroup[
         </header>
         <nav className="homepage-task-path__subcategories" id={navigationId} aria-label={`Подразделы: ${group.title}`}>
           {group.subcategories.slice(0, 4).map((category) => <Link href={category.href} key={category.slug}>
-            <span className="homepage-task-path__subcategory-media"><HomepageCategoryMedia src={category.image} alt="" sizes="64px" /></span>
             <span className="homepage-task-path__subcategory-copy"><b>{category.label}</b><small>{formatSeriesCount(category.count ?? 0)}</small></span>
             <i aria-hidden="true">→</i>
           </Link>)}

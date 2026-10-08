@@ -39,9 +39,10 @@ test("homepage category media replaces failed supplier images without layout shi
   assert.match(media, /homepage-category-tile-placeholder/u);
   assert.match(media, /раздел каталога/u);
   assert.match(css, /\.homepage-category-tile-placeholder \{[\s\S]*?width:100%;[\s\S]*?height:100%;/u);
+  assert.match(css, /Grainger visual-entry completion[\s\S]*?max-width:100%;[\s\S]*?overflow-wrap:anywhere;/u);
 });
 
-test("homepage production tasks expose direct category paths without cropping equipment imagery", async () => {
+test("homepage production tasks expose compact direct category paths without duplicating product imagery", async () => {
   const [paths, css] = await Promise.all([
     read("../app/ui/HomepageTaskPaths.tsx"),
     read("../app/globals.css"),
@@ -53,15 +54,12 @@ test("homepage production tasks expose direct category paths without cropping eq
   assert.match(paths, /homepage-task-path__action/u);
   assert.doesNotMatch(paths, /homepage-task-path__more/u);
   assert.match(paths, /formatCategoryCount\(group\.subcategories\.length\)/u);
-  assert.match(paths, /HomepageCategoryMedia src=\{category\.image\}/u);
+  assert.doesNotMatch(paths, /HomepageCategoryMedia|homepage-task-path__subcategory-media/u);
   assert.doesNotMatch(paths, /group\.representativeImage|group\.image/u);
-  assert.match(css, /\.homepage-task-path__subcategory-media img[^}]*object-fit:contain/u);
   assert.match(css, /\.homepage-task-paths \{ align-items:stretch; \}/u);
-  assert.match(css, /\/\* Final task-navigation overrides[\s\S]*?\.homepage-task-path \{[^}]*min-height:0;[^}]*height:100%;/u);
-  assert.match(css, /\.homepage-task-path__header \{[^}]*height:96px;/u);
-  assert.match(css, /\.homepage-task-path__subcategory-media img \{[^}]*position:absolute!important;[^}]*inset:6px!important;[^}]*object-fit:contain!important;/u);
-  assert.match(css, /\.homepage-task-path__subcategories \{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/u);
-  assert.match(css, /\.homepage-task-path__subcategory-media \{ width:64px; height:66px;/u);
+  const completion = css.slice(css.lastIndexOf("/* Grainger visual-entry completion"));
+  assert.match(completion, /\.production-task-section \.homepage-task-path__header \{[\s\S]*?min-height:80px;/u);
+  assert.match(completion, /\.production-task-section \.homepage-task-path__subcategories>a \{[\s\S]*?min-height:50px;[\s\S]*?grid-template-columns:minmax\(0,1fr\) 14px;/u);
   assert.match(css, /\.homepage-task-path\[data-expanded="true"\] \.homepage-task-path__subcategories/u);
 });
 

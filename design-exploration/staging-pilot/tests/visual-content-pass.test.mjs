@@ -24,14 +24,13 @@ test("catalog subcategories use their own feed-grounded imagery without inventin
   assert.doesNotMatch(catalog, /наш склад|собственный склад|всегда в наличии/iu);
 });
 
-test("catalog evidence and product cards explain the verifiable buying process", async () => {
-  const [catalog, card, css] = await Promise.all([read("../app/catalog/page.tsx"), read("../app/ui/FeedProductCard.tsx"), read("../app/globals.css")]);
+test("catalog evidence explains the buying process once without repeating it in every product card", async () => {
+  const [catalog, category, card, css] = await Promise.all([read("../app/catalog/page.tsx"), read("../app/catalog/category/[slug]/page.tsx"), read("../app/ui/FeedProductCard.tsx"), read("../app/globals.css")]);
   assert.match(catalog, /getTrustContentSettings/u);
   assert.match(catalog, /orderTrustCardsForDisplay\(trustContent\.cards\)\.map/u);
   assert.match(catalog, /trustCardImageUrl\(card\)/u);
-  assert.match(card, /feed-product-assurance/u);
-  assert.match(card, /Проверим до оплаты/u);
-  assert.match(card, /Точное исполнение · комплектность и документы · остаток и дата отгрузки/u);
+  assert.doesNotMatch(card, /feed-product-assurance|Проверим до оплаты|Фото из каталога поставщика/u);
+  assert.match(category, /Остаток и срок отгрузки подтвердим перед оплатой/u);
   assert.match(css, /\.catalog-evidence-grid article>img \{[^}]*aspect-ratio:16\/9;[^}]*object-fit:contain/u);
   assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.catalog-evidence-grid article \{ display:block; \}/u);
   assert.doesNotMatch(css, /\.catalog-evidence-grid article \{ display:grid; grid-template-columns:128px/u);

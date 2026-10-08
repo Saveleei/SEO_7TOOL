@@ -60,9 +60,13 @@ test("homepage first screen pairs visual assortment with editable warehouse evid
   assert.match(page, /orderTrustCardsForDisplay\(trustContent\.cards\)\.slice\(0, 3\)\.map/u);
   assert.match(page, /trustCardImageUrl\(card\)/u);
   assert.match(page, /Реальные склад, комплектация и отгрузка/u);
-  const firstScreen = css.slice(css.lastIndexOf("/* Mobile homepage first-screen refinement"));
+  const firstScreen = css.slice(css.lastIndexOf("/* Grainger visual-entry completion"));
   assert.match(firstScreen, /\.hero-mobile-catalog-preview \.homepage-category-tiles--hero \{[\s\S]*?display:grid;[\s\S]*?grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/u);
-  assert.match(firstScreen, /\.hero-mobile-trust-points \{[\s\S]*?grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/u);
+  assert.match(firstScreen, /grid-auto-rows:154px/u);
+  assert.match(firstScreen, /grid-template-rows:94px minmax\(0,1fr\)/u);
+  assert.match(firstScreen, /\.hero-mobile-catalog-preview \.homepage-category-tile-copy small \{[\s\S]*?display:none;/u);
+  assert.match(firstScreen, /\.hero-mobile-trust-points \{[\s\S]*?grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/u);
+  assert.match(firstScreen, /\.homepage-main \.hero-evidence-link \{ display:none; \}/u);
   assert.match(css, /\.homepage-main \.hero-grid>\.hero-catalog-card \{ display:none; \}/u);
   assert.match(css, /\.assurance-grid \{ display:grid; grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/u);
   assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.assurance-grid \{[\s\S]*?display:flex;[\s\S]*?overflow-x:auto;/u);

@@ -73,3 +73,26 @@ Adapt the useful catalogue patterns from Grainger Canada to the smaller 7TOOL B2
 - Previous preview release retained: `/var/www/7tool-release-20261008-p0-p4-bfc30d4/design-exploration/staging-pilot`.
 - Rollback record: `/var/www/7tool-new-shared/backups/20261008-before-grainger-5f71c6d.txt`.
 - Server disk usage after release: 95% (`2.1G` free). Expanding storage or performing a reviewed cleanup is the next operational priority; no server files were deleted during this deployment.
+
+## Post-review completion pass
+
+After the first preview review, the candidate was refined locally without another deployment:
+
+- Removed the repeated “Проверим до оплаты” panel and supplier-photo caption from every product card; the category-level payment/availability explanation remains the single source of that reassurance.
+- Enlarged the useful product image area in desktop card view and reduced non-product chrome.
+- Reworked the mobile homepage entry into a stable two-column image-first grid with four priority categories and one explicit “Все 24 категории” route.
+- Reduced the mobile trust strip to the two procurement facts that belong above the fold: VAT/UPD and nationwide delivery.
+- Removed duplicate category thumbnails from the secondary production-task navigator and retained compact labels, feed-backed counts and direct links.
+- Added bounded word wrapping and a larger catalogue column for the 961–1180 px range so long Russian category names cannot overlap product images.
+- Corrected an inherited mobile grid-row rule that caused the second category row to overlap the first.
+- Hid series counts in the smallest image-first homepage tiles because they are range counts, not current stock quantities; counts remain available in the full catalogue hierarchy.
+
+### Final verification for this pass
+
+- Full Node test suite: 415/415 passed.
+- ESLint: 0 errors; one unchanged `@next/next/no-img-element` warning in `app/ui/YandexMetrika.tsx`.
+- Vinext production build: passed after regenerating the 24-category presentation and 125 legacy-compatible subcategory landings.
+- Browser QA passed at 1440, 1024, 768, 390 and 320 px.
+- Confirmed no horizontal overflow at all five widths.
+- Confirmed mobile category rows no longer overlap and the 1024 px long category name does not enter the image area.
+- This completion pass is a local/source candidate only. It has not replaced the currently published `new.7tool.ru` release.

@@ -26,7 +26,6 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
   return <article className={`feed-product-card feed-product-card--${archetype.id} ${selected ? "feed-product-card--selected" : ""}`}>
     <a className="feed-product-media" href={`/p/${product.slug}`} aria-label={`Открыть ${product.title}`}>
       {product.image ? <Image src={product.image} alt={product.title} width={430} height={340} unoptimized /> : <span>Изображение уточняется</span>}
-      {product.image && <small>Фото из каталога поставщика</small>}
     </a>
 
     <div className="feed-product-copy">
@@ -50,7 +49,6 @@ export function FeedProductCard({ product, selected, onCompare }: Props) {
           {directVariant && <QuickOrderDialog item={{ id:`variant:${directVariant.id}`, title:directVariant.title || product.title, article:variantArticle(directVariant.sku), price:directVariant.price, image:directVariant.image, href:directVariant.href, shippingLabel:directVariant.shippingPromise.label, shippingDetail:directVariant.shippingPromise.detail }} available={directVariant.shippingPromise.available} productId={product.id} variantId={directVariant.id} category={product.categorySlug} placement="category_card" pageType="category" />}
           <a className="feed-all-characteristics" href={`/p/${product.slug}`} aria-label={`${archetype.detailAction}: ${product.title}`}>{archetype.detailAction}</a>
         </div>
-        <div className="feed-product-assurance"><b>Проверим до оплаты</b><span>Точное исполнение · комплектность и документы · остаток и дата отгрузки</span></div>
       </div>
     </div>
     {!directVariant && <VariantPickerDialog open={pickerOpen} onClose={() => setPickerOpen(false)} productId={product.id} productTitle={product.title} category={product.categorySlug} pageType="category" placement="category_card_size_picker" items={toPickerItems(product)} totalVariantCount={product.variantCount} fullProductHref={`/p/${product.slug}`} variantsEndpoint={variantsEndpoint} selectorLabel={isSizeLedProduct(product) ? "Размер" : "Исполнение"} />}
